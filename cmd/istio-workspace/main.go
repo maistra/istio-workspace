@@ -38,6 +38,6 @@ func main() {
 	resyncPeriod := 0
 	logrus.Infof("Watching resource %s, kind %s, namespace %s, resyncPeriod %d", resource, kind, namespace, resyncPeriod)
 	sdk.Watch(resource, kind, namespace, resyncPeriod)
-	sdk.Handle(stub.NewHandler())
+	sdk.Handle(stub.NewHandler("Istio Workspace Handler"))
 	sdk.Run(context.TODO())
 }

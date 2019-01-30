@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewHandler() sdk.Handler {
-	return &Handler{}
+func NewHandler(name string) sdk.Handler {
+	return &Handler{name: name}
 }
 
 type Handler struct {
