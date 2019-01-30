@@ -15,10 +15,15 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
+var Commit string
+var BuildTime string
+
 func printVersion() {
 	logrus.Infof("Go Version: %s", runtime.Version())
 	logrus.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
 	logrus.Infof("operator-sdk Version: %v", sdkVersion.Version)
+	logrus.Infof("Build Commit: %v", Commit)
+	logrus.Infof("Build Time: %v", BuildTime)
 }
 
 func main() {

@@ -9,4 +9,4 @@ deepcopy \
 github.com/aslakknutsen/istio-workspace/pkg/generated \
 github.com/aslakknutsen/istio-workspace/pkg/apis \
 istio:v1alpha1 \
---go-header-file "./tmp/codegen/boilerplate.go.txt"
+--go-header-file "./go.header.txt"
