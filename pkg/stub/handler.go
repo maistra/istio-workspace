@@ -3,7 +3,7 @@ package stub
 import (
 	"context"
 
-	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"runtime"
 
-	"github.com/maistra/istio-workspace/pkg/stub"
+	"github.com/aslakknutsen/istio-workspace/pkg/stub"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
