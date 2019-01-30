@@ -30,7 +30,13 @@ lint: ## Concurrently runs a whole bunch of static analysis tools
 .PHONY: codegen
 codegen:
     # In case of multiple directories set as GOPATH use the last one defined
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f1 | rev) ./update-generated.sh
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f1 | rev) \
+	vendor/k8s.io/code-generator/generate-groups.sh \
+    deepcopy \
+    github.com/aslakknutsen/istio-workspace/pkg/generated \
+    github.com/aslakknutsen/istio-workspace/pkg/apis \
+    istio:v1alpha1 \
+    --go-header-file "./go.header.txt"
 
 .PHONY: compile
 compile: deps codegen $(BINARY_DIR)/$(PROJECT_NAME)
