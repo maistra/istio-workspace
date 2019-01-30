@@ -1,6 +1,7 @@
 PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 
+CUR_DIR = $(shell pwd)
 BINARY_DIR:=${PWD}/dist
 
 .PHONY: all
@@ -61,4 +62,16 @@ $(BINARY_DIR):
 
 $(BINARY_DIR)/$(PROJECT_NAME): $(BINARY_DIR) $(SRCS)
 	GOOS=linux CGO_ENABLED=0 go build -a -tags netgo -ldflags ${LDFLAGS} -o $@ ./cmd/istio-workspace/
+
+# Docker build
+
+DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
+DOCKER_IMAGE?=$(PROJECT_NAME)
+DOCKER_REPO?=docker.io/aslakknutsen
+
+docker-build: ## Builds the docker image
+	@echo "Building docker image $(DOCKER_IMAGE_CORE)"
+	$(DOCKER) build \
+		-t $(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
+		-f $(CUR_DIR)/Dockerfile $(CUR_DIR)
 
