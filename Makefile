@@ -25,7 +25,7 @@ tools: ## Installs required go tools
 	@go get -u golang.org/x/tools/cmd/goimports
 
 .PHONY: lint
-lint: ## Concurrently runs a whole bunch of static analysis tools
+lint: deps ## Concurrently runs a whole bunch of static analysis tools
 	@golangci-lint run
 
 .PHONY: codegen
@@ -74,4 +74,3 @@ docker-build: ## Builds the docker image
 	$(DOCKER) build \
 		-t $(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
 		-f $(CUR_DIR)/Dockerfile $(CUR_DIR)
-
