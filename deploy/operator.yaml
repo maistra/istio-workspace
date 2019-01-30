@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-workspace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: istio-workspace
+  template:
+    metadata:
+      labels:
+        name: istio-workspace
+    spec:
+      serviceAccountName: istio-workspace
+      automountServiceAccountToken: true
+      containers:
+        - name: istio-workspace
+          image: aslakknutsen/istio-workspace:latest
+          ports:
+          - containerPort: 60000
+            name: metrics
+          command:
+          - istio-workspace
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: OPERATOR_NAME
+              value: "istio-workspace"
