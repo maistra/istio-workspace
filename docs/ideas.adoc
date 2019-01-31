@@ -1,0 +1,70 @@
+== ISTIO Dev Ideation
+
+=== Related resources
+
+* Related talk https://www.youtube.com/watch?v=yhvR02UofZE::[Using Istio for Developing Locally, OSCON 2018]
+* https://www.mindmeister.com/1186595896?t=NDeR6uLGVu::[Mindmap]
+
+=== Open questions
+
+* automatic sidecar injection not working on DeploymentConfig, manual `istioctl kube-inject` works with `oc apply`
+
+
+=== Ideas
+
+==== Options for routing
+
+* Possible to piggyback on Tracing variables to avoid additional http header propagation?
+* Subdomain as entrypoint vs http header?
+** Subdomain easy for user access
+** http header: js lib for client to detect available versions and swap between them?
+
+==== PR preview deployment
+
+===== Report stats on PR
+
+* error rate up 10%
+* performance down 10%
+
+===== Control type of deployment via PR commands
+
+* "measure 10% shadow"
+* "measure correctness"
+* "expose"
+
+==== Local Dev 
+
+`cli-x proxy -n myapp servicex -strategy 'userauth:me'`
+    
+* Modify VirtualService
+* Clone existing service
+* Set strategy
+* Route to new service
+* teleprecense new service
+* start local
+
+==== Reverse lookup service to source
+
+`cli-x start-work -n myapp servicex`
+    
+* lookup servicex in myapp namespace
+* lookup git-ref on service
+* clone/checkout git-ref
+
+==== Create special egress gateway for the dev route to external call inspection/debug
+
+* feedback traffic to client, e.g. "external calls" window in IDE
+
+=== Concepts
+
+==== X
+
+When a service is in 'observation'/dev mode
+
+==== X Trace
+
+The method of determining when a call is in a X 'session' and allow services/middlware to act accordingly
+
+==== Shadow Proxy
+
+Injected/Configured during X to control behavior of responses of calls to external/other services
