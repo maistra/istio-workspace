@@ -1,7 +1,8 @@
 
-# Temporary Build Files
+# Temporary Files
 tmp/_output
 tmp/_test
+telepresence.log
 
 # Vendor
 vendor/
