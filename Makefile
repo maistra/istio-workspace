@@ -5,7 +5,7 @@ CUR_DIR = $(shell pwd)
 BINARY_DIR:=${PWD}/dist
 
 .PHONY: all
-all: tools format lint compile ## (default)
+all: tools deps format lint compile ## (default)
 
 .PHONY: help
 help:
@@ -40,7 +40,7 @@ codegen:
     --go-header-file "./go.header.txt"
 
 .PHONY: compile
-compile: deps codegen $(BINARY_DIR)/$(PROJECT_NAME)
+compile: codegen $(BINARY_DIR)/$(PROJECT_NAME)
 
 .PHONY: clean
 clean:
