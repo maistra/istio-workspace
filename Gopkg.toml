@@ -12,6 +12,14 @@ required = [
   "k8s.io/gengo/args",
 ]
 
+[prune]
+  go-tests = true
+  non-go = true
+
+  [[prune.project]]
+    name = "k8s.io/code-generator"
+    non-go = false
+
 [[override]]
   name = "k8s.io/gengo"
   revision = "01a732e01d00cb9a81bb0ca050d3e6d2b947927b"
@@ -39,5 +47,4 @@ required = [
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
   # The version rule is used for a specific release and the master branch for in between releases.
-  branch = "master"
-  # version = "=v0.0.5"
+  revision = "fa4ea1863be25bdba7da06220eb7a32d8978d58f"
