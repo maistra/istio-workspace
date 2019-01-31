@@ -55,13 +55,13 @@ ifneq ($(GITUNTRACKEDCHANGES),)
 endif
 LDFLAGS="-w -X main.Commit=${COMMIT} -X main.BuildTime=${BUILD_TIME}"
 
-SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go")
+SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
 
 $(BINARY_DIR):
 	[ -d $@ ] || mkdir -p $@
 
 $(BINARY_DIR)/$(PROJECT_NAME): $(BINARY_DIR) $(SRCS)
-	GOOS=linux CGO_ENABLED=0 go build -a -tags netgo -ldflags ${LDFLAGS} -o $@ ./cmd/istio-workspace/
+	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/istio-workspace/
 
 # Docker build
 
