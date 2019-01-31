@@ -96,8 +96,11 @@
   digest = "1:2a9d5e367df8c95e780975ca1dd4010bef8e39a3777066d3880ce274b39d4b5a"
   name = "github.com/gogo/protobuf"
   packages = [
+    "gogoproto",
     "proto",
+    "protoc-gen-gogo/descriptor",
     "sortkeys",
+    "types",
   ]
   pruneopts = "NT"
   revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
@@ -112,7 +115,8 @@
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
-  digest = "1:cf890e9d837a2576c1a062816529fa143941405c04b1f89ddd9bea8e5c5a1eac"
+  branch = "master"
+  digest = "1:5e50d1c870d31c1f97ad9383847669a7e2e96a88d78f37b5979e107c16475ab0"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -122,8 +126,7 @@
     "ptypes/timestamp",
   ]
   pruneopts = "NT"
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "347cf4a86c1cb8d262994d8ef5924d4576c5b331"
 
 [[projects]]
   branch = "master"
@@ -426,6 +429,18 @@
   version = "v2.2.1"
 
 [[projects]]
+  branch = "istio-8772"
+  digest = "1:24013d02bdeec49ca9a37682fb0b5f96110e7829092bf762592e9334f25c5f27"
+  name = "istio.io/api"
+  packages = [
+    "networking/v1alpha3",
+    "util",
+  ]
+  pruneopts = "NT"
+  revision = "d4a854615dc6e0d68c61d55dc8ff28bff7efd084"
+  source = "https://github.com/rcernich/istio-api.git"
+
+[[projects]]
   branch = "origin-3.10-kubernetes-1.10.2"
   digest = "1:3f97971d4fe7fcc6e2fec2132dfc0bc5e3c6ad2cb69e56934add50755998e449"
   name = "k8s.io/api"
@@ -652,6 +667,9 @@
     "github.com/operator-framework/operator-sdk/pkg/util/k8sutil",
     "github.com/operator-framework/operator-sdk/version",
     "github.com/sirupsen/logrus",
+    "istio.io/api/networking/v1alpha3",
+    "k8s.io/api/apps/v1",
+    "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
