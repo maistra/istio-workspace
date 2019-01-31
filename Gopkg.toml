@@ -53,3 +53,7 @@ required = [
   name = "github.com/operator-framework/operator-sdk"
   # The version rule is used for a specific release and the master branch for in between releases.
   revision = "fa4ea1863be25bdba7da06220eb7a32d8978d58f"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  branch = "master"

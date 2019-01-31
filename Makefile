@@ -3,6 +3,7 @@ PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 
 CUR_DIR = $(shell pwd)
 BINARY_DIR:=${PWD}/dist
+BINARY_NAME:=ike
 
 .PHONY: all
 all: tools deps format lint compile ## (default)
@@ -40,7 +41,7 @@ codegen:
     --go-header-file "./go.header.txt"
 
 .PHONY: compile
-compile: codegen $(BINARY_DIR)/$(PROJECT_NAME)
+compile: codegen $(BINARY_DIR)/$(BINARY_NAME)
 
 .PHONY: clean
 clean:
@@ -53,14 +54,15 @@ COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
   COMMIT := $(COMMIT)-dirty
 endif
-LDFLAGS="-w -X main.Commit=${COMMIT} -X main.BuildTime=${BUILD_TIME}"
+VERSION?=0.0.1
+LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
 
 $(BINARY_DIR):
 	[ -d $@ ] || mkdir -p $@
 
-$(BINARY_DIR)/$(PROJECT_NAME): $(BINARY_DIR) $(SRCS)
+$(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/istio-workspace/
 
 # Docker build
