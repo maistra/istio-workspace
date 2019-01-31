@@ -68,3 +68,79 @@ The method of determining when a call is in a X 'session' and allow services/mid
 ==== Shadow Proxy
 
 Injected/Configured during X to control behavior of responses of calls to external/other services
+
+=== MVP
+Local run existing service from git repo based on service name
+
+==== Service 
+https://istio.io/docs/tasks/traffic-management/request-routing/#route-based-on-user-identity + something gateway external DNS sub domain
+
+    Session CRD
+        Field (Ref, ?)
+        Status: (?)
+    Watching Session CRD
+        Add (store state in Status)
+            Find/Clone D/DC
+            Find/Create VirtualService
+                Create HTTP Headers
+                    Bookinfo; end-user: x (MVP)
+            Find/Create DestinationRule
+        Remove
+            Cleanup based on CRD.Status
+
+==== Cli 
+
+    Create Sessions CRD
+    Wait for Status (Handler error)
+    Read 'RouteInfo' Status for e.g. TP
+        Headers, Values, External DNS
+    Start TP ()
+        Should handle filewatch changes, relaunch...? (cli --watch ....)
+        How to compile? 
+        How to run it? (inspect D/DC)
+
+        .workspace.meta {build:cmd, run:cmd}
+            check che app def... (odo)
+
+
+
+
+Execute local cli to setup safe production route for my local service 
+[souce]
+....
+> ./ike develop "DeploymentName" --user x [--watch] [--session "Username#Branch+UID(5char)"]
+
+        ... tp...
+            ... ike... [-watch]
+                ... my build...
+                ... my process...
+
+            -> you can now reach app on X using header Y... enjoy!
+....
+[souce]
+
+
+==== Tasks 
+
+* Scaffold CLI project
+    ** Run TP
+    ** Define .workspace.meta
+        *** build:
+        *** run:  
+    * Run  / Watch build..service
+* Scaffold Service project
+    ** Add custom route
+        *** Find/Clone/Create DC/VS/DR
+    ** Remove custom route
+        *** Find/Clone/Remove DC/VS/DR
+    ** istio.io/api/..... generation not fully working something figure out (Rob)
+
+* Write up kube client inContainer issue with TP file mounts (chroot?)
+
+Next steps:
+
+    * ike in IDE
+    * ike in CI
+
+    * what are the limitation?
+        ** datastores etc etc
