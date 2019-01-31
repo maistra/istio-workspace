@@ -14,6 +14,7 @@ type Session struct {
 }
 
 type SessionSpec struct {
+	Ref string `json:"ref,omitempty"`
 }
 
 type SessionStatus struct {
