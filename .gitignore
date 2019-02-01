@@ -1,7 +1,8 @@
 
 # Temporary Files
-tmp/_output
-tmp/_test
+bin/
+build/_output
+build/_test
 telepresence.log
 
 # Vendor

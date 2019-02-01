@@ -6,7 +6,10 @@ spec:
   group: istio.openshift.com
   names:
     kind: Session
+    listKind: SessionList
     plural: sessions
     singular: session
   scope: Namespaced
   version: v1alpha1
+  subresources:
+    status: {}

@@ -13,18 +13,18 @@ spec:
         name: istio-workspace
     spec:
       serviceAccountName: istio-workspace
-      automountServiceAccountToken: true
       containers:
         - name: istio-workspace
-          image: aslakknutsen/istio-workspace:latest
-          ports:
-          - containerPort: 60000
-            name: metrics
+          image: docker.io/aslakknutsen/istio-workspace:latest
           command:
-          - istio-workspace
+          - ike
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
               value: ""
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "istio-workspace"

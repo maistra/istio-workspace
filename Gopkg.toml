@@ -1,6 +1,4 @@
-
 # Force dep to vendor the code generators, which aren't imported just used at dev time.
-# Picking a subpackage with Go code won't be necessary once https://github.com/golang/dep/pull/1545 is merged.
 required = [
   "k8s.io/code-generator/cmd/defaulter-gen",
   "k8s.io/code-generator/cmd/deepcopy-gen",
@@ -8,9 +6,56 @@ required = [
   "k8s.io/code-generator/cmd/client-gen",
   "k8s.io/code-generator/cmd/lister-gen",
   "k8s.io/code-generator/cmd/informer-gen",
-  "k8s.io/code-generator/cmd/openapi-gen",
   "k8s.io/gengo/args",
 ]
+
+[[override]]
+  name = "k8s.io/code-generator"
+  # revision for tag "kubernetes-1.13.1"
+  revision = "c2090bec4d9b1fb25de3812f868accc2bc9ecbae"
+
+[[override]]
+  name = "k8s.io/api"
+  # revision for tag "kubernetes-1.13.1"
+  revision = "05914d821849570fba9eacfb29466f2d8d3cd229"
+
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  # revision for tag "kubernetes-1.13.1"
+  revision = "0fe22c71c47604641d9aa352c785b7912c200562"
+
+[[override]]
+  name = "k8s.io/apimachinery"
+  # revision for tag "kubernetes-1.13.1"
+  revision = "2b1284ed4c93a43499e781493253e2ac5959c4fd"
+
+[[override]]
+  name = "k8s.io/client-go"
+  # revision for tag "kubernetes-1.13.1"
+  revision = "8d9ed539ba3134352c586810e749e58df4e94e4f"
+
+[[override]]
+  name = "github.com/coreos/prometheus-operator"
+  version = "=v0.26.0"
+
+[[override]]
+  name = "sigs.k8s.io/controller-runtime"
+  version = "=v0.1.10"
+
+[[override]]
+  name = "istio.io/api"
+  source = "https://github.com/rcernich/istio-api.git"
+  branch = "istio-8772"
+
+[[constraint]]
+  name = "github.com/operator-framework/operator-sdk"
+  # The version rule is used for a specific release and the master branch for in between releases.
+  branch = "master" #osdk_branch_annotation
+  # version = "=v0.4.0" #osdk_version_annotation
+
+[[override]]
+  name = "k8s.io/kube-openapi"
+  revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
 
 [prune]
   go-tests = true
@@ -19,41 +64,3 @@ required = [
   [[prune.project]]
     name = "k8s.io/code-generator"
     non-go = false
-
-[[override]]
-  name = "istio.io/api"
-  source = "https://github.com/rcernich/istio-api.git"
-  branch = "istio-8772"
-
-[[override]]
-  name = "k8s.io/gengo"
-  revision = "01a732e01d00cb9a81bb0ca050d3e6d2b947927b"
-
-[[override]]
-  name = "k8s.io/code-generator"
-  source = "https://github.com/openshift/kubernetes-code-generator.git"
-  branch = "origin-3.10-kubernetes-1.10.2"
-
-[[override]]
-  name = "k8s.io/api"
-  source = "https://github.com/openshift/kubernetes-api.git"
-  branch = "origin-3.10-kubernetes-1.10.2"
-
-[[override]]
-  name = "k8s.io/apimachinery"
-  source = "https://github.com/openshift/kubernetes-apimachinery.git"
-  branch = "origin-3.10-kubernetes-1.10.2"
-
-[[override]]
-  name = "k8s.io/client-go"
-  source = "https://github.com/openshift/kubernetes-client-go.git"
-  branch = "origin-3.10-kubernetes-1.10.2"
-
-[[constraint]]
-  name = "github.com/operator-framework/operator-sdk"
-  # The version rule is used for a specific release and the master branch for in between releases.
-  revision = "fa4ea1863be25bdba7da06220eb7a32d8978d58f"
-
-[[constraint]]
-  name = "github.com/spf13/cobra"
-  branch = "master"
