@@ -26,11 +26,12 @@ format: ## Removes unneeded imports and formats source code
 
 .PHONY: tools
 tools: ## Installs required go tools
-    @go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-    @go get -u golang.org/x/tools/cmd/goimports
-    @mkdir -p bin/
-    @wget https://github.com/operator-framework/operator-sdk/releases/download/v0.4.0/operator-sdk-v0.4.0-x86_64-linux-gnu -O ./bin/operator-sdk
-    @chmod +x ./bin/operator-sdk
+	@go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	@go get -u golang.org/x/tools/cmd/goimports
+	@mkdir -p bin/
+	@wget https://github.com/operator-framework/operator-sdk/releases/download/v0.4.0/operator-sdk-v0.4.0-x86_64-linux-gnu -O ./bin/operator-sdk
+	@chmod +x ./bin/operator-sdk
+
 
 .PHONY: lint
 lint: deps ## Concurrently runs a whole bunch of static analysis tools

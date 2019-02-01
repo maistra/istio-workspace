@@ -1,5 +1,6 @@
 
 # Temporary Files
+bin/
 build/_output
 build/_test
 telepresence.log
