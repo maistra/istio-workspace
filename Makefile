@@ -63,7 +63,7 @@ $(BINARY_DIR):
 	[ -d $@ ] || mkdir -p $@
 
 $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/istio-workspace/
+	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 # Docker build
 
