@@ -9,7 +9,6 @@ import (
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
@@ -89,12 +88,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	reqLogger.Info("Added session", "name", request.Name, "namespace", request.Namespace)
 
-	deployment := appsv1.Deployment{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Deployment",
-			APIVersion: "apps/v1",
-		},
-	}
+	deployment := appsv1.Deployment{}
 
 	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: instance.Spec.Ref}, &deployment)
 	if err != nil {
@@ -104,12 +98,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	reqLogger.Info("Found Deployment", "image", deployment.Spec.Template.Spec.Containers[0].Image)
 
-	serviceList := corev1.ServiceList{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: "v1",
-		},
-	}
+	serviceList := corev1.ServiceList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &serviceList)
 	if err != nil {
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
@@ -119,12 +108,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Found Service", "name", vs.ObjectMeta.Name, "labels", vs.Labels)
 	}
 
-	drList := istionetwork.DestinationRuleList{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "DestinationRule",
-			APIVersion: "networking.istio.io/v1alpha3",
-		},
-	}
+	drList := istionetwork.DestinationRuleList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &drList)
 	if err != nil {
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
@@ -134,12 +118,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Found DestinationRule", "name", vs.ObjectMeta.Name)
 	}
 
-	vsList := istionetwork.VirtualServiceList{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "VirtualService",
-			APIVersion: "networking.istio.io/v1alpha3",
-		},
-	}
+	vsList := istionetwork.VirtualServiceList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &vsList)
 	if err != nil {
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
