@@ -282,6 +282,7 @@
     "pkg/k8sutil",
     "pkg/leader",
     "pkg/metrics",
+    "pkg/predicate",
     "version",
   ]
   pruneopts = "NT"
@@ -837,6 +838,7 @@
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",
     "github.com/operator-framework/operator-sdk/pkg/metrics",
+    "github.com/operator-framework/operator-sdk/pkg/predicate",
     "github.com/operator-framework/operator-sdk/version",
     "github.com/spf13/cobra",
     "istio.io/api/networking/v1alpha3",
