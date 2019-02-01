@@ -1,8 +1,8 @@
 PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 
-OPERATOR_NAMEPACE?=istio-system
-EXAMPLE_NAMEPACE?=bookinfo
+OPERATOR_NAMESPACE?=istio-system
+EXAMPLE_NAMESPACE?=bookinfo
 
 CUR_DIR = $(shell pwd)
 BUILD_DIR:=${PWD}/build
@@ -81,28 +81,28 @@ docker-build: ## Builds the docker image
 # istio example deployment
 .PHONY:
 deploy-operator:
-	@echo "Deploying operator to $(OPERATOR_NAMEPACE)"
-	oc apply -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMEPACE)
-	oc apply -f deploy/service_account.yaml -n $(OPERATOR_NAMEPACE)
-	oc apply -f deploy/role.yaml -n $(OPERATOR_NAMEPACE)
-	oc apply -f deploy/role_binding.yaml -n $(OPERATOR_NAMEPACE)
-	oc apply -f deploy/operator.yaml -n $(OPERATOR_NAMEPACE)
+	@echo "Deploying operator to $(OPERATOR_NAMESPACE)"
+	oc apply -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
+	oc apply -f deploy/service_account.yaml -n $(OPERATOR_NAMESPACE)
+	oc apply -f deploy/role.yaml -n $(OPERATOR_NAMESPACE)
+	oc apply -f deploy/role_binding.yaml -n $(OPERATOR_NAMESPACE)
+	oc apply -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
 
 .PHONY:
 undeploy-operator:
-	@echo "UnDeploying operator to $(OPERATOR_NAMEPACE)"
-	oc delete -f deploy/operator.yaml -n $(OPERATOR_NAMEPACE)
-	oc delete -f deploy/role_binding.yaml -n $(OPERATOR_NAMEPACE)
-	oc delete -f deploy/role.yaml -n $(OPERATOR_NAMEPACE)
-	oc delete -f deploy/service_account.yaml -n $(OPERATOR_NAMEPACE)
-	oc delete -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMEPACE)
+	@echo "UnDeploying operator to $(OPERATOR_NAMESPACE)"
+	oc delete -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
+	oc delete -f deploy/role_binding.yaml -n $(OPERATOR_NAMESPACE)
+	oc delete -f deploy/role.yaml -n $(OPERATOR_NAMESPACE)
+	oc delete -f deploy/service_account.yaml -n $(OPERATOR_NAMESPACE)
+	oc delete -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
 
 .PHONY:
 deploy-example:
-	@echo "Deploying operator to $(EXAMPLE_NAMEPACE)"
-	oc apply -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMEPACE)
+	@echo "Deploying operator to $(EXAMPLE_NAMESPACE)"
+	oc apply -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
 
 .PHONY:
 undeploy-example:
-	@echo "UnDeploying operator to $(EXAMPLE_NAMEPACE)"
-	oc delete -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMEPACE)
+	@echo "UnDeploying operator to $(EXAMPLE_NAMESPACE)"
+	oc delete -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
