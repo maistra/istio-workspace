@@ -28,6 +28,7 @@ format: ## Removes unneeded imports and formats source code
 tools: ## Installs required go tools
 	@go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	@go get -u golang.org/x/tools/cmd/goimports
+	@go get -u github.com/operator-framework/operator-sdk   
 
 .PHONY: lint
 lint: deps ## Concurrently runs a whole bunch of static analysis tools
