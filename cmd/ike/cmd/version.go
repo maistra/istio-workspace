@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/aslakknutsen/istio-workspace/version"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd")
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
@@ -23,10 +26,10 @@ var versionCmd = &cobra.Command{
 }
 
 func printVersion() {
-	logrus.Infof("Ike Version: %s", version.Version)
-	logrus.Infof("Go Version: %s", runtime.Version())
-	logrus.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
-	logrus.Infof("operator-sdk Version: %v", sdkVersion.Version)
-	logrus.Infof("Build Commit: %v", version.Commit)
-	logrus.Infof("Build Time: %v", version.BuildTime)
+	log.Info(fmt.Sprintf("Ike Version: %s", version.Version))
+	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
+	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
+	log.Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
+	log.Info(fmt.Sprintf("Build Commit: %v", version.Commit))
+	log.Info(fmt.Sprintf("Build Time: %v", version.BuildTime))
 }

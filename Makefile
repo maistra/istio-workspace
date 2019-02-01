@@ -1,7 +1,11 @@
 PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 
+OPERATOR_NAMEPACE?=istio-system
+EXAMPLE_NAMEPACE?=bookinfo
+
 CUR_DIR = $(shell pwd)
+BUILD_DIR:=${PWD}/build
 BINARY_DIR:=${PWD}/dist
 BINARY_NAME:=ike
 
@@ -31,14 +35,7 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 
 .PHONY: codegen
 codegen:
-    # In case of multiple directories set as GOPATH use the last one defined
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f1 | rev) \
-	vendor/k8s.io/code-generator/generate-groups.sh \
-    deepcopy \
-    github.com/aslakknutsen/istio-workspace/pkg/generated \
-    github.com/aslakknutsen/istio-workspace/pkg/apis \
-    istio:v1alpha1 \
-    --go-header-file "./go.header.txt"
+	operator-sdk generate k8s
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME)
@@ -75,4 +72,36 @@ docker-build: ## Builds the docker image
 	@echo "Building docker image $(DOCKER_IMAGE_CORE)"
 	$(DOCKER) build \
 		-t $(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
-		-f $(CUR_DIR)/Dockerfile $(CUR_DIR)
+		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
+	$(DOCKER) tag \
+		$(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
+		$(DOCKER_REPO)/$(DOCKER_IMAGE):latest
+
+# istio example deployment
+.PHONY:
+deploy-operator:
+	@echo "Deploying operator to $(OPERATOR_NAMEPACE)"
+	oc apply -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMEPACE)
+	oc apply -f deploy/service_account.yaml -n $(OPERATOR_NAMEPACE)
+	oc apply -f deploy/role.yaml -n $(OPERATOR_NAMEPACE)
+	oc apply -f deploy/role_binding.yaml -n $(OPERATOR_NAMEPACE)
+	oc apply -f deploy/operator.yaml -n $(OPERATOR_NAMEPACE)
+
+.PHONY:
+undeploy-operator:
+	@echo "UnDeploying operator to $(OPERATOR_NAMEPACE)"
+	oc delete -f deploy/operator.yaml -n $(OPERATOR_NAMEPACE)
+	oc delete -f deploy/role_binding.yaml -n $(OPERATOR_NAMEPACE)
+	oc delete -f deploy/role.yaml -n $(OPERATOR_NAMEPACE)
+	oc delete -f deploy/service_account.yaml -n $(OPERATOR_NAMEPACE)
+	oc delete -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMEPACE)
+
+.PHONY:
+deploy-example:
+	@echo "Deploying operator to $(EXAMPLE_NAMEPACE)"
+	oc apply -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMEPACE)
+
+.PHONY:
+undeploy-example:
+	@echo "UnDeploying operator to $(EXAMPLE_NAMEPACE)"
+	oc delete -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMEPACE)

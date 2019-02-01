@@ -142,3 +142,11 @@ Next steps:
 
     * what are the limitation?
         ** datastores etc etc
+
+
+
+== Pains
+
+* The SA/User the server runds under needs to have anyuid and privileged set else TP can't connect
+    ** oc adm policy add-scc-to-user privileged -z istio-workspace -n istio-system
+    ** oc adm policy add-scc-to-user anyuid -z istio-workspace -n istio-system
