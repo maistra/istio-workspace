@@ -21,6 +21,10 @@ var (
 )
 
 func init() {
+	// -- config (bound with viper?)
+	// -- build command
+	// --watch to rebuild ---> see skaffold samples for node and python
+	// -- testing ?
 	developCmd.PersistentFlags().StringVarP(&deploymentName, "deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.PersistentFlags().IntVarP(&port, "port", "p", 8000, "port to be exposed")
 	developCmd.PersistentFlags().StringVarP(&runnable, "run", "r", "", "command to run your application")
@@ -77,6 +81,11 @@ func redirectStreams(command *exec.Cmd) {
 		_, errStderr = io.Copy(stderr, stderrIn)
 		wg.Done()
 	}()
+
+	if errStderr != nil || errStdout != nil {
+		log.V(9).Info("Failed to copy either of stdout or stderr")
+	}
+
 	wg.Wait()
 }
 
@@ -95,7 +104,7 @@ func checkIfTelepresenceExists() {
 		log.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n"+
 			"Head over to https://www.telepresence.io/reference/install for installation instructions.\n", telepresenceBin))
 	} else {
-		log.Info(fmt.Sprintf("Found '%s' executable in '%s'\n", telepresenceBin, path))
-		log.Info(fmt.Sprintf("See '%s.log' for more details about its execution\n", telepresenceBin))
+		log.Info(fmt.Sprintf("Found '%s' executable in '%s'.", telepresenceBin, path))
+		log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", telepresenceBin))
 	}
 }
