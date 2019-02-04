@@ -102,9 +102,10 @@ func telepresenceExists() bool {
 		log.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n"+
 			"Head over to https://www.telepresence.io/reference/install for installation instructions.\n", telepresenceBin))
 		return false
-	} else {
-		log.Info(fmt.Sprintf("Found '%s' executable in '%s'.", telepresenceBin, path))
-		log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", telepresenceBin))
-		return true
 	}
+
+	log.Info(fmt.Sprintf("Found '%s' executable in '%s'.", telepresenceBin, path))
+	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", telepresenceBin))
+
+	return true
 }
