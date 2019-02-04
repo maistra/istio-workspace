@@ -21,10 +21,6 @@ var (
 )
 
 func init() {
-	// -- config (bound with viper?)
-	// -- build command
-	// --watch to rebuild ---> see skaffold samples for node and python
-	// -- testing ?
 	developCmd.PersistentFlags().StringVarP(&deploymentName, "deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.PersistentFlags().IntVarP(&port, "port", "p", 8000, "port to be exposed")
 	developCmd.PersistentFlags().StringVarP(&runnable, "run", "r", "", "command to run your application")
