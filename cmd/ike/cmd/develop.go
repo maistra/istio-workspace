@@ -39,7 +39,9 @@ var developCmd = &cobra.Command{
 	Long:  `TODO`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		checkIfTelepresenceExists()
+		if !telepresenceExists() {
+			os.Exit(1)
+		}
 
 		var tp = exec.Command(telepresenceBin, parseArguments()...)
 
@@ -94,14 +96,15 @@ func parseArguments() []string {
 		"--run"}, runArgs...)
 }
 
-func checkIfTelepresenceExists() {
+func telepresenceExists() bool {
 	path, err := exec.LookPath(telepresenceBin)
 	if err != nil {
 		log.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n"+
 			"Head over to https://www.telepresence.io/reference/install for installation instructions.\n", telepresenceBin))
-		os.Exit(1)
+		return false
 	} else {
 		log.Info(fmt.Sprintf("Found '%s' executable in '%s'.", telepresenceBin, path))
 		log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", telepresenceBin))
+		return true
 	}
 }
