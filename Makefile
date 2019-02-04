@@ -70,17 +70,18 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
 DOCKER_IMAGE?=$(PROJECT_NAME)
-DOCKER_REPO?=docker.io/aslakknutsen
+DOCKER_REGISTRY?=docker.io
+DOCKER_REPOSITORY?=aslakknutsen
 
 .PHONY: deploy-operator
 docker-build: ## Builds the docker image
 	@echo "Building docker image $(DOCKER_IMAGE_CORE)"
 	$(DOCKER) build \
-		-t $(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
+		-t $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
 		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
 	$(DOCKER) tag \
-		$(DOCKER_REPO)/$(DOCKER_IMAGE):$(COMMIT) \
-		$(DOCKER_REPO)/$(DOCKER_IMAGE):latest
+		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
+		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 # istio example deployment
 .PHONY: deploy-operator
