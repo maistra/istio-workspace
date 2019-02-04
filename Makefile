@@ -86,27 +86,27 @@ docker-build: ## Builds the docker image
 .PHONY: deploy-operator
 deploy-operator:
 	@echo "Deploying operator to $(OPERATOR_NAMESPACE)"
-	oc apply -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
-	oc apply -f deploy/service_account.yaml -n $(OPERATOR_NAMESPACE)
-	oc apply -f deploy/role.yaml -n $(OPERATOR_NAMESPACE)
-	oc apply -f deploy/role_binding.yaml -n $(OPERATOR_NAMESPACE)
-	oc apply -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/operator.yaml
 
 .PHONY: undeploy-operator
 undeploy-operator:
 	@echo "UnDeploying operator to $(OPERATOR_NAMESPACE)"
-	oc delete -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
-	oc delete -f deploy/role_binding.yaml -n $(OPERATOR_NAMESPACE)
-	oc delete -f deploy/role.yaml -n $(OPERATOR_NAMESPACE)
-	oc delete -f deploy/service_account.yaml -n $(OPERATOR_NAMESPACE)
-	oc delete -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/operator.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
 
 .PHONY: deploy-example
 deploy-example:
 	@echo "Deploying operator to $(EXAMPLE_NAMESPACE)"
-	oc apply -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
 undeploy-example:
 	@echo "UnDeploying operator to $(EXAMPLE_NAMESPACE)"
-	oc delete -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml
