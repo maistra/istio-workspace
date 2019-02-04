@@ -53,7 +53,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
-  COMMIT := $(COMMIT)-dirty
+	COMMIT := $(COMMIT)-dirty
 endif
 VERSION?=0.0.1
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
@@ -84,6 +84,17 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 # istio example deployment
+
+define process_template # params: template location
+	@oc process -f $(1) \
+		-o yaml \
+		--local \
+		-p DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
+		-p DOCKER_REPOSITORY=$(DOCKER_REPOSITORY) \
+		-p IMAGE_NAME=$(DOCKER_IMAGE) \
+		-p IMAGE_TAG=$(COMMIT)
+endef
+
 .PHONY: deploy-operator
 deploy-operator:
 	@echo "Deploying operator to $(OPERATOR_NAMESPACE)"
@@ -91,12 +102,12 @@ deploy-operator:
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/operator.yaml
+	$(call process_template,deploy/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
 undeploy-operator:
 	@echo "UnDeploying operator to $(OPERATOR_NAMESPACE)"
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/operator.yaml
+	$(call process_template,deploy/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml

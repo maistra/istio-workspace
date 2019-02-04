@@ -1,30 +1,46 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: istio-workspace
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      name: istio-workspace
-  template:
+kind: Template
+apiVersion: v1
+parameters:
+  - name: DOCKER_REGISTRY
+    required: true
+    value: docker.io
+  - name: DOCKER_REPOSITORY
+    required: true
+    value: aslakknusten
+  - name: IMAGE_NAME
+    required: true
+    value: istio-workspace
+  - name: IMAGE_TAG
+    required: true
+    value: latest
+objects:
+  - kind: Deployment
+    apiVersion: apps/v1
     metadata:
-      labels:
-        name: istio-workspace
+      name: istio-workspace
     spec:
-      serviceAccountName: istio-workspace
-      containers:
-        - name: istio-workspace
-          image: docker.io/aslakknutsen/istio-workspace:latest
-          command:
-          - ike
-          imagePullPolicy: Always
-          env:
-            - name: WATCH_NAMESPACE
-              value: ""
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: "istio-workspace"
+      replicas: 1
+      selector:
+        matchLabels:
+          name: istio-workspace
+      template:
+        metadata:
+          labels:
+            name: istio-workspace
+        spec:
+          serviceAccountName: istio-workspace
+          containers:
+            - name: istio-workspace
+              image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
+              command:
+              - ike
+              imagePullPolicy: Always
+              env:
+                - name: WATCH_NAMESPACE
+                  value: ""
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: "istio-workspace"
