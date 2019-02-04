@@ -72,6 +72,7 @@ DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
 DOCKER_IMAGE?=$(PROJECT_NAME)
 DOCKER_REPO?=docker.io/aslakknutsen
 
+.PHONY: deploy-operator
 docker-build: ## Builds the docker image
 	@echo "Building docker image $(DOCKER_IMAGE_CORE)"
 	$(DOCKER) build \
@@ -82,7 +83,7 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REPO)/$(DOCKER_IMAGE):latest
 
 # istio example deployment
-.PHONY:
+.PHONY: deploy-operator
 deploy-operator:
 	@echo "Deploying operator to $(OPERATOR_NAMESPACE)"
 	oc apply -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
@@ -91,7 +92,7 @@ deploy-operator:
 	oc apply -f deploy/role_binding.yaml -n $(OPERATOR_NAMESPACE)
 	oc apply -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
 
-.PHONY:
+.PHONY: undeploy-operator
 undeploy-operator:
 	@echo "UnDeploying operator to $(OPERATOR_NAMESPACE)"
 	oc delete -f deploy/operator.yaml -n $(OPERATOR_NAMESPACE)
@@ -100,12 +101,12 @@ undeploy-operator:
 	oc delete -f deploy/service_account.yaml -n $(OPERATOR_NAMESPACE)
 	oc delete -f deploy/crds/istio_v1alpha1_session_crd.yaml -n $(OPERATOR_NAMESPACE)
 
-.PHONY:
+.PHONY: deploy-example
 deploy-example:
 	@echo "Deploying operator to $(EXAMPLE_NAMESPACE)"
 	oc apply -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
 
-.PHONY:
+.PHONY: undeploy-example
 undeploy-example:
 	@echo "UnDeploying operator to $(EXAMPLE_NAMESPACE)"
 	oc delete -f deploy/crds/istio_v1alpha1_session_cr.yaml -n $(EXAMPLE_NAMESPACE)
