@@ -104,7 +104,8 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
-	for _, vs := range serviceList.Items {
+	for i := range serviceList.Items {
+		vs := &serviceList.Items[i]
 		reqLogger.Info("Found Service", "name", vs.ObjectMeta.Name, "labels", vs.Labels)
 	}
 
@@ -114,7 +115,8 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
-	for _, vs := range drList.Items {
+	for i := range drList.Items {
+		vs := &drList.Items[i]
 		reqLogger.Info("Found DestinationRule", "name", vs.ObjectMeta.Name)
 	}
 
@@ -124,7 +126,8 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
-	for _, vs := range vsList.Items {
+	for i := range vsList.Items {
+		vs := &vsList.Items[i]
 		reqLogger.Info("Found VirtualService", "name", vs.ObjectMeta.Name)
 	}
 	updateStatus(reqLogger, ctx, r.client, instance, "success")
