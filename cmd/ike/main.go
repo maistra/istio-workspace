@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
