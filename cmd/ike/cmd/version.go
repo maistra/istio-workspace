@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/aslakknutsen/istio-workspace/version"
+
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
