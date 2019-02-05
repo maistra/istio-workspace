@@ -549,7 +549,7 @@
     "util",
   ]
   pruneopts = "NT"
-  revision = "152cda46cb060e4aa6a347cdbb7b925ef4426b8e"
+  revision = "50b4db27b205f3e4c267c5f744b5f08443a0b946"
   source = "https://github.com/rcernich/istio-api.git"
 
 [[projects]]
