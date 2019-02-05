@@ -37,7 +37,7 @@ var developCmd = &cobra.Command{
 	Use:   "develop",
 	Short: "starts the development flow",
 	Long:  `TODO`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
 
 		if !telepresenceExists() {
 			os.Exit(1)

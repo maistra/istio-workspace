@@ -21,7 +21,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version number of ike cli",
 	Long:  `All software has versions. This is Ike's`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
 		printVersion()
 	},
 }

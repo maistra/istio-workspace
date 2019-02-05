@@ -30,7 +30,7 @@ Aliquam vitae dolor neque. Aliquam facilisis posuere nulla sit amet porttitor.
 
 Duis nec interdum velit, id consectetur erat. In tempor tempor turpis vel rhoncus.`,
 
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
 		printVersion()
 		startOperator()
 	},
