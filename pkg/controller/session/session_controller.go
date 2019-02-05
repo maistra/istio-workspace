@@ -135,7 +135,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	return reconcile.Result{}, nil
 }
 
-func updateStatus(ctx context.Context, log logr.Logger, c client.Client, session *istiov1alpha1.Session, state string) {
+func updateStatus(ctx context.Context, log logr.Logger, c client.StatusClient, session *istiov1alpha1.Session, state string) {
 	session.Status = istiov1alpha1.SessionStatus{
 		State: &state,
 	}
