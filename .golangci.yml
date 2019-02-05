@@ -13,15 +13,14 @@ linters-settings:
   depguard:
     list-type: blacklist
     packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
+      # logging is allowed only by "sigs.k8s.io/controller-runtime/pkg/runtime/log"
       - github.com/sirupsen/logrus
   misspell:
     locale: US
   lll:
     line-length: 180
   goimports:
-    local-prefixes: github.com/golangci/golangci-lint
+    local-prefixes: github.com/aslakknutsen/istio-workspace
   gocritic:
     enabled-tags:
       - performance
@@ -34,11 +33,13 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - maligned
-    - prealloc
-    - gochecknoglobals
+    - gochecknoinits # both Cobra and k8s/istio generated APIs are using init()
+    - gochecknoglobals # TODO discuss
+run:
+  skip-dirs:
+    - ./pkg/apis/istio
 
 service:
-  project-path: github.com/arquillian/ike-prow-plugins
+  project-path: github.com/aslakknutsen/istio-workspace
   prepare:
-    - make tools deps generate
+    - make tools deps codegen
