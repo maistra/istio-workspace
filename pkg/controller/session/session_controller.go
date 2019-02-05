@@ -92,7 +92,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: instance.Spec.Ref}, &deployment)
 	if err != nil {
-		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
 
@@ -101,7 +101,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	serviceList := corev1.ServiceList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &serviceList)
 	if err != nil {
-		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
 	for i := range serviceList.Items {
@@ -112,7 +112,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	drList := istionetwork.DestinationRuleList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &drList)
 	if err != nil {
-		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
 	for i := range drList.Items {
@@ -123,19 +123,19 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	vsList := istionetwork.VirtualServiceList{}
 	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &vsList)
 	if err != nil {
-		updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
 		return reconcile.Result{Requeue: false}, err
 	}
 	for i := range vsList.Items {
 		vs := &vsList.Items[i]
 		reqLogger.Info("Found VirtualService", "name", vs.ObjectMeta.Name)
 	}
-	updateStatus(reqLogger, ctx, r.client, instance, "success")
+	updateStatus(ctx, reqLogger, r.client, instance, "success")
 
 	return reconcile.Result{}, nil
 }
 
-func updateStatus(log logr.Logger, ctx context.Context, c client.Client, session *istiov1alpha1.Session, state string) {
+func updateStatus(ctx context.Context, log logr.Logger, c client.Client, session *istiov1alpha1.Session, state string) {
 	session.Status = istiov1alpha1.SessionStatus{
 		State: &state,
 	}
