@@ -1,0 +1,45 @@
+linters-settings:
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0
+  gocyclo:
+    min-complexity: 10
+  dupl:
+    threshold: 128
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  depguard:
+    list-type: blacklist
+    packages:
+      # logging is allowed only by "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+      - github.com/sirupsen/logrus
+  misspell:
+    locale: US
+  lll:
+    line-length: 180
+  goimports:
+    local-prefixes: github.com/aslakknutsen/istio-workspace
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+      - commentFormatting # https://github.com/go-critic/go-critic/issues/755
+
+linters:
+  enable-all: true
+  disable:
+    - gochecknoinits # both Cobra and k8s/istio generated APIs are using init()
+    - gochecknoglobals # TODO discuss
+run:
+  skip-dirs:
+    - ./pkg/apis/istio
+
+service:
+  project-path: github.com/aslakknutsen/istio-workspace
+  prepare:
+    - make tools deps codegen

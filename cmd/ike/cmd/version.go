@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/aslakknutsen/istio-workspace/version"
+
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -20,7 +21,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version number of ike cli",
 	Long:  `All software has versions. This is Ike's`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
 		printVersion()
 	},
 }
