@@ -3,12 +3,13 @@ package session
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
+	yaml "gopkg.in/yaml.v2"
 
 	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
@@ -88,62 +89,110 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	reqLogger.Info("Added session", "name", request.Name, "namespace", request.Namespace)
 
+	// locateDeployment()
+	// locateDestinationRule()
+	// locateVirtualService()
+	// cloneDeployment()
+	// mutateDestinationRule()
+	// mutateVirtualService()
+	// updateStatus
 	deployment := appsv1.Deployment{}
 
 	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: instance.Spec.Ref}, &deployment)
 	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
 		return reconcile.Result{Requeue: false}, err
 	}
 
 	reqLogger.Info("Found Deployment", "image", deployment.Spec.Template.Spec.Containers[0].Image)
 
-	serviceList := corev1.ServiceList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &serviceList)
+	// HACK: resolve the chain somehow
+
+	targetName := strings.Split(deployment.Name, "-")[0]
+
+	/*
+		serviceList := corev1.ServiceList{}
+		err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &serviceList)
+		if err != nil {
+			updateStatus(reqLogger, ctx, r.client, instance, fmt.Sprintf("%v", err))
+			return reconcile.Result{Requeue: false}, err
+		}
+		for _, vs := range serviceList.Items {
+			reqLogger.Info("Found Service", "name", vs.ObjectMeta.Name, "labels", vs.Labels)
+		}
+	*/
+
+	destRule := istionetwork.DestinationRule{}
+	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: targetName}, &destRule)
 	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
 		return reconcile.Result{Requeue: false}, err
 	}
-	for i := range serviceList.Items {
-		vs := &serviceList.Items[i]
-		reqLogger.Info("Found Service", "name", vs.ObjectMeta.Name, "labels", vs.Labels)
+	reqLogger.Info("Found DestinationRule", "name", destRule.Name)
+	{
+		x, _ := yaml.Marshal(destRule)
+		fmt.Println(string(x))
 	}
 
-	drList := istionetwork.DestinationRuleList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &drList)
+	virtService := istionetwork.VirtualService{}
+	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: targetName}, &virtService)
 	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
+		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
 		return reconcile.Result{Requeue: false}, err
 	}
-	for i := range drList.Items {
-		vs := &drList.Items[i]
-		reqLogger.Info("Found DestinationRule", "name", vs.ObjectMeta.Name)
+	reqLogger.Info("Found VirtualService", "name", virtService.Name)
+
+	destMutator := DestinationRuleMutator{}
+	mutatedDestRule, err := destMutator.Add(destRule)
+	if err != nil {
+		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
+		return reconcile.Result{Requeue: false}, err
+	}
+	/*
+		virtServiceMutator := VirtualServiceMutator{}
+		mutatedVirtService, err := virtServiceMutator.Add(virtService)
+		if err != nil {
+			updateStatus(reqLogger, ctx, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
+			return reconcile.Result{Requeue: false}, err
+		}
+	*/
+
+	refStatus := &istiov1alpha1.RefStatus{
+		Params: map[string]string{
+			"end-user": "jason",
+		},
+	}
+	instance.Status.Refs = append(instance.Status.Refs, refStatus)
+
+	err = r.client.Update(ctx, &mutatedDestRule)
+	if err != nil {
+		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
+		return reconcile.Result{Requeue: false}, err
 	}
 
-	vsList := istionetwork.VirtualServiceList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &vsList)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
-		return reconcile.Result{Requeue: false}, err
-	}
-	for i := range vsList.Items {
-		vs := &vsList.Items[i]
-		reqLogger.Info("Found VirtualService", "name", vs.ObjectMeta.Name)
-	}
-	updateStatus(ctx, reqLogger, r.client, instance, "success")
+	refStatus.Resources = append(refStatus.Resources, &istiov1alpha1.RefResource{Kind: &mutatedDestRule.TypeMeta.Kind, Name: &mutatedDestRule.Name})
+	updateStatus(ctx, reqLogger, r.client, instance)
+	/*
+		err = r.client.Update(ctx, &mutatedVirtService)
+		if err != nil {
+			updateStatus(reqLogger, ctx, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
+			return reconcile.Result{Requeue: false}, err
+		}
+	*/
+	updateStatus(ctx, reqLogger, r.client, setStatus(instance, "success"))
 
 	return reconcile.Result{}, nil
 }
 
-func updateStatus(ctx context.Context, log logr.Logger, c client.StatusClient, session *istiov1alpha1.Session, state string) {
-	session.Status = istiov1alpha1.SessionStatus{
-		State: &state,
-	}
+func setStatus(session *istiov1alpha1.Session, status string) *istiov1alpha1.Session {
+	session.Status.State = &status
+	return session
+}
 
-	log.Info("Updating status", "state", state)
+func updateStatus(ctx context.Context, log logr.Logger, c client.Client, session *istiov1alpha1.Session) {
+	log.Info("Updating status", "state", session.Status.State)
 	err := c.Status().Update(ctx, session)
 	if err != nil {
 		log.Error(err, "failed to update status of session")
 	}
-
 }
