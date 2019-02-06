@@ -13,7 +13,20 @@ type SessionSpec struct {
 
 // SessionStatus defines the observed state of Session
 type SessionStatus struct {
-	State *string `json:"state,omitempty"`
+	State *string      `json:"state,omitempty"`
+	Refs  []*RefStatus `json:"refs,omitempty"`
+}
+
+// RefStatus defines the observed state of the individual Ref
+type RefStatus struct {
+	Params    map[string]string `json:"params,omitempty"`
+	Resources []*RefResource    `json:"resources,omitempty"`
+}
+
+// RefResource defines the observed resources mutated/created as part of the Ref
+type RefResource struct {
+	Kind *string `json:"kind,omitempty"`
+	Name *string `json:"name,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
