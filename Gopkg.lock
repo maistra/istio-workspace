@@ -153,7 +153,11 @@
   revision = "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:2bac1ab777481a7ef169837f0eeac25a1a6628ac93aef853168681dfec4a653c"
+=======
+  digest = "1:d7cb4458ea8782e6efacd8f4940796ec559c90833509c436f40c4085b98156dd"
+>>>>>>> task(api): update apis
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -163,8 +167,13 @@
     "ptypes/timestamp",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
   version = "v1.3.0"
+=======
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+>>>>>>> task(api): update apis
 
 [[projects]]
   branch = "master"
@@ -401,7 +410,12 @@
   version = "v1.4.3"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:df8e741cd0f86087367f3bcfeb1cf237e96fada71194b6d4cee9412d221ec763"
+=======
+  branch = "master"
+  digest = "1:d88fad368f3e22fbfd440a0aa975f5b182b5a4bfc63b8e6d2cc95296a1afdaf9"
+>>>>>>> task(api): update apis
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -411,8 +425,12 @@
     "version",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "6754b70169f1b62355516947270e33b9f73d8159"
   version = "v0.5.0"
+=======
+  revision = "99ae4aed7387dcfdc07ecf6169cf35b7bca47924"
+>>>>>>> task(api): update apis
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -480,7 +498,11 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:1c282f5c094061ce301d1ea3098799fc907ac1399e9f064c463787323a7b7340"
+=======
+  digest = "1:209d3c3933ffae5d28e62e3978c5feafa6a3dc23d601014922432ad3f7416acb"
+>>>>>>> task(api): update apis
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -490,7 +512,11 @@
     "xfs",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "bbced9601137e764853b2fad7ec3e2dc4c504e02"
+=======
+  revision = "e4d4a2206da023361ed100d85c5f2cf9c8364e9f"
+>>>>>>> task(api): update apis
 
 [[projects]]
   digest = "1:1bc08ec221c4fb25e6f2c019b23fe989fb44573c696983d8e403a3b76cc378e1"
@@ -587,6 +613,7 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:36842fdff18922e24986fdb929c44eaa322860ad3f5eb5936ce91ceda3da124f"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
@@ -596,6 +623,17 @@
 [[projects]]
   branch = "master"
   digest = "1:2aba4494bdd4f05b0d931d6f31f77cef5d7854e9d1f4ae29a7813d694d1fd27c"
+=======
+  digest = "1:b19fb19351db5de242e3f1203e63c207c69bf4f4df4822b4ef15220e0204e0e4"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "NT"
+  revision = "7f87c0fbb88b590338857bcb720678c2583d4dea"
+
+[[projects]]
+  branch = "master"
+  digest = "1:922c0bb9dc59af35400f6725ed08582f99f710ffc1a1075e8914c73515bb269e"
+>>>>>>> task(api): update apis
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -609,29 +647,57 @@
     "idna",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "16b79f2e4e95ea23b2bf9903c9809ff7b013ce85"
 
 [[projects]]
   branch = "master"
   digest = "1:3418b2325cb0e56bb54774c4e484a2d8829b1fe4bad1c5f077cfd08d138a9a9f"
+=======
+  revision = "3a22650c66bd7f4fb6d1e8072ffd7b75c8a27898"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e759bd229deb1bded1c76c43c47caece22e765203cb048cf1d3c9c51a748f49f"
+>>>>>>> task(api): update apis
   name = "golang.org/x/oauth2"
   packages = [
     ".",
     "internal",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "e64efc72b421e893cbf63f17ba2221e7d6d0b0f3"
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:27c238c1b2e8ab67f312b2ceec175c2ae254eb85f6535fea9922370473947cff"
+=======
+  digest = "1:30fecdef47a32748a289b9befd2abb0a6a10783911c731f8aec9accf2dbd2840"
+=======
+  revision = "9b3c75971fc92dd27c6436a37c05c831498658f1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:90abfd79711e2d0ce66e6d23a1b652f8e16c76e12a2ef4b255d1bf0ff4f254b8"
+>>>>>>> task(api): update apis
+>>>>>>> task(api): update apis
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "e844e0132e93db857c984c24fd4fc86815e43be3"
+=======
+<<<<<<< HEAD
+  revision = "c2f5717e611cf8e89a852a41081355194d80c943"
+=======
+  revision = "cc5685c2db1239775905f3911f0067c0fa74762f"
+>>>>>>> task(api): update apis
+>>>>>>> task(api): update apis
 
 [[projects]]
   digest = "1:8c74f97396ed63cc2ef04ebb5fc37bb032871b8fd890a25991ed40974b00cd2a"
@@ -679,7 +745,11 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:0b083fc0b8ae5ed0e625d855d02ed4dfb374cd22f2f6aa589a94cb8a9a72b510"
+=======
+  digest = "1:5e5ffea31fdbfc2aebc204909b1fb87f9819f9b2a1eab5dfbcaf4e75bfd05208"
+>>>>>>> task(api): update apis
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -696,7 +766,11 @@
     "internal/semver",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "589c23e65e65055d47b9ad4a99723bc389136265"
+=======
+  revision = "83362c3779f5f48611068d488a03ea7bbaddc81e"
+>>>>>>> task(api): update apis
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -1084,6 +1158,7 @@
     "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
     "sigs.k8s.io/controller-runtime/pkg/source",
+    "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
