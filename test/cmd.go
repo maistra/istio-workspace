@@ -17,7 +17,9 @@ func ValidateArgumentsOf(command *cobra.Command) *Cmd {
 
 func (command *Cmd) Passing(args ...string) (output string, err error) {
 	cmd := (*cobra.Command)(command)
-	return executeCommand(cmd, args...)
+	output, err = executeCommand(cmd, args...)
+	println(output)
+	return output, err
 }
 
 func executeCommand(cmd *cobra.Command, args ...string) (output string, err error) {
