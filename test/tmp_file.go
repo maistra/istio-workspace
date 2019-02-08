@@ -31,7 +31,7 @@ func TmpFile(t TestReporter, fileName, content string) afero.File {
 		return nil
 	}
 
-	file, err := appFs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0600)
+	file, err := appFs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		t.Errorf("Failed to create the file: %s. Reason: %s", filePath, err)
 		return nil

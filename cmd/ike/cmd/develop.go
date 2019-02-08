@@ -22,14 +22,16 @@ func NewDevelopCmd() *cobra.Command {
 		Use:   "develop",
 		Short: "starts the development flow",
 
-		PreRun: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if !telepresenceExists() {
-				os.Exit(1)
+				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
 			config.SyncFlag(cmd, "deployment")
 			config.SyncFlag(cmd, "run")
 			config.SyncFlag(cmd, "port")
 			config.SyncFlag(cmd, "method")
+
+			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
 			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)

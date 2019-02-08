@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"os"
+	"path"
 
 	. "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 
@@ -18,11 +19,44 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
+	var originalPath string
+
 	BeforeEach(func() {
 		developCmd = NewDevelopCmd()
 		developCmd.SilenceUsage = true
 		developCmd.SilenceErrors = true
 		NewRootCmd().AddCommand(developCmd)
+
+	})
+
+	BeforeSuite(func() {
+		// we stub existence of telepresence executable as develop command does a precondition check before execution
+		// to verify if it exists on the PATH
+		originalPath = os.Getenv("PATH")
+		telepresenceBin := TmpFile(GinkgoT(), "telepresence", "echo 'telepresence'")
+		_ = os.Setenv("PATH", path.Dir(telepresenceBin.Name()))
+	})
+
+	AfterSuite(func() {
+		_ = os.Setenv("PATH", originalPath)
+		CleanUp(GinkgoT())
+	})
+
+	Context("telepresence binary existence", func() {
+
+		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
+			oldPath := os.Getenv("PATH")
+			_ = os.Setenv("PATH", "")
+			defer func() {
+				_ = os.Setenv("PATH", oldPath)
+			}()
+
+			_, err := ValidateArgumentsOf(developCmd).Passing("-r", "./test.sh", "-d", "hello-world")
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("unable to find telepresence on your $PATH"))
+		})
+
 	})
 
 	Context("with flags only", func() {
@@ -68,10 +102,6 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		BeforeEach(func() {
 			configFile = TmpFile(GinkgoT(), "config.yaml", config)
-		})
-
-		AfterEach(func() {
-			CleanUp(GinkgoT())
 		})
 
 		It("should fail when passing non-existing config file", func() {

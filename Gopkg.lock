@@ -999,6 +999,7 @@
   input-imports = [
     "github.com/go-logr/logr",
     "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",

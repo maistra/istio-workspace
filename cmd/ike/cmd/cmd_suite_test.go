@@ -1,8 +1,9 @@
 package cmd_test
 
 import (
-	. "github.com/aslakknutsen/istio-workspace/test"
 	"testing"
+
+	. "github.com/aslakknutsen/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
