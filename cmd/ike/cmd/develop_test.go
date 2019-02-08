@@ -74,6 +74,13 @@ var _ = Describe("Usage of ike develop command", func() {
 			CleanUp(GinkgoT())
 		})
 
+		It("should fail when passing non-existing config file", func() {
+			_, err := ValidateArgumentsOf(developCmd).Passing("--config", "~/test.yaml")
+
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(`Config File "test" Not Found`))
+		})
+
 		It("should load deployment from config file if not passed as flag", func() {
 			_, err := ValidateArgumentsOf(developCmd).Passing("--port", "1234", "--config", configFile.Name())
 

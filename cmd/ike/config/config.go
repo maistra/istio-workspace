@@ -29,9 +29,11 @@ func SetupConfigSources(configFile string, notDefault bool) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if notDefault {
-			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				return err
-			}
+			return err
+		}
+
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
 		}
 	}
 	return nil
