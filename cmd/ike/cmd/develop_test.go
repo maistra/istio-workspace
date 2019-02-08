@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _ = XDescribe("Usage of ike develop command", func() {
+var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
@@ -57,7 +57,7 @@ var _ = XDescribe("Usage of ike develop command", func() {
 
 	})
 
-	Context("with config file", func() {
+	XContext("with config file", func() {
 
 		const config = `develop:
   deployment: test
