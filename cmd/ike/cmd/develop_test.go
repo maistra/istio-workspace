@@ -74,14 +74,14 @@ var _ = Describe("Usage of ike develop command", func() {
 			CleanUp(GinkgoT())
 		})
 
-		It("load deployment from config file if not passed as flag", func() {
+		It("should load deployment from config file if not passed as flag", func() {
 			_, err := ValidateArgumentsOf(developCmd).Passing("--port", "1234", "--config", configFile.Name())
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(developCmd.Flag("deployment").Value.String()).To(Equal("test"))
 		})
 
-		It("use run defined in flag not from config file", func() {
+		It("should use run defined in the flag not from config file", func() {
 			_, err := ValidateArgumentsOf(developCmd).Passing("-r", "'./test.sh'", "--config", configFile.Name())
 
 			Expect(err).ToNot(HaveOccurred())
@@ -101,7 +101,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				_ = os.Setenv("IKE_DEVELOP_PORT", oldEnv)
 			})
 
-			It("should use environment variable over config", func() {
+			It("should use environment variable over config file", func() {
 				_, err := ValidateArgumentsOf(developCmd).Passing("--config", configFile.Name())
 
 				Expect(err).ToNot(HaveOccurred())
