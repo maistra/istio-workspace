@@ -20,8 +20,8 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	BeforeEach(func() {
 		developCmd = NewDevelopCmd()
-		developCmd.SilenceUsage = true
-		developCmd.SilenceErrors = true
+		developCmd.SilenceUsage = false
+		developCmd.SilenceErrors = false
 		NewRootCmd().AddCommand(developCmd)
 	})
 
