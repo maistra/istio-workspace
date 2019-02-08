@@ -4,14 +4,14 @@ PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 OPERATOR_NAMESPACE?=istio-system
 EXAMPLE_NAMESPACE?=bookinfo
 
-CUR_DIR = $(shell pwd)
-BUILD_DIR:=${PWD}/build
-BINARY_DIR:=${PWD}/dist
+CUR_DIR:=$(shell pwd)
+BUILD_DIR:=$(CUR_DIR)/build
+BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
 
 # Call this function with $(call header,"Your message")
 define header =
-@echo -e "\e[92m\e[4m\e[1m$(1)\e[0m"
+@echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
 endef
 
 .PHONY: all
@@ -29,16 +29,18 @@ deps: ## Fetches all dependencies using dep
 .PHONY: format
 format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/
+	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/
 
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
-	mkdir -p bin/
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/v0.4.0/operator-sdk-v0.4.0-x86_64-linux-gnu -O ./bin/operator-sdk
-	chmod +x ./bin/operator-sdk
+	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/onsi/gomega
+	mkdir -p $(CUR_DIR)/bin/
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/v0.4.0/operator-sdk-v0.4.0-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
+	chmod +x $(CUR_DIR)/bin/operator-sdk
 
 .PHONY: lint
 lint: deps ## Concurrently runs a whole bunch of static analysis tools
@@ -48,14 +50,19 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 .PHONY: codegen
 codegen: ## Generates operator-sdk code
 	$(call header,"Generates operator-sdk code")
-	./bin/operator-sdk generate k8s
+	$(CUR_DIR)/bin/operator-sdk generate k8s
 
 .PHONY: compile
-compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: codegen test $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+
+.PHONY: test ## Runs tests
+test:
+	$(call header,"Running tests")
+	ginkgo -r
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) ./bin/
+	rm -rf $(BINARY_DIR) $(CUR_DIR)/bin/
 
 # ##########################################################################
 # Build configuration
