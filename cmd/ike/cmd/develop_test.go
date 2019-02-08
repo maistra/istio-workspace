@@ -57,7 +57,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	})
 
-	XContext("with config file", func() {
+	Context("with config file", func() {
 
 		const config = `develop:
   deployment: test
