@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _ = Describe("Usage of ike develop command", func() {
+var _ = XDescribe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
