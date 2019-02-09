@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 	"github.com/aslakknutsen/istio-workspace/pkg/apis"
 	"github.com/aslakknutsen/istio-workspace/pkg/controller"
 
@@ -12,7 +14,7 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
@@ -22,13 +24,27 @@ var (
 	metricsPort int32 = 8383
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "ike",
-	Short: "ike lets you safely develop and test on prod without a sweat",
-	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
-		printVersion()
-		startOperator()
-	},
+func NewRootCmd() *cobra.Command {
+	var configFile string
+
+	rootCmd := &cobra.Command{
+		Use:   "ike",
+		Short: "ike lets you safely develop and test on prod without a sweat",
+
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
+		},
+		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+			printVersion()
+			startOperator()
+		},
+	}
+
+	rootCmd.PersistentFlags().
+		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
+			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
+
+	return rootCmd
 }
 
 func startOperator() {
@@ -39,7 +55,7 @@ func startOperator() {
 	}
 
 	// Get a config to talk to the apiserver
-	cfg, err := config.GetConfig()
+	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
@@ -89,13 +105,6 @@ func startOperator() {
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
-		os.Exit(1)
-	}
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

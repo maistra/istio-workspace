@@ -13,5 +13,7 @@ func main() {
 	// uniform and structured logs.
 	logf.SetLogger(logf.ZapLogger(false))
 
-	cmd.Execute()
+	rootCmd := cmd.NewRootCmd()
+	rootCmd.AddCommand(cmd.VersionCmd, cmd.NewDevelopCmd())
+	_ = rootCmd.Execute()
 }

@@ -6,51 +6,55 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 
 	"github.com/spf13/cobra"
 )
 
-var (
-	deploymentName string
-	port           int
-	runnable       string
-	method         string
-)
+const telepresenceBin = "telepresence"
 
-func init() {
-	developCmd.Flags().StringVarP(&deploymentName, "deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().IntVarP(&port, "port", "p", 8000, "port to be exposed")
-	developCmd.Flags().StringVarP(&runnable, "run", "r", "", "command to run your application")
-	developCmd.Flags().StringVarP(&method, "method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
+func NewDevelopCmd() *cobra.Command {
+
+	developCmd := &cobra.Command{
+		Use:   "develop",
+		Short: "starts the development flow",
+
+		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			if !telepresenceExists() {
+				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
+			}
+			config.SyncFlag(cmd, "deployment")
+			config.SyncFlag(cmd, "run")
+			config.SyncFlag(cmd, "port")
+			config.SyncFlag(cmd, "method")
+
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)
+			redirectStreams(tp)
+			err := tp.Wait()
+			if err != nil {
+				log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
+				os.Exit(1)
+			}
+		},
+	}
+
+	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
+	developCmd.Flags().IntP("port", "p", 8000, "port to be exposed")
+	developCmd.Flags().StringP("run", "r", "", "command to run your application")
+	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
+
+	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
 	_ = developCmd.MarkFlagRequired("deployment")
 	_ = developCmd.MarkFlagRequired("run")
-	rootCmd.AddCommand(developCmd)
-}
 
-const telepresenceBin = "telepresence"
-
-var developCmd = &cobra.Command{
-	Use:   "develop",
-	Short: "starts the development flow",
-	PreRun: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
-		if !telepresenceExists() {
-			os.Exit(1)
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
-		var tp = exec.Command(telepresenceBin, parseArguments()...)
-		redirectStreams(tp)
-		err := tp.Wait()
-		if err != nil {
-			log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
-			os.Exit(1)
-		}
-
-	},
+	return developCmd
 }
 
 func redirectStreams(command *exec.Cmd) {
@@ -83,12 +87,13 @@ func redirectStreams(command *exec.Cmd) {
 	wg.Wait()
 }
 
-func parseArguments() []string {
-	runArgs := strings.Split(runnable, " ")
+func parseArguments(cmd *cobra.Command) []string {
+	run, _ := cmd.Flags().GetString("run")
+	runArgs := strings.Split(run, " ")
 	return append([]string{
-		"--swap-deployment", deploymentName,
-		"--expose", strconv.Itoa(port),
-		"--method", method,
+		"--swap-deployment", cmd.Flag("deployment").Value.String(),
+		"--expose", cmd.Flag("port").Value.String(),
+		"--method", cmd.Flag("method").Value.String(),
 		"--run"}, runArgs...)
 }
 

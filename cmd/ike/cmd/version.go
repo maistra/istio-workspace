@@ -13,11 +13,7 @@ import (
 
 var log = logf.Log.WithName("cmd")
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}
-
-var versionCmd = &cobra.Command{
+var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version number of ike cli",
 	Long:  `All software has versions. This is Ike's`,
