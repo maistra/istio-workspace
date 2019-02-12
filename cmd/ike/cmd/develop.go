@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -35,7 +34,7 @@ func NewDevelopCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)
-			if err := redirectStreams(tp); err != nil {
+			if err := startWithRedirectedStreams(cmd, tp); err != nil {
 				return err
 			}
 			if err := tp.Wait(); err != nil {
@@ -59,14 +58,13 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func redirectStreams(command *exec.Cmd) error {
-	stdoutIn, _ := command.StdoutPipe()
-	stderrIn, _ := command.StderrPipe()
-	var stdoutBuf, stderrBuf bytes.Buffer
-	stdout := io.MultiWriter(os.Stdout, &stdoutBuf)
-	stderr := io.MultiWriter(os.Stderr, &stderrBuf)
+func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) error {
+	stdoutIn, _ := exCmd.StdoutPipe()
+	stderrIn, _ := exCmd.StderrPipe()
+	stdout := io.MultiWriter(os.Stdout, cmd.OutOrStdout())
+	stderr := io.MultiWriter(os.Stderr, cmd.OutOrStderr())
 	var errStdout, errStderr error
-	err := command.Start()
+	err := exCmd.Start()
 	if err != nil {
 		log.Error(err, fmt.Sprintf("failed to start '%s'", telepresenceBin))
 		return err

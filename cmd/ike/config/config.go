@@ -14,6 +14,7 @@ import (
 // return an error. In case of default config location it will not fail if file does not exist, but will in any other
 // case.
 func SetupConfigSources(configFile string, notDefault bool) error {
+	viper.Reset()
 	viper.SetEnvPrefix("IKE")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -53,11 +54,13 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-// SyncFlag ensures that if configuration provides a value for a given cmd.flag it will be set back to the flag itself.
+// SyncFlag ensures that if configuration provides a value for a given cmd.flag it will be set back to the flag itself,
+// but only if the flag was not set through CLI.
+//
 // This way we can make flags required but still have their values provided by the configuration source
 func SyncFlag(cmd *cobra.Command, flagName string) {
 	value := viper.GetString(cmd.Name() + "." + flagName)
-	if value != "" {
+	if value != "" && !cmd.Flag(flagName).Changed {
 		_ = cmd.Flags().Set(flagName, value)
 	}
 }

@@ -59,7 +59,7 @@ compile: codegen test $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test ## Runs tests
 test:
 	$(call header,"Running tests")
-	ginkgo -r
+	ginkgo -r -v
 
 .PHONY: clean
 clean: ## Removes build artifacts
