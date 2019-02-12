@@ -15,7 +15,7 @@ define header =
 endef
 
 .PHONY: all
-all: tools deps format lint compile ## (default) Runs 'tools deps format lint compile' targets
+all: deps format lint compile ## (default) Runs 'deps format lint compile' targets
 
 .PHONY: help
 help:
@@ -34,6 +34,7 @@ format: ## Removes unneeded imports and formats source code
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
