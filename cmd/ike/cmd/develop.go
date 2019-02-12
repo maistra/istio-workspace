@@ -32,14 +32,16 @@ func NewDevelopCmd() *cobra.Command {
 
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)
-			startWithRedirectedStreams(cmd, tp)
-
+			if err := startWithRedirectedStreams(cmd, tp); err != nil {
+				return err
+			}
 			if err := tp.Wait(); err != nil {
 				log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
-				os.Exit(1)
+				return err
 			}
+			return nil
 		},
 	}
 
@@ -56,7 +58,7 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) {
+func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) error {
 	stdoutIn, _ := exCmd.StdoutPipe()
 	stderrIn, _ := exCmd.StderrPipe()
 	stdout := io.MultiWriter(os.Stdout, cmd.OutOrStdout())
@@ -65,7 +67,7 @@ func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) {
 	err := exCmd.Start()
 	if err != nil {
 		log.Error(err, fmt.Sprintf("failed to start '%s'", telepresenceBin))
-		os.Exit(1)
+		return err
 	}
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -83,6 +85,8 @@ func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) {
 	}
 
 	wg.Wait()
+
+	return nil
 }
 
 func parseArguments(cmd *cobra.Command) []string {
