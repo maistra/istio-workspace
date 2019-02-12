@@ -1,10 +1,9 @@
 language: go
 
 go:
-  - "1.11.4"
+  - "1.11.5"
 
 install:
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - make tools
 
 go_import_path: github.com/aslakknutsen/istio-workspace
