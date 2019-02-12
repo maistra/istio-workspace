@@ -16,6 +16,11 @@ func ValidateArgumentsOf(command *cobra.Command) *Cmd {
 	return (*Cmd)(command)
 }
 
+// ValidateArgumentsOf will not run actual command but let the initialization and validation happen
+func Execute(command *cobra.Command) *Cmd {
+	return (*Cmd)(command)
+}
+
 func (command *Cmd) Passing(args ...string) (output string, err error) {
 	cmd := (*cobra.Command)(command)
 	output, err = executeCommand(cmd, args...)

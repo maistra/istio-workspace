@@ -356,6 +356,8 @@
   packages = [
     ".",
     "format",
+    "gbytes",
+    "gexec",
     "internal/assertion",
     "internal/asyncassertion",
     "internal/oraclematcher",
@@ -1001,6 +1003,7 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",
+    "github.com/onsi/gomega/gexec",
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",
     "github.com/operator-framework/operator-sdk/pkg/metrics",

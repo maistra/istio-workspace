@@ -46,7 +46,7 @@ func TmpFile(t TestReporter, fileName, content string) afero.File {
 	return file
 }
 
-// CleanUp removes all files in our test registry and calls `t.Error` if something goes wrong.
+// CleanUp removes all files in our test registry and calls `t.Errorf` if something goes wrong.
 func CleanUp(t TestReporter) {
 	for _, filePath := range Files {
 		if err := appFs.RemoveAll(filePath); err != nil {
