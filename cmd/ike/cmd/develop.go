@@ -33,14 +33,16 @@ func NewDevelopCmd() *cobra.Command {
 
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)
-			redirectStreams(tp)
-			err := tp.Wait()
-			if err != nil {
-				log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
-				os.Exit(1)
+			if err := redirectStreams(tp); err != nil {
+				return err
 			}
+			if err := tp.Wait(); err != nil {
+				log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
+				return err
+			}
+			return nil
 		},
 	}
 
@@ -57,7 +59,7 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func redirectStreams(command *exec.Cmd) {
+func redirectStreams(command *exec.Cmd) error {
 	stdoutIn, _ := command.StdoutPipe()
 	stderrIn, _ := command.StderrPipe()
 	var stdoutBuf, stderrBuf bytes.Buffer
@@ -67,7 +69,7 @@ func redirectStreams(command *exec.Cmd) {
 	err := command.Start()
 	if err != nil {
 		log.Error(err, fmt.Sprintf("failed to start '%s'", telepresenceBin))
-		os.Exit(1)
+		return err
 	}
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -85,6 +87,8 @@ func redirectStreams(command *exec.Cmd) {
 	}
 
 	wg.Wait()
+
+	return nil
 }
 
 func parseArguments(cmd *cobra.Command) []string {

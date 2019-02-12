@@ -3,16 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
+
+	"github.com/operator-framework/operator-sdk/pkg/leader"
+	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 	"github.com/aslakknutsen/istio-workspace/pkg/apis"
 	"github.com/aslakknutsen/istio-workspace/pkg/controller"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	"github.com/spf13/cobra"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -34,9 +34,9 @@ func NewRootCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
-		Run: func(cmd *cobra.Command, args []string) { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			printVersion()
-			startOperator()
+			return startOperator()
 		},
 	}
 
@@ -47,27 +47,26 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func startOperator() {
+func startOperator() error {
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		log.Error(err, "Failed to get watch namespace")
-		os.Exit(1)
+		return err
 	}
 
 	// Get a config to talk to the apiserver
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
 		log.Error(err, "")
-		os.Exit(1)
+		return err
 	}
 
 	ctx := context.TODO()
 
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "istio-workspace-lock")
-	if err != nil {
-		log.Error(err, "")
-		os.Exit(1)
+	if e := leader.Become(ctx, "istio-workspace-lock"); e != nil {
+		log.Error(e, "")
+		return e
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
@@ -77,7 +76,7 @@ func startOperator() {
 	})
 	if err != nil {
 		log.Error(err, "")
-		os.Exit(1)
+		return err
 	}
 
 	log.Info("Registering Components.")
@@ -85,26 +84,27 @@ func startOperator() {
 	// Setup Scheme for all resources
 	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
-		os.Exit(1)
+		return nil
 	}
 
 	// Setup all Controllers
 	if err = controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
-		os.Exit(1)
+		return err
 	}
 
 	// Create Service object to expose the metrics port.
-	_, err = metrics.ExposeMetricsPort(ctx, metricsPort)
-	if err != nil {
+	if _, err = metrics.ExposeMetricsPort(ctx, metricsPort); err != nil {
 		log.Info(err.Error())
 	}
 
-	log.Info("Starting the Cmd.")
+	log.Info("Starting the operator.")
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }
