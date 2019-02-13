@@ -1,0 +1,30 @@
+= Istio Workspace
+
+== Development
+
+=== Setup
+
+Assuming that you have all the link:https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
+
+[source,bash]
+----
+$ git clone https://github.com/aslakknusten/istio-workspace $GOPATH/src/github.com/aslakknusten/istio-workspace
+----
+
+then run `make tools` which will take care of installing all the tools mentioned below:
+
+* link:https://golang.github.io/dep/[`dep`] for dependency management
+* link:https://github.com/golangci/golangci-lint[`golang-ci`] linter
+* link:https://github.com/onsi/ginkgo[`ginkgo`] for testing
+* link:https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
+* link:https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
+
+From now on you are ready to hack. Run `make help` to see what targets are available, but you will use
+`make build` and `make test` most often.
+
+NOTE: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
+and management of different versions of Go.
+
+== License
+
+This project is licensed under the link:http://www.apache.org/licenses/[Apache License, Version 2.0].
