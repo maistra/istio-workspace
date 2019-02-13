@@ -1,4 +1,5 @@
 package {{.Package}}
+
 import (
 	"testing"
 
