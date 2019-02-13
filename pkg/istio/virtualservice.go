@@ -126,17 +126,3 @@ func revertVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 	}
 	return vs, nil
 }
-
-/*
-
-	virtService := istionetwork.VirtualService{}
-	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: targetName}, &virtService)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
-	}
-	reqLogger.Info("Found VirtualService", "name", virtService.Name, "namespace", virtService.Namespace)
-
-
-
-*/

@@ -10,6 +10,8 @@ import (
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 )
 
+// TODO: Temp workaround for non functional istio API
+
 func getDestinationRuleMapped(namespace, name string) (*istionetwork.DestinationRule, error) {
 	body, err := getDestinationRule(namespace, name)
 	if err != nil {

@@ -29,14 +29,17 @@ var (
 
 	locators = []model.Locator{
 		k8.DeploymentLocator,
+		//openshift.DeploymentConfigLocator,
 	}
 	mutators = []model.Mutator{
 		k8.DeploymentMutator,
+		//openshift.DeploymentConfigMutator,
 		istio.DestinationRuleMutator,
 		//istio.VirtualServiceMutator,
 	}
 	revertors = []model.Revertor{
 		k8.DeploymentRevertor,
+		//openshift.DeploymentConfigRevertor,
 		istio.DestinationRuleRevertor,
 		//istio.VirtualServiceRevertor,
 	}
