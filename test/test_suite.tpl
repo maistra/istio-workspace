@@ -8,6 +8,7 @@ import (
 	{{.GinkgoImport}}
 	{{.GomegaImport}}
 )
+
 func Test{{.FormattedName}}(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "{{.FormattedName}} Suite")
