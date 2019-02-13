@@ -1,4 +1,4 @@
-package session
+package istio
 
 import (
 	"fmt"
@@ -16,8 +16,7 @@ func TestDestinationRuleMutatorAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	drm := DestinationRuleMutator{}
-	dra, err := drm.Add(dr)
+	dra, err := mutateDestinationRule(dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,8 +39,7 @@ func TestDestinationRuleMutatorRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	drm := DestinationRuleMutator{}
-	dra, err := drm.Remove(dr)
+	dra, err := revertDestinationRule(dr)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,7 +8,7 @@ import (
 
 // SessionSpec defines the desired state of Session
 type SessionSpec struct {
-	Ref string `json:"ref,omitempty"`
+	Refs []string `json:"ref,omitempty"`
 }
 
 // SessionStatus defines the observed state of Session
@@ -19,6 +19,7 @@ type SessionStatus struct {
 
 // RefStatus defines the observed state of the individual Ref
 type RefStatus struct {
+	Name      string            `json:"name,omitempty"`
 	Params    map[string]string `json:"params,omitempty"`
 	Resources []*RefResource    `json:"resources,omitempty"`
 }
@@ -39,6 +40,29 @@ type Session struct {
 
 	Spec   SessionSpec   `json:"spec,omitempty"`
 	Status SessionStatus `json:"status,omitempty"`
+}
+
+func (s *Session) HasFinalizer(finalizer string) bool {
+	for _, f := range s.Finalizers {
+		if f == finalizer {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Session) AddFinalizer(finalizer string) {
+	s.Finalizers = append(s.Finalizers, finalizer)
+}
+
+func (s *Session) RemoveFinalizer(finalizer string) {
+	finalizers := []string{}
+	for _, f := range s.Finalizers {
+		if f != finalizer {
+			finalizers = append(finalizers, f)
+		}
+	}
+	s.Finalizers = finalizers
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

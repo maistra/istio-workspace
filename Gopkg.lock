@@ -1011,11 +1011,14 @@
     "github.com/operator-framework/operator-sdk/version",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
+<<<<<<< HEAD
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
+=======
+    "gopkg.in/yaml.v2",
+>>>>>>> chore(refactor): structure code into Locaters, Mutaters and Reverters.
     "istio.io/api/networking/v1alpha3",
     "k8s.io/api/apps/v1",
-    "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",
@@ -1038,6 +1041,7 @@
     "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
     "sigs.k8s.io/controller-runtime/pkg/source",
+    "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

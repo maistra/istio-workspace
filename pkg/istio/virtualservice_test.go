@@ -1,4 +1,4 @@
-package session
+package istio
 
 import (
 	"fmt"
@@ -8,15 +8,14 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func TestVirtualServiceMutatorAdd(t *testing.T) {
+func TestVirtualServiceMutator2Add(t *testing.T) {
 	vs := istionetwork.VirtualService{}
 	err := yaml.Unmarshal([]byte(simpleVirtualService), &vs)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	vsm := VirtualServiceMutator{}
-	vsa, err := vsm.Add(vs)
+	vsa, err := mutateVirtualService(vs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,21 +30,20 @@ func TestVirtualServiceMutatorAdd(t *testing.T) {
 		t.Fatal("missing match route")
 	}
 
-	if vsa.Spec.Http[0].Route[0].Destination.Subset == "v1-test" {
+	if vsa.Spec.Http[0].Route[0].Destination.Subset != "v1-test" {
 		t.Fatal("missing subset update")
 	}
 
 }
 
-func TestVirtualServiceMutatorRemove(t *testing.T) {
+func TestVirtualServiceMutator2Remove(t *testing.T) {
 	vs := istionetwork.VirtualService{}
 	err := yaml.Unmarshal([]byte(simpleMutatedVirtualService), &vs)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	vsm := VirtualServiceMutator{}
-	vsa, err := vsm.Remove(vs)
+	vsa, err := revertVirtualService(vs)
 	if err != nil {
 		t.Fatal(err)
 	}

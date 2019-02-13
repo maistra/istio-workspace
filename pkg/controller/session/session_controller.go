@@ -2,20 +2,15 @@ package session
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
-	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/aslakknutsen/istio-workspace/pkg/istio"
+	"github.com/aslakknutsen/istio-workspace/pkg/k8"
+	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
-	appsv1 "k8s.io/api/apps/v1"
-
-	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -25,7 +20,27 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_session")
+const (
+	finalizer = "finalizers.istio.workspace.session"
+)
+
+var (
+	log = logf.Log.WithName("controller_session")
+
+	locators = []model.Locator{
+		k8.DeploymentLocator,
+	}
+	mutators = []model.Mutator{
+		k8.DeploymentMutator,
+		istio.DestinationRuleMutator,
+		//istio.VirtualServiceMutator,
+	}
+	revertors = []model.Revertor{
+		k8.DeploymentRevertor,
+		istio.DestinationRuleRevertor,
+		//istio.VirtualServiceRevertor,
+	}
+)
 
 // Add creates a new Session Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -71,44 +86,76 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
-	ctx := context.TODO()
+	ctx := model.SessionContext{
+		Context:   context.TODO(),
+		Name:      request.Name,
+		Namespace: request.Namespace,
+		Log:       reqLogger,
+		Client:    r.client,
+	}
 
 	// Fetch the Session instance
-	instance := &istiov1alpha1.Session{}
-	err := r.client.Get(ctx, request.NamespacedName, instance)
+	session := &istiov1alpha1.Session{}
+	err := r.client.Get(ctx, request.NamespacedName, session)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-
-	reqLogger.Info("Added session", "name", request.Name, "namespace", request.Namespace)
-
-	// locateDeployment()
-	// locateDestinationRule()
-	// locateVirtualService()
-	// cloneDeployment()
-	// mutateDestinationRule()
-	// mutateVirtualService()
-	// updateStatus
-	deployment := appsv1.Deployment{}
-
-	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: instance.Spec.Ref}, &deployment)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
+	deleted := session.DeletionTimestamp != nil
+	if deleted {
+		reqLogger.Info("Deleted session")
+		if !session.HasFinalizer(finalizer) {
+			return reconcile.Result{}, nil
+		}
+	} else {
+		reqLogger.Info("Added session")
+		if !session.HasFinalizer(finalizer) {
+			session.AddFinalizer(finalizer)
+			r.client.Update(ctx, session)
+		}
 	}
 
-	reqLogger.Info("Found Deployment", "image", deployment.Spec.Template.Spec.Containers[0].Image)
+	if deleted {
+		for _, r := range session.Spec.Refs {
+			reqLogger.Info("Remove ref", "name", r)
+			ref := model.Ref{Name: r}
 
-	// HACK: resolve the chain somehow
+			statusToRef(*session, &ref)
+			for _, revertor := range revertors {
+				err := revertor(ctx, &ref)
+				if err != nil {
+					reqLogger.Error(err, "Revert", "name", r)
+				}
+			}
+		}
+	} else {
+		for _, r := range session.Spec.Refs {
+			reqLogger.Info("Add ref", "name", r)
+			ref := model.Ref{Name: r}
 
-	targetName := strings.Split(deployment.Name, "-")[0]
+			statusToRef(*session, &ref)
+			for _, locator := range locators {
+				if locator(ctx, &ref) {
+					break // only use first locator
+				}
+			}
+			for _, mutator := range mutators {
+				err := mutator(ctx, &ref)
+				if err != nil {
+					reqLogger.Error(err, "Mutate", "name", r)
+				}
+			}
+
+			refToStatus(ref, session)
+			err := ctx.Client.Status().Update(ctx, session)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+	}
 
 	/*
 		serviceList := corev1.ServiceList{}
@@ -122,77 +169,30 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	*/
 
-	destRule := istionetwork.DestinationRule{}
-	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: targetName}, &destRule)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
+	if deleted {
+		session.RemoveFinalizer(finalizer)
+		r.client.Update(ctx, session)
 	}
-	reqLogger.Info("Found DestinationRule", "name", destRule.Name)
-	{
-		x, _ := yaml.Marshal(destRule)
-		fmt.Println(string(x))
-	}
-
-	virtService := istionetwork.VirtualService{}
-	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: targetName}, &virtService)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
-	}
-	reqLogger.Info("Found VirtualService", "name", virtService.Name)
-
-	destMutator := DestinationRuleMutator{}
-	mutatedDestRule, err := destMutator.Add(destRule)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
-	}
-	/*
-		virtServiceMutator := VirtualServiceMutator{}
-		mutatedVirtService, err := virtServiceMutator.Add(virtService)
-		if err != nil {
-			updateStatus(reqLogger, ctx, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-			return reconcile.Result{Requeue: false}, err
-		}
-	*/
-
-	refStatus := &istiov1alpha1.RefStatus{
-		Params: map[string]string{
-			"end-user": "jason",
-		},
-	}
-	instance.Status.Refs = append(instance.Status.Refs, refStatus)
-
-	err = r.client.Update(ctx, &mutatedDestRule)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-		return reconcile.Result{Requeue: false}, err
-	}
-
-	refStatus.Resources = append(refStatus.Resources, &istiov1alpha1.RefResource{Kind: &mutatedDestRule.TypeMeta.Kind, Name: &mutatedDestRule.Name})
-	updateStatus(ctx, reqLogger, r.client, instance)
-	/*
-		err = r.client.Update(ctx, &mutatedVirtService)
-		if err != nil {
-			updateStatus(reqLogger, ctx, r.client, setStatus(instance, fmt.Sprintf("%v", err)))
-			return reconcile.Result{Requeue: false}, err
-		}
-	*/
-	updateStatus(ctx, reqLogger, r.client, setStatus(instance, "success"))
-
 	return reconcile.Result{}, nil
 }
 
-func setStatus(session *istiov1alpha1.Session, status string) *istiov1alpha1.Session {
-	session.Status.State = &status
-	return session
+func refToStatus(ref model.Ref, session *istiov1alpha1.Session) {
+	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
+	for _, refStat := range ref.ResourceStatuses {
+		rs := refStat
+		statusRef.Resources = append(statusRef.Resources, &istiov1alpha1.RefResource{Name: &rs.Name, Kind: &rs.Kind})
+	}
+	// TODO: replace the Ref by name, not just append. Assume the new list contain all ResourceStatus
+	session.Status.Refs = append(session.Status.Refs, statusRef)
 }
 
-func updateStatus(ctx context.Context, log logr.Logger, c client.Client, session *istiov1alpha1.Session) {
-	log.Info("Updating status", "state", session.Status.State)
-	err := c.Status().Update(ctx, session)
-	if err != nil {
-		log.Error(err, "failed to update status of session")
+func statusToRef(session istiov1alpha1.Session, ref *model.Ref) {
+	for _, statusRef := range session.Status.Refs {
+		if statusRef.Name == ref.Name {
+			for _, resource := range statusRef.Resources {
+				r := resource
+				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind})
+			}
+		}
 	}
 }
