@@ -5,7 +5,9 @@ import (
 	"testing"
 )
 
-func TestDestinationRule(t *testing.T) {
+// TODO: Tests disabled as they rely on oc and a current context setup outside of test. relying on oc is temp until istio API is ready.
+
+func XTestDestinationRule(t *testing.T) {
 
 	dr, err := getDestinationRuleMapped("bookinfo", "details")
 	if err != nil {
@@ -18,7 +20,7 @@ func TestDestinationRule(t *testing.T) {
 	setDestinationRule("bookinfo", dr)
 }
 
-func TestVirtualService(t *testing.T) {
+func XTestVirtualService(t *testing.T) {
 
 	vs, err := getVirtualServiceMapped("bookinfo", "details")
 	if err != nil {
