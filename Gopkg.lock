@@ -74,6 +74,14 @@
   version = "v1.4.7"
 
 [[projects]]
+  digest = "1:3edae22314d3e1c724d514a21e201bfbf1eb2d6c184e42bbc2a19737c9866688"
+  name = "github.com/go-cmd/cmd"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "db1a8287640cedff487674c2f4439805b58f42aa"
+  version = "v1.0.4"
+
+[[projects]]
   branch = "master"
   digest = "1:d421af4c4fe51d399667d573982d663fe1fa67020a88d3ae43466ebfe8e2b5c9"
   name = "github.com/go-logr/logr"
@@ -999,6 +1007,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/go-cmd/cmd",
     "github.com/go-logr/logr",
     "github.com/onsi/ginkgo",
     "github.com/onsi/ginkgo/reporters",
