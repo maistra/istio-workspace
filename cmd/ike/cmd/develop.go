@@ -2,14 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
 	"strings"
-	"sync"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 
+	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -33,15 +31,18 @@ func NewDevelopCmd() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			var tp = exec.Command(telepresenceBin, parseArguments(cmd)...)
-			if err := startWithRedirectedStreams(cmd, tp); err != nil {
-				return err
+			options := gocmd.Options{
+				Buffered:  false,
+				Streaming: true,
 			}
-			if err := tp.Wait(); err != nil {
-				log.Error(err, fmt.Sprintf("%s failed", telepresenceBin))
-				return err
-			}
-			return nil
+			tp := gocmd.NewCmdOptions(options, telepresenceBin, parseArguments(cmd)...)
+
+			go redirectStreamsToCmd(tp, cmd)
+
+			tpStatusChan := tp.Start()
+			finalStatus := <-tpStatusChan
+
+			return finalStatus.Error
 		},
 	}
 
@@ -58,35 +59,25 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func startWithRedirectedStreams(cmd *cobra.Command, exCmd *exec.Cmd) error {
-	stdoutIn, _ := exCmd.StdoutPipe()
-	stderrIn, _ := exCmd.StderrPipe()
-	stdout := io.MultiWriter(os.Stdout, cmd.OutOrStdout())
-	stderr := io.MultiWriter(os.Stderr, cmd.OutOrStderr())
-	var errStdout, errStderr error
-	err := exCmd.Start()
-	if err != nil {
-		log.Error(err, fmt.Sprintf("failed to start '%s'", telepresenceBin))
-		return err
+func redirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command) {
+	for {
+		select {
+		case line, ok := <-src.Stdout:
+			if !ok {
+				return
+			}
+			if _, err := fmt.Fprintln(dest.OutOrStdout(), line); err != nil {
+				log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
+			}
+		case line, ok := <-src.Stderr:
+			if !ok {
+				return
+			}
+			if _, err := fmt.Fprintln(dest.OutOrStderr(), line); err != nil {
+				log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
+			}
+		}
 	}
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		_, errStdout = io.Copy(stdout, stdoutIn)
-		wg.Done()
-	}()
-	go func() {
-		_, errStderr = io.Copy(stderr, stderrIn)
-		wg.Done()
-	}()
-
-	if errStderr != nil || errStdout != nil {
-		log.V(9).Info("Failed to copy either of stdout or stderr")
-	}
-
-	wg.Wait()
-
-	return nil
 }
 
 func parseArguments(cmd *cobra.Command) []string {
