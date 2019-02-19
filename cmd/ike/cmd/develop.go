@@ -57,7 +57,7 @@ func NewDevelopCmd() *cobra.Command {
 				}
 				excluded = append(excluded, excludeTpLog...)
 
-				w, err := watch.NewWatch().
+				w, err := watch.CreateWatch().
 					WithHandler(func(event fsnotify.Event, done chan<- struct{}) error {
 						_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 						if err := build(cmd); err != nil {

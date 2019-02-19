@@ -21,43 +21,6 @@ type Watch struct {
 	exclusions FilePatterns
 }
 
-type Builder struct {
-	w *Watch
-}
-
-func NewWatch() *Builder {
-	return &Builder{w: &Watch{}}
-}
-
-func (wb *Builder) WithHandler(handler Handler) *Builder {
-	wb.w.handler = handler
-	return wb
-}
-
-func (wb *Builder) Excluding(exclusions ...string) *Builder {
-	wb.w.exclusions = ParseFilePatterns(exclusions)
-	return wb
-}
-
-func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
-
-	fsWatcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error(err, "failed creating fs watch")
-		return nil, err
-	}
-
-	wb.w.watcher = fsWatcher
-
-	for _, p := range paths {
-		if e := wb.w.AddRecursiveWatch(p); e != nil {
-			return nil, e
-		}
-	}
-
-	return wb.w, nil
-}
-
 // AddPath adds single path (non-recursive) to be watch
 func (w *Watch) AddPath(filePath string) error {
 	return w.watcher.Add(filePath)

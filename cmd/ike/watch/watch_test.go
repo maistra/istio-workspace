@@ -1,8 +1,6 @@
 package watch_test
 
 import (
-	"path"
-
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
 
 	"github.com/fsnotify/fsnotify"
@@ -23,9 +21,9 @@ var _ = Describe("File changes watch", func() {
 		// given
 		config := TmpFile(GinkgoT(), "config.yaml", "content")
 
-		watcher, e := watch.NewWatch().
+		watcher, e := watch.CreateWatch().
 			WithHandler(expectFileChange(config.Name())).
-			OnPaths(path.Dir(config.Name()))
+			OnPaths(config.Name())
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
@@ -44,7 +42,7 @@ var _ = Describe("File changes watch", func() {
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.NewWatch().
+		watcher, e := watch.CreateWatch().
 			WithHandler(expectFileChange(text.Name())).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -65,7 +63,7 @@ var _ = Describe("File changes watch", func() {
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.NewWatch().
+		watcher, e := watch.CreateWatch().
 			WithHandler(expectFileChange(text.Name())).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -86,7 +84,7 @@ var _ = Describe("File changes watch", func() {
 		config := TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.NewWatch().
+		watcher, e := watch.CreateWatch().
 			WithHandler(expectFileChange(text.Name())).
 			Excluding("*.yaml").
 			OnPaths(tmpDir)
@@ -113,7 +111,7 @@ var _ = Describe("File changes watch", func() {
 		watchTmpDir := TmpDir(GinkgoT(), "watch")
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
-		watcher, e := watch.NewWatch().
+		watcher, e := watch.CreateWatch().
 			WithHandler(expectFileChange(code.Name())).
 			Excluding("/tmp/**/skip_watch/*").
 			OnPaths(skipTmpDir, watchTmpDir)
