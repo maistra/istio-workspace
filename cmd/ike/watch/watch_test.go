@@ -13,13 +13,13 @@ import (
 	. "github.com/aslakknutsen/istio-workspace/test"
 )
 
-var _ = Describe("file changes watch", func() {
+var _ = Describe("File changes watch", func() {
 
 	AfterEach(func() {
 		CleanUp(GinkgoT())
 	})
 
-	It("should watch on file change", func() {
+	It("should recognize file change", func() {
 		// given
 		config := TmpFile(GinkgoT(), "config.yaml", "content")
 
@@ -32,34 +32,13 @@ var _ = Describe("file changes watch", func() {
 
 		// when
 		done := watcher.Watch()
-		_, _ = config.WriteString("mod!")
+		_, _ = config.WriteString(" modified!")
 
 		// then
 		Eventually(done).Should(BeClosed())
 	})
 
-	It("should handle directory entry", func() {
-		// given
-		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
-		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
-		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
-
-		watcher, e := watch.NewWatch().
-			WithHandler(expectFileChange(text.Name())).
-			OnPaths(tmpDir)
-		Expect(e).ToNot(HaveOccurred())
-
-		defer watcher.Close()
-
-		// when
-		done := watcher.Watch()
-		_, _ = text.WriteString("mod!")
-
-		// then
-		Eventually(done).Should(BeClosed())
-	})
-
-	It("should watch directories recursively", func() {
+	It("should recognize file change in watched directory", func() {
 		// given
 		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
@@ -80,7 +59,28 @@ var _ = Describe("file changes watch", func() {
 		Eventually(done).Should(BeClosed())
 	})
 
-	It("should skip watching files when file exclusion pattern matches", func() {
+	It("should recognize file change in sub-directory (recursive watch)", func() {
+		// given
+		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
+		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
+		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
+
+		watcher, e := watch.NewWatch().
+			WithHandler(expectFileChange(text.Name())).
+			OnPaths(tmpDir)
+		Expect(e).ToNot(HaveOccurred())
+
+		defer watcher.Close()
+
+		// when
+		done := watcher.Watch()
+		_, _ = text.WriteString(" modified!")
+
+		// then
+		Eventually(done).Should(BeClosed())
+	})
+
+	It("should not recognize file change if matches file extension exclusion", func() {
 		// given
 		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
 		config := TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
@@ -103,7 +103,7 @@ var _ = Describe("file changes watch", func() {
 		Eventually(done).Should(BeClosed())
 	})
 
-	It("should skip watching files when directory exclusion pattern matches", func() {
+	It("should not recognize file change in excluded directory", func() {
 		// given
 		skipTmpDir := TmpDir(GinkgoT(), "skip_watch")
 
