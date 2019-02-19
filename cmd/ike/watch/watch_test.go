@@ -19,17 +19,18 @@ var _ = Describe("File changes watch", func() {
 
 	It("should recognize file change", func() {
 		// given
+		done := make(chan struct{})
 		config := TmpFile(GinkgoT(), "config.yaml", "content")
 
 		watcher, e := watch.CreateWatch().
-			WithHandler(expectFileChange(config.Name())).
+			WithHandler(expectFileChange(config.Name(), done)).
 			OnPaths(config.Name())
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
 
 		// when
-		done := watcher.Watch()
+		watcher.Watch()
 		_, _ = config.WriteString(" modified!")
 
 		// then
@@ -38,19 +39,20 @@ var _ = Describe("File changes watch", func() {
 
 	It("should recognize file change in watched directory", func() {
 		// given
+		done := make(chan struct{})
 		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch().
-			WithHandler(expectFileChange(text.Name())).
+			WithHandler(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
 
 		// when
-		done := watcher.Watch()
+		watcher.Watch()
 		_, _ = text.WriteString(" modified!")
 
 		// then
@@ -59,19 +61,20 @@ var _ = Describe("File changes watch", func() {
 
 	It("should recognize file change in sub-directory (recursive watch)", func() {
 		// given
+		done := make(chan struct{})
 		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch().
-			WithHandler(expectFileChange(text.Name())).
+			WithHandler(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
 
 		// when
-		done := watcher.Watch()
+		watcher.Watch()
 		_, _ = text.WriteString(" modified!")
 
 		// then
@@ -80,12 +83,13 @@ var _ = Describe("File changes watch", func() {
 
 	It("should not recognize file change if matches file extension exclusion", func() {
 		// given
+		done := make(chan struct{})
 		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
 		config := TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch().
-			WithHandler(expectFileChange(text.Name())).
+			WithHandler(expectFileChange(text.Name(), done)).
 			Excluding("*.yaml").
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -93,7 +97,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		done := watcher.Watch()
+		watcher.Watch()
 		_, _ = config.WriteString(" should not be watched")
 		_, _ = text.WriteString(" modified!")
 
@@ -103,6 +107,7 @@ var _ = Describe("File changes watch", func() {
 
 	It("should not recognize file change in excluded directory", func() {
 		// given
+		done := make(chan struct{})
 		skipTmpDir := TmpDir(GinkgoT(), "skip_watch")
 
 		config := TmpFile(GinkgoT(), skipTmpDir+"/config.yaml", "content")
@@ -112,7 +117,7 @@ var _ = Describe("File changes watch", func() {
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
 		watcher, e := watch.CreateWatch().
-			WithHandler(expectFileChange(code.Name())).
+			WithHandler(expectFileChange(code.Name(), done)).
 			Excluding("/tmp/**/skip_watch/*").
 			OnPaths(skipTmpDir, watchTmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -120,7 +125,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		done := watcher.Watch()
+		watcher.Watch()
 		_, _ = config.WriteString(" should not be watched")
 		_, _ = text.WriteString(" modified!")
 		_, _ = code.WriteString("\n // Bla!")
@@ -131,11 +136,11 @@ var _ = Describe("File changes watch", func() {
 
 })
 
-func expectFileChange(fileName string) watch.Handler {
-	return func(event fsnotify.Event, done chan<- struct{}) error {
+func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
+	return func(event fsnotify.Event) error {
 		defer GinkgoRecover()
-		close(done)
 		Expect(event.Name).To(Equal(fileName))
+		close(done)
 		return nil
 	}
 }

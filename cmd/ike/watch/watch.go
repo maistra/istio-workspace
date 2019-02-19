@@ -11,9 +11,8 @@ import (
 
 var log = logf.Log.WithName("watch")
 
-// Handler allows to define how to react on file changes even and if the watch should
-// be terminated through closing done channel
-type Handler func(event fsnotify.Event, done chan<- struct{}) error
+// Handler allows to define how to react on file changes event
+type Handler func(event fsnotify.Event) error
 
 // Watch represents single file system watch and delegates change events to defined handler
 type Watch struct {
@@ -66,9 +65,7 @@ func (w *Watch) Close() {
 	}
 }
 
-func (w *Watch) Watch() <-chan struct{} {
-
-	done := make(chan struct{})
+func (w *Watch) Watch() {
 
 	// Dispatch fsnotify events
 	go func() {
@@ -83,7 +80,7 @@ func (w *Watch) Watch() <-chan struct{} {
 					continue
 				}
 
-				if err := w.handler(event, done); err != nil {
+				if err := w.handler(event); err != nil {
 					log.Error(err, "failed to handle file change!")
 				}
 			case err, ok := <-w.watcher.Errors:
@@ -91,18 +88,10 @@ func (w *Watch) Watch() <-chan struct{} {
 					return
 				}
 				log.Error(err, "failed while watching")
-				close(done)
 			}
 		}
 	}()
 
-	// when done close watcher
-	go func() {
-		<-done
-		w.Close()
-	}()
-
-	return done
 }
 
 // getSubFolders recursively retrieves all subfolders of the specified path.
