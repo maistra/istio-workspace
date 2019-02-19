@@ -262,9 +262,13 @@ var _ = Describe("Usage of ike develop command", func() {
 		})
 		AfterEach(tmpPath.Restore)
 
+		AfterEach(func() {
+			CleanUp(GinkgoT())
+		})
+
 		It("should re-build and re-run telepresence", func() {
 			// given
-			config := TmpFile(GinkgoT(), "/tmp/watch-test/config.yaml", "content")
+			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go func() {
 				defer GinkgoRecover()
@@ -281,17 +285,17 @@ var _ = Describe("Usage of ike develop command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 
-			_, _ = config.WriteString("modified!")
+			_, _ = code.WriteString("modified!")
 
 			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("config.yaml changed. Restarting process."))
+			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(2))
 		})
 
 		It("should ignore build if not defined and just re-run telepresence", func() {
-			config := TmpFile(GinkgoT(), "/tmp/watch-test/config.yaml", "content")
+			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go func() {
@@ -306,24 +310,27 @@ var _ = Describe("Usage of ike develop command", func() {
 			}()
 
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-			_, _ = config.WriteString("modified!")
+			_, _ = code.WriteString("modified!")
 
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("config.yaml changed. Restarting process."))
+			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
 		})
 
 		It("should only re-run telepresence when --no-build flag specified", func() {
-			config := TmpFile(GinkgoT(), "/tmp/watch-test/config.yaml", "content")
+			configFile := TmpFile(GinkgoT(), "config.yaml", `develop:
+  run: "java -jar config.jar"
+  build: "mvn clean install"
+`)
+			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go func() {
 				defer GinkgoRecover()
 				output, err := Execute(developCmd).Passing("--deployment", "rating-service",
-					"--run", "java -jar rating.jar",
-					"--build", "mvn clean install",
-					"--no-build", // TODO source from config
+					"--config", configFile.Name(),
+					"--no-build",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
 					"--method", "vpn-tcp")
@@ -332,11 +339,11 @@ var _ = Describe("Usage of ike develop command", func() {
 			}()
 
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-			_, _ = config.WriteString("modified!")
+			_, _ = code.WriteString("modified!")
 
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("config.yaml changed. Restarting process."))
+			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
 		})
 	})
