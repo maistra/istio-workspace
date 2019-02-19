@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -38,6 +39,8 @@ var _ = Describe("Usage of ike develop command", func() {
 		tpBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "telepresence")
 		tpSleepBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo",
 			"telepresence", "-ldflags", "-w -X main.SleepMs=10")
+
+		fmt.Println(mvnBin)
 	})
 
 	AfterSuite(func() {
@@ -46,18 +49,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Context("checking telepresence binary existence", func() {
 
-		var originalPath string
-
+		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			// we stub existence of telepresence executable as develop command does a precondition check before execution
-			// to verify if it exists on the PATH
-			originalPath = os.Getenv("PATH")
-			_ = os.Setenv("PATH", path.Dir(tpBin)+":"+path.Dir(mvnBin))
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
 		})
-
-		AfterEach(func() {
-			_ = os.Setenv("PATH", originalPath)
-		})
+		AfterEach(tmpPath.Restore)
 
 		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
 			oldPath := os.Getenv("PATH")
@@ -76,18 +72,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Describe("input validation", func() {
 
-		var originalPath string
-
+		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			// we stub existence of telepresence executable as develop command does a precondition check before execution
-			// to verify if it exists on the PATH
-			originalPath = os.Getenv("PATH")
-			_ = os.Setenv("PATH", path.Dir(tpBin)+":"+path.Dir(mvnBin))
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
 		})
-
-		AfterEach(func() {
-			_ = os.Setenv("PATH", originalPath)
-		})
+		AfterEach(tmpPath.Restore)
 
 		Context("with flags only", func() {
 
@@ -192,18 +181,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Describe("telepresence arguments delegation", func() {
 
-		var originalPath string
-
+		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			// we stub existence of telepresence executable as develop command does a precondition check before execution
-			// to verify if it exists on the PATH
-			originalPath = os.Getenv("PATH")
-			_ = os.Setenv("PATH", path.Dir(tpBin)+":"+path.Dir(mvnBin))
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
 		})
-
-		AfterEach(func() {
-			_ = os.Setenv("PATH", originalPath)
-		})
+		AfterEach(tmpPath.Restore)
 
 		It("should pass all specified parameters", func() {
 			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
@@ -274,18 +256,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Context("watching file changes", func() {
 
-		var originalPath string
-
+		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			// we stub existence of telepresence executable as develop command does a precondition check before execution
-			// to verify if it exists on the PATH
-			originalPath = os.Getenv("PATH")
-			_ = os.Setenv("PATH", path.Dir(mvnBin)+":"+path.Dir(tpSleepBin))
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
 		})
-
-		AfterEach(func() {
-			_ = os.Setenv("PATH", originalPath)
-		})
+		AfterEach(tmpPath.Restore)
 
 		It("should re-build and re-run telepresence", func() {
 			// given
