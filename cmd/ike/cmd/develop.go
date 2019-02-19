@@ -83,6 +83,7 @@ func NewDevelopCmd() *cobra.Command {
 					<-runTp
 					if tp != nil {
 						_ = tp.Stop()
+						<-tp.Done()
 					}
 
 					tp = gocmd.NewCmdOptions(streamOutput, telepresenceBin, parseArguments(cmd)...)
@@ -131,6 +132,7 @@ func notifyTelepresenceOnClose(tp *gocmd.Cmd, done chan gocmd.Status) {
 	var err error
 	if tp != nil {
 		err = tp.Stop()
+		<-tp.Done()
 	}
 	done <- gocmd.Status{
 		Error: err,
