@@ -13,7 +13,7 @@ func NewTmpPath() *TmpPath {
 	return &TmpPath{originalPath: os.Getenv("PATH")}
 }
 
-func (t *TmpPath) SetPath(paths ...string)  {
+func (t *TmpPath) SetPath(paths ...string) {
 	_ = os.Setenv("PATH", strings.Join(paths, ":"))
 }
 
