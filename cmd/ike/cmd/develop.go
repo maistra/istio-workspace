@@ -57,9 +57,11 @@ func NewDevelopCmd() *cobra.Command {
 				}
 				excluded = append(excluded, excludeTpLog...)
 
-				w, err := watch.CreateWatch().
-					WithHandler(func(event fsnotify.Event) error {
-						_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+				ms, _ := cmd.Flags().GetInt64("watch-interval")
+				w, err := watch.CreateWatch(ms).
+					WithHandler(func(events []fsnotify.Event) error {
+						// TODO iterate
+						_, _ = cmd.OutOrStdout().Write([]byte(events[0].Name + " changed. Restarting process.\n"))
 						if err := build(cmd); err != nil {
 							return err
 						}
@@ -107,6 +109,7 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().Bool("no-build", false, "always skips build")
 	developCmd.Flags().StringSliceP("watch", "w", []string{currentDir()}, "list of directories to watch")
 	developCmd.Flags().StringSlice("watch-exclude", excludeTpLog, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))

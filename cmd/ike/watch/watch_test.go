@@ -22,7 +22,7 @@ var _ = Describe("File changes watch", func() {
 		done := make(chan struct{})
 		config := TmpFile(GinkgoT(), "config.yaml", "content")
 
-		watcher, e := watch.CreateWatch().
+		watcher, e := watch.CreateWatch(1).
 			WithHandler(expectFileChange(config.Name(), done)).
 			OnPaths(config.Name())
 		Expect(e).ToNot(HaveOccurred())
@@ -44,7 +44,7 @@ var _ = Describe("File changes watch", func() {
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.CreateWatch().
+		watcher, e := watch.CreateWatch(1).
 			WithHandler(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("File changes watch", func() {
 		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.CreateWatch().
+		watcher, e := watch.CreateWatch(1).
 			WithHandler(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -88,7 +88,7 @@ var _ = Describe("File changes watch", func() {
 		config := TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
-		watcher, e := watch.CreateWatch().
+		watcher, e := watch.CreateWatch(1).
 			WithHandler(expectFileChange(text.Name(), done)).
 			Excluding("*.yaml").
 			OnPaths(tmpDir)
@@ -116,7 +116,7 @@ var _ = Describe("File changes watch", func() {
 		watchTmpDir := TmpDir(GinkgoT(), "watch")
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
-		watcher, e := watch.CreateWatch().
+		watcher, e := watch.CreateWatch(1).
 			WithHandler(expectFileChange(code.Name(), done)).
 			Excluding("/tmp/**/skip_watch/*").
 			OnPaths(skipTmpDir, watchTmpDir)
@@ -137,9 +137,9 @@ var _ = Describe("File changes watch", func() {
 })
 
 func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
-	return func(event fsnotify.Event) error {
+	return func(events []fsnotify.Event) error {
 		defer GinkgoRecover()
-		Expect(event.Name).To(Equal(fileName))
+		Expect(events[0].Name).To(Equal(fileName))
 		close(done)
 		return nil
 	}

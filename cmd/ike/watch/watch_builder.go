@@ -2,6 +2,7 @@ package watch
 
 import (
 	"os"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -11,8 +12,12 @@ type Builder struct {
 }
 
 // CreateWatch creates instance of Builder providing fluent functions to customize watch
-func CreateWatch() *Builder {
-	return &Builder{w: &Watch{}}
+// 		interval defines how frequently (in ms) file change events should be processed
+func CreateWatch(intervalMs int64) *Builder {
+	return &Builder{w: &Watch{
+		interval: time.Duration(intervalMs) * time.Millisecond,
+		done:     make(chan struct{}, 1),
+	}}
 }
 
 // WithHandler allows to hook instance of Handler reacting on file change events

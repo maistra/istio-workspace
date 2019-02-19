@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -12,19 +13,26 @@ import (
 var log = logf.Log.WithName("watch")
 
 // Handler allows to define how to react on file changes event
-type Handler func(event fsnotify.Event) error
+type Handler func(events []fsnotify.Event) error
 
 // Watch represents single file system watch and delegates change events to defined handler
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handler    Handler
 	exclusions FilePatterns
+	interval   time.Duration
+	done       chan struct{}
 }
 
 func (w *Watch) Watch() {
 
 	// Dispatch fsnotify events
 	go func() {
+
+		tick := time.NewTicker(w.interval)
+		events := make([]fsnotify.Event, 0)
+
+	OutOfFor:
 		for {
 			select {
 			case event, ok := <-w.watcher.Events:
@@ -36,16 +44,27 @@ func (w *Watch) Watch() {
 					continue
 				}
 
-				if err := w.handler(event); err != nil {
-					log.Error(err, "failed to handle file change!")
-				}
+				events = append(events, event)
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
 					return
 				}
 				log.Error(err, "failed while watching")
+			case <-tick.C:
+				if len(events) == 0 {
+					continue
+				}
+
+				if err := w.handler(events); err != nil {
+					log.Error(err, "failed to handle file change!")
+				}
+				events = make([]fsnotify.Event, 0)
+			case <-w.done:
+				break OutOfFor
 			}
 		}
+
+		close(w.done)
 	}()
 
 }
@@ -53,6 +72,7 @@ func (w *Watch) Watch() {
 // Close attempts to close underlying fsnotify.Watcher.
 // In case of failure it logs the error
 func (w *Watch) Close() {
+	w.done <- struct{}{}
 	if e := w.watcher.Close(); e != nil {
 		log.Error(e, "failed closing watch")
 	}

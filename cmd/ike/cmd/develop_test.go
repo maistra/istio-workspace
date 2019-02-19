@@ -268,6 +268,8 @@ var _ = Describe("Usage of ike develop command", func() {
 					"--build", "mvn clean install",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
+					// for testing purposes we handle file change events more frequently to avoid excessively long tests
+					"--watch-interval", "10",
 					"--method", "vpn-tcp")
 			})()
 
@@ -295,6 +297,8 @@ var _ = Describe("Usage of ike develop command", func() {
 					"--run", "java -jar rating.jar",
 					"--port", "6543",
 					"--watch", "/tmp/watch-test",
+					// for testing purposes we handle file change events more frequently to avoid excessively long tests
+					"--watch-interval", "10",
 					"--method", "inject-tcp")
 			})()
 
@@ -321,6 +325,8 @@ var _ = Describe("Usage of ike develop command", func() {
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
 					"--watch-exclude", "*.java",
+					// for testing purposes we handle file change events more frequently to avoid excessively long tests
+					"--watch-interval", "10",
 					"--method", "vpn-tcp")
 			})()
 
@@ -346,6 +352,8 @@ var _ = Describe("Usage of ike develop command", func() {
 					"--run", "java -jar rating.jar",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
+					// for testing purposes we handle file change events more frequently to avoid excessively long tests
+					"--watch-interval", "10",
 					"--method", "vpn-tcp")
 			})()
 
@@ -373,6 +381,8 @@ var _ = Describe("Usage of ike develop command", func() {
 					"--no-build",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
+					// for testing purposes we handle file change events more frequently to avoid excessively long tests
+					"--watch-interval", "10",
 					"--method", "vpn-tcp")
 			})()
 
