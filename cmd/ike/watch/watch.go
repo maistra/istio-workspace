@@ -39,8 +39,7 @@ func (wb *Builder) Excluding(exclusions ...string) *Builder {
 	return wb
 }
 
-func (wb *Builder) OnPaths(paths ...string) (*Watch, error) {
-	watch := wb.w
+func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -48,15 +47,15 @@ func (wb *Builder) OnPaths(paths ...string) (*Watch, error) {
 		return nil, err
 	}
 
-	watch.watcher = fsWatcher
+	wb.w.watcher = fsWatcher
 
 	for _, p := range paths {
-		if e := watch.AddRecursiveWatch(p); e != nil {
+		if e := wb.w.AddRecursiveWatch(p); e != nil {
 			return nil, e
 		}
 	}
 
-	return watch, nil
+	return wb.w, nil
 }
 
 // AddPath adds single path (non-recursive) to be watch
@@ -65,7 +64,7 @@ func (w *Watch) AddPath(filePath string) error {
 }
 
 // AddRecursiveWatch handles adding watches recursively for the path provided
-// and its subdirectories.  If a non-directory is specified, this call is a no-op.
+// and its subdirectories. If a non-directory is specified, this call is a no-op.
 // Based on https://github.com/openshift/origin/blob/85eb37b34f0657631592356d020cef5a58470f8e/pkg/util/fsnotification/fsnotification.go
 func (w *Watch) AddRecursiveWatch(filePath string) error {
 	file, err := os.Stat(filePath)
