@@ -38,7 +38,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		mvnBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "mvn")
 		tpBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "telepresence")
 		tpSleepBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo",
-			"telepresence", "-ldflags", "-w -X main.SleepMs=10")
+			"telepresence", "-ldflags", "-w -X main.SleepMs=50")
 
 		fmt.Println(mvnBin)
 	})
@@ -279,7 +279,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			}()
 
 			// when
-			time.Sleep(5 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
+			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 
 			_, _ = config.WriteString("modified!")
 
@@ -305,7 +305,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				outputChan <- output
 			}()
 
-			time.Sleep(5 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
+			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = config.WriteString("modified!")
 
 			var output string
@@ -331,7 +331,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				outputChan <- output
 			}()
 
-			time.Sleep(5 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
+			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = config.WriteString("modified!")
 
 			var output string
