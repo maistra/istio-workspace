@@ -41,6 +41,7 @@ var _ = Describe("Usage of ike develop command", func() {
 	})
 
 	AfterSuite(func() {
+		CleanUp(GinkgoT())
 		gexec.CleanupBuildArtifacts()
 	})
 
@@ -118,10 +119,6 @@ var _ = Describe("Usage of ike develop command", func() {
 
 			BeforeEach(func() {
 				configFile = TmpFile(GinkgoT(), "config.yaml", config)
-			})
-
-			AfterEach(func() {
-				CleanUp(GinkgoT())
 			})
 
 			It("should fail when passing non-existing config file", func() {
@@ -258,10 +255,6 @@ var _ = Describe("Usage of ike develop command", func() {
 			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
-
-		AfterEach(func() {
-			CleanUp(GinkgoT())
-		})
 
 		It("should re-build and re-run telepresence", func() {
 			// given
