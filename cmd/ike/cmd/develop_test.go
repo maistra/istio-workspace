@@ -1,7 +1,6 @@
 package cmd_test
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -39,8 +38,6 @@ var _ = Describe("Usage of ike develop command", func() {
 		tpBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "telepresence")
 		tpSleepBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo",
 			"telepresence", "-ldflags", "-w -X main.SleepMs=50")
-
-		fmt.Println(mvnBin)
 	})
 
 	AfterSuite(func() {
