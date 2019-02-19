@@ -86,10 +86,9 @@ func NewDevelopCmd() *cobra.Command {
 					}
 
 					tp = gocmd.NewCmdOptions(streamOutput, telepresenceBin, parseArguments(cmd)...)
-
 					go redirectStreamsToCmd(tp, cmd)
 					go notifyTelepresenceOnClose(tp, done)
-					go waitForTpToStop(tp, done)
+					go start(tp, done)
 				}
 			}()
 
@@ -117,7 +116,8 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func waitForTpToStop(tp *gocmd.Cmd, done chan gocmd.Status) {
+func start(tp *gocmd.Cmd, done chan gocmd.Status) {
+	tp.Env = os.Environ()
 	status := <-tp.Start()
 	if status.Complete {
 		done <- status
