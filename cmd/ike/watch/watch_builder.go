@@ -48,11 +48,11 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 		}
 
 		if !dir.IsDir() {
-			if e := wb.w.AddPath(p); e != nil {
+			if e := wb.w.addPath(p); e != nil {
 				return nil, e
 			}
 		} else {
-			if e := wb.w.AddRecursiveWatch(p); e != nil {
+			if e := wb.w.addRecursiveWatch(p); e != nil {
 				return nil, e
 			}
 		}

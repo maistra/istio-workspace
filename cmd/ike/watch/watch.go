@@ -21,50 +21,6 @@ type Watch struct {
 	exclusions FilePatterns
 }
 
-// AddPath adds single path (non-recursive) to be watch
-func (w *Watch) AddPath(filePath string) error {
-	return w.watcher.Add(filePath)
-}
-
-// AddRecursiveWatch handles adding watches recursively for the path provided
-// and its subdirectories. If a non-directory is specified, this call is a no-op.
-// Based on https://github.com/openshift/origin/blob/85eb37b34f0657631592356d020cef5a58470f8e/pkg/util/fsnotification/fsnotification.go
-func (w *Watch) AddRecursiveWatch(filePath string) error {
-	file, err := os.Stat(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return fmt.Errorf("error introspecting filePath %s: %v", filePath, err)
-	}
-	if !file.IsDir() {
-		return nil
-	}
-
-	folders, err := getSubFolders(filePath)
-	if err != nil {
-		return err
-	}
-	for _, v := range folders {
-		log.Info(fmt.Sprintf("adding watch on filePath %s", v))
-		err = w.AddPath(v)
-		if err != nil {
-			// "no space left on device" issues are usually resolved via
-			// $ sudo sysctl fs.inotify.max_user_watches=65536
-			return fmt.Errorf("error adding watcher for filePath %s: %v", v, err)
-		}
-	}
-	return nil
-}
-
-// Close attempts to close underlying fsnotify.Watcher.
-// In case of failure it logs the error
-func (w *Watch) Close() {
-	if e := w.watcher.Close(); e != nil {
-		log.Error(e, "failed closing watch")
-	}
-}
-
 func (w *Watch) Watch() {
 
 	// Dispatch fsnotify events
@@ -92,6 +48,50 @@ func (w *Watch) Watch() {
 		}
 	}()
 
+}
+
+// Close attempts to close underlying fsnotify.Watcher.
+// In case of failure it logs the error
+func (w *Watch) Close() {
+	if e := w.watcher.Close(); e != nil {
+		log.Error(e, "failed closing watch")
+	}
+}
+
+// addPath adds single path (non-recursive) to be watch
+func (w *Watch) addPath(filePath string) error {
+	return w.watcher.Add(filePath)
+}
+
+// addRecursiveWatch handles adding watches recursively for the path provided
+// and its subdirectories. If a non-directory is specified, this call is a no-op.
+// Based on https://github.com/openshift/origin/blob/85eb37b34f0657631592356d020cef5a58470f8e/pkg/util/fsnotification/fsnotification.go
+func (w *Watch) addRecursiveWatch(filePath string) error {
+	file, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("error introspecting filePath %s: %v", filePath, err)
+	}
+	if !file.IsDir() {
+		return nil
+	}
+
+	folders, err := getSubFolders(filePath)
+	if err != nil {
+		return err
+	}
+	for _, v := range folders {
+		log.Info(fmt.Sprintf("adding watch on filePath %s", v))
+		err = w.addPath(v)
+		if err != nil {
+			// "no space left on device" issues are usually resolved via
+			// $ sudo sysctl fs.inotify.max_user_watches=65536
+			return fmt.Errorf("error adding watcher for filePath %s: %v", v, err)
+		}
+	}
+	return nil
 }
 
 // getSubFolders recursively retrieves all subfolders of the specified path.
