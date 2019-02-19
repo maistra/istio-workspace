@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -58,11 +60,26 @@ func contains(s []string, e string) bool {
 // but only if the flag was not set through CLI.
 //
 // This way we can make flags required but still have their values provided by the configuration source
-func SyncFlag(cmd *cobra.Command, flagName string) {
+func SyncFlag(cmd *cobra.Command, flagName string) error {
 	value := viper.GetString(cmd.Name() + "." + flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
-		_ = cmd.Flags().Set(flagName, value)
+		return cmd.Flags().Set(flagName, value)
 	}
+	return nil
+}
+
+// SyncFlags ensures that if configuration provide a value for any of defined flags it will be set
+// back to the flag itself.
+//
+// This function iterates over all flags defined for cobra.Command and accumulates errors if they occur while
+// calling SyncFlag for every flag.
+func SyncFlags(cmd *cobra.Command) error {
+	var accErrors *multierror.Error
+	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+		syncFlagErr := SyncFlag(cmd, flag.Name)
+		accErrors = multierror.Append(accErrors, syncFlagErr)
+	})
+	return accErrors.ErrorOrNil()
 }
 
 // BindFullyQualifiedFlag ensures that each flag used in commands is bound to a key using fully qualified name

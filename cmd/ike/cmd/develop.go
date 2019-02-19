@@ -23,12 +23,8 @@ func NewDevelopCmd() *cobra.Command {
 			if !telepresenceExists() {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
-			config.SyncFlag(cmd, "deployment")
-			config.SyncFlag(cmd, "run")
-			config.SyncFlag(cmd, "port")
-			config.SyncFlag(cmd, "method")
 
-			return nil
+			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			options := gocmd.Options{
