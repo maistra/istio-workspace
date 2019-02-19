@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
@@ -86,12 +88,8 @@ func NewDevelopCmd() *cobra.Command {
 					tp = gocmd.NewCmdOptions(streamOutput, telepresenceBin, parseArguments(cmd)...)
 
 					go redirectStreamsToCmd(tp, cmd)
-					go func() {
-						status := <-tp.Start()
-						if status.Complete {
-							done <- status
-						}
-					}()
+					go notifyTelepresenceOnClose(tp, done)
+					go waitForTpToStop(tp, done)
 				}
 			}()
 
@@ -117,6 +115,26 @@ func NewDevelopCmd() *cobra.Command {
 	_ = developCmd.MarkFlagRequired("run")
 
 	return developCmd
+}
+
+func waitForTpToStop(tp *gocmd.Cmd, done chan gocmd.Status) {
+	status := <-tp.Start()
+	if status.Complete {
+		done <- status
+	}
+}
+
+func notifyTelepresenceOnClose(tp *gocmd.Cmd, done chan gocmd.Status) {
+	hookChan := make(chan os.Signal, 1)
+	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
+	<-hookChan
+	var err error
+	if tp != nil {
+		err = tp.Stop()
+	}
+	done <- gocmd.Status{
+		Error: err,
+	}
 }
 
 func redirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command) {
