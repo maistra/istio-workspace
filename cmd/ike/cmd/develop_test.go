@@ -231,8 +231,8 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--build", "mvn clean install",
 				"--port", "4321",
 				"--method", "vpn-tcp")
-			Expect(err).NotTo(HaveOccurred())
 
+			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("mvn clean install"))
 
 		})
@@ -266,18 +266,70 @@ var _ = Describe("Usage of ike develop command", func() {
 		It("should re-build and re-run telepresence", func() {
 			// given
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
+			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
 			outputChan := make(chan string)
-			go func() {
-				defer GinkgoRecover()
-				output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+
+			go executeCommand(outputChan, func() (string, error) {
+				return Execute(developCmd).Passing("--deployment", "rating-service",
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
 					"--method", "vpn-tcp")
-				Expect(err).NotTo(HaveOccurred())
-				outputChan <- output
-			}()
+			})()
+
+			// when
+			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
+
+			_, _ = telepresenceLog.WriteString("modified!")
+			_, _ = code.WriteString("modified!")
+
+			// then
+			var output string
+			Eventually(outputChan).Should(Receive(&output))
+			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(2))
+			Expect(strings.Count(output, "telepresence")).To(Equal(2))
+		})
+
+		It("should run telepresence only initially if only telepresence.log is changing", func() {
+			// given
+			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
+			outputChan := make(chan string)
+
+			go executeCommand(outputChan, func() (string, error) {
+				return Execute(developCmd).Passing("--deployment", "rating-service",
+					"--run", "java -jar rating.jar",
+					"--port", "6543",
+					"--watch", "/tmp/watch-test",
+					"--method", "inject-tcp")
+			})()
+
+			// when
+			time.Sleep(25 * time.Millisecond)
+
+			_, _ = telepresenceLog.WriteString(" oc cluster up")
+
+			// then
+			var output string
+			Eventually(outputChan).Should(Receive(&output))
+			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
+			Expect(strings.Count(output, "telepresence")).To(Equal(1))
+		})
+
+		It("should run build and telepresence only initially when changed file is excluded", func() {
+			// given
+			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
+			outputChan := make(chan string)
+			go executeCommand(outputChan, func() (string, error) {
+				return Execute(developCmd).Passing("--deployment", "rating-service",
+					"--run", "java -jar rating.jar",
+					"--build", "mvn clean install",
+					"--port", "4321",
+					"--watch", "/tmp/watch-test",
+					"--watch-exclude", "*.java",
+					"--method", "vpn-tcp")
+			})()
 
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
@@ -287,24 +339,22 @@ var _ = Describe("Usage of ike develop command", func() {
 			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(2))
+			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(1))
+			Expect(strings.Count(output, "telepresence")).To(Equal(1))
 		})
 
 		It("should ignore build if not defined and just re-run telepresence", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
-			go func() {
-				defer GinkgoRecover()
-				output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			go executeCommand(outputChan, func() (string, error) {
+				return Execute(developCmd).Passing("--deployment", "rating-service",
 					"--run", "java -jar rating.jar",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
 					"--method", "vpn-tcp")
-				Expect(err).NotTo(HaveOccurred())
-				outputChan <- output
-			}()
+			})()
 
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
@@ -313,6 +363,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
+			Expect(strings.Count(output, "telepresence")).To(Equal(2))
 		})
 
 		It("should only re-run telepresence when --no-build flag specified", func() {
@@ -323,17 +374,14 @@ var _ = Describe("Usage of ike develop command", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
-			go func() {
-				defer GinkgoRecover()
-				output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			go executeCommand(outputChan, func() (string, error) {
+				return Execute(developCmd).Passing("--deployment", "rating-service",
 					"--config", configFile.Name(),
 					"--no-build",
 					"--port", "4321",
 					"--watch", "/tmp/watch-test",
 					"--method", "vpn-tcp")
-				Expect(err).NotTo(HaveOccurred())
-				outputChan <- output
-			}()
+			})()
 
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
@@ -346,6 +394,15 @@ var _ = Describe("Usage of ike develop command", func() {
 	})
 
 })
+
+func executeCommand(outputChan chan string, execute func() (string, error)) func() {
+	return func() {
+		defer GinkgoRecover()
+		output, err := execute()
+		Expect(err).NotTo(HaveOccurred())
+		outputChan <- output
+	}
+}
 
 var appFs = afero.NewOsFs()
 

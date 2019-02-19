@@ -17,6 +17,8 @@ import (
 
 const telepresenceBin = "telepresence"
 
+var excludeTpLog = []string{"telepresence.log"}
+
 var streamOutput = gocmd.Options{
 	Buffered:  false,
 	Streaming: true,
@@ -45,10 +47,13 @@ func NewDevelopCmd() *cobra.Command {
 			runTp := make(chan struct{})
 
 			if cmd.Flag("watch").Changed {
-				slice, e := cmd.Flags().GetStringSlice("watch")
+				slice, _ := cmd.Flags().GetStringSlice("watch")
+
+				excluded, e := cmd.Flags().GetStringSlice("watch-exclude")
 				if e != nil {
 					return e
 				}
+				excluded = append(excluded, excludeTpLog...)
 
 				w, err := watch.NewWatch().
 					WithHandler(func(event fsnotify.Event, done chan<- struct{}) error {
@@ -59,6 +64,7 @@ func NewDevelopCmd() *cobra.Command {
 						runTp <- struct{}{}
 						return nil
 					}).
+					Excluding(excluded...).
 					OnPaths(slice...)
 
 				if err != nil {
@@ -102,6 +108,7 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP("build", "b", "", "command to build your application before run")
 	developCmd.Flags().Bool("no-build", false, "always skips build")
 	developCmd.Flags().StringSliceP("watch", "w", []string{currentDir()}, "list of directories to watch")
+	developCmd.Flags().StringSlice("watch-exclude", excludeTpLog, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
