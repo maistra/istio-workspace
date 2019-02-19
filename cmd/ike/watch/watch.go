@@ -83,7 +83,7 @@ func (w *Watch) AddRecursiveWatch(filePath string) error {
 		return err
 	}
 	for _, v := range folders {
-		log.Info("adding watch on filePath %s", v)
+		log.Info(fmt.Sprintf("adding watch on filePath %s", v))
 		err = w.AddPath(v)
 		if err != nil {
 			// "no space left on device" issues are usually resolved via
