@@ -17,7 +17,7 @@ func NewDevelopCmd() *cobra.Command {
 
 	developCmd := &cobra.Command{
 		Use:   "develop",
-		Short: "starts the development flow",
+		Short: "Starts the development flow",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if !telepresenceExists() {
