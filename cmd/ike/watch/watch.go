@@ -15,6 +15,7 @@ var log = logf.Log.WithName("watch")
 // be terminated through closing done channel
 type Handler func(event fsnotify.Event, done chan<- struct{}) error
 
+// Watch represents single file system watch and delegates change events to defined handler
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handler    Handler
@@ -57,21 +58,8 @@ func (w *Watch) AddRecursiveWatch(filePath string) error {
 	return nil
 }
 
-// getSubFolders recursively retrieves all subfolders of the specified path.
-func getSubFolders(filePath string) (paths []string, err error) {
-	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			paths = append(paths, newPath)
-		}
-		return nil
-	})
-	return paths, err
-}
-
+// Close attempts to close underlying fsnotify.Watcher.
+// In case of failure it logs the error
 func (w *Watch) Close() {
 	if e := w.watcher.Close(); e != nil {
 		log.Error(e, "failed closing watch")
@@ -91,11 +79,12 @@ func (w *Watch) Watch() <-chan struct{} {
 					return
 				}
 				if w.exclusions.Matches(event.Name) {
+					log.Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
 
 				if err := w.handler(event, done); err != nil {
-					log.Error(err, "oups!")
+					log.Error(err, "failed to handle file change!")
 				}
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
@@ -114,4 +103,19 @@ func (w *Watch) Watch() <-chan struct{} {
 	}()
 
 	return done
+}
+
+// getSubFolders recursively retrieves all subfolders of the specified path.
+func getSubFolders(filePath string) (paths []string, err error) {
+	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			paths = append(paths, newPath)
+		}
+		return nil
+	})
+	return paths, err
 }
