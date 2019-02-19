@@ -2,16 +2,25 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
+	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
 
+	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
 )
 
 const telepresenceBin = "telepresence"
+
+var streamOutput = gocmd.Options{
+	Buffered:  false,
+	Streaming: true,
+}
 
 func NewDevelopCmd() *cobra.Command {
 
@@ -27,17 +36,62 @@ func NewDevelopCmd() *cobra.Command {
 			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			options := gocmd.Options{
-				Buffered:  false,
-				Streaming: true,
+
+			if err := build(cmd); err != nil {
+				return err
 			}
-			tp := gocmd.NewCmdOptions(options, telepresenceBin, parseArguments(cmd)...)
 
-			go redirectStreamsToCmd(tp, cmd)
+			done := make(chan gocmd.Status)
+			runTp := make(chan struct{})
 
-			tpStatusChan := tp.Start()
-			finalStatus := <-tpStatusChan
+			if cmd.Flag("watch").Changed {
+				slice, e := cmd.Flags().GetStringSlice("watch")
+				if e != nil {
+					return e
+				}
 
+				w, err := watch.NewWatch().
+					WithHandler(func(event fsnotify.Event, done chan<- struct{}) error {
+						_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+						if err := build(cmd); err != nil {
+							return err
+						}
+						runTp <- struct{}{}
+						return nil
+					}).
+					OnPaths(slice...)
+
+				if err != nil {
+					return err
+				}
+
+				defer w.Close()
+				w.Watch()
+			}
+
+			go func() {
+				var tp *gocmd.Cmd
+				for {
+					<-runTp
+					if tp != nil {
+						_ = tp.Stop()
+					}
+
+					tp = gocmd.NewCmdOptions(streamOutput, telepresenceBin, parseArguments(cmd)...)
+
+					go redirectStreamsToCmd(tp, cmd)
+					go func() {
+						status := <-tp.Start()
+						if status.Complete {
+							done <- status
+						}
+					}()
+				}
+			}()
+
+			runTp <- struct{}{}
+
+			finalStatus := <-done
 			return finalStatus.Error
 		},
 	}
@@ -45,6 +99,9 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().IntP("port", "p", 8000, "port to be exposed")
 	developCmd.Flags().StringP("run", "r", "", "command to run your application")
+	developCmd.Flags().StringP("build", "b", "", "command to build your application before run")
+	developCmd.Flags().Bool("no-build", false, "always skips build")
+	developCmd.Flags().StringSliceP("watch", "w", []string{currentDir()}, "list of directories to watch")
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
@@ -74,6 +131,38 @@ func redirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command) {
 			}
 		}
 	}
+}
+
+func build(cmd *cobra.Command) error {
+
+	buildFlag := cmd.Flag("build")
+	skipBuild, _ := cmd.Flags().GetBool("no-build")
+	if buildFlag.Changed && !skipBuild {
+		buildCmd := cmd.Flag("build").Value.String()
+		buildArgs := strings.Split(buildCmd, " ")
+		log.Info("Starting build", "build-cmd", buildCmd)
+		build := gocmd.NewCmdOptions(streamOutput, buildArgs[0], buildArgs[1:]...)
+
+		go redirectStreamsToCmd(build, cmd)
+
+		buildStatusChan := build.Start()
+		buildStatus := <-buildStatusChan
+
+		if buildStatus.Error != nil {
+			return buildStatus.Error
+		}
+	}
+
+	return nil
+}
+
+func currentDir() string {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	return exPath
 }
 
 func parseArguments(cmd *cobra.Command) []string {
