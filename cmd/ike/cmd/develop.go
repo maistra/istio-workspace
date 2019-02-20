@@ -110,6 +110,9 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringSliceP("watch", "w", []string{currentDir()}, "list of directories to watch")
 	developCmd.Flags().StringSlice("watch-exclude", excludeTpLog, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
+	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
+		log.Error(err, "failed while trying to hide a flag")
+	}
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
