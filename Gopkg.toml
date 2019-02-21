@@ -66,6 +66,10 @@ required = [
   revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
 
 [[constraint]]
+  name = "go.uber.org/goleak"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/onsi/gomega"
   version = "1.4.3"
 

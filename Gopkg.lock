@@ -549,6 +549,17 @@
   version = "v1.3.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:47437e18d25c3559e119434fe8b67346b217397c4106d6e1660515f2d0745a79"
+  name = "go.uber.org/goleak"
+  packages = [
+    ".",
+    "internal/stack",
+  ]
+  pruneopts = "NT"
+  revision = "c82e52b9ed06070186646c19bdceeae9dc18ec5d"
+
+[[projects]]
   digest = "1:58ca93bdf81bac106ded02226b5395a0595d5346cdc4caa8d9c1f3a5f8f9976e"
   name = "go.uber.org/multierr"
   packages = ["."]
@@ -1042,6 +1053,7 @@
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
+    "go.uber.org/goleak",
     "istio.io/api/networking/v1alpha3",
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",

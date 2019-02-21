@@ -22,27 +22,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
-	var mvnBin string
-	var tpBin string
-	var tpSleepBin string
-
 	BeforeEach(func() {
 		developCmd = NewDevelopCmd()
 		developCmd.SilenceUsage = true
 		developCmd.SilenceErrors = true
 		NewRootCmd().AddCommand(developCmd)
-	})
-
-	BeforeSuite(func() {
-		mvnBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "mvn")
-		tpBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "telepresence")
-		tpSleepBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo",
-			"telepresence", "-ldflags", "-w -X main.SleepMs=50")
-	})
-
-	AfterSuite(func() {
-		CleanUp(GinkgoT())
-		gexec.CleanupBuildArtifacts()
 	})
 
 	Context("checking telepresence binary existence", func() {
