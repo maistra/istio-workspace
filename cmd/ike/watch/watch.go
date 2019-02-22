@@ -45,6 +45,7 @@ func (w *Watch) Watch() {
 				}
 
 				events = append(events, event)
+				log.Info("file changed", "file", event.Name, "op", event.Op.String())
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
 					return
@@ -54,7 +55,7 @@ func (w *Watch) Watch() {
 				if len(events) == 0 {
 					continue
 				}
-
+				log.Info("firing change event")
 				if err := w.handler(events); err != nil {
 					log.Error(err, "failed to handle file change!")
 				}

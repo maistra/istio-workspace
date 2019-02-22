@@ -2,29 +2,19 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-	"os/signal"
-	"path/filepath"
 	"strings"
-	"syscall"
+
+	"github.com/spf13/pflag"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
 
-	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
 )
 
 const telepresenceBin = "telepresence"
 
-var excludeTpLog = []string{"telepresence.log"}
-
-var streamOutput = gocmd.Options{
-	Buffered:  false,
-	Streaming: true,
-}
+var excludeLogs = []string{"*.log"}
 
 func NewDevelopCmd() *cobra.Command {
 
@@ -33,7 +23,7 @@ func NewDevelopCmd() *cobra.Command {
 		Short: "Starts the development flow",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			if !telepresenceExists() {
+			if !binaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
 
@@ -45,59 +35,20 @@ func NewDevelopCmd() *cobra.Command {
 				return err
 			}
 
-			done := make(chan gocmd.Status)
-			runTp := make(chan struct{})
+			done := make(chan gocmd.Status, 1)
+			defer close(done)
 
-			if cmd.Flag("watch").Changed {
-				slice, _ := cmd.Flags().GetStringSlice("watch")
-
-				excluded, e := cmd.Flags().GetStringSlice("watch-exclude")
-				if e != nil {
-					return e
-				}
-				excluded = append(excluded, excludeTpLog...)
-
-				ms, _ := cmd.Flags().GetInt64("watch-interval")
-				w, err := watch.CreateWatch(ms).
-					WithHandler(func(events []fsnotify.Event) error {
-						// TODO iterate
-						_, _ = cmd.OutOrStdout().Write([]byte(events[0].Name + " changed. Restarting process.\n"))
-						if err := build(cmd); err != nil {
-							return err
-						}
-						runTp <- struct{}{}
-						return nil
-					}).
-					Excluding(excluded...).
-					OnPaths(slice...)
-
-				if err != nil {
-					return err
-				}
-
-				defer w.Close()
-				w.Watch()
-			}
+			arguments := parseArguments(cmd)
 
 			go func() {
-				var tp *gocmd.Cmd
-				for {
-					<-runTp
-					if tp != nil {
-						_ = tp.Stop()
-						<-tp.Done()
-					}
-
-					tp = gocmd.NewCmdOptions(streamOutput, telepresenceBin, parseArguments(cmd)...)
-					go redirectStreamsToCmd(tp, cmd)
-					go notifyTelepresenceOnClose(tp, done)
-					go start(tp, done)
-				}
+				tp := gocmd.NewCmdOptions(streamOutput, telepresenceBin, arguments...)
+				go redirectStreamsToCmd(tp, cmd, done)
+				go shutdownHook(tp, done)
+				start(tp, done)
 			}()
 
-			runTp <- struct{}{}
-
 			finalStatus := <-done
+
 			return finalStatus.Error
 		},
 	}
@@ -107,8 +58,9 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP("run", "r", "", "command to run your application")
 	developCmd.Flags().StringP("build", "b", "", "command to build your application before run")
 	developCmd.Flags().Bool("no-build", false, "always skips build")
-	developCmd.Flags().StringSliceP("watch", "w", []string{currentDir()}, "list of directories to watch")
-	developCmd.Flags().StringSlice("watch-exclude", excludeTpLog, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	developCmd.Flags().Bool("watch", false, "enables watch")
+	developCmd.Flags().StringSliceP("watch-include", "w", []string{currentDir()}, "list of directories to watch")
+	developCmd.Flags().StringSlice("watch-exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
@@ -123,84 +75,24 @@ func NewDevelopCmd() *cobra.Command {
 	return developCmd
 }
 
-func start(tp *gocmd.Cmd, done chan gocmd.Status) {
-	tp.Env = os.Environ()
-	status := <-tp.Start()
-	if status.Complete {
-		done <- status
-	}
-}
-
-func notifyTelepresenceOnClose(tp *gocmd.Cmd, done chan gocmd.Status) {
-	hookChan := make(chan os.Signal, 1)
-	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
-	<-hookChan
-	var err error
-	if tp != nil {
-		err = tp.Stop()
-		<-tp.Done()
-	}
-	done <- gocmd.Status{
-		Error: err,
-	}
-}
-
-func redirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command) {
-	for {
-		select {
-		case line, ok := <-src.Stdout:
-			if !ok {
-				return
-			}
-			if _, err := fmt.Fprintln(dest.OutOrStdout(), line); err != nil {
-				log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
-			}
-		case line, ok := <-src.Stderr:
-			if !ok {
-				return
-			}
-			if _, err := fmt.Fprintln(dest.OutOrStderr(), line); err != nil {
-				log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
-			}
-		}
-	}
-}
-
-func build(cmd *cobra.Command) error {
-
-	buildFlag := cmd.Flag("build")
-	skipBuild, _ := cmd.Flags().GetBool("no-build")
-	if buildFlag.Changed && !skipBuild {
-		buildCmd := cmd.Flag("build").Value.String()
-		buildArgs := strings.Split(buildCmd, " ")
-		log.Info("Starting build", "build-cmd", buildCmd)
-		build := gocmd.NewCmdOptions(streamOutput, buildArgs[0], buildArgs[1:]...)
-
-		go redirectStreamsToCmd(build, cmd)
-
-		buildStatusChan := build.Start()
-		buildStatus := <-buildStatusChan
-
-		if buildStatus.Error != nil {
-			return buildStatus.Error
-		}
-	}
-
-	return nil
-}
-
-func currentDir() string {
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-	return exPath
-}
-
 func parseArguments(cmd *cobra.Command) []string {
-	run, _ := cmd.Flags().GetString("run")
-	runArgs := strings.Split(run, " ")
+	run := cmd.Flag("run").Value.String()
+	watch, _ := cmd.Flags().GetBool("watch")
+	runArgs := strings.Split(run, " ") // default value
+	if watch {
+		runArgs = []string{
+			"ike", "watch",
+			"--dir", flag(cmd.Flags(), "watch-include"),
+			"--exclude", flag(cmd.Flags(), "watch-exclude"),
+			"--interval", cmd.Flag("watch-interval").Value.String(),
+			"--run", run,
+		}
+		if cmd.Flag("build").Changed {
+			runArgs = append(runArgs, "--build", cmd.Flag("build").Value.String())
+		}
+
+	}
+
 	return append([]string{
 		"--swap-deployment", cmd.Flag("deployment").Value.String(),
 		"--expose", cmd.Flag("port").Value.String(),
@@ -208,16 +100,7 @@ func parseArguments(cmd *cobra.Command) []string {
 		"--run"}, runArgs...)
 }
 
-func telepresenceExists() bool {
-	path, err := exec.LookPath(telepresenceBin)
-	if err != nil {
-		log.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n"+
-			"Head over to https://www.telepresence.io/reference/install for installation instructions.\n", telepresenceBin))
-		return false
-	}
-
-	log.Info(fmt.Sprintf("Found '%s' executable in '%s'.", telepresenceBin, path))
-	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", telepresenceBin))
-
-	return true
+func flag(flags *pflag.FlagSet, name string) string {
+	slice, _ := flags.GetStringSlice(name)
+	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

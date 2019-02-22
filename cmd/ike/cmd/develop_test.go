@@ -3,13 +3,10 @@ package cmd_test
 import (
 	"os"
 	"path"
-	"strings"
-	"time"
 
 	. "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 	. "github.com/aslakknutsen/istio-workspace/test"
 
-	"github.com/onsi/gomega/gexec"
 	"github.com/spf13/afero"
 
 	. "github.com/onsi/ginkgo"
@@ -193,18 +190,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Context("build execution", func() {
 
-		var originalPath string
-
+		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			// we stub existence of telepresence executable as develop command does a precondition check before execution
-			// to verify if it exists on the PATH
-			originalPath = os.Getenv("PATH")
-			_ = os.Setenv("PATH", path.Dir(tpBin)+":"+path.Dir(mvnBin))
+			tmpPath.SetPath(path.Dir(tpBin), path.Dir(mvnBin))
 		})
-
-		AfterEach(func() {
-			_ = os.Setenv("PATH", originalPath)
-		})
+		AfterEach(tmpPath.Restore)
 
 		It("should execute build when specified", func() {
 			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
@@ -232,200 +222,4 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	})
 
-	Context("watching file changes", func() {
-
-		tmpPath := NewTmpPath()
-		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
-		})
-		AfterEach(tmpPath.Restore)
-
-		It("should re-build and re-run telepresence", func() {
-			// given
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
-			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
-			outputChan := make(chan string)
-
-			go executeCommand(outputChan, func() (string, error) {
-				return Execute(developCmd).Passing("--deployment", "rating-service",
-					"--run", "java -jar rating.jar",
-					"--build", "mvn clean install",
-					"--port", "4321",
-					"--watch", "/tmp/watch-test",
-					// for testing purposes we handle file change events more frequently to avoid excessively long tests
-					"--watch-interval", "10",
-					"--method", "vpn-tcp")
-			})()
-
-			// when
-			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-
-			_, _ = telepresenceLog.WriteString("modified!")
-			_, _ = code.WriteString("modified!")
-
-			// then
-			var output string
-			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(2))
-			Expect(strings.Count(output, "telepresence")).To(Equal(2))
-		})
-
-		It("should run telepresence only initially if only telepresence.log is changing", func() {
-			// given
-			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
-			outputChan := make(chan string)
-
-			go executeCommand(outputChan, func() (string, error) {
-				return Execute(developCmd).Passing("--deployment", "rating-service",
-					"--run", "java -jar rating.jar",
-					"--port", "6543",
-					"--watch", "/tmp/watch-test",
-					// for testing purposes we handle file change events more frequently to avoid excessively long tests
-					"--watch-interval", "10",
-					"--method", "inject-tcp")
-			})()
-
-			// when
-			time.Sleep(25 * time.Millisecond)
-
-			_, _ = telepresenceLog.WriteString(" oc cluster up")
-
-			// then
-			var output string
-			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "telepresence")).To(Equal(1))
-		})
-
-		It("should run build and telepresence only initially when changed file is excluded", func() {
-			// given
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
-			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
-				return Execute(developCmd).Passing("--deployment", "rating-service",
-					"--run", "java -jar rating.jar",
-					"--build", "mvn clean install",
-					"--port", "4321",
-					"--watch", "/tmp/watch-test",
-					"--watch-exclude", "*.java",
-					// for testing purposes we handle file change events more frequently to avoid excessively long tests
-					"--watch-interval", "10",
-					"--method", "vpn-tcp")
-			})()
-
-			// when
-			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-
-			_, _ = code.WriteString("modified!")
-
-			// then
-			var output string
-			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(1))
-			Expect(strings.Count(output, "telepresence")).To(Equal(1))
-		})
-
-		It("should ignore build if not defined and just re-run telepresence", func() {
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
-
-			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
-				return Execute(developCmd).Passing("--deployment", "rating-service",
-					"--run", "java -jar rating.jar",
-					"--port", "4321",
-					"--watch", "/tmp/watch-test",
-					// for testing purposes we handle file change events more frequently to avoid excessively long tests
-					"--watch-interval", "10",
-					"--method", "vpn-tcp")
-			})()
-
-			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-			_, _ = code.WriteString("modified!")
-
-			var output string
-			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
-			Expect(strings.Count(output, "telepresence")).To(Equal(2))
-		})
-
-		It("should only re-run telepresence when --no-build flag specified", func() {
-			configFile := TmpFile(GinkgoT(), "config.yaml", `develop:
-  run: "java -jar config.jar"
-  build: "mvn clean install"
-`)
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
-
-			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
-				return Execute(developCmd).Passing("--deployment", "rating-service",
-					"--config", configFile.Name(),
-					"--no-build",
-					"--port", "4321",
-					"--watch", "/tmp/watch-test",
-					// for testing purposes we handle file change events more frequently to avoid excessively long tests
-					"--watch-interval", "10",
-					"--method", "vpn-tcp")
-			})()
-
-			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-			_, _ = code.WriteString("modified!")
-
-			var output string
-			Eventually(outputChan).Should(Receive(&output))
-			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
-		})
-	})
-
 })
-
-func executeCommand(outputChan chan string, execute func() (string, error)) func() {
-	return func() {
-		defer GinkgoRecover()
-		output, err := execute()
-		Expect(err).NotTo(HaveOccurred())
-		outputChan <- output
-	}
-}
-
-var appFs = afero.NewOsFs()
-
-func buildBinary(packagePath, name string, flags ...string) string {
-
-	binPath, err := gexec.Build(packagePath, flags...)
-	Expect(err).ToNot(HaveOccurred())
-
-	// gexec.Build from Ginkgo does not allow to specify `-o` flag for the final binary name
-	// thus we rename the binary instead. TODO: pull request to ginkgo
-	if name != path.Base(packagePath) {
-		finalName := copyBinary(appFs, binPath, name)
-		_ = os.Remove(binPath)
-		return finalName
-	}
-
-	return binPath
-}
-
-func copyBinary(appFs afero.Fs, src, dest string) string {
-	binPath := path.Dir(src) + "/" + dest
-	bin, err := appFs.Create(binPath)
-	Expect(err).ToNot(HaveOccurred())
-
-	err = appFs.Chmod(binPath, os.ModePerm)
-	Expect(err).ToNot(HaveOccurred())
-
-	content, err := afero.ReadFile(appFs, src)
-	Expect(err).ToNot(HaveOccurred())
-	_, err = bin.Write(content)
-	Expect(err).ToNot(HaveOccurred())
-
-	defer func() {
-		err = bin.Close()
-		Expect(err).ToNot(HaveOccurred())
-	}()
-
-	return bin.Name()
-}
