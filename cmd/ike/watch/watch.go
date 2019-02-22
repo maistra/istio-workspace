@@ -15,7 +15,7 @@ var log = logf.Log.WithName("watch")
 // Handler allows to define how to react on file changes event
 type Handler func(events []fsnotify.Event) error
 
-// Watch represents single file system watch and delegates change events to defined handler
+// Start represents single file system watch and delegates change events to defined handler
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handler    Handler
@@ -24,7 +24,9 @@ type Watch struct {
 	done       chan struct{}
 }
 
-func (w *Watch) Watch() {
+// Start observes on file change events and dispatches them to defined handler in batches every
+// given interval
+func (w *Watch) Start() {
 
 	// Dispatch fsnotify events
 	go func() {
@@ -64,7 +66,6 @@ func (w *Watch) Watch() {
 				break OutOfFor
 			}
 		}
-
 		close(w.done)
 	}()
 
@@ -115,16 +116,6 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 	return nil
 }
 
-func extractValues(events map[string]fsnotify.Event) []fsnotify.Event {
-	changes := make([]fsnotify.Event, len(events))
-	i := 0
-	for _, event := range events {
-		changes[i] = event
-		i++
-	}
-	return changes
-}
-
 // getSubFolders recursively retrieves all subfolders of the specified path.
 func getSubFolders(filePath string) (paths []string, err error) {
 	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
@@ -138,4 +129,15 @@ func getSubFolders(filePath string) (paths []string, err error) {
 		return nil
 	})
 	return paths, err
+}
+
+// extractValues takes a map and returns slice of all values
+func extractValues(events map[string]fsnotify.Event) []fsnotify.Event {
+	changes := make([]fsnotify.Event, len(events))
+	i := 0
+	for _, event := range events {
+		changes[i] = event
+		i++
+	}
+	return changes
 }

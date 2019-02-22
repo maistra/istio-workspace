@@ -35,7 +35,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		watcher.Watch()
+		watcher.Start()
 		_, _ = config.WriteString(" modified!")
 
 		// then
@@ -57,7 +57,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		watcher.Watch()
+		watcher.Start()
 		_, _ = text.WriteString(" modified!")
 
 		// then
@@ -79,7 +79,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		watcher.Watch()
+		watcher.Start()
 		_, _ = text.WriteString(" modified!")
 
 		// then
@@ -102,7 +102,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		watcher.Watch()
+		watcher.Start()
 		_, _ = config.WriteString(" should not be watched")
 		_, _ = text.WriteString(" modified!")
 
@@ -130,7 +130,7 @@ var _ = Describe("File changes watch", func() {
 		defer watcher.Close()
 
 		// when
-		watcher.Watch()
+		watcher.Start()
 		_, _ = config.WriteString(" should not be watched")
 		_, _ = text.WriteString(" modified!")
 		_, _ = code.WriteString("\n // Bla!")

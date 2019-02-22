@@ -58,7 +58,7 @@ func NewWatchCmd() *cobra.Command {
 				return err
 			}
 
-			w.Watch()
+			w.Start()
 			defer w.Close()
 
 			runDone := make(chan gocmd.Status)
