@@ -25,7 +25,6 @@ var _ = Describe("Usage of ike watch command", func() {
 		NewRootCmd().AddCommand(watchCmd)
 	})
 
-	// TODO rename test specs
 	Context("watching file changes", func() {
 
 		tmpPath := NewTmpPath()
@@ -34,7 +33,7 @@ var _ = Describe("Usage of ike watch command", func() {
 		})
 		AfterEach(tmpPath.Restore)
 
-		It("should re-build and re-run telepresence", func() {
+		It("should re-build and re-run java process", func() {
 			// given
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
@@ -64,9 +63,9 @@ var _ = Describe("Usage of ike watch command", func() {
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2))
 		})
 
-		It("should run telepresence only initially if only telepresence.log is changing", func() {
+		It("should start java process once if only log file is changing", func() {
 			// given
-			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
+			logFile := TmpFile(GinkgoT(), "/tmp/watch-test/tomcat.log", "content")
 			outputChan := make(chan string)
 
 			go executeCommand(outputChan, func() (string, error) {
@@ -81,7 +80,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond)
 
-			_, _ = telepresenceLog.WriteString(" oc cluster up")
+			_, _ = logFile.WriteString("\n>>> Server started")
 
 			// then
 			var output string
@@ -90,7 +89,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1))
 		})
 
-		It("should run build and telepresence only initially when changed file is excluded", func() {
+		It("should build and run java process only initially when changing file is excluded", func() {
 			// given
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 			outputChan := make(chan string)
@@ -118,7 +117,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1))
 		})
 
-		It("should ignore build if not defined and just re-run telepresence", func() {
+		It("should ignore build if not defined and just re-run java process on file change", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
@@ -141,7 +140,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2))
 		})
 
-		It("should only re-run telepresence when --no-build flag specified", func() {
+		It("should only re-run java process when --no-build flag specified but build defined in config", func() {
 			configFile := TmpFile(GinkgoT(), "config.yaml", `watch:
   run: "java -jar config.jar"
   build: "mvn clean install"
