@@ -30,7 +30,7 @@ func (w *Watch) Watch() {
 	go func() {
 
 		tick := time.NewTicker(w.interval)
-		events := make([]fsnotify.Event, 0)
+		events := make(map[string]fsnotify.Event)
 
 	OutOfFor:
 		for {
@@ -43,9 +43,8 @@ func (w *Watch) Watch() {
 					log.Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
-
-				events = append(events, event)
 				log.Info("file changed", "file", event.Name, "op", event.Op.String())
+				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
 					return
@@ -56,10 +55,11 @@ func (w *Watch) Watch() {
 					continue
 				}
 				log.Info("firing change event")
-				if err := w.handler(events); err != nil {
+				changes := extractValues(events)
+				if err := w.handler(changes); err != nil {
 					log.Error(err, "failed to handle file change!")
 				}
-				events = make([]fsnotify.Event, 0)
+				events = make(map[string]fsnotify.Event)
 			case <-w.done:
 				break OutOfFor
 			}
@@ -113,6 +113,16 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		}
 	}
 	return nil
+}
+
+func extractValues(events map[string]fsnotify.Event) []fsnotify.Event {
+	changes := make([]fsnotify.Event, len(events))
+	i := 0
+	for _, event := range events {
+		changes[i] = event
+		i++
+	}
+	return changes
 }
 
 // getSubFolders recursively retrieves all subfolders of the specified path.
