@@ -42,7 +42,7 @@ func (w *Watch) Start() {
 					return
 				}
 				if w.exclusions.Matches(event.Name) {
-					log.Info("file excluded. skipping change handling", "file", event.Name)
+					log.V(10).Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
 				log.Info("file changed", "file", event.Name, "op", event.Op.String())
@@ -105,7 +105,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		return err
 	}
 	for _, v := range folders {
-		log.Info(fmt.Sprintf("adding watch on filePath %s", v))
+		log.V(3).Info(fmt.Sprintf("adding watch on filePath %s", v))
 		err = w.addPath(v)
 		if err != nil {
 			// "no space left on device" issues are usually resolved via
