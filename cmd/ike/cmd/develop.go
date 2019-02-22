@@ -55,9 +55,9 @@ func NewDevelopCmd() *cobra.Command {
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().IntP("port", "p", 8000, "port to be exposed")
-	developCmd.Flags().StringP("run", "r", "", "command to run your application")
-	developCmd.Flags().StringP("build", "b", "", "command to build your application before run")
-	developCmd.Flags().Bool("no-build", false, "always skips build")
+	developCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
+	developCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
+	developCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{currentDir()}, "list of directories to watch")
 	developCmd.Flags().StringSlice("watch-exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
@@ -70,27 +70,27 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
 	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired("run")
+	_ = developCmd.MarkFlagRequired(runFlagName)
 
 	return developCmd
 }
 
 func parseArguments(cmd *cobra.Command) []string {
-	run := cmd.Flag("run").Value.String()
+	run := cmd.Flag(runFlagName).Value.String()
 	watch, _ := cmd.Flags().GetBool("watch")
 	runArgs := strings.Split(run, " ") // default value
+
 	if watch {
 		runArgs = []string{
 			"ike", "watch",
 			"--dir", flag(cmd.Flags(), "watch-include"),
 			"--exclude", flag(cmd.Flags(), "watch-exclude"),
 			"--interval", cmd.Flag("watch-interval").Value.String(),
-			"--run", run,
+			"--" + runFlagName, run,
 		}
-		if cmd.Flag("build").Changed {
-			runArgs = append(runArgs, "--build", cmd.Flag("build").Value.String())
+		if cmd.Flag(buildFlagName).Changed {
+			runArgs = append(runArgs, "--"+buildFlagName, cmd.Flag(buildFlagName).Value.String())
 		}
-
 	}
 
 	return append([]string{

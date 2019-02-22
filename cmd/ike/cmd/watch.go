@@ -23,7 +23,7 @@ func NewWatchCmd() *cobra.Command {
 				return err
 			}
 
-			run := strings.Split(cmd.Flag("run").Value.String(), " ")
+			run := strings.Split(cmd.Flag(runFlagName).Value.String(), " ")
 			done := make(chan gocmd.Status)
 			restart := make(chan struct{})
 
@@ -95,9 +95,9 @@ func NewWatchCmd() *cobra.Command {
 		},
 	}
 
-	watchCmd.Flags().StringP("build", "b", "", "command to build your application before run")
-	watchCmd.Flags().Bool("no-build", false, "always skips build")
-	watchCmd.Flags().StringP("run", "r", "", "command to run your application")
+	watchCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
+	watchCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
+	watchCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
 	watchCmd.Flags().StringSliceP("dir", "w", []string{currentDir()}, "list of directories to watch")
 	watchCmd.Flags().StringSlice("exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")

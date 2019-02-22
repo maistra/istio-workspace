@@ -11,6 +11,7 @@ import (
 const (
 	buildFlagName   = "build"
 	noBuildFlagName = "no-build"
+	runFlagName     = "run"
 )
 
 // build expects that cmd has build and no-build flags defined.
