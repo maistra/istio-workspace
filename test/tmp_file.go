@@ -22,18 +22,41 @@ type TestReporter interface { //nolint[:golint]
 var Files []string
 var appFs = afero.NewOsFs()
 
-// TmpFile Creates a specified file for us to use when testing
-func TmpFile(t TestReporter, fileName, content string) afero.File {
-	filePath := fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), fileName)
+func TmpDir(t TestReporter, dir string) string {
+	if path.IsAbs(dir) {
+		t.Errorf("Failed to create the directory: %s. Should be relative path", dir)
+		return ""
+	}
 
-	if err := appFs.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
-		t.Errorf("Failed to create the file: %s. Reason: %s", filePath, err)
+	fullPath := fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
+
+	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {
+		t.Errorf("Failed to create the directory: %s. Reason: %s", dir, err)
+		return ""
+	}
+
+	Files = append(Files, fullPath)
+
+	return fullPath
+}
+
+// TmpFile Creates a specified file for us to use when testing
+// if filePath is a full path it will just be created and cleaned up afterwards
+// otherwise the file will be places under some random alphanumeric folder under temp directory
+func TmpFile(t TestReporter, filePath, content string) afero.File {
+	fullPath := filePath
+	if !path.IsAbs(filePath) {
+		fullPath = fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), filePath)
+	}
+
+	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {
+		t.Errorf("Failed to create the file: %s. Reason: %s", fullPath, err)
 		return nil
 	}
 
-	file, err := appFs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	file, err := appFs.OpenFile(fullPath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
-		t.Errorf("Failed to create the file: %s. Reason: %s", filePath, err)
+		t.Errorf("Failed to create the file: %s. Reason: %s", fullPath, err)
 		return nil
 	}
 
@@ -46,8 +69,8 @@ func TmpFile(t TestReporter, fileName, content string) afero.File {
 	return file
 }
 
-// CleanUp removes all files in our test registry and calls `t.Errorf` if something goes wrong.
-func CleanUp(t TestReporter) {
+// CleanUpTmpFiles removes all files in our test registry and calls `t.Errorf` if something goes wrong.
+func CleanUpTmpFiles(t TestReporter) {
 	for _, filePath := range Files {
 		if err := appFs.RemoveAll(filePath); err != nil {
 			t.Errorf(appFs.Name(), err)

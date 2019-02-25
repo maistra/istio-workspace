@@ -4,12 +4,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/onsi/gomega/gexec"
-	"github.com/spf13/afero"
-
 	. "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
-
 	. "github.com/aslakknutsen/istio-workspace/test"
+
+	"github.com/spf13/afero"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,8 +19,6 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
-	var originalPath string
-
 	BeforeEach(func() {
 		developCmd = NewDevelopCmd()
 		developCmd.SilenceUsage = true
@@ -30,21 +26,13 @@ var _ = Describe("Usage of ike develop command", func() {
 		NewRootCmd().AddCommand(developCmd)
 	})
 
-	BeforeSuite(func() {
-		// we stub existence of telepresence executable as develop command does a precondition check before execution
-		// to verify if it exists on the PATH
-		originalPath = os.Getenv("PATH")
-		telepresenceBin, err := gexec.Build("github.com/aslakknutsen/istio-workspace/test/echo/telepresence")
-		Expect(err).ToNot(HaveOccurred())
-		_ = os.Setenv("PATH", path.Dir(telepresenceBin))
-	})
-
-	AfterSuite(func() {
-		_ = os.Setenv("PATH", originalPath)
-		gexec.CleanupBuildArtifacts()
-	})
-
 	Context("checking telepresence binary existence", func() {
+
+		tmpPath := NewTmpPath()
+		BeforeEach(func() {
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
+		})
+		AfterEach(tmpPath.Restore)
 
 		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
 			oldPath := os.Getenv("PATH")
@@ -62,6 +50,13 @@ var _ = Describe("Usage of ike develop command", func() {
 	})
 
 	Describe("input validation", func() {
+
+		tmpPath := NewTmpPath()
+		BeforeEach(func() {
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
+		})
+		AfterEach(tmpPath.Restore)
+
 		Context("with flags only", func() {
 
 			It("should fail when deployment is not specified", func() {
@@ -79,14 +74,14 @@ var _ = Describe("Usage of ike develop command", func() {
 			})
 
 			It("should have default port 8000 when flag not specified", func() {
-				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "'python3 rating.py'")
+				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java -jar rating.jar")
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(developCmd.Flag("port").Value.String()).To(Equal("8000"))
 			})
 
 			It("should have default method inject-tcp when flag not specified", func() {
-				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "'python3 rating.py'")
+				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java -jar rating.jar")
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(developCmd.Flag("method").Value.String()).To(Equal("inject-tcp"))
@@ -98,17 +93,13 @@ var _ = Describe("Usage of ike develop command", func() {
 
 			const config = `develop:
   deployment: test
-  run: "python3 config.py"
+  run: "java -jar config.jar"
   port: 9876
 `
 			var configFile afero.File
 
 			BeforeEach(func() {
 				configFile = TmpFile(GinkgoT(), "config.yaml", config)
-			})
-
-			AfterEach(func() {
-				CleanUp(GinkgoT())
 			})
 
 			It("should fail when passing non-existing config file", func() {
@@ -165,9 +156,15 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	Describe("telepresence arguments delegation", func() {
 
+		tmpPath := NewTmpPath()
+		BeforeEach(func() {
+			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin))
+		})
+		AfterEach(tmpPath.Restore)
+
 		It("should pass all specified parameters", func() {
 			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
-				"--run", "'python3 rating.py'",
+				"--run", "java -jar rating.jar",
 				"--port", "4321",
 				"--method", "vpn-tcp")
 
@@ -175,18 +172,52 @@ var _ = Describe("Usage of ike develop command", func() {
 			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 4321"))
 			Expect(output).To(ContainSubstring("--method vpn-tcp"))
-			Expect(output).To(ContainSubstring("--run 'python3 rating.py'"))
+			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
 
 		It("should pass specified parameters and defaults", func() {
 			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
-				"--run", "'python3 rating.py'")
+				"--run", "java -jar rating.jar")
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 8000"))
 			Expect(output).To(ContainSubstring("--method inject-tcp"))
-			Expect(output).To(ContainSubstring("--run 'python3 rating.py'"))
+			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
+		})
+
+	})
+
+	Context("build execution", func() {
+
+		tmpPath := NewTmpPath()
+		BeforeEach(func() {
+			tmpPath.SetPath(path.Dir(tpBin), path.Dir(mvnBin))
+		})
+		AfterEach(tmpPath.Restore)
+
+		It("should execute build when specified", func() {
+			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+				"--run", "java -jar rating.jar",
+				"--build", "mvn clean install",
+				"--port", "4321",
+				"--method", "vpn-tcp")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(ContainSubstring("mvn clean install"))
+
+		})
+
+		It("should not execute build when --no-build specified", func() {
+			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+				"--run", "java -jar rating.jar",
+				"--build", "mvn clean install",
+				"--no-build",
+				"--port", "4321",
+				"--method", "vpn-tcp")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).ToNot(ContainSubstring("mvn clean install"))
 		})
 
 	})
