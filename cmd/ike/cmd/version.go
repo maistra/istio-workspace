@@ -13,7 +13,7 @@ import (
 
 var log = logf.Log.WithName("cmd")
 
-// NewVersionCmd prints version and build details of the executed binary
+// NewVersionCmd creates version cmd which prints version and build details of the executed binary
 func NewVersionCmd() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:   "version",
