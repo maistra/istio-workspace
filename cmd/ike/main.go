@@ -14,6 +14,6 @@ func main() {
 	logf.SetLogger(logf.ZapLogger(false))
 
 	rootCmd := cmd.NewRootCmd()
-	rootCmd.AddCommand(cmd.VersionCmd, cmd.NewDevelopCmd(), cmd.NewWatchCmd())
+	rootCmd.AddCommand(cmd.NewVersionCmd(), cmd.NewDevelopCmd(), cmd.NewWatchCmd())
 	_ = rootCmd.Execute()
 }

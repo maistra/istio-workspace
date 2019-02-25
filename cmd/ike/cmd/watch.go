@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewWatchCmd creates watch command which observes file system changes in the defined set of directories
+// and re-runs build and run command when they occur
 func NewWatchCmd() *cobra.Command {
 	watchCmd := &cobra.Command{
 		Use:    "watch",
