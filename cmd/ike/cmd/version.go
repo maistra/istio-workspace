@@ -13,15 +13,19 @@ import (
 
 var log = logf.Log.WithName("cmd")
 
-// VersionCmd prints version and build details of the executed binary
-var VersionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Prints the version number of ike cli",
-	Long:  `All software has versions. This is Ike's`,
-	RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-		printVersion()
-		return nil
-	},
+// NewVersionCmd prints version and build details of the executed binary
+func NewVersionCmd() *cobra.Command {
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Prints the version number of ike cli",
+		Long:  `All software has versions. This is Ike's`,
+		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			printVersion()
+			return nil
+		},
+	}
+
+	return versionCmd
 }
 
 func printVersion() {
