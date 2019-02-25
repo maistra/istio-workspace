@@ -15,7 +15,7 @@ define header =
 endef
 
 .PHONY: all
-all: deps format lint compile ## (default) Runs 'deps format lint compile' targets
+all: deps format lint test compile ## (default) Runs 'deps format lint test compile' targets
 
 .PHONY: help
 help:
@@ -54,10 +54,10 @@ codegen: ## Generates operator-sdk code
 	$(CUR_DIR)/bin/operator-sdk generate k8s
 
 .PHONY: compile
-compile: codegen test $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test ## Runs tests
-test:
+test: codegen
 	$(call header,"Running tests")
 	ginkgo -r -v
 
