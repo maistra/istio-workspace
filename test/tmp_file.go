@@ -80,15 +80,6 @@ func CleanUpTmpFiles(t TestReporter) {
 	Files = make([]string, 0)
 }
 
-// Exists returns true if the file exists. Calls t.Error if something goes wrong while checking.
-func Exists(t TestReporter, filePath string) bool {
-	exists, err := afero.Exists(appFs, filePath)
-	if err != nil {
-		t.Errorf("Something went wrong when checking if %s exists! Reason: %s", filePath, err)
-	}
-	return exists
-}
-
 func randomAlphaNumeric() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)

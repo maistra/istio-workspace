@@ -24,6 +24,7 @@ var (
 	metricsPort int32 = 8383
 )
 
+// NewRootCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
 func NewRootCmd() *cobra.Command {
 	var configFile string
 

@@ -16,6 +16,7 @@ const telepresenceBin = "telepresence"
 
 var excludeLogs = []string{"*.log"}
 
+// NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
 
 	developCmd := &cobra.Command{
