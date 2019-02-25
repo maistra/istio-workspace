@@ -13,6 +13,7 @@ import (
 
 var log = logf.Log.WithName("cmd")
 
+// VersionCmd prints version and build details of the executed binary
 var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints the version number of ike cli",

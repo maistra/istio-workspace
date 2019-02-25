@@ -13,6 +13,7 @@ import (
 
 const telepresenceBin = "telepresence"
 
+// NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
 
 	developCmd := &cobra.Command{
