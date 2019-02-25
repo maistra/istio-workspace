@@ -17,6 +17,9 @@ linters-settings:
       - github.com/sirupsen/logrus
   misspell:
     locale: US
+    ignore-words:
+      - istio
+      - k8s
   lll:
     line-length: 180
   goimports:
@@ -29,12 +32,15 @@ linters-settings:
     disabled-checks:
       - wrapperFunc
       - commentFormatting # https://github.com/go-critic/go-critic/issues/755
+  unused:
+    check-exported: true
 
 linters:
   enable-all: true
   disable:
     - gochecknoinits # both Cobra and k8s/istio generated APIs are using init()
     - gochecknoglobals # TODO discuss
+
 run:
   skip-dirs:
     - ./pkg/apis/istio
