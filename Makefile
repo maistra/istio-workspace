@@ -59,7 +59,12 @@ compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test ## Runs tests
 test: codegen
 	$(call header,"Running tests")
-	ginkgo -r -v
+	ginkgo -r -v --skipPackage=e2e
+
+.PHONY: test-e2e ## Runs end-to-end tests
+test-e2e: codegen
+	$(call header,"Running end-to-end tests")
+	ginkgo -p e2e/ -r -v -tags e2e
 
 .PHONY: clean
 clean: ## Removes build artifacts
