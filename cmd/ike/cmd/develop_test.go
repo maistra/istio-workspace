@@ -165,12 +165,12 @@ var _ = Describe("Usage of ike develop command", func() {
 		It("should pass all specified parameters", func() {
 			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
-				"--port", "4321",
+				"--port", "4321:5000",
 				"--method", "vpn-tcp")
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
-			Expect(output).To(ContainSubstring("--expose 4321"))
+			Expect(output).To(ContainSubstring("--expose 4321:5000"))
 			Expect(output).To(ContainSubstring("--method vpn-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
