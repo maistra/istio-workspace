@@ -80,10 +80,10 @@ func NewWatchCmd() *cobra.Command {
 								Complete: true,
 							}
 						}
-						runCmd = gocmd.NewCmdOptions(streamOutput, run[0], run[1:]...)
-						go redirectStreamsToCmd(runCmd, cmd, runDone)
-						go shutdownHook(runCmd, runDone)
-						go start(runCmd, runDone)
+						runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
+						go RedirectStreamsToCmd(runCmd, cmd, runDone)
+						go ShutdownHook(runCmd, runDone)
+						go Start(runCmd, runDone)
 					case status := <-runDone:
 						done <- status
 						break OutOfLoop

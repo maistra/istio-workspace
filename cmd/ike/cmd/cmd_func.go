@@ -11,12 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var streamOutput = gocmd.Options{
+// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd
+var StreamOutput = gocmd.Options{
 	Buffered:  false,
 	Streaming: true,
 }
 
-func start(cmd *gocmd.Cmd, done chan gocmd.Status) {
+// Start starts new process (gocmd) and wait until it's done. Status struct is then propagated back to
+// done channel passed as argument
+func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	cmd.Env = os.Environ()
 	log.Info("starting command",
 		"cmd", cmd.Name,
@@ -27,7 +30,9 @@ func start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	done <- status
 }
 
-func shutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
+// ShutdownHook will wait for SIGTERM signal and stop the cmd
+// unless done receiving channel passed to it receives status or is closed
+func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 	hookChan := make(chan os.Signal, 1)
 	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
 	defer func() {
@@ -50,7 +55,8 @@ OutOfLoop:
 	}
 }
 
-func redirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command, done <-chan gocmd.Status) {
+// RedirectStreamsToCmd redirects Stdout and Stderr of the gocmd.Cmd process to Cobra command streams
+func RedirectStreamsToCmd(src *gocmd.Cmd, dest *cobra.Command, done <-chan gocmd.Status) {
 OutOfLoop:
 	for {
 		select {

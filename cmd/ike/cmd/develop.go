@@ -42,10 +42,10 @@ func NewDevelopCmd() *cobra.Command {
 			arguments := parseArguments(cmd)
 
 			go func() {
-				tp := gocmd.NewCmdOptions(streamOutput, telepresenceBin, arguments...)
-				go redirectStreamsToCmd(tp, cmd, done)
-				go shutdownHook(tp, done)
-				start(tp, done)
+				tp := gocmd.NewCmdOptions(StreamOutput, telepresenceBin, arguments...)
+				go RedirectStreamsToCmd(tp, cmd, done)
+				go ShutdownHook(tp, done)
+				Start(tp, done)
 			}()
 
 			finalStatus := <-done

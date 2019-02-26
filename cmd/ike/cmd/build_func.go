@@ -31,12 +31,12 @@ func build(cmd *cobra.Command) error {
 		buildCmd := cmd.Flag(buildFlagName).Value.String()
 		buildArgs := strings.Split(buildCmd, " ")
 		log.Info("Starting build", "build-cmd", buildCmd)
-		build := gocmd.NewCmdOptions(streamOutput, buildArgs[0], buildArgs[1:]...)
+		build := gocmd.NewCmdOptions(StreamOutput, buildArgs[0], buildArgs[1:]...)
 
 		done := make(chan gocmd.Status, 1)
 		defer close(done)
 
-		go redirectStreamsToCmd(build, cmd, done)
+		go RedirectStreamsToCmd(build, cmd, done)
 
 		buildStatusChan := build.Start()
 		buildStatus := <-buildStatusChan
