@@ -29,7 +29,7 @@ deps: ## Fetches all dependencies using dep
 .PHONY: format
 format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/
+	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: tools
 tools: ## Installs required go tools
