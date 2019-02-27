@@ -18,18 +18,6 @@ import (
 	"github.com/spf13/afero"
 )
 
-func callGetOn(name string) func() string {
-	return func() string {
-		resp, err := http.Get(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
-		if err != nil {
-			return ""
-		}
-		defer resp.Body.Close()
-		content, _ := ioutil.ReadAll(resp.Body)
-		return string(content)
-	}
-}
-
 var _ = Describe("Smoke End To End Tests", func() {
 
 	Context("using ike develop against OpenShift Cluster with Istio (maistra)", func() {
@@ -131,6 +119,18 @@ func createFile(filePath, content string) {
 		err = file.Close()
 		Expect(err).ToNot(HaveOccurred())
 	}()
+}
+
+func callGetOn(name string) func() string {
+	return func() string {
+		resp, err := http.Get(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
+		if err != nil {
+			return ""
+		}
+		defer resp.Body.Close()
+		content, _ := ioutil.ReadAll(resp.Body)
+		return string(content)
+	}
 }
 
 // TODO make it shared as soon as https://github.com/aslakknutsen/istio-workspace/pull/32 gets merged
