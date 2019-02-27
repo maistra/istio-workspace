@@ -81,8 +81,8 @@ func NewWatchCmd() *cobra.Command {
 							}
 						}
 						runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
-						go RedirectStreamsToCmd(runCmd, cmd, runDone)
-						go ShutdownHook(runCmd, runDone)
+						RedirectStreams(runCmd, cmd.OutOrStdout(), cmd.OutOrStderr(), runDone)
+						ShutdownHook(runCmd, runDone)
 						go Start(runCmd, runDone)
 					case status := <-runDone:
 						done <- status
