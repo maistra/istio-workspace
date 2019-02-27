@@ -20,15 +20,18 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
+var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-" + randName(16))
+
 var _ = SynchronizedBeforeSuite(func() []byte {
 
 	ensureRequiredBinaries()
 
 	executeWithTimer(func() {
-		fmt.Println("\nStarting up Openshift/Istio cluster")
+		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-execute("istiooc", "cluster", "up",
-			// TODO tmp folder - but probably not to clean up
-			"--base-dir", "/home/bartek/code/clusters/openshift/istio-workspace-maistra/mycluster-ocp").Done()
+			"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
+			"--base-dir", tmpClusterDir,
+		).Done()
 	})
 
 	return nil
@@ -41,6 +44,10 @@ var _ = SynchronizedAfterSuite(func() {},
 			fmt.Println("\nStopping Openshift/Istio cluster")
 			<-execute("oc", "cluster", "down").Done()
 		})
+
+		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
+		fmt.Println("For example by using such command: ")
+		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
 func ensureRequiredBinaries() {
