@@ -84,7 +84,8 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 	}()
 }
 
-func currentDir() string {
+// CurrentDir returns current directory from where binary is ran
+func CurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -92,7 +93,9 @@ func currentDir() string {
 	return dir
 }
 
-func binaryExists(binName, hint string) bool {
+// BinaryExists ensures that binary with given name (binName) is available on the PATH
+// hint lets you customize the error message
+func BinaryExists(binName, hint string) bool {
 	path, err := exec.LookPath(binName)
 	if err != nil {
 		log.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))

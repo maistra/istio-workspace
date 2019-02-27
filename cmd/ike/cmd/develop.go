@@ -24,7 +24,7 @@ func NewDevelopCmd() *cobra.Command {
 		Short: "Starts the development flow",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			if !binaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
+			if !BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
 
@@ -60,7 +60,7 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
 	developCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
-	developCmd.Flags().StringSliceP("watch-include", "w", []string{currentDir()}, "list of directories to watch")
+	developCmd.Flags().StringSliceP("watch-include", "w", []string{CurrentDir()}, "list of directories to watch")
 	developCmd.Flags().StringSlice("watch-exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
