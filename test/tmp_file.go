@@ -30,7 +30,7 @@ func TmpDir(t TestReporter, dir string) string {
 
 	fullPath := fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
 
-	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {
+	if err := appFs.MkdirAll(fullPath, os.ModePerm); err != nil {
 		t.Errorf("Failed to create the directory: %s. Reason: %s", dir, err)
 		return ""
 	}
