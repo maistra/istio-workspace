@@ -23,12 +23,10 @@ var Files []string
 var appFs = afero.NewOsFs()
 
 func TmpDir(t TestReporter, dir string) string {
-	if path.IsAbs(dir) {
-		t.Errorf("Failed to create the directory: %s. Should be relative path", dir)
-		return ""
+	fullPath := dir
+	if !path.IsAbs(dir) {
+		fullPath = fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
 	}
-
-	fullPath := fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
 
 	if err := appFs.MkdirAll(fullPath, os.ModePerm); err != nil {
 		t.Errorf("Failed to create the directory: %s. Reason: %s", dir, err)
