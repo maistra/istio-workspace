@@ -37,7 +37,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		AfterEach(func() {
 			tmpPath.Restore()
-			<-execute("oc", "delete", "all", "-l", "app="+appName).Done()
+			<-execute("oc", "delete", "project", appName).Done()
 		})
 
 		It("should replace python service with modified response", func() {
