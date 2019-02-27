@@ -22,11 +22,9 @@ func TestE2e(t *testing.T) {
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 
-	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
-	Expect(cmd.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
-	Expect(cmd.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())
+	ensureRequiredBinaries()
 
-	measure(func() {
+	executeWithTimer(func() {
 		fmt.Println("\nStarting up Openshift/Istio cluster")
 		<-execute("istiooc", "cluster", "up",
 			// TODO tmp folder - but probably not to clean up
@@ -39,15 +37,21 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		measure(func() {
+		executeWithTimer(func() {
 			fmt.Println("\nStopping Openshift/Istio cluster")
 			<-execute("oc", "cluster", "down").Done()
 		})
 	})
 
+func ensureRequiredBinaries() {
+	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
+	Expect(cmd.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
+	Expect(cmd.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())
+}
+
 type noArgFunc func()
 
-func measure(f noArgFunc) {
+func executeWithTimer(f noArgFunc) {
 	start := time.Now()
 	f()
 	fmt.Printf("... done in %s\n", time.Since(start))
