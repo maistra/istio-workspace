@@ -64,7 +64,7 @@ test: codegen
 .PHONY: test-e2e ## Runs end-to-end tests
 test-e2e: codegen
 	$(call header,"Running end-to-end tests")
-	ginkgo -p e2e/ -r -v -tags e2e
+	ginkgo e2e/ -v -p
 
 .PHONY: clean
 clean: ## Removes build artifacts
