@@ -10,7 +10,7 @@ import (
 func sessions(cmd *cobra.Command) (closer func(), err error) {
 	sessionHandler := session.Offline
 
-	if offline, err := cmd.Flags().GetBool("offline"); err == nil && offline {
+	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
 		sessionHandler = session.CreateOrJoinHandler
 	}
 
