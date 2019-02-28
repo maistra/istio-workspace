@@ -86,8 +86,6 @@ func applySession(session istiov1alpha1.Session) error {
 		return err
 	}
 	sessionData := string(b)
-	fmt.Println(sessionData)
-
 	resp, err := helper.ExecuteOCCMD(&sessionData, fmt.Sprintf("oc apply -f -"))
 	if err != nil {
 		return err
