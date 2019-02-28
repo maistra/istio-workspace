@@ -1,61 +1,84 @@
 package istio
 
 import (
-	"fmt"
-	"strings"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
-	"sigs.k8s.io/yaml"
+	v1alpha3 "istio.io/api/networking/v1alpha3"
+	k8yaml "sigs.k8s.io/yaml"
 )
 
-func TestDestinationRuleMutatorAdd(t *testing.T) {
-	dr := istionetwork.DestinationRule{}
-	err := yaml.Unmarshal([]byte(simpleDestinationRule), &dr)
-	if err != nil {
-		t.Fatal(err)
-	}
+var _ = Describe("Operations for istio DestinationRule kind", func() {
 
-	dra, err := mutateDestinationRule(dr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	spec, err := yaml.Marshal(dra)
-	fmt.Println(string(spec))
+	GetName := func(s *v1alpha3.Subset) string { return s.Name }
 
-	if len(dra.Spec.Subsets) != 3 {
-		t.Fatal("new subset not added")
-	}
+	var (
+		err             error
+		destinationRule istionetwork.DestinationRule
+		yaml            string
+	)
 
-	if dra.Spec.Subsets[2].Name != "v1-test" {
-		t.Fatal("wrong subset name")
-	}
-}
+	Context("mutators", func() {
 
-func TestDestinationRuleMutatorRemove(t *testing.T) {
-	dr := istionetwork.DestinationRule{}
-	err := yaml.Unmarshal([]byte(simpleMutatedDestinationRule), &dr)
-	if err != nil {
-		t.Fatal(err)
-	}
+		JustBeforeEach(func() {
+			err = k8yaml.Unmarshal([]byte(yaml), &destinationRule)
+		})
 
-	dra, err := revertDestinationRule(dr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	spec, err := yaml.Marshal(dra)
-	fmt.Println(string(spec))
+		Context("existing rule", func() {
+			var (
+				mutatedDestinationRule istionetwork.DestinationRule
+			)
 
-	if len(dra.Spec.Subsets) != 2 {
-		t.Fatal("new subset not added")
-	}
+			BeforeEach(func() {
+				yaml = simpleDestinationRule
+			})
 
-	for _, s := range dra.Spec.Subsets {
-		if strings.Contains(s.Name, "v1-test") {
-			t.Fatal("wrong subset removed")
-		}
-	}
-}
+			JustBeforeEach(func() {
+				mutatedDestinationRule, err = mutateDestinationRule(destinationRule)
+			})
+
+			It("new subset added", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(mutatedDestinationRule.Spec.Subsets).To(HaveLen(3))
+			})
+			It("new subset added with name", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(mutatedDestinationRule.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+			})
+		})
+	})
+
+	Context("revertors", func() {
+
+		JustBeforeEach(func() {
+			err = k8yaml.Unmarshal([]byte(yaml), &destinationRule)
+		})
+
+		Context("existing rule", func() {
+			var (
+				revertedDestinationRule istionetwork.DestinationRule
+			)
+
+			BeforeEach(func() {
+				yaml = simpleMutatedDestinationRule
+			})
+
+			JustBeforeEach(func() {
+				revertedDestinationRule, err = revertDestinationRule(destinationRule)
+			})
+
+			It("new subset removed", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(revertedDestinationRule.Spec.Subsets).To(HaveLen(2))
+			})
+			It("correct subset removed", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+			})
+		})
+	})
+})
 
 var simpleDestinationRule = `kind: DestinationRule
 metadata:

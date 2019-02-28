@@ -1,63 +1,85 @@
 package istio
 
 import (
-	"fmt"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
-	"sigs.k8s.io/yaml"
+	k8yaml "sigs.k8s.io/yaml"
 )
 
-func TestVirtualServiceMutator2Add(t *testing.T) {
-	vs := istionetwork.VirtualService{}
-	err := yaml.Unmarshal([]byte(simpleVirtualService), &vs)
-	if err != nil {
-		t.Fatal(err)
-	}
+var _ = Describe("Operations for istio VirtualService kind", func() {
 
-	vsa, err := mutateVirtualService(vs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	spec, err := yaml.Marshal(vsa)
-	fmt.Println(string(spec))
+	var (
+		err            error
+		virtualService istionetwork.VirtualService
+		yaml           string
+	)
 
-	if len(vsa.Spec.Http) != 2 {
-		t.Fatal("additional route not added")
-	}
+	Context("mutators", func() {
 
-	if vsa.Spec.Http[0].Match == nil {
-		t.Fatal("missing match route")
-	}
+		JustBeforeEach(func() {
+			err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
+		})
 
-	if vsa.Spec.Http[0].Route[0].Destination.Subset != "v1-test" {
-		t.Fatal("missing subset update")
-	}
+		Context("existing rule", func() {
+			var (
+				mutatedVirtualService istionetwork.VirtualService
+			)
 
-}
+			BeforeEach(func() {
+				yaml = simpleVirtualService
+			})
 
-func TestVirtualServiceMutator2Remove(t *testing.T) {
-	vs := istionetwork.VirtualService{}
-	err := yaml.Unmarshal([]byte(simpleMutatedVirtualService), &vs)
-	if err != nil {
-		t.Fatal(err)
-	}
+			JustBeforeEach(func() {
+				mutatedVirtualService, err = mutateVirtualService(virtualService)
+			})
 
-	vsa, err := revertVirtualService(vs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	spec, err := yaml.Marshal(vsa)
-	fmt.Println(string(spec))
+			It("route added", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(mutatedVirtualService.Spec.Http).To(HaveLen(2))
+			})
+			It("first route has match", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(mutatedVirtualService.Spec.Http[0].Match).ToNot(BeNil())
+			})
+			It("first route has subset", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("v1-test"))
+			})
+		})
+	})
 
-	if len(vsa.Spec.Http) > 1 {
-		t.Fatal("route not removed")
-	}
+	Context("revertors", func() {
 
-	if vsa.Spec.Http[0].Route[0].Destination.Subset != "v1" {
-		t.Fatal("removed wrong destination")
-	}
-}
+		JustBeforeEach(func() {
+			err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
+		})
+
+		Context("existing rule", func() {
+			var (
+				revertedVirtualService istionetwork.VirtualService
+			)
+
+			BeforeEach(func() {
+				yaml = simpleMutatedVirtualService
+			})
+
+			JustBeforeEach(func() {
+				revertedVirtualService, err = revertVirtualService(virtualService)
+			})
+
+			It("route removed", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(revertedVirtualService.Spec.Http).To(HaveLen(1))
+			})
+			It("correct route removed", func() {
+				Expect(err).ToNot(HaveOccurred())
+				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-test"))
+			})
+		})
+	})
+})
 
 var simpleVirtualService = `kind: VirtualService
 metadata:
