@@ -30,6 +30,24 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	done <- status
 }
 
+// Execute executes given command in the current directory
+// Adds shutdown hook and redirects streams to stdout/err
+func Execute(name string, args ...string) *gocmd.Cmd {
+	return ExecuteInDir("", name, args...)
+}
+
+// ExecuteInDir executes given command in the defined directory
+// Adds shutdown hook and redirects streams to stdout/err
+func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
+	command := gocmd.NewCmdOptions(StreamOutput, name, args...)
+	command.Dir = dir
+	done := command.Start()
+	ShutdownHook(command, done)
+	RedirectStreams(command, os.Stdout, os.Stderr, done)
+	fmt.Printf("executing: [%s %v]\n", command.Name, command.Args)
+	return command
+}
+
 // ShutdownHook will wait for SIGTERM signal and stop the cmd
 // unless done receiving channel passed to it receives status or is closed
 func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {

@@ -37,7 +37,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		AfterEach(func() {
 			tmpPath.Restore()
-			<-execute("oc", "delete", "project", appName).Done()
+			<-cmd.Execute("oc", "delete", "project", appName).Done()
 		})
 
 		It("should replace python service with modified response", func() {
@@ -46,7 +46,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
 			modifiedServerCode(tmpDir)
-			ike := executeInDir(tmpDir, "ike", "develop",
+			ike := cmd.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
 				"--method", "inject-tcp",
@@ -64,7 +64,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
 			originalServerCode(tmpDir)
-			ikeWithWatch := executeInDir(tmpDir, "ike", "develop",
+			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
 				"--method", "inject-tcp",
@@ -87,17 +87,17 @@ var _ = Describe("Smoke End To End Tests", func() {
 var appFs = afero.NewOsFs()
 
 func createNewApp(name string) {
-	<-execute("oc", "new-project", name).Done()
-	<-execute("oc", "login", "-u", "system:admin").Done()
-	<-execute("oc", "adm", "policy", "add-scc-to-user", "anyuid", "-z", "default", "-n", name).Done()
-	<-execute("oc", "adm", "policy", "add-scc-to-user", "privileged", "-z", "default", "-n", name).Done()
-	<-execute("oc", "login", "-u", "developer").Done()
-	<-execute("oc", "new-app",
+	<-cmd.Execute("oc", "new-project", name).Done()
+	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.Execute("oc", "adm", "policy", "add-scc-to-user", "anyuid", "-z", "default", "-n", name).Done()
+	<-cmd.Execute("oc", "adm", "policy", "add-scc-to-user", "privileged", "-z", "default", "-n", name).Done()
+	<-cmd.Execute("oc", "login", "-u", "developer").Done()
+	<-cmd.Execute("oc", "new-app",
 		"--docker-image", "datawire/hello-world",
 		"--name", name,
 		"--allow-missing-images",
 	).Done()
-	<-execute("oc", "expose", "svc/"+name).Done()
+	<-cmd.Execute("oc", "expose", "svc/"+name).Done()
 }
 
 func modifiedServerCode(tmpDir string) {
