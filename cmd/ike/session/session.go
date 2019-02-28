@@ -8,6 +8,8 @@ import (
 	"os/user"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	helper "github.com/aslakknutsen/istio-workspace/pkg/istio"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,24 +97,29 @@ func applySession(session istiov1alpha1.Session) error {
 }
 
 func waitForRefToComplete(sessionName, ref string) (string, error) {
-	for i := 0; i < 10; i++ {
-		time.Sleep(1 * time.Second) // wait 1 s to let the server attempt to prepare first
+	var name string
+	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
 		sessionStatus, err := getSession(sessionName)
 		if err != nil {
-			return "", nil
+			return false, nil
 		}
-
 		for _, refs := range sessionStatus.Status.Refs {
 			if refs.Name == ref {
 				for _, res := range refs.Resources {
 					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
-						return *res.Name, nil
+						name = *res.Name
+						fmt.Println("Found")
+						return true, nil
 					}
 				}
 			}
 		}
+		return false, nil
+	})
+	if err != nil {
+		return "", errors.New("no Deployment or DeploymentConfig found for target")
 	}
-	return "", errors.New("no Deployment or DeploymentConfig found to target")
+	return name, nil
 }
 
 func getSession(sessionName string) (istiov1alpha1.Session, error) {
