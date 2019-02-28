@@ -36,14 +36,13 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 			JustBeforeEach(func() {
 				mutatedDestinationRule, err = mutateDestinationRule(destinationRule)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("new subset added", func() {
-				Expect(err).ToNot(HaveOccurred())
 				Expect(mutatedDestinationRule.Spec.Subsets).To(HaveLen(3))
 			})
 			It("new subset added with name", func() {
-				Expect(err).ToNot(HaveOccurred())
 				Expect(mutatedDestinationRule.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
 			})
 		})
@@ -66,14 +65,13 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 			JustBeforeEach(func() {
 				revertedDestinationRule, err = revertDestinationRule(destinationRule)
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("new subset removed", func() {
-				Expect(err).ToNot(HaveOccurred())
 				Expect(revertedDestinationRule.Spec.Subsets).To(HaveLen(2))
 			})
 			It("correct subset removed", func() {
-				Expect(err).ToNot(HaveOccurred())
 				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("v1-test"))))
 			})
 		})
