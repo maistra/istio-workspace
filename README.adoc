@@ -1,5 +1,5 @@
 image:https://goreportcard.com/badge/github.com/aslakknutsen/istio-workspace["Go Report Card", link="https://goreportcard.com/report/github.com/aslakknutsen/istio-workspace"]
-image:https://travis-ci.org/aslakknutsen/istio-workspace.svg["Travis", link="https://travis-ci.org/aslakknusten/istio-workspace"]
+image:https://travis-ci.org/aslakknutsen/istio-workspace.svg?branch=master["Travis", link="https://travis-ci.org/aslakknutsen/istio-workspace"]
 
 = Istio Workspace
 
@@ -11,7 +11,7 @@ Assuming that you have all the link:https://golang.org/doc/install[Golang prereq
 
 [source,bash]
 ----
-$ git clone https://github.com/aslakknusten/istio-workspace $GOPATH/src/github.com/aslakknusten/istio-workspace
+$ git clone https://github.com/aslakknutsen/istio-workspace $GOPATH/src/github.com/aslakknutsen/istio-workspace
 ----
 
 then run `make tools` which will take care of installing all the tools mentioned below:
