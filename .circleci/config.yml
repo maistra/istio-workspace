@@ -15,6 +15,7 @@ jobs:
     machine:
       image: circleci/classic:201808-01
     steps:
+      - ike/install_maistra_0_8_0
       - run:
           name: "Installing Prerequisites (telepresence)"
           command: |
@@ -23,7 +24,6 @@ jobs:
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
-      - ike/install_maistra_0_8_0
       - run:
           name: "Updating Golang to 1.12"
           command: |
