@@ -12,26 +12,18 @@ jobs:
       - run: make
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
-    machine: true
+    machine:
+      image: circleci/classic:201808-01
     steps:
-      - ike/install_maistra_0_8_0
-      - run:
-          name: "Installing Prerequisites (telepresence)"
-          command: |
-            cd ~
-            pyenv global 3.5.2
-            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends telepresence
-            telepresence --version
-      - run:
-          name: "Updating Golang to 1.12"
-          command: |
-            sudo rm -rf /usr/local/go
-            sudo circleci-install golang 1.12
+      - ike/install_maistra
+      - ike/install_telepresence
+      - ike/update_golang
       - checkout
-      - run: make tools deps
-      - run: make test-e2e
-
+      - run: telepresence --version
+      - run: python3 --help
+      - run: oc cluster status
+#      - run: make tools deps
+#      - run: make test-e2e
 
 workflows:
   version: 2

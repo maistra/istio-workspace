@@ -22,7 +22,7 @@ var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+rand
 var _ = SynchronizedBeforeSuite(func() []byte {
 
 	ensureRequiredBinaries()
-
+	// TODO check if cluster is running
 	executeWithTimer(func() {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
