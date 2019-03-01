@@ -11,12 +11,12 @@ jobs:
   e2e_tests:
     machine:
       docker_layer_caching: true
-  steps:
-    - checkout
-    - attach_workspace:
-        at: .
-    - run: make tools
-    - run: make
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: make tools
+      - run: make
 workflows:
   version: 2
   circleci_build:
