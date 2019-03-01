@@ -12,6 +12,8 @@ jobs:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine:
       image: circleci/classic:201808-01
+      pre:
+        - pyenv global 3.5.2
     steps:
       - run:
           name: "Installing Prerequisites (oc and maistra)"
@@ -31,7 +33,6 @@ jobs:
           name: "Installing Prerequisites (telepresence)"
           command: |
             cd ~
-            sudo -H -i pyenv global 3.5.2
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
