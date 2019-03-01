@@ -17,14 +17,16 @@ jobs:
           name: "Installing Prerequisites (oc and maistra)"
           command: |
             cd ~
+            mkdir -p bin
             echo 'export BIN_PATH="~/bin"' >> $BASH_ENV
             echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
             echo 'alias oc=istiooc' >> $BASH_ENV
-            source $BASH_ENV
-            mkdir -p $BIN_PATH
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             chmod +x $BIN_PATH/istiooc
+            source $BASH_ENV
+            echo $PATH
             istiooc version
+            oc version
       - run:
           name: "Updating Golang to 1.12"
           command: |
