@@ -23,8 +23,9 @@ jobs:
             echo 'alias oc=istiooc' >> $BASH_ENV
             cat $BASH_ENV
             source $BASH_ENV
-            pwd 
-            ls
+            pwd
+            ls -al $BIN_PATH
+            touch $BIN_PATH/istiooc
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             ls -al $BIN_PATH
             chmod +x $BIN_PATH/istiooc
