@@ -47,7 +47,6 @@ var _ = SynchronizedAfterSuite(func() {},
 	})
 
 func ensureRequiredBinaries() {
-	Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
 	Expect(cmd.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
 	Expect(cmd.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())

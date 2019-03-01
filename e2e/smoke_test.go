@@ -33,6 +33,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			tmpPath.SetPath(os.Getenv("PATH"), path.Dir(cmd.CurrentDir())+"/dist")
 			appName = randName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
+			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
 		AfterEach(func() {
