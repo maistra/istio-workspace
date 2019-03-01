@@ -26,6 +26,8 @@ jobs:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     machine: true
     steps:
+      - run:
+          command: chown -R $USER:$USER /go
       - checkout
       - attach_workspace:
           at: .
