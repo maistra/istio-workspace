@@ -16,12 +16,14 @@ jobs:
       - run:
           name: "Setting up $DOCKER_OPTS"
           command: |
+            cd ~
             ps faux | grep docker
             tmp=`mktemp`
             echo 'DOCKER_OPTS="$DOCKER_OPTS --insecure-registry 172.30.0.0/16"' > ${tmp}
             sudo mv ${tmp} /etc/default/docker
             echo $DOCKER_OPTS
-            touch ~/.kube/config
+            mkdir .kube
+            touch .kube/config
             sudo service docker restart
             ps faux | grep docker
       - run:
