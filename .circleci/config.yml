@@ -31,6 +31,7 @@ jobs:
           name: "Installing Prerequisites (telepresence)"
           command: |
             sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6"
+            python3 --help
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
