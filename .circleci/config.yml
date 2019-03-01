@@ -8,7 +8,15 @@ jobs:
       - checkout
       - run: make tools
       - run: make
-
+  e2e_tests:
+    machine:
+      docker_layer_caching: true
+  steps:
+    - checkout
+    - attach_workspace:
+        at: .
+    - run: make tools
+    - run: make
 workflows:
   version: 2
   circleci_build:
@@ -16,4 +24,4 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
-      - build
+      - e2e_tests
