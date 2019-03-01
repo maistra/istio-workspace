@@ -15,12 +15,11 @@ jobs:
     machine:
       image: circleci/classic:201808-01
     steps:
+      - ike/docker_insecure_registry
       - ike/install_maistra
       - ike/install_telepresence
       - ike/update_golang
       - checkout
-      - run: telepresence --version
-      - run: python3 --help
       - run: oc cluster status
 #      - run: make tools deps
 #      - run: make test-e2e
