@@ -21,6 +21,7 @@ jobs:
             echo 'export BIN_PATH="~/bin"' >> $BASH_ENV
             echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
             echo 'alias oc=istiooc' >> $BASH_ENV
+            echo $BASH_ENV
             source $BASH_ENV
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             ls -al $BIN_PATH
