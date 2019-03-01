@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: make tools
-      - run: make compile
+      - run: make deps compile
       - persist_to_workspace:
           root: .
   build:
