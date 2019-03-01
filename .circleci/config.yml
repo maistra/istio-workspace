@@ -21,7 +21,6 @@ jobs:
             echo 'export BIN_PATH="/home/circleci/tools"' >> $BASH_ENV
             echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
             echo 'alias oc="istiooc"' >> $BASH_ENV
-            cat $BASH_ENV
             source $BASH_ENV
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             chmod +x $BIN_PATH/istiooc
@@ -29,15 +28,17 @@ jobs:
             istiooc version
             oc version
       - run:
+          name: "Installing Prerequisites (telepresence)"
+          command: |
+            cd ~
+            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
+            sudo apt install --no-install-recommends telepresence
+            telepresence --version
+      - run:
           name: "Updating Golang to 1.12"
           command: |
             sudo rm -rf /usr/local/go
             sudo circleci-install golang 1.12
-      - run:
-          name: "Golang Details"
-          command: |
-            go env
-            go version
       - checkout
       - run: make tools
       - run: make
