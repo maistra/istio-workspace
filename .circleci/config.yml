@@ -1,4 +1,6 @@
-version: 2
+version: 2.1
+orbs:
+  ike: bartoszmajsak/ike@dev:master
 jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
@@ -14,20 +16,6 @@ jobs:
       image: circleci/classic:201808-01
     steps:
       - run:
-          name: "Setting up $DOCKER_OPTS"
-          command: |
-            sudo cat /etc/docker/daemon.json
-            cd ~
-            ps faux | grep docker
-            tmp=`mktemp`
-            echo 'DOCKER_OPTS="$DOCKER_OPTS --insecure-registry 172.30.0.0/16"' > ${tmp}
-            sudo mv ${tmp} /etc/default/docker
-            echo $DOCKER_OPTS
-            mkdir .kube
-            touch .kube/config
-            sudo service docker restart
-            ps faux | grep docker
-      - run:
           name: "Installing Prerequisites (telepresence)"
           command: |
             cd ~
@@ -35,26 +23,14 @@ jobs:
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
-      - run:
-          name: "Installing Prerequisites (oc and maistra)"
-          command: |
-            cd ~
-            mkdir tools
-            echo 'export BIN_PATH="/home/circleci/tools"' >> $BASH_ENV
-            echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
-            echo 'alias oc="istiooc"' >> $BASH_ENV
-            source $BASH_ENV
-            wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
-            chmod +x $BIN_PATH/istiooc
-            cp $BIN_PATH/istiooc $BIN_PATH/oc
-            istiooc version
-            oc version
+      - ike/install_maistra_0_8_0
       - run:
           name: "Updating Golang to 1.12"
           command: |
             sudo rm -rf /usr/local/go
             sudo circleci-install golang 1.12
       - checkout
+      - run: oc cluster up
       - run: make tools deps
       - run: make test-e2e
 
