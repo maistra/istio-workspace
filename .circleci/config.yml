@@ -13,7 +13,7 @@ jobs:
     machine:
       image: circleci/classic:201808-01
     steps:
-      - run: circleci-install golang 1.12
+      - run: sudo circleci-install golang 1.12
       - checkout
       - run: go env
       - run: go version
