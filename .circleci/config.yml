@@ -16,6 +16,7 @@ jobs:
       - run:
           name: "Installing Prerequisites (oc and maistra)"
           command: |
+            cd ~
             echo 'export BIN_PATH="~/bin"' >> $BASH_ENV
             echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
             echo 'alias oc=istiooc' >> $BASH_ENV
