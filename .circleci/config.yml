@@ -2,9 +2,18 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:latest
+      - image: circleci/golang:1.12
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     steps:
       - checkout
       - run: make tools
       - run: make
+
+workflows:
+  version: 2
+  circleci_build:
+    jobs:
+      - build
+  circleci_e2e_tests:
+    jobs:
+      - build
