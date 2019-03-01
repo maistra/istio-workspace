@@ -1,49 +1,28 @@
 version: 2
 jobs:
-  compile:
-    docker:
-      - image: circleci/golang:1.12
-    working_directory: /go/src/github.com/aslakknutsen/istio-workspace
-    steps:
-      - checkout
-      - run: make tools
-      - run: make deps compile
-      - persist_to_workspace:
-          root: .
-          paths:
-            - vendor
   build:
+    working_directory: /go/src/github.com/aslakknutsen/istio-workspace
+    resource_class: small
     docker:
       - image: circleci/golang:1.12
-    working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     steps:
       - checkout
-      - attach_workspace:
-            at: .
       - run: make tools
       - run: make
   e2e_tests:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     machine: true
     steps:
-      - run:
-          command: chown -R $USER:$USER /go
       - checkout
-      - attach_workspace:
-          at: .
       - run: make tools
       - run: make
+
+
 workflows:
   version: 2
   circleci_build:
     jobs:
-      - compile
-      - build:
-          requires:
-            - compile
+      - build
   circleci_e2e_tests:
     jobs:
-      - compile
-      - e2e_tests:
-          requires:
-            - compile
+      e2e_tests
