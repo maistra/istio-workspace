@@ -13,11 +13,27 @@ jobs:
     machine:
       image: circleci/classic:201808-01
     steps:
-      - run: sudo rm -rf /usr/local/go
-      - run: sudo circleci-install golang 1.12
+      - run:
+          name: "Installing Prerequisites (oc and maistra)"
+          command: |
+            echo 'export BIN_PATH="~/bin"' >> $BASH_ENV
+            echo 'export $PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
+            echo 'alias oc=istiooc' >> $BASH_ENV
+            source $BASH_ENV
+            mkdir $BIN_PATH
+            wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
+            chmod +x $BIN_PATH/istiooc
+      - run:
+          name: "Updating Golang to 1.12"
+          command: |
+            sudo rm -rf /usr/local/go
+            sudo circleci-install golang 1.12
+      - run:
+          name: "Golang Details"
+          command: |
+            go env
+            go version
       - checkout
-      - run: go env
-      - run: go version
       - run: make tools
       - run: make
 
