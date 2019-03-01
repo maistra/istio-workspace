@@ -10,6 +10,8 @@ jobs:
       - run: make deps compile
       - persist_to_workspace:
           root: .
+          paths:
+            - vendor
   build:
     docker:
       - image: circleci/golang:1.12
@@ -27,7 +29,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: make tools
       - run: make
 workflows:
   version: 2
