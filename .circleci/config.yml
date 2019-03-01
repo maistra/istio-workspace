@@ -10,16 +10,25 @@ jobs:
       - checkout
       - run: make tools
       - run: make
+      - save_cache:
+          paths:
+            - ${CIRCLE_WORKING_DIRECTORY}/vendor
+          key: istio-workspace-vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine:
       image: circleci/classic:201808-01
     steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - istio-workspace-vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - istio-workspace-vendor-{{ .Branch }}
+            - istio-workspace-vendor-
       - ike/docker_insecure_registry
       - ike/update_golang
       - ike/install_telepresence
       - ike/install_maistra
-      - checkout
       - run: make tools deps test-e2e
 
 workflows:
@@ -29,4 +38,6 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
-      - e2e_tests
+      - e2e_tests:
+          requires:
+            - build
