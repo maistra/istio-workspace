@@ -2,7 +2,6 @@ version: 2
 jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
-    resource_class: small
     docker:
       - image: circleci/golang:1.12
     steps:
@@ -14,6 +13,8 @@ jobs:
     machine: true
     steps:
       - checkout
+      - run:
+          - command: go env
       - run: make tools
       - run: make
 
