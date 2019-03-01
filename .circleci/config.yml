@@ -10,7 +10,9 @@ jobs:
       - run: make
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
-    machine: true
+    machine:
+      enabled: true
+      image: circleci/classic:201808-01
     steps:
       - checkout
       - run: go env
