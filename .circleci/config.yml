@@ -16,7 +16,7 @@ jobs:
       - run:
           name: "Setting up $DOCKER_OPTS"
           command: |
-            cat /etc/docker/daemon.json
+            sudo cat /etc/docker/daemon.json
             cd ~
             ps faux | grep docker
             tmp=`mktemp`
