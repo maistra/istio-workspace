@@ -38,6 +38,7 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
+      - build
       - e2e_tests:
           requires:
             - build
