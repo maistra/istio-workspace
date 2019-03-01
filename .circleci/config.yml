@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/latest
+      - image: circleci/golang:latest
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     steps:
       - checkout
