@@ -16,23 +16,17 @@ jobs:
       image: circleci/classic:201808-01
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - istio-workspace-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-            - istio-workspace-{{ .Branch }}
-            - istio-workspace-
       - ike/docker_insecure_registry
       - ike/update_golang
       - ike/install_telepresence
       - ike/install_maistra
-      - run: make tools compile test-e2e
+      - run: make tools deps compile test-e2e
 
 workflows:
-  version: 2
+  version: 2.1
   circleci_build:
     jobs:
       - build
   circleci_e2e_tests:
     jobs:
       - e2e_tests
-        
