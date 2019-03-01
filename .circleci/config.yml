@@ -9,11 +9,12 @@ jobs:
       - run: make tools
       - run: make
   e2e_tests:
-    working_directory: ~/go/src/github.com/aslakknutsen/istio-workspace
+    working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine: true
     steps:
       - checkout
       - run: go env
+      - run: go version
       - run: make tools
       - run: make
 
