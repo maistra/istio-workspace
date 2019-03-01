@@ -1,0 +1,10 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/latest
+    working_directory: /go/src/github.com/aslakknutsen/istio-workspace
+    steps:
+      - checkout
+      - run: make tools
+      - run: make
