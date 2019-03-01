@@ -12,8 +12,7 @@ jobs:
       - run: make
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
-    machine:
-      image: circleci/classic:201808-01
+    machine: true
     steps:
       - ike/install_maistra_0_8_0
       - run:
@@ -30,7 +29,6 @@ jobs:
             sudo rm -rf /usr/local/go
             sudo circleci-install golang 1.12
       - checkout
-      - run: oc cluster up
       - run: make tools deps
       - run: make test-e2e
 
