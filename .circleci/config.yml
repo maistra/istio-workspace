@@ -11,9 +11,9 @@ jobs:
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine:
-      enabled: true
       image: circleci/classic:201808-01
     steps:
+      - run: circleci-install golang 1.12
       - checkout
       - run: go env
       - run: go version
