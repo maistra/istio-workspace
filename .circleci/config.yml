@@ -14,6 +14,15 @@ jobs:
       image: circleci/classic:201808-01
     steps:
       - run:
+          name: "Installing Prerequisites (telepresence)"
+          command: |
+            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6"
+            pyenv local 3.6.7
+            python3 --help
+            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
+            sudo apt install --no-install-recommends telepresence
+            telepresence --version
+      - run:
           name: "Installing Prerequisites (oc and maistra)"
           command: |
             cd ~
@@ -27,14 +36,6 @@ jobs:
             cp $BIN_PATH/istiooc $BIN_PATH/oc
             istiooc version
             oc version
-      - run:
-          name: "Installing Prerequisites (telepresence)"
-          command: |
-            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6"
-            python3 --help
-            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends telepresence
-            telepresence --version
       - run:
           name: "Updating Golang to 1.12"
           command: |
