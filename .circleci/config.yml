@@ -42,7 +42,7 @@ jobs:
             sudo circleci-install golang 1.12
       - checkout
       - run: make tools
-      - run: make
+      - run: make test-e2e
 
 
 workflows:
