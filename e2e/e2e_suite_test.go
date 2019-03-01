@@ -22,7 +22,6 @@ var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+rand
 var _ = SynchronizedBeforeSuite(func() []byte {
 
 	ensureRequiredBinaries()
-	// TODO check if cluster is running
 	executeWithTimer(func() {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
@@ -39,7 +38,7 @@ var _ = SynchronizedAfterSuite(func() {},
 	func() {
 		executeWithTimer(func() {
 			fmt.Println("\nStopping Openshift/Istio cluster")
-			<-cmd.Execute("oc", "cluster", "down").Done()
+			cmd.Execute("oc", "cluster", "down")
 		})
 
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
@@ -48,6 +47,7 @@ var _ = SynchronizedAfterSuite(func() {},
 	})
 
 func ensureRequiredBinaries() {
+	Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
 	Expect(cmd.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
 	Expect(cmd.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())

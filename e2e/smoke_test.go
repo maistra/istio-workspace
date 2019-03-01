@@ -98,6 +98,7 @@ func createNewApp(name string) {
 		"--allow-missing-images",
 	).Done()
 	<-cmd.Execute("oc", "expose", "svc/"+name).Done()
+	<-cmd.Execute("oc", "status").Done()
 }
 
 func modifiedServerCode(tmpDir string) {
