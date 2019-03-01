@@ -23,6 +23,8 @@ jobs:
             mkdir -p $BIN_PATH
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             chmod +x $BIN_PATH/istiooc
+            pwd
+            ls
       - run:
           name: "Updating Golang to 1.12"
           command: |
