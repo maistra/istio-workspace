@@ -31,8 +31,10 @@ jobs:
           name: "Installing Prerequisites (telepresence)"
           command: |
             cd ~
+            sudo add-apt-repository ppa:jonathonf/python-3.6
+            sudo apt-get update && sudo apt-get install python3.6
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends python3 telepresence
+            sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
           name: "Updating Golang to 1.12"
