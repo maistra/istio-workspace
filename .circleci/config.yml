@@ -24,8 +24,8 @@ jobs:
             cat $BASH_ENV
             source $BASH_ENV
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
+            chmod +x $BIN_PATH/istiooc
             cd -
-            ls -al $BIN_PATH
             istiooc version
             oc version
       - run:
