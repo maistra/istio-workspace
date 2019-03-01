@@ -17,13 +17,14 @@ jobs:
           name: "Installing Prerequisites (oc and maistra)"
           command: |
             cd ~
-            mkdir ~/tools
+            mkdir tools
             echo 'export BIN_PATH="~/tools"' >> $BASH_ENV
             echo 'export PATH="$PATH:$BIN_PATH"' >> $BASH_ENV
             echo 'alias oc=istiooc' >> $BASH_ENV
             cat $BASH_ENV
             source $BASH_ENV
             pwd
+            ls -al
             ls -al $BIN_PATH
             wget https://github.com/Maistra/origin/releases/download/v3.11.0%2Bmaistra-0.8.0/istiooc_linux -O $BIN_PATH/istiooc
             ls -al $BIN_PATH
