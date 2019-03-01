@@ -34,8 +34,12 @@ workflows:
   circleci_build:
     jobs:
       - compile
-      - build
+      - build:
+          requires:
+            - compile
   circleci_e2e_tests:
     jobs:
       - compile
-      - e2e_tests
+      - e2e_tests:
+          requires:
+            - compile
