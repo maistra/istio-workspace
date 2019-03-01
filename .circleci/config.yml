@@ -31,7 +31,7 @@ jobs:
           name: "Installing Prerequisites (telepresence)"
           command: |
             cd ~
-            sudo -H -i -u ${CIRCLECI_USER} pyenv global 3.5.2
+            sudo pyenv global 3.5.2
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
