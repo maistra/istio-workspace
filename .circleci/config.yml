@@ -20,15 +20,16 @@ jobs:
       - checkout
       - attach_workspace:
             at: .
+      - run: make tools
       - run: make
   e2e_tests:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
-    machine:
-      docker_layer_caching: true
+    machine: true
     steps:
       - checkout
       - attach_workspace:
           at: .
+      - run: make tools
       - run: make
 workflows:
   version: 2
