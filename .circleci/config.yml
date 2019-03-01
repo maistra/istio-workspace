@@ -13,8 +13,7 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run:
-          - command: go env
+      - run: go env
       - run: make tools
       - run: make
 
