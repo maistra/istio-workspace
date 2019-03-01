@@ -16,7 +16,6 @@ jobs:
       image: circleci/classic:201808-01
     steps:
       - ike/docker_insecure_registry
-      - run: sudo ls /etc/docker
       - run: sudo cat /etc/docker/daemon.json
       - ike/install_maistra
       - ike/install_telepresence
