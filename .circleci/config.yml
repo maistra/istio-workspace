@@ -16,14 +16,11 @@ jobs:
       image: circleci/classic:201808-01
     steps:
       - ike/docker_insecure_registry
-      - run: sudo cat /etc/docker/daemon.json
-      - ike/install_maistra
-      - ike/install_telepresence
       - ike/update_golang
+      - ike/install_telepresence
+      - ike/install_maistra
       - checkout
-      - run: oc cluster status
-#      - run: make tools deps
-#      - run: make test-e2e
+      - run: make tools deps test-e2e
 
 workflows:
   version: 2
