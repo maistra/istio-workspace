@@ -15,8 +15,9 @@ jobs:
     machine:
       image: circleci/classic:201808-01
     steps:
-      - run: sudo ls /etc/docker
       - ike/docker_insecure_registry
+      - run: sudo ls /etc/docker
+      - run: sudo cat /etc/docker/daemon.json
       - ike/install_maistra
       - ike/install_telepresence
       - ike/update_golang
