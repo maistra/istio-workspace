@@ -17,7 +17,7 @@ const (
 var _ model.Mutator = DestinationRuleMutator
 var _ model.Revertor = DestinationRuleRevertor
 
-func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
+func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(DestinationRuleKind)) > 0 {
 		return nil
 	}
@@ -36,7 +36,6 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
 		return err
 	}
-	//err = setDestinationRule(ctx.Namespace, &mutatedDr)
 	err = ctx.Client.Update(ctx, &mutatedDr)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
@@ -48,7 +47,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 }
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
-func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
+func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	resources := ref.GetResourceStatus(DestinationRuleKind)
 
 	for _, resource := range resources {
@@ -67,7 +66,6 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
 			break
 		}
-		//err = setDestinationRule(ctx.Namespace, &mutatedDr)
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
@@ -80,7 +78,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) {
+func mutateDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	dr.Spec.Subsets = append(dr.Spec.Subsets, &v1alpha3.Subset{
 		Name: "v1-test",
 		Labels: map[string]string{
@@ -90,7 +88,7 @@ func mutateDestinationRule(dr istionetwork.DestinationRule) (istionetwork.Destin
 	return dr, nil
 }
 
-func revertDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) {
+func revertDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
 		if strings.Contains(dr.Spec.Subsets[i].Name, "-test") {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)

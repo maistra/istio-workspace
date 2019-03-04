@@ -82,9 +82,9 @@ const (
 type Locator func(SessionContext, *Ref) bool
 
 // Mutator should create/modify a target Kind as required as needed
-// * Add status to Ref for storage
+// * Add status to Ref for storage, failed or not
 type Mutator func(SessionContext, *Ref) error
 
 // Revertor should delete/modify a target Kind to return to the original state after a Mutator
-// * Don't add status to Ref unless failure that requires retry
+// * Remove status from Ref unless failure that requires retry
 type Revertor func(SessionContext, *Ref) error

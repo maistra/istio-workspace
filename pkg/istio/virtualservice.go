@@ -18,7 +18,7 @@ const (
 var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
 
-func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
+func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(VirtualServiceKind)) > 0 {
 		return nil
 	}
@@ -26,7 +26,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 	targetName := strings.Split(ref.Name, "-")[0]
 
 	vs, err := getVirtualServiceMapped(ctx.Namespace, targetName)
-	//vs, err := getVirtualService(ctx, ctx.Namespace, targetName)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -39,7 +38,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 		return err
 	}
 
-	//err = setVirtualService(ctx.Namespace, &mutatedVs)
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
@@ -50,12 +48,11 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
+func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	resources := ref.GetResourceStatus(VirtualServiceKind)
 
 	for _, resource := range resources {
 		vs, err := getVirtualServiceMapped(ctx.Namespace, resource.Name)
-		//vs, err := getVirtualService2(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
@@ -70,7 +67,6 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
 			break
 		}
-		//err = setVirtualService(ctx.Namespace, &mutatedVs)
 		err = ctx.Client.Update(ctx, &mutatedVs)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
@@ -83,7 +79,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualService, error) {
+func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	source := vs.Spec.Http[0]
 
@@ -101,9 +97,9 @@ func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 
 	route := &v1alpha3.HTTPRoute{
 		Match: []*v1alpha3.HTTPMatchRequest{
-			&v1alpha3.HTTPMatchRequest{
+			{
 				Headers: map[string]*v1alpha3.StringMatch{
-					"end-user": &v1alpha3.StringMatch{MatchType: &v1alpha3.StringMatch_Exact{Exact: "jason"}},
+					"end-user": {MatchType: &v1alpha3.StringMatch_Exact{Exact: "jason"}},
 				},
 			},
 		},
@@ -127,7 +123,7 @@ func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 	return vs, nil
 }
 
-func revertVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualService, error) {
+func revertVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	for i := 0; i < len(vs.Spec.Http); i++ {
 		if strings.Contains(vs.Spec.Http[i].Route[0].Destination.Subset, "-test") {
@@ -138,7 +134,7 @@ func revertVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 	return vs, nil
 }
 
-func getVirtualService2(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) {
+func getVirtualService2(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) { //nolint[:hugeParam]
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 	return &virtualService, err

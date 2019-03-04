@@ -8,13 +8,11 @@ import (
 	"os/user"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	helper "github.com/aslakknutsen/istio-workspace/pkg/istio"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/spf13/cobra"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -36,7 +34,10 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	if err != nil {
 		return func() {}, err
 	}
-	cmd.Flags().Set("deployment", serviceName) // HACK: pass arguments around, not flags?
+	err = cmd.Flags().Set("deployment", serviceName) // HACK: pass arguments around, not flags?
+	if err != nil {
+		return func() {}, err
+	}
 
 	return func() {
 		removeOrLeaveSession(sessionName, deploymentName)
@@ -57,7 +58,10 @@ func createOrJoinSession(sessionName, ref string) (string, error) {
 	// join session
 
 	session.Spec.Refs = append(session.Spec.Refs, ref)
-	applySession(session)
+	err = applySession(session)
+	if err != nil {
+		return "", err
+	}
 	return waitForRefToComplete(sessionName, ref)
 }
 
@@ -76,11 +80,10 @@ func createSession(sessionName, ref string) error {
 			},
 		},
 	}
-
 	return applySession(session)
 }
 
-func applySession(session istiov1alpha1.Session) error {
+func applySession(session istiov1alpha1.Session) error { //nolint[:hugeParam]
 	b, err := json.Marshal(session)
 	if err != nil {
 		return err
@@ -149,7 +152,7 @@ func removeOrLeaveSession(sessionName, ref string) {
 			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
 		}
 	}
-	applySession(session)
+	_ = applySession(session)
 }
 
 func removeSession(sessionName string) {

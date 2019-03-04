@@ -7,7 +7,6 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/istio"
 	"github.com/aslakknutsen/istio-workspace/pkg/k8"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
-
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -117,45 +116,56 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		reqLogger.Info("Added session")
 		if !session.HasFinalizer(finalizer) {
 			session.AddFinalizer(finalizer)
-			r.client.Update(ctx, session)
+			if err := r.client.Update(ctx, session); err != nil {
+				ctx.Log.Error(err, "Failed to add finalizer on session")
+			}
 		}
 	}
 
 	refs := statusesToRef(*session)
 	if deleted {
-		for _, ref := range refs {
-			delete(ctx, session, ref)
-		}
+		deleteAllRefs(ctx, session, refs)
 	} else {
-		for _, r := range session.Spec.Refs {
-			reqLogger.Info("Add ref", "name", r)
-			ref := model.Ref{Name: r}
-			err = sync(ctx, session, &ref)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
+		if err := syncAllRefs(ctx, session); err != nil {
+			return reconcile.Result{}, err
 		}
-		for _, ref := range refs {
-			found := false
-			for _, r := range session.Spec.Refs {
-				if ref.Name == r {
-					found = true
-				}
-			}
-			if !found {
-				delete(ctx, session, ref)
-			}
-		}
+		deleteRemovedRefs(ctx, session, refs)
 	}
 
 	if deleted {
 		session.RemoveFinalizer(finalizer)
-		r.client.Update(ctx, session)
+		if err := r.client.Update(ctx, session); err != nil {
+			ctx.Log.Error(err, "Failed to remove finalizer on session")
+		}
+
 	}
 	return reconcile.Result{}, nil
 }
 
-func delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
+func deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+	for _, ref := range refs {
+		found := false
+		for _, r := range session.Spec.Refs {
+			if ref.Name == r {
+				found = true
+			}
+		}
+		if !found {
+			if err := delete(ctx, session, ref); err != nil {
+				ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
+			}
+		}
+	}
+}
+func deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+	for _, ref := range refs {
+		if err := delete(ctx, session, ref); err != nil {
+			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
+		}
+	}
+}
+
+func delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
 	ctx.Log.Info("Remove ref", "name", ref.Name)
 
 	statusToRef(*session, ref)
@@ -169,7 +179,19 @@ func delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model
 	return ctx.Client.Status().Update(ctx, session)
 }
 
-func sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
+func syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
+	for _, r := range session.Spec.Refs {
+		ctx.Log.Info("Add ref", "name", r)
+		ref := model.Ref{Name: r}
+		err := sync(ctx, session, &ref)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
 	statusToRef(*session, ref)
 	for _, locator := range locators {
 		if locator(ctx, ref) {
@@ -211,7 +233,7 @@ func refToStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	}
 }
 
-func statusesToRef(session istiov1alpha1.Session) []*model.Ref {
+func statusesToRef(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeParam]
 	refs := []*model.Ref{}
 	for _, statusRef := range session.Status.Refs {
 		r := &model.Ref{Name: statusRef.Name}
@@ -221,7 +243,7 @@ func statusesToRef(session istiov1alpha1.Session) []*model.Ref {
 	return refs
 }
 
-func statusToRef(session istiov1alpha1.Session, ref *model.Ref) {
+func statusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			for _, resource := range statusRef.Resources {

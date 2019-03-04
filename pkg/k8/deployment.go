@@ -19,7 +19,7 @@ var _ model.Mutator = DeploymentMutator
 var _ model.Revertor = DeploymentRevertor
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name
-func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
+func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
@@ -31,7 +31,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return true
 }
 
-func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error {
+func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
 	}
@@ -54,7 +54,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
+func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	statuses := ref.GetResourceStatus(DeploymentKind)
 	for _, status := range statuses {
 		deployment := &appsv1.Deployment{
@@ -79,7 +79,7 @@ func cloneDeployment(deployment *appsv1.Deployment) *appsv1.Deployment {
 	deploymentClone := deployment.DeepCopy()
 	replicasClone := int32(1)
 	labelsClone := deploymentClone.GetLabels()
-	labelsClone["version"] = labelsClone["version"] + "-test"
+	labelsClone["version"] += "-test"
 	labelsClone["telepresence"] = "test"
 	deploymentClone.SetName(deployment.GetName() + "-test")
 	deploymentClone.SetLabels(labelsClone)
@@ -103,7 +103,7 @@ func cloneDeployment(deployment *appsv1.Deployment) *appsv1.Deployment {
 	return deploymentClone
 }
 
-func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
+func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) { //nolint[:hugeParam]
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 	return &deployment, err

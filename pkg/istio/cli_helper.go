@@ -25,7 +25,7 @@ func getDestinationRuleMapped(namespace, name string) (*istionetwork.Destination
 	return dr, err
 }
 
-func setDestinationRule(namespace string, dr *istionetwork.DestinationRule) error {
+func setDestinationRule(namespace string, dr *istionetwork.DestinationRule) error { //nolint[:errcheck]
 	body, err := json.Marshal(dr)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func getVirtualServiceMapped(namespace, name string) (*istionetwork.VirtualServi
 	return dr, err
 }
 
-func setVirtualService(namespace string, vs *istionetwork.VirtualService) error {
+func setVirtualService(namespace string, vs *istionetwork.VirtualService) error { //nolint[:unused]
 	body, err := json.Marshal(vs)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func ExecuteCMD(input *string, cmdArgs []string) (string, error) {
 	if input != nil {
 		go func() {
 			defer stdin.Close()
-			io.WriteString(stdin, *input)
+			io.WriteString(stdin, *input) //nolint[:errcheck]
 
 		}()
 	}
