@@ -1,6 +1,5 @@
 image:https://goreportcard.com/badge/github.com/aslakknutsen/istio-workspace["Go Report Card", link="https://goreportcard.com/report/github.com/aslakknutsen/istio-workspace"]
 image:https://circleci.com/gh/aslakknutsen/istio-workspace.svg?style=svg["CircleCI", link="https://circleci.com/gh/aslakknutsen/istio-workspace"]
-image:https://travis-ci.org/aslakknutsen/istio-workspace.svg?branch=master["Travis", link="https://travis-ci.org/aslakknutsen/istio-workspace"]
 
 = Istio Workspace
 
