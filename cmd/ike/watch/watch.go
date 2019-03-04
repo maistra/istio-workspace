@@ -15,7 +15,7 @@ var log = logf.Log.WithName("watch")
 // Handler allows to define how to react on file changes event
 type Handler func(events []fsnotify.Event) error
 
-// Start represents single file system watch and delegates change events to defined handler
+// Watch represents single file system watch and delegates change events to defined handler
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handler    Handler
