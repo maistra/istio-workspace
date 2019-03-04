@@ -7,6 +7,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+// Builder is a struct which allows to use fluent API to create underlying instance of Watch
 type Builder struct {
 	w *Watch
 }
