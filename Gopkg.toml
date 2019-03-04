@@ -19,32 +19,33 @@ required = [
 
 [[override]]
   name = "k8s.io/code-generator"
-  # revision for tag "kubernetes-1.13.1"
+  # revision for tag "kubernetes-1.13.3"
+  # c2090bec4d9b1fb25de3812f868accc2bc9ecbae
   revision = "c2090bec4d9b1fb25de3812f868accc2bc9ecbae"
 
 [[override]]
   name = "k8s.io/api"
-  # revision for tag "kubernetes-1.13.1"
-  revision = "05914d821849570fba9eacfb29466f2d8d3cd229"
+  # revision for tag "kubernetes-1.13.3"
+  revision = "74b699b93c15473932b89e3d1818ba8282f3b5ab"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  # revision for tag "kubernetes-1.13.1"
-  revision = "0fe22c71c47604641d9aa352c785b7912c200562"
+  # revision for tag "kubernetes-1.13.3"
+  revision = "d4288ab6494571219e781fa423db363247635942"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision for tag "kubernetes-1.13.1"
-  revision = "2b1284ed4c93a43499e781493253e2ac5959c4fd"
+  # revision for tag "kubernetes-1.13.3"
+  revision = "572dfc7bdfcb4531361a17d27b92851f59acf0dc"
 
 [[override]]
   name = "k8s.io/client-go"
-  # revision for tag "kubernetes-1.13.1"
-  revision = "8d9ed539ba3134352c586810e749e58df4e94e4f"
+  # revision for tag "kubernetes-1.13.3"
+  revision = "6e4752048fde21176ab35eb54ec1117359830d8a"
 
 [[override]]
   name = "github.com/coreos/prometheus-operator"
-  version = "=v0.26.0"
+  version = "=v0.29.0"
 
 [[override]]
   name = "sigs.k8s.io/controller-runtime"
@@ -58,8 +59,8 @@ required = [
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
   # The version rule is used for a specific release and the master branch for in between releases.
-  branch = "master" #osdk_branch_annotation
-  # version = "=v0.4.0" #osdk_version_annotation
+#  branch = "master" #osdk_branch_annotation
+  version = "=v0.5.0" #osdk_version_annotation
 
 [[override]]
   name = "k8s.io/kube-openapi"
