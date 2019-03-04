@@ -5,7 +5,7 @@ import (
 
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/istio"
-	"github.com/aslakknutsen/istio-workspace/pkg/k8"
+	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -27,17 +27,17 @@ var (
 	log = logf.Log.WithName("controller_session")
 
 	locators = []model.Locator{
-		k8.DeploymentLocator,
+		k8s.DeploymentLocator,
 		//openshift.DeploymentConfigLocator,
 	}
 	mutators = []model.Mutator{
-		k8.DeploymentMutator,
+		k8s.DeploymentMutator,
 		//openshift.DeploymentConfigMutator,
 		istio.DestinationRuleMutator,
 		istio.VirtualServiceMutator,
 	}
 	revertors = []model.Revertor{
-		k8.DeploymentRevertor,
+		k8s.DeploymentRevertor,
 		//openshift.DeploymentConfigRevertor,
 		istio.DestinationRuleRevertor,
 		istio.VirtualServiceRevertor,

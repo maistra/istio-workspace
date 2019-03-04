@@ -1,4 +1,4 @@
-package k8
+package k8s
 
 import (
 	"github.com/aslakknutsen/istio-workspace/pkg/model"

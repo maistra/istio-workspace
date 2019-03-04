@@ -1,9 +1,9 @@
-package k8_test
+package k8s_test
 
 import (
 	"context"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/k8"
+	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,17 +44,17 @@ var _ = Describe("Operations for k8 Deployment kind", func() {
 		It("should report false on not found", func() {
 			ref := model.Ref{Name: "test-ref-other"}
 
-			Expect(k8.DeploymentLocator(ctx, &ref)).To(Equal(false))
+			Expect(k8s.DeploymentLocator(ctx, &ref)).To(Equal(false))
 		})
 		XIt("should report false on other found", func() {
 			ref := model.Ref{Name: "test-ref"}
 
-			Expect(k8.DeploymentLocator(ctx, &ref)).To(Equal(false))
+			Expect(k8s.DeploymentLocator(ctx, &ref)).To(Equal(false))
 		})
 		It("should report true on found", func() {
 			ref := model.Ref{Name: "test-ref"}
 
-			Expect(k8.DeploymentLocator(ctx, &ref)).To(Equal(true))
+			Expect(k8s.DeploymentLocator(ctx, &ref)).To(Equal(true))
 		})
 
 	})
