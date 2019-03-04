@@ -1,6 +1,5 @@
 package e2e
 
-
 // OrigServerPy contains original server code used in `ike develop` tests
 // Based on https://github.com/datawire/hello-world
 const OrigServerPy = `
