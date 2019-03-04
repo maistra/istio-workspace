@@ -40,7 +40,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			outputChan := make(chan string)
 
 			go executeCommand(outputChan, func() (string, error) {
-				return Execute(watchCmd).Passing(
+				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
 					"--dir", "/tmp/watch-test",
@@ -69,7 +69,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			outputChan := make(chan string)
 
 			go executeCommand(outputChan, func() (string, error) {
-				return Execute(watchCmd).Passing(
+				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--dir", "/tmp/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
@@ -94,7 +94,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go executeCommand(outputChan, func() (string, error) {
-				return Execute(watchCmd).Passing(
+				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
 					"--dir", "/tmp/watch-test",
@@ -122,7 +122,7 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			outputChan := make(chan string)
 			go executeCommand(outputChan, func() (string, error) {
-				return Execute(watchCmd).Passing(
+				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--dir", "/tmp/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
@@ -149,7 +149,7 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			outputChan := make(chan string)
 			go executeCommand(outputChan, func() (string, error) {
-				return Execute(watchCmd).Passing(
+				return Run(watchCmd).Passing(
 					"--config", configFile.Name(),
 					"--no-build",
 					"--dir", "/tmp/watch-test",

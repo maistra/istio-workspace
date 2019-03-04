@@ -29,12 +29,12 @@ deps: ## Fetches all dependencies using dep
 .PHONY: format
 format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/
+	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
@@ -59,7 +59,12 @@ compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test ## Runs tests
 test: codegen
 	$(call header,"Running tests")
-	ginkgo -r -v ${args}
+	ginkgo -r -v --skipPackage=e2e ${args}
+
+.PHONY: test-e2e ## Runs end-to-end tests
+test-e2e: codegen
+	$(call header,"Running end-to-end tests")
+	ginkgo e2e/ -v -p ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts

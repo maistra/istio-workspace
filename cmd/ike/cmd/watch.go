@@ -80,10 +80,10 @@ func NewWatchCmd() *cobra.Command {
 								Complete: true,
 							}
 						}
-						runCmd = gocmd.NewCmdOptions(streamOutput, run[0], run[1:]...)
-						go redirectStreamsToCmd(runCmd, cmd, runDone)
-						go shutdownHook(runCmd, runDone)
-						go start(runCmd, runDone)
+						runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
+						RedirectStreams(runCmd, cmd.OutOrStdout(), cmd.OutOrStderr(), runDone)
+						ShutdownHook(runCmd, runDone)
+						go Start(runCmd, runDone)
 					case status := <-runDone:
 						done <- status
 						break OutOfLoop
@@ -100,7 +100,7 @@ func NewWatchCmd() *cobra.Command {
 	watchCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
 	watchCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	watchCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
-	watchCmd.Flags().StringSliceP("dir", "w", []string{currentDir()}, "list of directories to watch")
+	watchCmd.Flags().StringSliceP("dir", "w", []string{CurrentDir()}, "list of directories to watch")
 	watchCmd.Flags().StringSlice("exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := watchCmd.Flags().MarkHidden("interval"); err != nil {

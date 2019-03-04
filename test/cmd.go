@@ -10,8 +10,8 @@ import (
 // Cmd is an alias for cobra.Command to build fluent API for building commands in tests
 type Cmd cobra.Command
 
-// Execute will run actual command
-func Execute(command *cobra.Command) *Cmd {
+// Run will run actual command
+func Run(command *cobra.Command) *Cmd {
 	return (*Cmd)(command)
 }
 
