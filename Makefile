@@ -22,7 +22,7 @@ help:
 	 @echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sort | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
 .PHONY: deps
-deps: ## Fetches all dependencies using dep
+deps: ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
 	dep ensure -v
 
@@ -38,9 +38,8 @@ tools: ## Installs required go tools
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
-	go get -u github.com/onsi/gomega
 	mkdir -p $(CUR_DIR)/bin/
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/v0.4.0/operator-sdk-v0.4.0-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/v0.5.0/operator-sdk-v0.5.0-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
 	chmod +x $(CUR_DIR)/bin/operator-sdk
 
 .PHONY: lint
