@@ -51,6 +51,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				"--method", "inject-tcp",
 				"--watch",
 				"--run", "python3 server.py",
+				"--offline",
 			)
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, world!\n"))
 
