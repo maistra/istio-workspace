@@ -7,6 +7,7 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/istio"
 	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
+
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,7 +16,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 

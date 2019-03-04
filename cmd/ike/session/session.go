@@ -9,7 +9,9 @@ import (
 	"time"
 
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
+
 	helper "github.com/aslakknutsen/istio-workspace/pkg/istio"
+
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"

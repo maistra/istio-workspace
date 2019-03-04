@@ -5,7 +5,8 @@ import (
 
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
-	v1alpha3 "istio.io/api/networking/v1alpha3"
+
+	"istio.io/api/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )

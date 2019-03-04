@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
+
 	k8yaml "sigs.k8s.io/yaml"
 )
 
