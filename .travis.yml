@@ -8,5 +8,9 @@ install:
 
 go_import_path: github.com/aslakknutsen/istio-workspace
 
-script:
-  - make
+jobs:
+  include:
+    - stage: test
+      script: make
+    - stage: e2e-tests
+      script: make format # dummy for now

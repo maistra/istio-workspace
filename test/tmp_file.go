@@ -27,14 +27,12 @@ var appFs = afero.NewOsFs()
 // os.TempDir()/[random-alphanumeric]/dir, where dir is a passed parameter which can be a relative path
 // When dir is an absolute path and error is reported
 func TmpDir(t TestReporter, dir string) string {
-	if path.IsAbs(dir) {
-		t.Errorf("Failed to create the directory: %s. Should be relative path", dir)
-		return ""
+	fullPath := dir
+	if !path.IsAbs(dir) {
+		fullPath = fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
 	}
 
-	fullPath := fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
-
-	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {
+	if err := appFs.MkdirAll(fullPath, os.ModePerm); err != nil {
 		t.Errorf("Failed to create the directory: %s. Reason: %s", dir, err)
 		return ""
 	}

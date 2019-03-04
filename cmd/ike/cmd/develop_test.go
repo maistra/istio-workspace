@@ -163,7 +163,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		AfterEach(tmpPath.Restore)
 
 		It("should pass all specified parameters", func() {
-			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--port", "4321:5000",
 				"--method", "vpn-tcp")
@@ -176,7 +176,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		})
 
 		It("should pass specified parameters and defaults", func() {
-			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar")
 
 			Expect(err).NotTo(HaveOccurred())
@@ -197,7 +197,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		AfterEach(tmpPath.Restore)
 
 		It("should execute build when specified", func() {
-			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--build", "mvn clean install",
 				"--port", "4321",
@@ -209,7 +209,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		})
 
 		It("should not execute build when --no-build specified", func() {
-			output, err := Execute(developCmd).Passing("--deployment", "rating-service",
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--build", "mvn clean install",
 				"--no-build",
