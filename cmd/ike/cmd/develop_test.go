@@ -170,7 +170,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--deployment rating-service"))
+			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 4321:5000"))
 			Expect(output).To(ContainSubstring("--method vpn-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
@@ -182,7 +182,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--deployment rating-service"))
+			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 8000"))
 			Expect(output).To(ContainSubstring("--method inject-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
