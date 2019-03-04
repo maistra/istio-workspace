@@ -143,18 +143,17 @@ func removeOrLeaveSession(sessionName, ref string) {
 	if err != nil {
 		return // assume missing, nothing to clean?
 	}
-	// TODO: Check if our ref name is the same as Spec. If not, ignore and move on
-	if len(session.Spec.Refs) == 1 {
-		removeSession(sessionName)
-		return
-	}
 	// more then one participant, update session
 	for i, r := range session.Spec.Refs {
 		if r == ref {
 			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
 		}
 	}
-	_ = applySession(session)
+	if len(session.Spec.Refs) == 0 {
+		removeSession(sessionName)
+	} else {
+		_ = applySession(session)
+	}
 }
 
 func removeSession(sessionName string) {
