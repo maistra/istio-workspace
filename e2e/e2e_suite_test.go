@@ -2,8 +2,11 @@ package e2e_test
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 	. "github.com/aslakknutsen/istio-workspace/test"
@@ -13,11 +16,12 @@ import (
 )
 
 func TestE2e(t *testing.T) {
+	rand.Seed(time.Now().UTC().UnixNano())
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+randName(16))
+var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 

@@ -3,11 +3,12 @@ package e2e_test
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"os"
 	"path"
 	"time"
+
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 	"github.com/aslakknutsen/istio-workspace/e2e"
@@ -18,7 +19,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-var _ = Describe("Smoke End To End Tests", func() {
+var _ = Describe("Smoke End To End Tests, using telepresence hello-world app", func() {
 
 	Context("using ike develop against OpenShift Cluster with Istio (maistra)", func() {
 
@@ -31,7 +32,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		BeforeEach(func() {
 			tmpPath.SetPath(os.Getenv("PATH"), path.Dir(cmd.CurrentDir())+"/dist")
-			appName = randName(16)
+			appName = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
@@ -133,25 +134,4 @@ func callGetOn(name string) func() string {
 		content, _ := ioutil.ReadAll(resp.Body)
 		return string(content)
 	}
-}
-
-// TODO make it shared as soon as https://github.com/aslakknutsen/istio-workspace/pull/32 gets merged
-var letters = []rune("abcdefghijklmnopqrstuvwxyz")
-var alphaNumeric = []rune("abcdefghijklmnopqrstuvwxyz0987654321-")
-
-//  Must be an a lower case alphanumeric (a-z, and 0-9) string with a maximum length of 58 characters,
-//  where the first character is a letter (a-z), and the '-'
-//  character is allowed anywhere except the first or last character.
-func randName(length int) string {
-	if length > 58 {
-		length = 58
-	}
-
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = alphaNumeric[rand.Intn(len(alphaNumeric))]
-	}
-	b[0] = letters[rand.Intn(len(letters))]
-	b[length-1] = letters[rand.Intn(len(letters))]
-	return string(b)
 }
