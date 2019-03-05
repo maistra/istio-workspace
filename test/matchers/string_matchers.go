@@ -2,17 +2,19 @@ package matchers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 )
 
 // BeLetter succeeds if actual is a letter
-func BeLetter() types.GomegaMatcher { //nolint[:unused]
-	return &beLetterMatcher{}
+func BeLetter() types.GomegaMatcher {
+	return &beLetterMatcher{OnlyContain("abcdefghijklmnopqrstuvwxyz").(*onlyContainsMatcher)}
 }
 
 type beLetterMatcher struct {
+	*onlyContainsMatcher
 }
 
 func (matcher *beLetterMatcher) Match(actual interface{}) (success bool, err error) {
@@ -26,11 +28,7 @@ func (matcher *beLetterMatcher) Match(actual interface{}) (success bool, err err
 		return false, fmt.Errorf("expected a character (uint8). Got:\n%s", format.Object(actual, 1))
 	}
 
-	if (char < 'a' || char > 'z') && (char < 'A' || char > 'Z') {
-		return false, nil
-	}
-
-	return true, nil
+	return matcher.onlyContainsMatcher.Match(strings.ToLower(string(char)))
 }
 
 func (matcher *beLetterMatcher) FailureMessage(actual interface{}) (message string) {
@@ -43,11 +41,11 @@ func (matcher *beLetterMatcher) NegatedFailureMessage(actual interface{}) (messa
 
 // StartWithLetter succeeds if actual starts with letter
 func StartWithLetter() types.GomegaMatcher {
-	return &startsWithLetterMatcher{}
+	return &startsWithLetterMatcher{BeLetter().(*beLetterMatcher)}
 }
 
 type startsWithLetterMatcher struct {
-	beLetterMatcher
+	*beLetterMatcher
 }
 
 func (matcher *startsWithLetterMatcher) Match(actual interface{}) (success bool, err error) {
@@ -64,11 +62,11 @@ func (matcher *startsWithLetterMatcher) Match(actual interface{}) (success bool,
 
 // EndWithLetter succeeds if actual starts with letter
 func EndWithLetter() types.GomegaMatcher {
-	return &endsWithLetterMatcher{}
+	return &endsWithLetterMatcher{BeLetter().(*beLetterMatcher)}
 }
 
 type endsWithLetterMatcher struct {
-	beLetterMatcher
+	*beLetterMatcher
 }
 
 func (matcher *endsWithLetterMatcher) Match(actual interface{}) (success bool, err error) {
