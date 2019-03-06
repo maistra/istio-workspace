@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"fmt"
+	"github.com/aslakknutsen/istio-workspace/e2e"
 	"math/rand"
 	"testing"
 	"time"
@@ -24,14 +25,15 @@ func TestE2e(t *testing.T) {
 var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-
 	ensureRequiredBinaries()
 	executeWithTimer(func() {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
 			"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
-			"--base-dir", tmpClusterDir,
+			"--base-dir", tmpClusterDir + "/maistra.local.cluster",
 		).Done()
+
+		e2e.DeployOperator()
 	})
 
 	return nil

@@ -2,10 +2,9 @@ package e2e_test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
@@ -16,12 +15,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/spf13/afero"
 )
 
-var _ = Describe("Smoke End To End Tests, using telepresence hello-world app", func() {
+var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
 
-	Context("using ike develop against OpenShift Cluster with Istio (maistra)", func() {
+	Context("using ike develop in offline mode", func() {
 
 		tmpPath := test.NewTmpPath()
 
@@ -42,30 +40,12 @@ var _ = Describe("Smoke End To End Tests, using telepresence hello-world app", f
 			<-cmd.Execute("oc", "delete", "project", appName).Done()
 		})
 
-		It("should replace python service with modified response", func() {
-
-			createNewApp(appName)
-			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
-
-			modifiedServerCode(tmpDir)
-			ike := cmd.ExecuteInDir(tmpDir, "ike", "develop",
-				"--deployment", appName,
-				"--port", "8000",
-				"--method", "inject-tcp",
-				"--run", "python3 server.py",
-			)
-
-			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, telepresence! Ike Here!\n"))
-			Expect(ike.Stop()).ToNot(HaveOccurred())
-			Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
-		})
-
 		It("should watch python code changes and replace service when they occur", func() {
 
-			createNewApp(appName)
+			e2e.CreateNewApp(appName)
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
-			originalServerCode(tmpDir)
+			e2e.OriginalServerCodeIn(tmpDir)
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
@@ -75,7 +55,7 @@ var _ = Describe("Smoke End To End Tests, using telepresence hello-world app", f
 			)
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, world!\n"))
 
-			modifiedServerCode(tmpDir)
+			e2e.ModifyServerCodeIn(tmpDir)
 
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, telepresence! Ike Here!\n"))
 
@@ -84,54 +64,71 @@ var _ = Describe("Smoke End To End Tests, using telepresence hello-world app", f
 		})
 
 	})
+
+	Context("using ike develop with istio-bookinfo example", func() {
+
+		tmpPath := test.NewTmpPath()
+
+		var (
+			namespace,
+			tmpDir string
+		)
+
+		BeforeEach(func() {
+			tmpPath.SetPath(os.Getenv("PATH"), path.Dir(cmd.CurrentDir())+"/dist")
+			namespace = naming.RandName(16)
+			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
+			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
+
+			<-cmd.Execute("oc", "new-project", namespace).Done()
+			e2e.UpdateSecurityConstraintsFor(namespace)
+			e2e.LoadIstioResources(namespace, tmpDir)
+			e2e.DeployBookinfoInto(namespace, tmpDir)
+		})
+
+		AfterEach(func() {
+			tmpPath.Restore()
+			<-cmd.Execute("oc", "delete", "project", namespace).Done()
+		})
+
+		It("should watch for changes in details service and serve it", func() {
+			// before: check is original product page is up and running
+			Eventually(func() (string, error) {
+				return e2e.GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+			}, 1*time.Minute).Should(ContainSubstring("PublisherA"))
+
+			// given we have details code locally
+			details, err := e2e.GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
+			Expect(err).ToNot(HaveOccurred())
+			e2e.CreateFile(tmpDir+"/details.rb", details)
+
+			// when we start ike with watch
+			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+				"--deployment", "details-v1",
+				"--port", "9080",
+				"--method", "inject-tcp",
+				"--watch",
+				"--run", "ruby details.rb 9080",
+			)
+
+			// and modify the service
+			modifiedDetails := strings.Replace(details, "PublisherA", "Publisher Ike", 1)
+			e2e.CreateFile(tmpDir+"/details.rb", modifiedDetails)
+
+			// then
+			Eventually(func() (string, error) {
+				return e2e.GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+			}, 1*time.Minute).Should(ContainSubstring("Publisher Ike"))
+
+			Expect(ikeWithWatch.Stop()).ToNot(HaveOccurred())
+			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+		})
+
+	})
 })
 
-var appFs = afero.NewOsFs()
-
-func createNewApp(name string) {
-	<-cmd.Execute("oc", "new-project", name).Done()
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
-	<-cmd.Execute("oc", "adm", "policy", "add-scc-to-user", "anyuid", "-z", "default", "-n", name).Done()
-	<-cmd.Execute("oc", "adm", "policy", "add-scc-to-user", "privileged", "-z", "default", "-n", name).Done()
-	<-cmd.Execute("oc", "login", "-u", "developer").Done()
-	<-cmd.Execute("oc", "new-app",
-		"--docker-image", "datawire/hello-world",
-		"--name", name,
-		"--allow-missing-images",
-	).Done()
-	<-cmd.Execute("oc", "expose", "svc/"+name).Done()
-	<-cmd.Execute("oc", "status").Done()
-}
-
-func modifiedServerCode(tmpDir string) {
-	createFile(tmpDir+"/"+"server.py", e2e.ModifiedServerPy)
-}
-
-func originalServerCode(tmpDir string) {
-	createFile(tmpDir+"/"+"server.py", e2e.OrigServerPy)
-}
-
-func createFile(filePath, content string) {
-	file, err := appFs.Create(filePath)
-	Expect(err).NotTo(HaveOccurred())
-	err = appFs.Chmod(filePath, os.ModePerm)
-	Expect(err).ToNot(HaveOccurred())
-	_, err = file.WriteString(content)
-	Expect(err).ToNot(HaveOccurred())
-	defer func() {
-		err = file.Close()
-		Expect(err).ToNot(HaveOccurred())
-	}()
-}
-
-func callGetOn(name string) func() string {
-	return func() string {
-		resp, err := http.Get(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
-		if err != nil {
-			return ""
-		}
-		defer resp.Body.Close()
-		content, _ := ioutil.ReadAll(resp.Body)
-		return string(content)
+func callGetOn(name string) func() (string, error) {
+	return func() (string, error) {
+		return e2e.GetBody(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
 	}
 }

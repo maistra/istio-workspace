@@ -1,5 +1,15 @@
 package e2e
 
+// MinimalIstioCR is a minimal custom resource required to install an Istio Control Plane.
+// This will deploy a control plane using the CentOS-based community Istio images.
+const MinimalIstioCR = `
+apiVersion: "istio.openshift.com/v1alpha1"
+kind: "Installation"
+metadata:
+  name: "istio-installation"
+  namespace: istio-operator
+`
+
 // OrigServerPy contains original server code used in `ike develop` tests
 // Based on https://github.com/datawire/hello-world
 const OrigServerPy = `
