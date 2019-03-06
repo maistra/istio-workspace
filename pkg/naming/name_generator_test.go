@@ -28,19 +28,9 @@ var _ = Describe("Name generation (used for k8s objects such as namespaces, sess
 		Expect(name).To(OnlyContain("abcdefghijklmnopqrstuvwxyz"))
 	})
 
-	It("should generate name with first character being a letter", func() {
-		name := naming.RandName(32)
-		Expect(name).To(StartWithLetter())
-	})
-
-	It("should generate name with last character being a letter", func() {
-		name := naming.RandName(32)
-		Expect(name).To(EndWithLetter())
-	})
-
-	It("should generate name only with letters, numbers and dash", func() {
-		name := naming.RandName(32)
-		Expect(name).To(OnlyContain("abcdefghijklmnopqrstuvwxyz0987654321-"))
+	It("should generate name only with letters", func() {
+		name := naming.RandName(rand.Intn(512) + 2)
+		Expect(name).To(OnlyContain("abcdefghijklmnopqrstuvwxyz"))
 	})
 
 	It("should trim length to 58 when exceeded ", func() {
