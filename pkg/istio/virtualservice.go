@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
+
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
 	"istio.io/api/networking/v1alpha3"
@@ -49,6 +50,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	return nil
 }
 
+// VirtualServiceRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
 func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	resources := ref.GetResourceStatus(VirtualServiceKind)
 

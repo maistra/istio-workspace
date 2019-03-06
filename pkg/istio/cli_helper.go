@@ -10,24 +10,7 @@ import (
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-// ExecuteOCCMD executes OC commands and add auth info found in env
-func ExecuteOCCMD(input *string, cmdArg string) (string, error) {
-	cmd := AddOCAuth(cmdArg)
-	output, err := ExecuteCMD(input, []string{"-c", cmd})
-	if err != nil { // TODO: Handle error else where
-		fmt.Println("Failed to execute", removeToken(cmd))
-		fmt.Println("Output:", output)
-	}
-	return output, err
-}
-
-func removeToken(cmd string) string {
-	r := regexp.MustCompile(`\-\-token='(.+)'`)
-	return r.ReplaceAllString(cmd, "--token='xxxx'")
-}
-
-// ExecuteCMD execute random command
-func ExecuteCMD(input *string, cmdArgs []string) (string, error) {
+func executeCMD(input *string, cmdArgs []string) (string, error) { //nolint[:unused]
 	cmdName := "/usr/bin/sh"
 
 	var buf bytes.Buffer
@@ -58,7 +41,7 @@ func ExecuteCMD(input *string, cmdArgs []string) (string, error) {
 	return buf.String(), nil
 }
 
-func AddOCAuth(cmd string) string {
+func addOCAuth(cmd string) string { //nolint[:unused]
 	config, err := k8sConfig.GetConfig()
 	if err != nil {
 		return cmd
@@ -82,4 +65,20 @@ func AddOCAuth(cmd string) string {
 	newCmd = fmt.Sprintf(newCmd+" --insecure-skip-tls-verify=%v", config.Insecure)
 
 	return newCmd
+}
+
+func removeToken(cmd string) string { //nolint[:unused]
+	r := regexp.MustCompile(`\-\-token='(.+)'`)
+	return r.ReplaceAllString(cmd, "--token='xxxx'")
+}
+
+// ExecuteOCCMD executes OC commands and add auth info found in env
+func ExecuteOCCMD(input *string, cmdArg string) (string, error) {
+	cmd := addOCAuth(cmdArg)
+	output, err := executeCMD(input, []string{"-c", cmd})
+	if err != nil { // TODO: Handle error else where
+		fmt.Println("Failed to execute", removeToken(cmd))
+		fmt.Println("Output:", output)
+	}
+	return output, err
 }
