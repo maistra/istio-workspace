@@ -7,7 +7,7 @@ import (
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 )
 
 func LoadIstioResources(namespace, dir string) {
@@ -20,7 +20,7 @@ func LoadIstioResources(namespace, dir string) {
 	CreateFile(dir+"/cr.yaml", MinimalIstioCR)
 	<-cmd.ExecuteInDir(dir, "oc", "create", "-n", "istio-operator", "-f", dir+"/cr.yaml").Done()
 
-	Eventually(func() (string, error) {
+	gomega.Eventually(func() (string, error) {
 		ocGetPods := cmd.Execute("oc", "get", "pods",
 			"-n", "istio-system",
 			"-l", "job-name=openshift-ansible-istio-installer-job",
@@ -28,7 +28,7 @@ func LoadIstioResources(namespace, dir string) {
 		)
 		<-ocGetPods.Done()
 		return fmt.Sprintf("%v", ocGetPods.Status().Stdout), nil
-	}, 5*time.Minute, 5*time.Second).Should(ContainSubstring("Completed"))
+	}, 5*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", gateway).Done()
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", destinationRules).Done()
@@ -42,6 +42,6 @@ func DeployBookinfoInto(namespace, dir string) {
 
 func DeployOperator() {
 	projectDir := os.Getenv("CUR_DIR")
-	Expect(projectDir).To(Not(BeEmpty()))
+	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
 }

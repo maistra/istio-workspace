@@ -2,10 +2,11 @@ package e2e_test
 
 import (
 	"fmt"
-	"github.com/aslakknutsen/istio-workspace/e2e"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/aslakknutsen/istio-workspace/e2e"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
@@ -30,7 +31,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
 			"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
-			"--base-dir", tmpClusterDir + "/maistra.local.cluster",
+			"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 		).Done()
 
 		e2e.DeployOperator()

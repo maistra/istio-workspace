@@ -1,24 +1,25 @@
 package e2e
 
 import (
-	"github.com/spf13/afero"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 
-	. "github.com/onsi/gomega"
+	"github.com/spf13/afero"
+
+	"github.com/onsi/gomega"
 )
 
-func DownloadInto(dir string, rawDownloadUrl string) string {
-	content, err := GetBody(rawDownloadUrl)
-	Expect(err).ToNot(HaveOccurred())
+func DownloadInto(dir, rawDownloadURL string) string {
+	content, err := GetBody(rawDownloadURL)
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
-	downloadUrl, err := url.Parse(rawDownloadUrl)
-	Expect(err).ToNot(HaveOccurred())
+	downloadURL, err := url.Parse(rawDownloadURL)
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
-	filePath := dir + "/" + path.Base(downloadUrl.Path)
+	filePath := dir + "/" + path.Base(downloadURL.Path)
 	CreateFile(filePath, content)
 
 	return filePath
@@ -36,19 +37,19 @@ func OriginalServerCodeIn(tmpDir string) {
 
 func CreateFile(filePath, content string) {
 	file, err := appFs.Create(filePath)
-	Expect(err).NotTo(HaveOccurred())
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	err = appFs.Chmod(filePath, os.ModePerm)
-	Expect(err).ToNot(HaveOccurred())
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	_, err = file.WriteString(content)
-	Expect(err).ToNot(HaveOccurred())
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	defer func() {
 		err = file.Close()
-		Expect(err).ToNot(HaveOccurred())
+		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	}()
 }
 
-func GetBody(url string) (string, error) {
-	resp, err := http.Get(url)
+func GetBody(rawURL string) (string, error) {
+	resp, err := http.Get(rawURL) //nolint[:gosec]
 	if err != nil {
 		return "", err
 	}
