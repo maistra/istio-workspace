@@ -28,7 +28,7 @@ func LoadIstioResources(namespace, dir string) {
 		)
 		<-ocGetPods.Done()
 		return fmt.Sprintf("%v", ocGetPods.Status().Stdout), nil
-	}, 5*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
+	}, 10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", gateway).Done()
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", destinationRules).Done()
