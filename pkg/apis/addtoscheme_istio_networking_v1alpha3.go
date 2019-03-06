@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
+	"istio.io/api/pkg/kube/apis/networking/v1alpha3"
 )
 
 func init() {

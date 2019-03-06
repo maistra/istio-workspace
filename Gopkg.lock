@@ -633,6 +633,7 @@
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:27c238c1b2e8ab67f312b2ceec175c2ae254eb85f6535fea9922370473947cff"
 =======
   digest = "1:30fecdef47a32748a289b9befd2abb0a6a10783911c731f8aec9accf2dbd2840"
@@ -647,12 +648,16 @@
 >>>>>>> task(api): update apis
 =======
 >>>>>>> fix(lint): random lint issues
+=======
+  digest = "1:6c47ceb0872cad4fbdfa7b7a3d355e4fe82329c1c763f696c6c041d533abc62e"
+>>>>>>> fix(client): Update to a temp local branch of istio api that fixes DeepCopyObject issues
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   revision = "e844e0132e93db857c984c24fd4fc86815e43be3"
@@ -666,6 +671,9 @@
 =======
   revision = "c2f5717e611cf8e89a852a41081355194d80c943"
 >>>>>>> fix(lint): random lint issues
+=======
+  revision = "3e9a981b8ddba4cb37815d4ebf2171df73c5255b"
+>>>>>>> fix(client): Update to a temp local branch of istio api that fixes DeepCopyObject issues
 
 [[projects]]
   digest = "1:8c74f97396ed63cc2ef04ebb5fc37bb032871b8fd890a25991ed40974b00cd2a"
@@ -713,7 +721,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0b083fc0b8ae5ed0e625d855d02ed4dfb374cd22f2f6aa589a94cb8a9a72b510"
+  digest = "1:f439b8e230efec220342f79b23f6869be67c571bf76140f354770c11f643ddd0"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -730,7 +738,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "589c23e65e65055d47b9ad4a99723bc389136265"
+  revision = "69e0dcfa1121488c38c3c8f9624f7de769003896"
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -783,15 +791,16 @@
 
 [[projects]]
   branch = "istio-8772"
-  digest = "1:eb8201230d02b60ea77bde3827a0eec1a620c0f8fc262ab1133a9141bba70b39"
+  digest = "1:2a90b79136abaf98d9af10cc4e42f0dfe2a9f7b384ff55b00b94a8769234d00f"
   name = "istio.io/api"
   packages = [
     "networking/v1alpha3",
+    "pkg/kube/apis/networking/v1alpha3",
     "util",
   ]
   pruneopts = "NT"
-  revision = "23148abe2cc60e73c836252a482c6bebcbc39a3c"
-  source = "https://github.com/rcernich/istio-api.git"
+  revision = "9b0d066de34731fa23efd436aa78de537420e7f4"
+  source = "https://github.com/aslakknutsen/istio-api.git"
 
 [[projects]]
   digest = "1:6fa82ea248029bbbdddade20c06ab177ff6e485e5e45e48b045707415b7efd34"
@@ -991,7 +1000,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4e07c417d966628ee9e471354ad5e311c9c25ff357d42fd0dd2f81a40caf6aad"
+  digest = "1:4ed9f0d5664783dbafeee8fd19dc7c25a96412663e0b27abaf2cdd694d3e28ad"
   name = "k8s.io/gengo"
   packages = [
     "args",
@@ -1004,7 +1013,7 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "0689ccc1d7d65d9dd1bedcc3b0b1ed7df91ba266"
+  revision = "7a1b7fb0289f3b6f206589cdcfcad73009b6e840"
 
 [[projects]]
   digest = "1:29f93bb84d907a2c035e729e19d66fe52165d8c905cb3ef1920140d76ae6afaf"
@@ -1096,6 +1105,7 @@
     "github.com/spf13/viper",
     "go.uber.org/goleak",
     "istio.io/api/networking/v1alpha3",
+    "istio.io/api/pkg/kube/apis/networking/v1alpha3",
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",

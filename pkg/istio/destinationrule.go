@@ -3,12 +3,13 @@ package istio
 import (
 	"strings"
 
-	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
+	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
 	"istio.io/api/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -26,7 +27,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 
 	targetName := strings.Split(ref.Name, "-")[0]
 
-	dr, err := getDestinationRuleMapped(ctx.Namespace, targetName)
+	dr, err := getDestinationRule2(ctx, ctx.Namespace, targetName)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -53,7 +54,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 	resources := ref.GetResourceStatus(DestinationRuleKind)
 
 	for _, resource := range resources {
-		dr, err := getDestinationRuleMapped(ctx.Namespace, resource.Name)
+		dr, err := getDestinationRule2(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
@@ -98,4 +99,10 @@ func revertDestinationRule(dr istionetwork.DestinationRule) (istionetwork.Destin
 		}
 	}
 	return dr, nil
+}
+
+func getDestinationRule2(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+	destinationRule := istionetwork.DestinationRule{}
+	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
+	return &destinationRule, err
 }

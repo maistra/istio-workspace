@@ -3,8 +3,8 @@ package istio
 import (
 	"strings"
 
-	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
 	"istio.io/api/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -26,7 +26,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 
 	targetName := strings.Split(ref.Name, "-")[0]
 
-	vs, err := getVirtualServiceMapped(ctx.Namespace, targetName)
+	vs, err := getVirtualService2(ctx, ctx.Namespace, targetName)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -53,7 +53,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	resources := ref.GetResourceStatus(VirtualServiceKind)
 
 	for _, resource := range resources {
-		vs, err := getVirtualServiceMapped(ctx.Namespace, resource.Name)
+		vs, err := getVirtualService2(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break

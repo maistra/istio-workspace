@@ -2,67 +2,13 @@ package istio
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os/exec"
 	"regexp"
 
-	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
-
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
-
-// TODO: Temp workaround for non functional istio API
-
-func getDestinationRuleMapped(namespace, name string) (*istionetwork.DestinationRule, error) {
-	body, err := getDestinationRule(namespace, name)
-	if err != nil {
-		return nil, err
-	}
-	dr := &istionetwork.DestinationRule{}
-	err = json.Unmarshal([]byte(body), &dr)
-
-	return dr, err
-}
-
-func setDestinationRule(namespace string, dr *istionetwork.DestinationRule) error { //nolint[:errcheck]
-	body, err := json.Marshal(dr)
-	if err != nil {
-		return err
-	}
-	sbody := string(body)
-	_, err = ExecuteOCCMD(&sbody, fmt.Sprintf("oc apply -f - --namespace=%v -o json", namespace))
-	return err
-}
-
-func getDestinationRule(namespace, name string) (string, error) {
-	return ExecuteOCCMD(nil, fmt.Sprintf("oc get destinationrule %v --namespace=%v -o json", name, namespace))
-}
-
-func getVirtualServiceMapped(namespace, name string) (*istionetwork.VirtualService, error) {
-	body, err := getVirtualService(namespace, name)
-	if err != nil {
-		return nil, err
-	}
-	dr := &istionetwork.VirtualService{}
-	err = json.Unmarshal([]byte(body), &dr)
-	return dr, err
-}
-
-func setVirtualService(namespace string, vs *istionetwork.VirtualService) error { //nolint[:unused]
-	body, err := json.Marshal(vs)
-	if err != nil {
-		return err
-	}
-	sbody := string(body)
-	_, err = ExecuteOCCMD(&sbody, fmt.Sprintf("oc apply -f - --namespace=%v -o json", namespace))
-	return err
-}
-
-func getVirtualService(namespace, name string) (string, error) {
-	return ExecuteOCCMD(nil, fmt.Sprintf("oc get virtualservice %v --namespace=%v -o json", name, namespace))
-}
 
 // ExecuteOCCMD executes OC commands and add auth info found in env
 func ExecuteOCCMD(input *string, cmdArg string) (string, error) {
