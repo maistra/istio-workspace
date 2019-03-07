@@ -79,6 +79,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
+			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
 			LoadIstioResources(namespace, tmpDir)
