@@ -99,6 +99,8 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
 DOCKER_IMAGE?=$(PROJECT_NAME)
+DOCKER_IMAGE_TAG?=$(COMMIT)
+export DOCKER_IMAGE_TAG
 DOCKER_REGISTRY?=docker.io
 DOCKER_REPOSITORY?=aslakknutsen
 
@@ -123,7 +125,7 @@ define process_template # params: template location
 		-p DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
 		-p DOCKER_REPOSITORY=$(DOCKER_REPOSITORY) \
 		-p IMAGE_NAME=$(DOCKER_IMAGE) \
-		-p IMAGE_TAG=$(COMMIT)
+		-p IMAGE_TAG=$(DOCKER_IMAGE_TAG)
 endef
 
 .PHONY: deploy-operator

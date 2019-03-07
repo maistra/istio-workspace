@@ -41,6 +41,9 @@ func DeployOperator() {
 	err := os.Setenv("OPERATOR_NAMESPACE", "istio-workspace-operator")
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
+	err = os.Setenv("DOCKER_IMAGE_TAG", "latest")
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
 	<-cmd.Execute("oc", "new-project", "istio-workspace-operator").Done()
 
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
