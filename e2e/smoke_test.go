@@ -92,10 +92,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 
 		It("should watch for changes in details service and serve it", func() {
-			// before: check is original product page is up and running
+			Eventually(PodStatus(namespace, "app=details", "Running"), 3*time.Minute, 200*time.Millisecond).
+				Should(ContainSubstring("Running"))
+
 			Eventually(func() (string, error) {
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 5*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+			}, 30*time.Second, 200*time.Millisecond).Should(ContainSubstring("PublisherA"))
 
 			// given we have details code locally
 			details, err := GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")

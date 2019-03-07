@@ -7,9 +7,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/spf13/afero"
-
 	"github.com/onsi/gomega"
+	"github.com/spf13/afero"
 )
 
 func DownloadInto(dir, rawDownloadURL string) string {

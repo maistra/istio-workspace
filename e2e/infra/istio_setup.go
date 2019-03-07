@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -20,15 +19,7 @@ func LoadIstioResources(namespace, dir string) {
 	CreateFile(dir+"/cr.yaml", minimalIstioCR)
 	<-cmd.ExecuteInDir(dir, "oc", "create", "-n", "istio-operator", "-f", dir+"/cr.yaml").Done()
 
-	gomega.Eventually(func() (string, error) {
-		ocGetPods := cmd.Execute("oc", "get", "pods",
-			"-n", "istio-system",
-			"-l", "job-name=openshift-ansible-istio-installer-job",
-			"-o", "go-template='{{range .items}}{{range .status.containerStatuses}}{{.state.terminated.reason}}{{end}}{{end}}'",
-		)
-		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stdout), nil
-	}, 10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
+	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"), 5*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", gateway).Done()
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", destinationRules).Done()
