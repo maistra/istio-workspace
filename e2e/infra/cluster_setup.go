@@ -1,4 +1,4 @@
-package e2e
+package infra
 
 import "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aslakknutsen/istio-workspace/e2e"
+	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
@@ -34,7 +34,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 		).Done()
 
-		e2e.DeployOperator()
+		DeployOperator()
 	})
 
 	return nil

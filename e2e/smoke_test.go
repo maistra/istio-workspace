@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
-
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
-	"github.com/aslakknutsen/istio-workspace/e2e"
+	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 	"github.com/aslakknutsen/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
@@ -42,10 +41,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		It("should watch python code changes and replace service when they occur", func() {
 
-			e2e.CreateNewApp(appName)
+			CreateNewApp(appName)
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
-			e2e.OriginalServerCodeIn(tmpDir)
+			OriginalServerCodeIn(tmpDir)
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
@@ -55,7 +54,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			)
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, world!\n"))
 
-			e2e.ModifyServerCodeIn(tmpDir)
+			ModifyServerCodeIn(tmpDir)
 
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, telepresence! Ike Here!\n"))
 
@@ -81,9 +80,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
 			<-cmd.Execute("oc", "new-project", namespace).Done()
-			e2e.UpdateSecurityConstraintsFor(namespace)
-			e2e.LoadIstioResources(namespace, tmpDir)
-			e2e.DeployBookinfoInto(namespace, tmpDir)
+			UpdateSecurityConstraintsFor(namespace)
+			LoadIstioResources(namespace, tmpDir)
+			DeployBookinfoInto(namespace, tmpDir)
 		})
 
 		AfterEach(func() {
@@ -94,13 +93,13 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		It("should watch for changes in details service and serve it", func() {
 			// before: check is original product page is up and running
 			Eventually(func() (string, error) {
-				return e2e.GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
 			}, 1*time.Minute).Should(ContainSubstring("PublisherA"))
 
 			// given we have details code locally
-			details, err := e2e.GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
+			details, err := GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
 			Expect(err).ToNot(HaveOccurred())
-			e2e.CreateFile(tmpDir+"/details.rb", details)
+			CreateFile(tmpDir+"/details.rb", details)
 
 			// when we start ike with watch
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
@@ -113,11 +112,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			// and modify the service
 			modifiedDetails := strings.Replace(details, "PublisherA", "Publisher Ike", 1)
-			e2e.CreateFile(tmpDir+"/details.rb", modifiedDetails)
+			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
 			Eventually(func() (string, error) {
-				return e2e.GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
 			}, 1*time.Minute).Should(ContainSubstring("Publisher Ike"))
 
 			Expect(ikeWithWatch.Stop()).ToNot(HaveOccurred())
@@ -129,6 +128,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 func callGetOn(name string) func() (string, error) {
 	return func() (string, error) {
-		return e2e.GetBody(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
+		return GetBody(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
 	}
 }

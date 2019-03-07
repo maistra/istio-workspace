@@ -1,4 +1,4 @@
-package e2e
+package infra
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func LoadIstioResources(namespace, dir string) {
 
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
-	CreateFile(dir+"/cr.yaml", MinimalIstioCR)
+	CreateFile(dir+"/cr.yaml", minimalIstioCR)
 	<-cmd.ExecuteInDir(dir, "oc", "create", "-n", "istio-operator", "-f", dir+"/cr.yaml").Done()
 
 	gomega.Eventually(func() (string, error) {
@@ -36,6 +36,7 @@ func LoadIstioResources(namespace, dir string) {
 }
 
 func DeployBookinfoInto(namespace, dir string) {
+	<-cmd.Execute("oc", "login", "-u", "developer").Done()
 	bookinfo := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml")
 	<-cmd.ExecuteInDir(dir, "oc", "apply", "-n", namespace, "-f", bookinfo).Done()
 }
@@ -43,5 +44,22 @@ func DeployBookinfoInto(namespace, dir string) {
 func DeployOperator() {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
+	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+
+	err := os.Setenv("OPERATOR_NAMESPACE", "istio-workspace-operator")
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	<-cmd.Execute("oc", "new-project", "istio-workspace-operator").Done()
+
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
 }
+
+// minimalIstioCR is a minimal custom resource required to install an Istio Control Plane.
+// This will deploy a control plane using the CentOS-based community Istio images.
+const minimalIstioCR = `
+apiVersion: "istio.openshift.com/v1alpha1"
+kind: "Installation"
+metadata:
+  name: "istio-installation"
+  namespace: istio-operator
+`
