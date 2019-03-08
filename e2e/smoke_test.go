@@ -91,9 +91,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc", "delete", "project", namespace).Done()
 		})
 
-		It("should watch for changes in details service and serve it", func() {
-			Eventually(PodStatus(namespace, "app=details", "Running"), 3*time.Minute, 200*time.Millisecond).
-				Should(ContainSubstring("Running"))
+		FIt("should watch for changes in details service and serve it", func() {
+			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+				Should(ContainSubstring("No resources found"))
 
 			Eventually(func() (string, error) {
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")

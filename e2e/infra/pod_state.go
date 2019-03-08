@@ -6,26 +6,37 @@ import (
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 )
 
-func PodStatus(namespace, label, state string) func() (string, error) {
-	return func() (string, error) {
+func AllPodsNotInState(namespace, state string) func() string {
+	return func() string {
+		ocGetPods := cmd.Execute("oc", "get", "pods",
+			"-n", namespace,
+			"--field-selector", "status.phase!="+state,
+		)
+		<-ocGetPods.Done()
+		return fmt.Sprintf("%v", ocGetPods.Status().Stderr)
+	}
+}
+
+func PodStatus(namespace, label, state string) func() string {
+	return func() string {
 		ocGetPods := cmd.Execute("oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
 			"--field-selector", "status.phase=="+state,
 		)
 		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stdout), nil
+		return fmt.Sprintf("%v", ocGetPods.Status().Stdout)
 	}
 }
 
-func PodCompletedStatus(namespace, label string) func() (string, error) {
-	return func() (string, error) {
+func PodCompletedStatus(namespace, label string) func() string {
+	return func() string {
 		ocGetPods := cmd.Execute("oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
 			"-o", "go-template='{{range .items}}{{range .status.containerStatuses}}{{.state.terminated.reason}}{{end}}{{end}}'",
 		)
 		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stdout), nil
+		return fmt.Sprintf("%v", ocGetPods.Status().Stdout)
 	}
 }
