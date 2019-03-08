@@ -18,15 +18,16 @@ import (
 )
 
 func TestE2e(t *testing.T) {
-	rand.Seed(time.Now().UTC().UnixNano())
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
+var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 	ensureRequiredBinaries()
+	rand.Seed(time.Now().UTC().UnixNano())
+	tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 	executeWithTimer(func() {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
