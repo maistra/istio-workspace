@@ -17,7 +17,7 @@ func AllPodsNotInState(namespace, state string) func() string {
 	}
 }
 
-func PodStatus(namespace, label, state string) func() string {
+func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
 	return func() string {
 		ocGetPods := cmd.Execute("oc", "get", "pods",
 			"-n", namespace,
