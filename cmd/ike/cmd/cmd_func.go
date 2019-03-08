@@ -109,7 +109,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 	}()
 }
 
-// CurrentDir returns current directory from where binary is ran
+// CurrentDir returns current directory from where binary is executed
 func CurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {

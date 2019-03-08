@@ -28,7 +28,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			tmpPath.SetPath(os.Getenv("PATH"), path.Dir(cmd.CurrentDir())+"/dist")
+			tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 			appName = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
@@ -74,7 +74,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			tmpPath.SetPath(os.Getenv("PATH"), path.Dir(cmd.CurrentDir())+"/dist")
+			tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 			namespace = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
