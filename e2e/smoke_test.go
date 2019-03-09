@@ -18,7 +18,7 @@ import (
 
 var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
 
-	XContext("using ike develop in offline mode", func() {
+	Context("using ike develop in offline mode", func() {
 
 		tmpPath := test.NewTmpPath()
 
@@ -88,7 +88,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		AfterEach(func() {
 			tmpPath.Restore()
-			//<-cmd.Execute("oc", "delete", "project", namespace).Done()
+			<-cmd.Execute("oc", "delete", "project", namespace).Done()
 		})
 
 		It("should watch for changes in details service and serve it", func() {

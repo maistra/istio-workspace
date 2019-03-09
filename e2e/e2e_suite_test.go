@@ -44,12 +44,11 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		/*
-			executeWithTimer(func() {
-				fmt.Println("\nStopping Openshift/Istio cluster")
-				cmd.Execute("oc", "cluster", "down")
-			})
-		*/
+		executeWithTimer(func() {
+			fmt.Println("\nStopping Openshift/Istio cluster")
+			cmd.Execute("oc", "cluster", "down")
+		})
+
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
