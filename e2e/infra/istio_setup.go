@@ -31,6 +31,8 @@ func DeployBookinfoInto(namespace, dir string) {
 	<-cmd.Execute("oc", "login", "-u", "developer").Done()
 	bookinfo := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml")
 	<-cmd.ExecuteInDir(dir, "oc", "apply", "-n", namespace, "-f", bookinfo).Done()
+	<-cmd.ExecuteInDir(dir, "oc", "delete", "deployment", "reviews-v2", "-n", namespace).Done()
+	<-cmd.ExecuteInDir(dir, "oc", "delete", "deployment", "reviews-v3", "-n", namespace).Done()
 }
 
 func DeployOperator() {
