@@ -11,7 +11,7 @@ import (
 )
 
 func executeCMD(input *string, cmdArgs []string) (string, error) { //nolint[:unused]
-	cmdName := "/usr/bin/sh"
+	cmdName := "sh"
 
 	var buf bytes.Buffer
 	cmd := exec.Command(cmdName, cmdArgs...)
