@@ -105,7 +105,7 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return append([]string{
-		"--swap-deployment", cmd.Flag("deployment").Value.String(),
+		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--expose", cmd.Flag("port").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 		"--run"}, runArgs...)

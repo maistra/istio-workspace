@@ -18,7 +18,8 @@ import (
 
 var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
 
-	Context("using ike develop in offline mode", func() {
+	// Can't be ran without a session (not using --swap-deployment)
+	XContext("using ike develop in offline mode", func() {
 
 		tmpPath := test.NewTmpPath()
 
