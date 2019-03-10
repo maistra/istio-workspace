@@ -28,6 +28,12 @@ func LoadIstioResources(namespace, dir string) {
 }
 
 func DeployBookinfoInto(namespace, dir string) {
+	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	CreateFile(dir+"/session_role.yaml", sessionRole)
+	CreateFile(dir+"/session_rolebinding.yaml", developerSessionRoleBinding)
+	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", dir+"/session_role.yaml").Done()
+	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", dir+"/session_rolebinding.yaml").Done()
+
 	<-cmd.Execute("oc", "login", "-u", "developer").Done()
 	bookinfo := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml")
 	<-cmd.ExecuteInDir(dir, "oc", "apply", "-n", namespace, "-f", bookinfo).Done()
@@ -59,4 +65,30 @@ kind: "Installation"
 metadata:
   name: "istio-installation"
   namespace: istio-operator
+`
+
+const sessionRole = `apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sessions
+rules:
+- apiGroups:
+  - istio.openshift.com
+  resources:
+  - sessions
+  verbs:
+  - '*'
+`
+
+const developerSessionRoleBinding = `kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: session_developer
+subjects:
+- kind: User
+  name: developer
+roleRef:
+  kind: Role
+  name: sessions
+  apiGroup: rbac.authorization.k8s.io
 `
