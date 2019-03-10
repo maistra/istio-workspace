@@ -17,6 +17,8 @@ endef
 .PHONY: all
 all: deps format lint test compile ## (default) Runs 'deps format lint test compile' targets
 
+export CUR_DIR
+
 .PHONY: help
 help:
 	 @echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sort | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
@@ -97,6 +99,8 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
 DOCKER_IMAGE?=$(PROJECT_NAME)
+DOCKER_IMAGE_TAG?=$(COMMIT)
+export DOCKER_IMAGE_TAG
 DOCKER_REGISTRY?=docker.io
 DOCKER_REPOSITORY?=aslakknutsen
 
@@ -111,7 +115,7 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 # ##########################################################################
-# Istio example deployment
+# Istio operator deployment
 # ##########################################################################
 
 define process_template # params: template location
@@ -121,11 +125,11 @@ define process_template # params: template location
 		-p DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
 		-p DOCKER_REPOSITORY=$(DOCKER_REPOSITORY) \
 		-p IMAGE_NAME=$(DOCKER_IMAGE) \
-		-p IMAGE_TAG=$(COMMIT)
+		-p IMAGE_TAG=$(DOCKER_IMAGE_TAG)
 endef
 
 .PHONY: deploy-operator
-deploy-operator: ## Deploys operator resources to denifed OPERATOR_NAMESPACE
+deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
@@ -134,7 +138,7 @@ deploy-operator: ## Deploys operator resources to denifed OPERATOR_NAMESPACE
 	$(call process_template,deploy/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
-undeploy-operator: ## Undeploys operator resources from denifed OPERATOR_NAMESPACE
+undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPACE
 	$(call header,"Undeploying operator to $(OPERATOR_NAMESPACE)")
 	$(call process_template,deploy/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
@@ -142,12 +146,16 @@ undeploy-operator: ## Undeploys operator resources from denifed OPERATOR_NAMESPA
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
 
+# ##########################################################################
+# Istio example deployment
+# ##########################################################################
+
 .PHONY: deploy-example
-deploy-example: ## Deploys istio-workspace specific resources to denifed EXAMPLE_NAMESPACE
+deploy-example: ## Deploys istio-workspace specific resources to defined EXAMPLE_NAMESPACE
 	$(call header,"Deploying operator to $(EXAMPLE_NAMESPACE)")
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
-undeploy-example: ## Undeploys istio-workspace specific resources from denifed EXAMPLE_NAMESPACE
+undeploy-example: ## Undeploys istio-workspace specific resources from defined EXAMPLE_NAMESPACE
 	$(call header,"Undeploying operator to $(EXAMPLE_NAMESPACE)")
 	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml

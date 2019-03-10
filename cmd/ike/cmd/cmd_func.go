@@ -17,6 +17,13 @@ var StreamOutput = gocmd.Options{
 	Streaming: true,
 }
 
+// BufferAndStreamOutput sets buffering and streaming of output when running gocmd.Cmd
+// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices
+var BufferAndStreamOutput = gocmd.Options{
+	Buffered:  true,
+	Streaming: true,
+}
+
 // Start starts new process (gocmd) and wait until it's done. Status struct is then propagated back to
 // done channel passed as argument
 func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
@@ -39,7 +46,7 @@ func Execute(name string, args ...string) *gocmd.Cmd {
 // ExecuteInDir executes given command in the defined directory
 // Adds shutdown hook and redirects streams to stdout/err
 func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
-	command := gocmd.NewCmdOptions(StreamOutput, name, args...)
+	command := gocmd.NewCmdOptions(BufferAndStreamOutput, name, args...)
 	command.Dir = dir
 	done := command.Start()
 	ShutdownHook(command, done)
@@ -102,7 +109,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 	}()
 }
 
-// CurrentDir returns current directory from where binary is ran
+// CurrentDir returns current directory from where binary is executed
 func CurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {

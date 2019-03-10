@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
+
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
@@ -16,22 +18,24 @@ import (
 )
 
 func TestE2e(t *testing.T) {
-	rand.Seed(time.Now().UTC().UnixNano())
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
+var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-
 	ensureRequiredBinaries()
+	rand.Seed(time.Now().UTC().UnixNano())
+	tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 	executeWithTimer(func() {
 		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 		<-cmd.Execute("istiooc", "cluster", "up",
 			"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
-			"--base-dir", tmpClusterDir,
+			"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 		).Done()
+
+		DeployOperator()
 	})
 
 	return nil
