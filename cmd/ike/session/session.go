@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"os/user"
 	"time"
+
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 
@@ -166,20 +167,10 @@ func getSessionName(cmd *cobra.Command) string {
 	if err == nil && sessionName != "" {
 		return sessionName
 	}
-	random := randStringRunes(5)
+	random := naming.RandName(5)
 	u, err := user.Current()
 	if err != nil {
 		return random
 	}
 	return u.Username + "-" + random
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
-
-func randStringRunes(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
 }
