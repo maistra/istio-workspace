@@ -124,10 +124,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
-			cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", "jason", "jason")
+			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "jason", "jason")
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() (string, error) {
+				fmt.Println("checking..")
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 

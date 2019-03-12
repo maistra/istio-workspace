@@ -10,10 +10,6 @@ import (
 )
 
 func LoadIstioResources(namespace, dir string) {
-	gateway := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo-gateway.yaml")
-	destinationRules := DownloadInto(dir, "https://raw.githubusercontent.com/istio/istio/release-1.0/samples/bookinfo/networking/destination-rule-all.yaml")
-	virtualServices := DownloadInto(dir, "https://raw.githubusercontent.com/istio/istio/release-1.0/samples/bookinfo/networking/virtual-service-all-v1.yaml")
-
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
 	CreateFile(dir+"/cr.yaml", minimalIstioCR)
@@ -21,20 +17,24 @@ func LoadIstioResources(namespace, dir string) {
 
 	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"),
 		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
-
-	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", gateway).Done()
-	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", destinationRules).Done()
-	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", virtualServices).Done()
 }
 
 func DeployBookinfoInto(namespace, dir string) {
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+
 	CreateFile(dir+"/session_role.yaml", sessionRole)
 	CreateFile(dir+"/session_rolebinding.yaml", developerSessionRoleBinding)
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", dir+"/session_role.yaml").Done()
 	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", dir+"/session_rolebinding.yaml").Done()
 
-	<-cmd.Execute("oc", "login", "-u", "developer").Done()
+	gateway := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo-gateway.yaml")
+	destinationRules := DownloadInto(dir, "https://raw.githubusercontent.com/istio/istio/release-1.0/samples/bookinfo/networking/destination-rule-all.yaml")
+	virtualServices := DownloadInto(dir, "https://raw.githubusercontent.com/istio/istio/release-1.0/samples/bookinfo/networking/virtual-service-all-v1.yaml")
+
+	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", gateway).Done()
+	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", destinationRules).Done()
+	<-cmd.ExecuteInDir(dir, "oc", "-n", namespace, "apply", "-f", virtualServices).Done()
+
 	bookinfo := DownloadInto(dir, "https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml")
 	<-cmd.ExecuteInDir(dir, "oc", "apply", "-n", namespace, "-f", bookinfo).Done()
 	<-cmd.ExecuteInDir(dir, "oc", "delete", "deployment", "reviews-v2", "-n", namespace).Done()

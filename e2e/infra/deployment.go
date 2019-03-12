@@ -64,13 +64,20 @@ func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	return string(content), nil
 }
 
-func PostBody(rawURL string, data url.Values) (string, []*http.Cookie, error) {
-	resp, err := http.PostForm(rawURL, data) //nolint[:gosec]
+func PostBody(rawURL string, data url.Values, follow bool) (string, []*http.Cookie, error) {
+	client := &http.Client{}
+	if !follow {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+	resp, err := client.PostForm(rawURL, data) //nolint[:gosec]
 	if err != nil {
 		return "", nil, err
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
+	cookies := resp.Cookies()
 
-	return string(content), resp.Cookies(), nil
+	return string(content), cookies, nil
 }
