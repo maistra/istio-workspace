@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
-
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 	. "github.com/aslakknutsen/istio-workspace/test"
@@ -39,8 +37,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 				"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
-
-			DeployOperator()
 		})
 	}
 	return nil

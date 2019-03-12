@@ -9,7 +9,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func LoadIstioResources(namespace, dir string) {
+func LoadIstio(dir string) {
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
 	CreateFile(dir+"/cr.yaml", minimalIstioCR)
