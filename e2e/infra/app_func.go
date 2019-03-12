@@ -11,5 +11,6 @@ func Login(rawURL, user, password string) (string, []*http.Cookie, error) {
 	form["username"] = []string{user}
 	form["passwd"] = []string{password}
 
+	// follow=false, else the cookies returned are from the redirect, not from the login
 	return PostBody(rawURL, form, false)
 }
