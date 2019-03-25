@@ -82,6 +82,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
 			LoadIstio(tmpDir)
+			BuildOperator()
 			DeployOperator()
 
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()

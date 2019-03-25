@@ -37,6 +37,14 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 				"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
+
+			fmt.Printf("\nExposing Docker Registry")
+			<-cmd.Execute("oc", "create", "route", "--service=docker-registry").Done()
+
+			// create a 'real user' we can use to push to the DockerRegsitry
+			fmt.Printf("\nAdd admin user")
+			<-cmd.Execute("oc", "create", "user", "admin").Done()
+			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
 		})
 	}
 	return nil

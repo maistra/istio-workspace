@@ -41,6 +41,26 @@ func DeployBookinfoInto(namespace, dir string) {
 	<-cmd.ExecuteInDir(dir, "oc", "delete", "deployment", "reviews-v3", "-n", namespace).Done()
 }
 
+func BuildOperator() {
+	projectDir := os.Getenv("CUR_DIR")
+
+	operatorNS := "istio-workspace-operator"
+	dockerRegistry := "docker-registry-default.127.0.0.1.nip.io:80"
+
+	err := os.Setenv("OPERATOR_NAMESPACE", operatorNS)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	err = os.Setenv("DOCKER_REPOSITORY", operatorNS)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	err = os.Setenv("DOCKER_REGISTRY", dockerRegistry)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
+	<-cmd.Execute("docker", "login", "-u", "admin", "-p", "admin", dockerRegistry).Done()
+	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
+}
+
 func DeployOperator() {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))

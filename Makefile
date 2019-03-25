@@ -114,6 +114,12 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
+.PHONY: docker-push
+docker-push: ## Builds the docker image
+	$(call header,"Pushing docker image $(DOCKER_IMAGE_CORE)")
+	$(DOCKER) push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT)
+	$(DOCKER) push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
+
 # ##########################################################################
 # Istio operator deployment
 # ##########################################################################
