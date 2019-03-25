@@ -350,7 +350,7 @@
   version = "1.0.1"
 
 [[projects]]
-  digest = "1:0204417af2b5c56719f7e2809902c9a56ebb1b539d73ba520eeac84e98f21b72"
+  digest = "1:545744762d3d6d59328a38e44f571baaeda30184b88b43a28879bedf7711afa5"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -374,11 +374,11 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "2e1be8f7d90e9d3e3e58b0ce470f2f14d075406f"
-  version = "v1.7.0"
+  revision = "eea6ad008b96acdaa524f5b409513bf062b500ad"
+  version = "v1.8.0"
 
 [[projects]]
-  digest = "1:7efa6868c0394e8567b411d9160f10376d6f28926c5786d520f3603bc3e18198"
+  digest = "1:9f353a779b8b118229dfc1541e41d72d1a3a6f2d13756f5fe66daeb0f52191ab"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -397,8 +397,8 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
-  version = "v1.4.3"
+  revision = "90e289841c1ed79b7a598a7cd9959750cb5e89e2"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:df8e741cd0f86087367f3bcfeb1cf237e96fada71194b6d4cee9412d221ec763"

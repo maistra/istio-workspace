@@ -79,11 +79,11 @@ required = [
 
 [[constraint]]
   name = "github.com/onsi/gomega"
-  version = "=1.4.3"
+  version = "=1.5.0"
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
-  version = "=1.7.0"
+  version = "=1.8.0"
 
 [[constraint]]
   name = "go.uber.org/goleak"
