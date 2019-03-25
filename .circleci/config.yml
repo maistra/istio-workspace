@@ -5,7 +5,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.12.1
     steps:
       - checkout
       - run: make tools
@@ -13,7 +13,7 @@ jobs:
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine:
-      image: circleci/classic:201808-01
+      image: ubuntu-1604:201903-01
     steps:
       - checkout
       - ike/docker_insecure_registry
