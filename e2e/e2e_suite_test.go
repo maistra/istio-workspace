@@ -34,16 +34,17 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 			<-cmd.Execute("istiooc", "cluster", "up",
-				"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
+				//"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
 
 			<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
-			fmt.Printf("\nExposing Docker Registry")
+
+			fmt.Printf("\nExposing Docker Registry\n")
 			<-cmd.Execute("oc", "expose", "service", "docker-registry", "-n", "default").Done()
 
 			// create a 'real user' we can use to push to the DockerRegsitry
-			fmt.Printf("\nAdd admin user")
+			fmt.Printf("\nAdd admin user\n")
 			<-cmd.Execute("oc", "create", "user", "admin").Done()
 			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
 		})
