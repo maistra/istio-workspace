@@ -60,13 +60,13 @@ var _ = Describe("Operations for k8 Deployment kind", func() {
 
 	})
 
-	Context("mutators", func() {
+	PContext("mutators", func() {
 		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
 		})
 
 	})
 
-	Context("revertors", func() {
+	PContext("revertors", func() {
 
 		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
 		})
