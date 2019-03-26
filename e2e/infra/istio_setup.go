@@ -41,28 +41,30 @@ func DeployBookinfoInto(namespace, dir string) {
 	<-cmd.ExecuteInDir(dir, "oc", "delete", "deployment", "reviews-v3", "-n", namespace).Done()
 }
 
-func BuildOperator() {
+func BuildOperator() (registry string) {
 	projectDir := os.Getenv("CUR_DIR")
 
-	_, registry := setDockerEnv()
+	_, registry = setDockerEnv()
 
 	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
 
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
 	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
+	return
 }
 
-func DeployOperator() {
+func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
-	namespace, _ := setDockerEnv()
+	namespace, _ = setDockerEnv()
 
 	<-cmd.Execute("oc", "new-project", namespace).Done()
 
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
+	return
 }
 
 func setDockerEnv() (operatorNS, dockerRegistry string) {

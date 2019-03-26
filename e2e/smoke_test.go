@@ -83,8 +83,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			LoadIstio(tmpDir)
 			// Deploy first so the namespace exists when we push it to the local openshift registry
-			DeployOperator()
+			workspaceNamespace := DeployOperator()
 			BuildOperator()
+			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
+				Should(ContainSubstring("No resources found"))
 
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
