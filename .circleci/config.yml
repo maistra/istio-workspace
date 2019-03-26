@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  ike: bartoszmajsak/ike@dev:0.0.3
+  ike: bartoszmajsak/ike@0.0.3
 jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
