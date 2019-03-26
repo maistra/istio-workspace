@@ -9,8 +9,32 @@ telepresence.log
 
 # Vendor
 vendor/
+.vendor-new/
 
-# Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
+### Go ###
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with 'go test -c'
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+### Vim ###
+# swap
+.sw[a-p]
+.*.sw[a-p]
+# session
+Session.vim
+# temporary
+.netrwhist
+# auto-generated tag files
+tags
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -78,42 +102,29 @@ company-statistics-cache.el
 # anaconda-mode
 anaconda-mode/
 
-### Go ###
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, build with 'go test -c'
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-### Vim ###
-# swap
-.sw[a-p]
-.*.sw[a-p]
-# session
-Session.vim
-# temporary
-.netrwhist
-# auto-generated tag files
-tags
-
 ### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode
 .history
 
+### JetBrains IDEs (Goland) ###
 
-# End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
-.idea
+.idea/
+*.iml
+*.iws
+modules.xml
+*.ipr
+out/
 
-# VSCode
-.vscode
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+
