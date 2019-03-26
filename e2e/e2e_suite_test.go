@@ -26,7 +26,6 @@ var runCluster = !skipCluster
 var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-
 	if runCluster {
 		ensureRequiredBinaries()
 		rand.Seed(time.Now().UTC().UnixNano())
@@ -34,7 +33,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 			<-cmd.Execute("istiooc", "cluster", "up",
-				//"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
+				"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams,sample-templates'",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
 
