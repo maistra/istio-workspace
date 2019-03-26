@@ -26,8 +26,8 @@ var runCluster = !skipCluster
 var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
+	ensureRequiredBinaries()
 	if runCluster {
-		ensureRequiredBinaries()
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
