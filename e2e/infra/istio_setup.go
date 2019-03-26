@@ -58,11 +58,8 @@ func BuildOperator() {
 
 	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
 
-	<-cmd.Execute("bash", "-c", "echo $(oc whoami)").Done()
-	<-cmd.Execute("bash", "-c", "echo $(oc whoami -t)").Done()
-
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
-	<-cmd.Execute("docker", "login", "-u $(oc whoami)", "-p $(oc whoami -t)", dockerRegistry).Done()
+	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+dockerRegistry).Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
 }
 
