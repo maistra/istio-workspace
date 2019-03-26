@@ -82,8 +82,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
 			LoadIstio(tmpDir)
-			BuildOperator()
+			// Deploy first so the namespace exists when we push it to the local openshift registry
 			DeployOperator()
+			BuildOperator()
 
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()

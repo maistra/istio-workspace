@@ -44,8 +44,30 @@ func DeployBookinfoInto(namespace, dir string) {
 func BuildOperator() {
 	projectDir := os.Getenv("CUR_DIR")
 
-	operatorNS := "istio-workspace-operator"
-	dockerRegistry := "docker-registry-default.127.0.0.1.nip.io:80"
+	_, registry := setDockerEnv()
+
+	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
+
+	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
+	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
+}
+
+func DeployOperator() {
+	projectDir := os.Getenv("CUR_DIR")
+	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
+	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+
+	namespace, _ := setDockerEnv()
+
+	<-cmd.Execute("oc", "new-project", namespace).Done()
+
+	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
+}
+
+func setDockerEnv() (operatorNS, dockerRegistry string) {
+	operatorNS = "istio-workspace-operator"
+	dockerRegistry = "docker-registry-default.127.0.0.1.nip.io:80"
 
 	err := os.Setenv("OPERATOR_NAMESPACE", operatorNS)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
@@ -56,27 +78,7 @@ func BuildOperator() {
 	err = os.Setenv("DOCKER_REGISTRY", dockerRegistry)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
-	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
-
-	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
-	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+dockerRegistry).Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
-}
-
-func DeployOperator() {
-	projectDir := os.Getenv("CUR_DIR")
-	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
-
-	err := os.Setenv("OPERATOR_NAMESPACE", "istio-workspace-operator")
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	err = os.Setenv("DOCKER_IMAGE_TAG", "latest")
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	<-cmd.Execute("oc", "new-project", "istio-workspace-operator").Done()
-
-	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
+	return
 }
 
 // minimalIstioCR is a minimal custom resource required to install an Istio Control Plane.
