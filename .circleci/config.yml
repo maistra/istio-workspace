@@ -13,7 +13,7 @@ jobs:
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
     machine:
-      image: circleci/classic:201808-01
+      image: ubuntu-1604:201903-01
     steps:
       - checkout
       - ike/docker_insecure_registry
