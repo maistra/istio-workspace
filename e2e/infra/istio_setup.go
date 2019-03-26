@@ -57,8 +57,11 @@ func BuildOperator() {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
+	<-cmd.Execute("echo", "$(oc whoami)").Done()
+	<-cmd.Execute("echo", "$(oc whoami -t)").Done()
+
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-build").Done()
-	<-cmd.Execute("docker", "login", "-u", "$(oc whoami) ", "-p", "$(oc whoami -t)", dockerRegistry).Done()
+	<-cmd.Execute("docker", "login", "-u", "$(oc whoami)", "-p", "$(oc whoami -t)", dockerRegistry).Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
 }
 
