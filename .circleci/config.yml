@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  ike: bartoszmajsak/ike@0.0.1
+  ike: bartoszmajsak/ike@0.0.3
 jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
@@ -17,9 +17,11 @@ jobs:
     steps:
       - checkout
       - ike/docker_insecure_registry
-      - ike/update_golang
+      - ike/update_golang:
+          version: 1.12.1
       - ike/install_telepresence
-      - ike/install_maistra
+      - ike/install_maistra:
+          version: v3.11.0+maistra-0.9.0
       - run: make tools deps compile test-e2e
 
 workflows:
