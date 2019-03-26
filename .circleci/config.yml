@@ -20,7 +20,8 @@ jobs:
       - ike/update_golang:
           version: 1.12.1
       - ike/install_telepresence
-      - ike/install_maistra
+      - ike/install_maistra:
+          version: v3.11.0+maistra-0.9.0
       - run: make tools deps compile test-e2e
 
 workflows:
