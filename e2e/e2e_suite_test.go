@@ -33,7 +33,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
 			<-cmd.Execute("istiooc", "cluster", "up",
-				"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams,sample-templates'",
+				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
 
