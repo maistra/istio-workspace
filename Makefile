@@ -79,7 +79,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
-	COMMIT := $(COMMIT)-dirty
+	COMMIT:=$(COMMIT)-dirty
 endif
 VERSION?=0.0.1
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
@@ -97,22 +97,27 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 # Docker build
 # ##########################################################################
 
-DOCKER?=$(if $(or $(in_docker_group),$(is_root)),docker,sudo docker)
 DOCKER_IMAGE?=$(PROJECT_NAME)
 DOCKER_IMAGE_TAG?=$(COMMIT)
 export DOCKER_IMAGE_TAG
 DOCKER_REGISTRY?=docker.io
 DOCKER_REPOSITORY?=aslakknutsen
 
-.PHONY: deploy-operator
+.PHONY: docker-build
 docker-build: ## Builds the docker image
 	$(call header,"Building docker image $(DOCKER_IMAGE_CORE)")
-	$(DOCKER) build \
+	docker build \
 		-t $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
 		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
-	$(DOCKER) tag \
+	docker tag \
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
+
+.PHONY: docker-push
+docker-push: ## Builds the docker image
+	$(call header,"Pushing docker image $(DOCKER_IMAGE_CORE)")
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT)
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 # ##########################################################################
 # Istio operator deployment
