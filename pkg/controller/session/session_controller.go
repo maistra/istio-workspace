@@ -151,6 +151,7 @@ func deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session,
 		for _, r := range session.Spec.Refs {
 			if ref.Name == r {
 				found = true
+				break
 			}
 		}
 		if !found {
