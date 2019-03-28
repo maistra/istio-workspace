@@ -60,6 +60,9 @@ func DeployOperator() (namespace string) {
 	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
 	namespace, _ = setDockerEnv()
+	// override and use internal address on Deployment
+	err := os.Setenv("DOCKER_REGISTRY", "172.30.1.1:5000")
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	<-cmd.Execute("oc", "new-project", namespace).Done()
 
