@@ -21,7 +21,7 @@ func CreateWatch(intervalMs int64) *Builder {
 	}}
 }
 
-// WithHandlers allows to hook instance of Handler reacting on file change events
+// WithHandlers allows to register instances of Handler which will react on file change events
 func (wb *Builder) WithHandlers(handlers ...Handler) *Builder {
 	wb.w.handlers = handlers
 	return wb
