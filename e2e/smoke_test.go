@@ -105,7 +105,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			Eventually(func() (string, error) {
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 30*time.Second, 200*time.Millisecond).Should(ContainSubstring("PublisherA"))
+			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 			// given we have details code locally
 			details, err := GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
