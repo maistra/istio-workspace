@@ -18,7 +18,7 @@ type Handler func(events []fsnotify.Event) error
 // Watch represents single file system watch and delegates change events to defined handler
 type Watch struct {
 	watcher    *fsnotify.Watcher
-	handler    Handler
+	handlers   []Handler
 	exclusions FilePatterns
 	interval   time.Duration
 	done       chan struct{}
@@ -45,6 +45,7 @@ func (w *Watch) Start() {
 					log.V(10).Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
+				println(event.String())
 				log.Info("file changed", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
@@ -58,8 +59,10 @@ func (w *Watch) Start() {
 				}
 				log.Info("firing change event")
 				changes := extractValues(events)
-				if err := w.handler(changes); err != nil {
-					log.Error(err, "failed to handle file change!")
+				for _, handler := range w.handlers {
+					if err := handler(changes); err != nil {
+						log.Error(err, "failed to handle file change!")
+					}
 				}
 				events = make(map[string]fsnotify.Event)
 			case <-w.done:
