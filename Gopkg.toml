@@ -52,7 +52,7 @@ required = [
 
 [[override]]
   name = "istio.io/api"
-  source = "https://github.com/rcernich/istio-api.git"
+  source = "https://github.com/aslakknutsen/istio-api.git"
   branch = "istio-8772"
 
 [[constraint]]

@@ -66,6 +66,14 @@
   version = "v2.9.0"
 
 [[projects]]
+  digest = "1:820227d03dc661d34f837f3704626d2837dbfbf9f0ec8fdf1f58e683dc5f56fc"
+  name = "github.com/evanphx/json-patch"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "72bf35d0ff611848c1dc9df0f976c81192392fa5"
+  version = "v4.1.0"
+
+[[projects]]
   digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -82,20 +90,20 @@
   version = "v1.0.4"
 
 [[projects]]
-  branch = "master"
   digest = "1:d421af4c4fe51d399667d573982d663fe1fa67020a88d3ae43466ebfe8e2b5c9"
   name = "github.com/go-logr/logr"
   packages = ["."]
   pruneopts = "NT"
   revision = "9fb12b3b21c5415d16ac18dc5cd42c1cfdd40c4e"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:340497a512995aa69c0add901d79a2096b3449d35a44a6f1f1115091a9f8c687"
   name = "github.com/go-logr/zapr"
   packages = ["."]
   pruneopts = "NT"
-  revision = "7536572e8d55209135cd5e7ccf7fce43dca217ab"
-  version = "v0.1.0"
+  revision = "03f06a783fbb7dfaf3f629c7825480e43a7105e6"
+  version = "v0.1.1"
 
 [[projects]]
   digest = "1:260f7ebefc63024c8dfe2c9f1a2935a89fa4213637a1f522f592f80c001cc441"
@@ -490,7 +498,7 @@
     "xfs",
   ]
   pruneopts = "NT"
-  revision = "bbced9601137e764853b2fad7ec3e2dc4c504e02"
+  revision = "d0f344d83b0c80a1bc03b547a2374a9ec6711144"
 
 [[projects]]
   digest = "1:1bc08ec221c4fb25e6f2c019b23fe989fb44573c696983d8e403a3b76cc378e1"
@@ -587,15 +595,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:36842fdff18922e24986fdb929c44eaa322860ad3f5eb5936ce91ceda3da124f"
+  digest = "1:a4d7148f288d0c8ccedd6387326ee3f6083c69911ef75e0cb8f17af92d5b0fff"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
-  revision = "8dd112bcdc25174059e45e07517d9fc663123347"
+  revision = "c2843e01d9a2bc60bb26ad24e09734fdc2d9ec58"
 
 [[projects]]
   branch = "master"
-  digest = "1:2aba4494bdd4f05b0d931d6f31f77cef5d7854e9d1f4ae29a7813d694d1fd27c"
+  digest = "1:43ae6bea391ceba61b433a70839827f9df09a7fb82fa7a3403753334be54e4a5"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -609,7 +617,7 @@
     "idna",
   ]
   pruneopts = "NT"
-  revision = "16b79f2e4e95ea23b2bf9903c9809ff7b013ce85"
+  revision = "c10a0554eabf8a6a7a6cc3097c9d9f43dcee0a43"
 
 [[projects]]
   branch = "master"
@@ -624,14 +632,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:27c238c1b2e8ab67f312b2ceec175c2ae254eb85f6535fea9922370473947cff"
+  digest = "1:f79c4f7d249f294c24a46e88128795113cf28fceaf3c4d4bcf06cfb058ddf816"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
-  revision = "e844e0132e93db857c984c24fd4fc86815e43be3"
+  revision = "10058d7d4faa7dd5ef860cbd31af00903076e7b8"
 
 [[projects]]
   digest = "1:8c74f97396ed63cc2ef04ebb5fc37bb032871b8fd890a25991ed40974b00cd2a"
@@ -675,11 +683,11 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   pruneopts = "NT"
-  revision = "85acf8d2951cb2a3bde7632f9ff273ef0379bcbd"
+  revision = "9d24e82272b4f38b78bc8cff74fa936d31ccd8ef"
 
 [[projects]]
   branch = "master"
-  digest = "1:0b083fc0b8ae5ed0e625d855d02ed4dfb374cd22f2f6aa589a94cb8a9a72b510"
+  digest = "1:74790bf1df47538c3ff7b2e0f099def37634a9a3ab40b4bdd8532867f865050e"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -696,7 +704,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "589c23e65e65055d47b9ad4a99723bc389136265"
+  revision = "00c44ba9c14f88ffdd4fb5bfae57fe8dd6d6afb1"
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -749,15 +757,16 @@
 
 [[projects]]
   branch = "istio-8772"
-  digest = "1:eb8201230d02b60ea77bde3827a0eec1a620c0f8fc262ab1133a9141bba70b39"
+  digest = "1:2a90b79136abaf98d9af10cc4e42f0dfe2a9f7b384ff55b00b94a8769234d00f"
   name = "istio.io/api"
   packages = [
     "networking/v1alpha3",
+    "pkg/kube/apis/networking/v1alpha3",
     "util",
   ]
   pruneopts = "NT"
-  revision = "23148abe2cc60e73c836252a482c6bebcbc39a3c"
-  source = "https://github.com/rcernich/istio-api.git"
+  revision = "9b0d066de34731fa23efd436aa78de537420e7f4"
+  source = "https://github.com/aslakknutsen/istio-api.git"
 
 [[projects]]
   digest = "1:6fa82ea248029bbbdddade20c06ab177ff6e485e5e45e48b045707415b7efd34"
@@ -899,6 +908,7 @@
     "rest",
     "rest/watch",
     "restmapper",
+    "testing",
     "tools/auth",
     "tools/cache",
     "tools/clientcmd",
@@ -956,7 +966,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4e07c417d966628ee9e471354ad5e311c9c25ff357d42fd0dd2f81a40caf6aad"
+  digest = "1:4ed9f0d5664783dbafeee8fd19dc7c25a96412663e0b27abaf2cdd694d3e28ad"
   name = "k8s.io/gengo"
   packages = [
     "args",
@@ -969,7 +979,7 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "0689ccc1d7d65d9dd1bedcc3b0b1ed7df91ba266"
+  revision = "b90029ef6cd877cb3f422d75b3a07707e3aac6b7"
 
 [[projects]]
   digest = "1:29f93bb84d907a2c035e729e19d66fe52165d8c905cb3ef1920140d76ae6afaf"
@@ -998,6 +1008,7 @@
     "pkg/client",
     "pkg/client/apiutil",
     "pkg/client/config",
+    "pkg/client/fake",
     "pkg/controller",
     "pkg/event",
     "pkg/handler",
@@ -1060,6 +1071,7 @@
     "github.com/spf13/viper",
     "go.uber.org/goleak",
     "istio.io/api/networking/v1alpha3",
+    "istio.io/api/pkg/kube/apis/networking/v1alpha3",
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
@@ -1067,6 +1079,7 @@
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/types",
+    "k8s.io/apimachinery/pkg/util/wait",
     "k8s.io/code-generator/cmd/client-gen",
     "k8s.io/code-generator/cmd/conversion-gen",
     "k8s.io/code-generator/cmd/deepcopy-gen",
@@ -1076,6 +1089,7 @@
     "k8s.io/gengo/args",
     "sigs.k8s.io/controller-runtime/pkg/client",
     "sigs.k8s.io/controller-runtime/pkg/client/config",
+    "sigs.k8s.io/controller-runtime/pkg/client/fake",
     "sigs.k8s.io/controller-runtime/pkg/controller",
     "sigs.k8s.io/controller-runtime/pkg/handler",
     "sigs.k8s.io/controller-runtime/pkg/manager",
@@ -1084,6 +1098,7 @@
     "sigs.k8s.io/controller-runtime/pkg/runtime/scheme",
     "sigs.k8s.io/controller-runtime/pkg/runtime/signals",
     "sigs.k8s.io/controller-runtime/pkg/source",
+    "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

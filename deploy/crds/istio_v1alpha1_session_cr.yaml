@@ -3,4 +3,5 @@ kind: Session
 metadata:
   name: test-session
 spec:
-  ref: details-v1
+  ref:
+  - details-v1

@@ -166,10 +166,11 @@ var _ = Describe("Usage of ike develop command", func() {
 			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--port", "4321:5000",
-				"--method", "vpn-tcp")
+				"--method", "vpn-tcp",
+				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
+			Expect(output).To(ContainSubstring("--deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 4321:5000"))
 			Expect(output).To(ContainSubstring("--method vpn-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
@@ -177,10 +178,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		It("should pass specified parameters and defaults", func() {
 			output, err := Run(developCmd).Passing("--deployment", "rating-service",
-				"--run", "java -jar rating.jar")
+				"--run", "java -jar rating.jar",
+				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--swap-deployment rating-service"))
+			Expect(output).To(ContainSubstring("--deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 8000"))
 			Expect(output).To(ContainSubstring("--method inject-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
@@ -201,7 +203,8 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--run", "java -jar rating.jar",
 				"--build", "mvn clean install",
 				"--port", "4321",
-				"--method", "vpn-tcp")
+				"--method", "vpn-tcp",
+				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("mvn clean install"))
@@ -214,7 +217,8 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--build", "mvn clean install",
 				"--no-build",
 				"--port", "4321",
-				"--method", "vpn-tcp")
+				"--method", "vpn-tcp",
+				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).ToNot(ContainSubstring("mvn clean install"))

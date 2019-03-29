@@ -18,7 +18,8 @@ import (
 
 var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
 
-	Context("using ike develop in offline mode", func() {
+	// Can't be ran without a session (not using --swap-deployment)
+	XContext("using ike develop in offline mode", func() {
 
 		tmpPath := test.NewTmpPath()
 
@@ -51,6 +52,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				"--method", "inject-tcp",
 				"--watch",
 				"--run", "python3 server.py",
+				"--offline",
 			)
 			Eventually(callGetOn(appName), 3*time.Minute, 200*time.Millisecond).Should(Equal("Hello, world!\n"))
 
@@ -79,10 +81,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
+			LoadIstio(tmpDir)
+			// Deploy first so the namespace exists when we push it to the local openshift registry
+			workspaceNamespace := DeployOperator()
+			BuildOperator()
+			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
+				Should(ContainSubstring("No resources found"))
+
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
-			LoadIstioResources(namespace, tmpDir)
 			DeployBookinfoInto(namespace, tmpDir)
 		})
 
@@ -113,13 +121,21 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				"--run", "ruby details.rb 9080",
 			)
 
+			// ensure the new service is running
+			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+				Should(ContainSubstring("No resources found"))
+
 			// and modify the service
 			modifiedDetails := strings.Replace(details, "PublisherA", "Publisher Ike", 1)
 			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
+			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "jason", "jason")
+			Expect(err).ToNot(HaveOccurred())
+
 			Eventually(func() (string, error) {
-				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+				fmt.Println("checking..")
+				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
 			Expect(ikeWithWatch.Stop()).ToNot(HaveOccurred())

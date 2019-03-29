@@ -47,12 +47,37 @@ func CreateFile(filePath, content string) {
 	}()
 }
 
-func GetBody(rawURL string) (string, error) {
-	resp, err := http.Get(rawURL) //nolint[:gosec]
+func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
+	req, err := http.NewRequest("GET", rawURL, nil)
+	if err != nil {
+		return "", err
+	}
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
+	resp, err := http.DefaultClient.Do(req) //nolint[:gosec]
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
 	return string(content), nil
+}
+
+func PostBody(rawURL string, data url.Values, follow bool) (string, []*http.Cookie, error) {
+	client := &http.Client{}
+	if !follow {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+	resp, err := client.PostForm(rawURL, data) //nolint[:gosec]
+	if err != nil {
+		return "", nil, err
+	}
+	defer resp.Body.Close()
+	content, _ := ioutil.ReadAll(resp.Body)
+	cookies := resp.Cookies()
+
+	return string(content), cookies, nil
 }

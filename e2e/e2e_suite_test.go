@@ -3,14 +3,12 @@ package e2e_test
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"testing"
 	"time"
 
-	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
-
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
-
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 	. "github.com/aslakknutsen/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
@@ -22,33 +20,46 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
+var _, skipCluster = os.LookupEnv("SKIP_CLUSTER")
+var runCluster = !skipCluster
+
 var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 	ensureRequiredBinaries()
-	rand.Seed(time.Now().UTC().UnixNano())
-	tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
-	executeWithTimer(func() {
-		fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-		<-cmd.Execute("istiooc", "cluster", "up",
-			"--enable", "'registry,router,persistent-volumes,istio,centos-imagestreams'",
-			"--base-dir", tmpClusterDir+"/maistra.local.cluster",
-		).Done()
+	if runCluster {
+		rand.Seed(time.Now().UTC().UnixNano())
+		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
+		executeWithTimer(func() {
+			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
+			<-cmd.Execute("istiooc", "cluster", "up",
+				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
+				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
+			).Done()
 
-		DeployOperator()
-	})
+			<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
 
+			fmt.Printf("\nExposing Docker Registry\n")
+			<-cmd.Execute("oc", "expose", "service", "docker-registry", "-n", "default").Done()
+
+			// create a 'real user' we can use to push to the DockerRegsitry
+			fmt.Printf("\nAdd admin user\n")
+			<-cmd.Execute("oc", "create", "user", "admin").Done()
+			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
+		})
+	}
 	return nil
 },
 	func(data []byte) {})
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		executeWithTimer(func() {
-			fmt.Println("\nStopping Openshift/Istio cluster")
-			cmd.Execute("oc", "cluster", "down")
-		})
-
+		if runCluster {
+			executeWithTimer(func() {
+				fmt.Println("\nStopping Openshift/Istio cluster")
+				cmd.Execute("oc", "cluster", "down")
+			})
+		}
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)

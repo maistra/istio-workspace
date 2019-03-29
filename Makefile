@@ -126,11 +126,13 @@ docker-push: ## Builds the docker image
 define process_template # params: template location
 	@oc process -f $(1) \
 		-o yaml \
+		--ignore-unknown-parameters=true \
 		--local \
 		-p DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
 		-p DOCKER_REPOSITORY=$(DOCKER_REPOSITORY) \
 		-p IMAGE_NAME=$(DOCKER_IMAGE) \
-		-p IMAGE_TAG=$(DOCKER_IMAGE_TAG)
+		-p IMAGE_TAG=$(DOCKER_IMAGE_TAG) \
+		-p NAMESPACE=$(OPERATOR_NAMESPACE)
 endef
 
 .PHONY: deploy-operator
@@ -139,14 +141,14 @@ deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
+	$(call process_template,deploy/role_binding.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 	$(call process_template,deploy/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
 undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPACE
 	$(call header,"Undeploying operator to $(OPERATOR_NAMESPACE)")
 	$(call process_template,deploy/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role_binding.yaml
+	$(call process_template,deploy/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml

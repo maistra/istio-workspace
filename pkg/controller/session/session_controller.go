@@ -2,29 +2,50 @@ package session
 
 import (
 	"context"
-	"fmt"
 
-	istionetwork "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/networking/v1alpha3"
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/aslakknutsen/istio-workspace/pkg/istio"
+	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
+	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_session")
+const (
+	finalizer = "finalizers.istio.workspace.session"
+)
+
+var (
+	log = logf.Log.WithName("controller_session")
+
+	locators = []model.Locator{
+		k8s.DeploymentLocator,
+		//openshift.DeploymentConfigLocator,
+	}
+	mutators = []model.Mutator{
+		k8s.DeploymentMutator,
+		//openshift.DeploymentConfigMutator,
+		istio.DestinationRuleMutator,
+		istio.VirtualServiceMutator,
+	}
+	revertors = []model.Revertor{
+		k8s.DeploymentRevertor,
+		//openshift.DeploymentConfigRevertor,
+		istio.DestinationRuleRevertor,
+		istio.VirtualServiceRevertor,
+	}
+)
 
 // Add creates a new Session Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -70,80 +91,169 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
-	ctx := context.TODO()
+	ctx := model.SessionContext{
+		Context:   context.TODO(),
+		Name:      request.Name,
+		Namespace: request.Namespace,
+		Log:       reqLogger,
+		Client:    r.client,
+	}
 
 	// Fetch the Session instance
-	instance := &istiov1alpha1.Session{}
-	err := r.client.Get(ctx, request.NamespacedName, instance)
+	session := &istiov1alpha1.Session{}
+	err := r.client.Get(ctx, request.NamespacedName, session)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-
-	reqLogger.Info("Added session", "name", request.Name, "namespace", request.Namespace)
-
-	deployment := appsv1.Deployment{}
-
-	err = r.client.Get(ctx, types.NamespacedName{Namespace: request.Namespace, Name: instance.Spec.Ref}, &deployment)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
-		return reconcile.Result{Requeue: false}, err
+	deleted := session.DeletionTimestamp != nil
+	if deleted {
+		reqLogger.Info("Deleted session")
+		if !session.HasFinalizer(finalizer) {
+			return reconcile.Result{}, nil
+		}
+	} else {
+		reqLogger.Info("Added session")
+		if !session.HasFinalizer(finalizer) {
+			session.AddFinalizer(finalizer)
+			if err := r.client.Update(ctx, session); err != nil {
+				ctx.Log.Error(err, "Failed to add finalizer on session")
+			}
+		}
 	}
 
-	reqLogger.Info("Found Deployment", "image", deployment.Spec.Template.Spec.Containers[0].Image)
-
-	serviceList := corev1.ServiceList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &serviceList)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
-		return reconcile.Result{Requeue: false}, err
-	}
-	for i := range serviceList.Items {
-		vs := &serviceList.Items[i]
-		reqLogger.Info("Found Service", "name", vs.ObjectMeta.Name, "labels", vs.Labels)
+	refs := statusesToRef(*session)
+	if deleted {
+		deleteAllRefs(ctx, session, refs)
+	} else {
+		if err := syncAllRefs(ctx, session); err != nil {
+			return reconcile.Result{}, err
+		}
+		deleteRemovedRefs(ctx, session, refs)
 	}
 
-	drList := istionetwork.DestinationRuleList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &drList)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
-		return reconcile.Result{Requeue: false}, err
-	}
-	for i := range drList.Items {
-		vs := &drList.Items[i]
-		reqLogger.Info("Found DestinationRule", "name", vs.ObjectMeta.Name)
-	}
+	if deleted {
+		session.RemoveFinalizer(finalizer)
+		if err := r.client.Update(ctx, session); err != nil {
+			ctx.Log.Error(err, "Failed to remove finalizer on session")
+		}
 
-	vsList := istionetwork.VirtualServiceList{}
-	err = r.client.List(ctx, &client.ListOptions{Namespace: request.Namespace}, &vsList)
-	if err != nil {
-		updateStatus(ctx, reqLogger, r.client, instance, fmt.Sprintf("%v", err))
-		return reconcile.Result{Requeue: false}, err
 	}
-	for i := range vsList.Items {
-		vs := &vsList.Items[i]
-		reqLogger.Info("Found VirtualService", "name", vs.ObjectMeta.Name)
-	}
-	updateStatus(ctx, reqLogger, r.client, instance, "success")
-
 	return reconcile.Result{}, nil
 }
 
-func updateStatus(ctx context.Context, log logr.Logger, c client.StatusClient, session *istiov1alpha1.Session, state string) {
-	session.Status = istiov1alpha1.SessionStatus{
-		State: &state,
+func deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+	for _, ref := range refs {
+		found := false
+		for _, r := range session.Spec.Refs {
+			if ref.Name == r {
+				found = true
+				break
+			}
+		}
+		if !found {
+			if err := delete(ctx, session, ref); err != nil {
+				ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
+			}
+		}
+	}
+}
+func deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+	for _, ref := range refs {
+		if err := delete(ctx, session, ref); err != nil {
+			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
+		}
+	}
+}
+
+func delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
+	ctx.Log.Info("Remove ref", "name", ref.Name)
+
+	statusToRef(*session, ref)
+	for _, revertor := range revertors {
+		err := revertor(ctx, ref)
+		if err != nil {
+			ctx.Log.Error(err, "Revert", "name", ref.Name)
+		}
+	}
+	refToStatus(*ref, session)
+	return ctx.Client.Status().Update(ctx, session)
+}
+
+func syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
+	for _, r := range session.Spec.Refs {
+		ctx.Log.Info("Add ref", "name", r)
+		ref := model.Ref{Name: r}
+		err := sync(ctx, session, &ref)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
+	statusToRef(*session, ref)
+	for _, locator := range locators {
+		if locator(ctx, ref) {
+			break // only use first locator
+		}
+	}
+	for _, mutator := range mutators {
+		err := mutator(ctx, ref)
+		if err != nil {
+			ctx.Log.Error(err, "Mutate", "name", ref.Name)
+		}
 	}
 
-	log.Info("Updating status", "state", state)
-	err := c.Status().Update(ctx, session)
-	if err != nil {
-		log.Error(err, "failed to update status of session")
-	}
+	refToStatus(*ref, session)
+	return ctx.Client.Status().Update(ctx, session)
+}
 
+func refToStatus(ref model.Ref, session *istiov1alpha1.Session) {
+	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
+	for _, refStat := range ref.ResourceStatuses {
+		rs := refStat
+		action := string(rs.Action)
+		statusRef.Resources = append(statusRef.Resources, &istiov1alpha1.RefResource{Name: &rs.Name, Kind: &rs.Kind, Action: &action})
+	}
+	var existsInStatus bool
+	for i, statRef := range session.Status.Refs {
+		if statRef.Name == statusRef.Name {
+			if len(statusRef.Resources) == 0 { // Remove
+				session.Status.Refs = append(session.Status.Refs[:i], session.Status.Refs[i+1:]...)
+			} else { // Update
+				session.Status.Refs[i] = statusRef
+			}
+			existsInStatus = true
+			break
+		}
+	}
+	if !existsInStatus {
+		session.Status.Refs = append(session.Status.Refs, statusRef)
+	}
+}
+
+func statusesToRef(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeParam]
+	refs := []*model.Ref{}
+	for _, statusRef := range session.Status.Refs {
+		r := &model.Ref{Name: statusRef.Name}
+		statusToRef(session, r)
+		refs = append(refs, r)
+	}
+	return refs
+}
+
+func statusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
+	for _, statusRef := range session.Status.Refs {
+		if statusRef.Name == ref.Name {
+			for _, resource := range statusRef.Resources {
+				r := resource
+				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action)})
+			}
+		}
+	}
 }

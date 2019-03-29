@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/pflag"
-
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 const telepresenceBin = "telepresence"
@@ -31,6 +30,12 @@ func NewDevelopCmd() *cobra.Command {
 			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+
+			sessionClose, err := sessions(cmd)
+			if err != nil {
+				return err
+			}
+			defer sessionClose()
 
 			if err := build(cmd); err != nil {
 				return err
@@ -66,7 +71,12 @@ func NewDevelopCmd() *cobra.Command {
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
 	}
+	developCmd.Flags().Bool("offline", false, "avoid calling external sources")
+	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
+		log.Error(err, "failed while trying to hide a flag")
+	}
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
+	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
@@ -95,7 +105,7 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return append([]string{
-		"--swap-deployment", cmd.Flag("deployment").Value.String(),
+		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--expose", cmd.Flag("port").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 		"--run"}, runArgs...)
