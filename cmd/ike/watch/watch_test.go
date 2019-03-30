@@ -1,6 +1,9 @@
 package watch_test
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
 
 	"go.uber.org/goleak"
@@ -28,7 +31,7 @@ var _ = Describe("File changes watch", func() {
 		config := TmpFile(GinkgoT(), "config.yaml", "content")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandler(expectFileChange(config.Name(), done)).
+			WithHandlers(expectFileChange(config.Name(), done)).
 			OnPaths(config.Name())
 		Expect(e).ToNot(HaveOccurred())
 
@@ -50,7 +53,7 @@ var _ = Describe("File changes watch", func() {
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandler(expectFileChange(text.Name(), done)).
+			WithHandlers(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
@@ -72,7 +75,7 @@ var _ = Describe("File changes watch", func() {
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandler(expectFileChange(text.Name(), done)).
+			WithHandlers(expectFileChange(text.Name(), done)).
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
@@ -94,7 +97,7 @@ var _ = Describe("File changes watch", func() {
 		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandler(expectFileChange(text.Name(), done)).
+			WithHandlers(expectFileChange(text.Name(), done), notExpectFileChange(config.Name())).
 			Excluding("*.yaml").
 			OnPaths(tmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -116,13 +119,12 @@ var _ = Describe("File changes watch", func() {
 		skipTmpDir := TmpDir(GinkgoT(), "skip_watch")
 
 		config := TmpFile(GinkgoT(), skipTmpDir+"/config.yaml", "content")
-		text := TmpFile(GinkgoT(), skipTmpDir+"/text.txt", "text text text")
 
 		watchTmpDir := TmpDir(GinkgoT(), "watch")
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandler(expectFileChange(code.Name(), done)).
+			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
 			Excluding("/tmp/**/skip_watch/*").
 			OnPaths(skipTmpDir, watchTmpDir)
 		Expect(e).ToNot(HaveOccurred())
@@ -132,7 +134,6 @@ var _ = Describe("File changes watch", func() {
 		// when
 		watcher.Start()
 		_, _ = config.WriteString(" should not be watched")
-		_, _ = text.WriteString(" modified!")
 		_, _ = code.WriteString("\n // Bla!")
 
 		// then
@@ -146,6 +147,20 @@ func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
 		defer GinkgoRecover()
 		Expect(events[0].Name).To(Equal(fileName))
 		close(done)
+		return nil
+	}
+}
+
+func notExpectFileChange(fileName string) watch.Handler {
+	return func(events []fsnotify.Event) error {
+		defer GinkgoRecover()
+		for _, event := range events {
+			if event.Name == fileName {
+				errMsg := fmt.Sprintf("expected %s to not change", fileName)
+				Fail(errMsg)
+				return errors.New(errMsg)
+			}
+		}
 		return nil
 	}
 }

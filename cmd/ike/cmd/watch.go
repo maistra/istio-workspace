@@ -38,7 +38,7 @@ func NewWatchCmd() *cobra.Command {
 
 			ms, _ := cmd.Flags().GetInt64("interval")
 			w, err := watch.CreateWatch(ms).
-				WithHandler(func(events []fsnotify.Event) error {
+				WithHandlers(func(events []fsnotify.Event) error {
 					for _, event := range events {
 						_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 					}
