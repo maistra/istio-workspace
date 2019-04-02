@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 	. "github.com/aslakknutsen/istio-workspace/test"
 
@@ -42,10 +43,18 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			fmt.Printf("\nExposing Docker Registry\n")
 			<-cmd.Execute("oc", "expose", "service", "docker-registry", "-n", "default").Done()
 
-			// create a 'real user' we can use to push to the DockerRegsitry
+			// create a 'real user' we can use to push to the DockerRegistry
 			fmt.Printf("\nAdd admin user\n")
 			<-cmd.Execute("oc", "create", "user", "admin").Done()
 			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
+
+			LoadIstio(tmpClusterDir)
+			// Deploy first so the namespace exists when we push it to the local openshift registry
+			workspaceNamespace := DeployOperator()
+			BuildOperator()
+			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
+				Should(ContainSubstring("No resources found"))
+
 		})
 		skipClusterShutdown = true
 	}

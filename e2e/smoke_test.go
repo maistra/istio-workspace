@@ -81,13 +81,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
-			LoadIstio(tmpDir)
-			// Deploy first so the namespace exists when we push it to the local openshift registry
-			workspaceNamespace := DeployOperator()
-			BuildOperator()
-			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
-
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
