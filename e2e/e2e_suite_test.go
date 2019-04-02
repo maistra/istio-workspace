@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,14 +21,13 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var _, skipCluster = os.LookupEnv("SKIP_CLUSTER")
-var runCluster = !skipCluster
+var _, skipClusterShutdown = os.LookupEnv("SKIP_CLUSTER_SHUTDOWN")
 
 var tmpClusterDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 	ensureRequiredBinaries()
-	if runCluster {
+	if clusterNotRunning() {
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
@@ -47,6 +47,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			<-cmd.Execute("oc", "create", "user", "admin").Done()
 			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
 		})
+		skipClusterShutdown = true
 	}
 	return nil
 },
@@ -54,7 +55,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		if runCluster {
+		if !skipClusterShutdown {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
 				cmd.Execute("oc", "cluster", "down")
@@ -64,6 +65,12 @@ var _ = SynchronizedAfterSuite(func() {},
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
+
+func clusterNotRunning() bool {
+	clusterStatus := cmd.Execute("oc", "cluster", "status")
+	<-clusterStatus.Done()
+	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running")
+}
 
 func ensureRequiredBinaries() {
 	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
