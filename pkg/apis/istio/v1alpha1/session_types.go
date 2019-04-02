@@ -31,10 +31,12 @@ type RefResource struct {
 	Action *string `json:"action,omitempty"`
 }
 
+// +genclient
+// +genclient:noStatus
+// +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Session is the Schema for the sessions API
-// +k8s:openapi-gen=true
 type Session struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
