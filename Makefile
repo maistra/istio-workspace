@@ -33,7 +33,6 @@ format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
 	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
-OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}')
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
@@ -42,6 +41,7 @@ tools: ## Installs required go tools
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
 	mkdir -p $(CUR_DIR)/bin/
+	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
 	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
 	chmod +x $(CUR_DIR)/bin/operator-sdk
 
