@@ -84,7 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
-			DeployBookinfoInto(namespace, tmpDir)
+			DeployBookinfoInto(namespace)
 		})
 
 		AfterEach(func() {
@@ -127,7 +127,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() (string, error) {
-				fmt.Println("checking..")
+				fmt.Printf("[%s] checking...\n")
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 

@@ -48,7 +48,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			<-cmd.Execute("oc", "create", "user", "admin").Done()
 			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
 
-			LoadIstio(tmpClusterDir)
+			LoadIstio()
 			// Deploy first so the namespace exists when we push it to the local openshift registry
 			workspaceNamespace := DeployOperator()
 			BuildOperator()
