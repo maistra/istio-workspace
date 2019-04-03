@@ -43,6 +43,7 @@ tools: ## Installs required go tools
 
 .PHONY: install-operator-sdk
 install-operator-sdk: ## Downloads operator-sdk cli tool aligned with version defined in Gopkg
+	$(call header,"Installing operator-sdk cli tool")
 	mkdir -p $(CUR_DIR)/bin/
 	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
 	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
