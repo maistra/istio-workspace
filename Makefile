@@ -40,8 +40,13 @@ tools: ## Installs required go tools
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
+
+.PHONY: install-operator-sdk
+install-operator-sdk: ## Downloads operator-sdk cli tool aligned with version defined in Gopkg
+	$(call header,"Installing operator-sdk cli tool")
 	mkdir -p $(CUR_DIR)/bin/
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/v0.6.0/operator-sdk-v0.6.0-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
+	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
 	chmod +x $(CUR_DIR)/bin/operator-sdk
 
 .PHONY: lint
@@ -50,7 +55,7 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 	golangci-lint run
 
 .PHONY: codegen
-codegen: ## Generates operator-sdk code
+codegen: install-operator-sdk ## Generates operator-sdk code
 	$(call header,"Generates operator-sdk code")
 	$(CUR_DIR)/bin/operator-sdk generate k8s
 
