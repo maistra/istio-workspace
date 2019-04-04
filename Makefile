@@ -143,7 +143,7 @@ load-istio: ## Triggers installation of istio in the cluster
 .PHONY: deploy-operator
 deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
-	oc new-project $(OPERATOR_NAMESPACE)
+	oc new-project $(OPERATOR_NAMESPACE) || true
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
@@ -180,6 +180,9 @@ undeploy-example: ## Undeploys istio-workspace specific resources from defined E
 .PHONY: deploy-bookinfo
 deploy-bookinfo: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
 	$(call header,"Deploying bookinfo app to $(EXAMPLE_NAMESPACE)")
+	oc new-project $(EXAMPLE_NAMESPACE) || true
+	oc adm policy add-scc-to-user anyuid -z default -n $(EXAMPLE_NAMESPACE)
+	oc adm policy add-scc-to-user privileged -z default -n $(EXAMPLE_NAMESPACE)
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
