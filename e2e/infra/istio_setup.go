@@ -28,7 +28,7 @@ func BuildOperator() (registry string) {
 	_, registry = setDockerEnv()
 	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
 	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "docker-push").Done()
+	<-cmd.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
 
