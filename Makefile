@@ -119,7 +119,7 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 .PHONY: docker-push
-docker-push: docker-build ## Builds the docker image
+docker-push: ## Pushes docker image to the registry
 	$(call header,"Pushing docker image $(DOCKER_IMAGE_CORE)")
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT)
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
