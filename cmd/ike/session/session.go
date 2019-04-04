@@ -112,7 +112,7 @@ func waitForRefToComplete(sessionName, ref string) (string, error) {
 				for _, res := range refs.Resources {
 					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
 						name = *res.Name
-						fmt.Println("Found")
+						fmt.Printf("found %s\n", name)
 						return true, nil
 					}
 				}

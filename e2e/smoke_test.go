@@ -81,17 +81,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
-			LoadIstio(tmpDir)
-			// Deploy first so the namespace exists when we push it to the local openshift registry
-			workspaceNamespace := DeployOperator()
-			BuildOperator()
-			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
-
 			<-cmd.Execute("oc", "login", "-u", "developer").Done()
 			<-cmd.Execute("oc", "new-project", namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
-			DeployBookinfoInto(namespace, tmpDir)
+			DeployBookinfoInto(namespace)
 		})
 
 		AfterEach(func() {
@@ -134,7 +127,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() (string, error) {
-				fmt.Println("checking..")
+				fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 

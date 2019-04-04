@@ -5,24 +5,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 
 	"github.com/onsi/gomega"
 	"github.com/spf13/afero"
 )
-
-func DownloadInto(dir, rawDownloadURL string) string {
-	content, err := GetBody(rawDownloadURL)
-	gomega.Expect(err).ToNot(gomega.HaveOccurred())
-
-	downloadURL, err := url.Parse(rawDownloadURL)
-	gomega.Expect(err).ToNot(gomega.HaveOccurred())
-
-	filePath := dir + "/" + path.Base(downloadURL.Path)
-	CreateFile(filePath, content)
-
-	return filePath
-}
 
 var appFs = afero.NewOsFs()
 

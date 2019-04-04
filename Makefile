@@ -1,7 +1,7 @@
 PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
 
-OPERATOR_NAMESPACE?=istio-system
+OPERATOR_NAMESPACE?=istio-workspace-operator
 EXAMPLE_NAMESPACE?=bookinfo
 
 CUR_DIR:=$(shell pwd)
@@ -119,7 +119,7 @@ docker-build: ## Builds the docker image
 		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
 
 .PHONY: docker-push
-docker-push: ## Builds the docker image
+docker-push: ## Pushes docker image to the registry
 	$(call header,"Pushing docker image $(DOCKER_IMAGE_CORE)")
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT)
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
@@ -140,23 +140,29 @@ define process_template # params: template location
 		-p NAMESPACE=$(OPERATOR_NAMESPACE)
 endef
 
+.PHONY: load-istio
+load-istio: ## Triggers installation of istio in the cluster
+	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
+	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
+
 .PHONY: deploy-operator
 deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
-	$(call process_template,deploy/role_binding.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
-	$(call process_template,deploy/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
+	oc new-project $(OPERATOR_NAMESPACE) || true
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
+	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/istio-workspace/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
 undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPACE
 	$(call header,"Undeploying operator to $(OPERATOR_NAMESPACE)")
-	$(call process_template,deploy/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
-	$(call process_template,deploy/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_crd.yaml
+	$(call process_template,deploy/istio-workspace/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
 
 # ##########################################################################
 # Istio example deployment
@@ -164,10 +170,41 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 
 .PHONY: deploy-example
 deploy-example: ## Deploys istio-workspace specific resources to defined EXAMPLE_NAMESPACE
-	$(call header,"Deploying operator to $(EXAMPLE_NAMESPACE)")
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml
+	$(call header,"Deploying session custom resource to $(EXAMPLE_NAMESPACE)")
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
 undeploy-example: ## Undeploys istio-workspace specific resources from defined EXAMPLE_NAMESPACE
-	$(call header,"Undeploying operator to $(EXAMPLE_NAMESPACE)")
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/crds/istio_v1alpha1_session_cr.yaml
+	$(call header,"Undeploying session custom resource to $(EXAMPLE_NAMESPACE)")
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+
+# ##########################################################################
+# Istio bookinfo deployment
+# ##########################################################################
+
+.PHONY: deploy-bookinfo
+deploy-bookinfo: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
+	$(call header,"Deploying bookinfo app to $(EXAMPLE_NAMESPACE)")
+	oc new-project $(EXAMPLE_NAMESPACE) || true
+	oc adm policy add-scc-to-user anyuid -z default -n $(EXAMPLE_NAMESPACE)
+	oc adm policy add-scc-to-user privileged -z default -n $(EXAMPLE_NAMESPACE)
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
+	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml
+	# Required due to circle-ci memory limitations
+	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v2
+	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v3
+
+.PHONY: undeploy-bookinfo
+undeploy-bookinfo: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
+	$(call header,"Undeploying bookinfo app to $(EXAMPLE_NAMESPACE)")
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml	
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
+	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+
