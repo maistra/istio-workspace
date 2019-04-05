@@ -68,13 +68,13 @@ codegen: install-operator-sdk ## Generates operator-sdk code
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
-.PHONY: test ## Runs tests
-test: codegen
+.PHONY: test
+test: codegen ## Runs tests
 	$(call header,"Running tests")
 	ginkgo -r -v --skipPackage=e2e ${args}
 
-.PHONY: test-e2e ## Runs end-to-end tests
-test-e2e: codegen
+.PHONY: test-e2e
+test-e2e: codegen ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
 	ginkgo e2e/ -v -p ${args}
 
