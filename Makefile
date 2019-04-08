@@ -60,7 +60,7 @@ codegen: install-operator-sdk ## Generates operator-sdk code
 	$(call header,"Generates operator-sdk code")
 	$(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 1 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
