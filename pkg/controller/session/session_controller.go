@@ -9,16 +9,16 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -29,27 +29,6 @@ const (
 var (
 	log = logf.Log.WithName("controller_session")
 )
-
-func defaultManipulators() Manipulators {
-	return Manipulators{
-		Locators: []model.Locator{
-			k8s.DeploymentLocator,
-			//openshift.DeploymentConfigLocator,
-		},
-		Mutators: []model.Mutator{
-			k8s.DeploymentMutator,
-			//openshift.DeploymentConfigMutator,
-			istio.DestinationRuleMutator,
-			istio.VirtualServiceMutator,
-		},
-		Revertors: []model.Revertor{
-			k8s.DeploymentRevertor,
-			//openshift.DeploymentConfigRevertor,
-			istio.DestinationRuleRevertor,
-			istio.VirtualServiceRevertor,
-		},
-	}
-}
 
 // Add creates a new Session Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -84,6 +63,27 @@ type Manipulators struct {
 	Locators  []model.Locator
 	Mutators  []model.Mutator
 	Revertors []model.Revertor
+}
+
+func defaultManipulators() Manipulators {
+	return Manipulators{
+		Locators: []model.Locator{
+			k8s.DeploymentLocator,
+			//openshift.DeploymentConfigLocator,
+		},
+		Mutators: []model.Mutator{
+			k8s.DeploymentMutator,
+			//openshift.DeploymentConfigMutator,
+			istio.DestinationRuleMutator,
+			istio.VirtualServiceMutator,
+		},
+		Revertors: []model.Revertor{
+			k8s.DeploymentRevertor,
+			//openshift.DeploymentConfigRevertor,
+			istio.DestinationRuleRevertor,
+			istio.VirtualServiceRevertor,
+		},
+	}
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}

@@ -6,15 +6,20 @@ import (
 
 	"github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
-	. "github.com/onsi/ginkgo"
 
-	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+var (
+	kind, name, action = "test", "details", "created"
 )
 
 var _ = Describe("Basic session manipulation", func() {
@@ -139,7 +144,7 @@ var _ = Describe("Basic session manipulation", func() {
 						},
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
-								&v1alpha1.RefStatus{
+								{
 									Name: "details",
 								},
 							},
@@ -168,7 +173,6 @@ var _ = Describe("Basic session manipulation", func() {
 		})
 		Context("removed reference", func() {
 			BeforeEach(func() {
-				kind, name, action := "test", "details", "created"
 				objects = []runtime.Object{
 					&v1alpha1.Session{
 						ObjectMeta: metav1.ObjectMeta{
@@ -182,7 +186,7 @@ var _ = Describe("Basic session manipulation", func() {
 						},
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
-								&v1alpha1.RefStatus{
+								{
 									Name:      "details",
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 								},
@@ -210,7 +214,6 @@ var _ = Describe("Basic session manipulation", func() {
 	})
 	Context("session deletion", func() {
 		BeforeEach(func() {
-			kind, name, action := "test", "details", "created"
 			objects = []runtime.Object{
 				&v1alpha1.Session{
 					ObjectMeta: metav1.ObjectMeta{
@@ -225,7 +228,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 					Status: v1alpha1.SessionStatus{
 						Refs: []*v1alpha1.RefStatus{
-							&v1alpha1.RefStatus{
+							{
 								Name:      "details",
 								Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 							},
@@ -260,11 +263,11 @@ var _ = Describe("Basic session manipulation", func() {
 	})
 })
 
-func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
+func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	return false
 }
 
-func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
+func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	return true
 }
 
@@ -273,16 +276,16 @@ type trackedLocator struct {
 	Action    model.Locator
 }
 
-func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
+func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }
 
-func emptyTestMutator(ctx model.SessionContext, ref *model.Ref) error {
+func emptyTestMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return nil
 }
 
-func basicTestMutator(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error {
+func basicTestMutator(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(status)
 		return nil
@@ -294,16 +297,16 @@ type trackedMutator struct {
 	Action    model.Mutator
 }
 
-func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
+func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }
 
-func emptyTestRevertor(ctx model.SessionContext, ref *model.Ref) error {
+func emptyTestRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return nil
 }
 
-func basicTestRevertor(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error {
+func basicTestRevertor(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})
 		return nil
@@ -315,7 +318,7 @@ type trackedRevertor struct {
 	Action    model.Revertor
 }
 
-func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error {
+func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }
