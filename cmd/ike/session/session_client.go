@@ -11,34 +11,20 @@ import (
 )
 
 type client struct {
-	client    *versioned.Clientset
-	config    clientcmd.ClientConfig
+	versioned.Interface
 	namespace string
 }
 
 // NewClient creates client to handle Session resources based on passed config
-func NewClient(clientCfg clientcmd.ClientConfig) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *session.client, which can be annoying to use"
-	restCfg, err := clientCfg.ClientConfig()
-	if err != nil {
-		return nil, err
-	}
+func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *session.client, which can be annoying to use"
 
-	c, err := versioned.NewForConfig(restCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	namespace, _, err := clientCfg.Namespace()
-	if err != nil {
-		return nil, err
-	}
-
-	return &client{namespace: namespace, client: c, config: clientCfg}, nil
+	return &client{namespace: namespace, Interface: c}, nil
 }
 
 var defaultClient *client
 
 // DefaultClient creates a client based on existing kube config.
+// The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
 func DefaultClient() *client { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *session.client, which can be annoying to use"
 	if defaultClient == nil {
@@ -47,7 +33,22 @@ func DefaultClient() *client { //nolint[:golint] otherwise golint complains abou
 			&clientcmd.ConfigOverrides{},
 		)
 		var err error
-		defaultClient, err = NewClient(kubeCfg)
+		restCfg, err := kubeCfg.ClientConfig()
+		if err != nil {
+			log.Panicf("failed to create default client: %s", err)
+		}
+
+		c, err := versioned.NewForConfig(restCfg)
+		if err != nil {
+			log.Panicf("failed to create default client: %s", err)
+		}
+
+		namespace, _, err := kubeCfg.Namespace()
+		if err != nil {
+			log.Panicf("failed to create default client: %s", err)
+		}
+		
+		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
 			log.Panicf("failed to create default client: %s", err)
 		}
@@ -56,21 +57,21 @@ func DefaultClient() *client { //nolint[:golint] otherwise golint complains abou
 }
 
 func (c *client) Create(session *istiov1alpha1.Session) error {
-	if _, err := c.client.IstioV1alpha1().Sessions(c.namespace).Create(session); err != nil {
+	if _, err := c.Interface.IstioV1alpha1().Sessions(c.namespace).Create(session); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *client) Delete(session *istiov1alpha1.Session) error {
-	if err := c.client.IstioV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{}); err != nil {
+	if err := c.IstioV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{}); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *client) Get(sessionName string) (*istiov1alpha1.Session, error) {
-	session, err := c.client.IstioV1alpha1().Sessions(c.namespace).Get(sessionName, metav1.GetOptions{})
+	session, err := c.IstioV1alpha1().Sessions(c.namespace).Get(sessionName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
