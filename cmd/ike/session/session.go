@@ -22,8 +22,6 @@ func Offline(cmd *cobra.Command) (func(), error) {
 	return func() {}, nil
 }
 
-var sessionClient *client
-
 // CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
 // Rely on the following flags:
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
@@ -31,13 +29,6 @@ var sessionClient *client
 func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	sessionName := getSessionName(cmd)
 	deploymentName, _ := cmd.Flags().GetString("deployment")
-	if sessionClient == nil {
-		var err error
-		sessionClient, err = NewDefaultClient()
-		if err != nil {
-			return func() {}, err
-		}
-	}
 
 	serviceName, err := createOrJoinSession(sessionName, deploymentName)
 	if err != nil {
@@ -55,7 +46,7 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
 func createOrJoinSession(sessionName, ref string) (string, error) {
-	session, err := sessionClient.getSession(sessionName)
+	session, err := DefaultClient().getSession(sessionName)
 	if err != nil {
 		err = createSession(sessionName, ref)
 		if err != nil {
@@ -66,7 +57,7 @@ func createOrJoinSession(sessionName, ref string) (string, error) {
 	// join session
 
 	session.Spec.Refs = append(session.Spec.Refs, ref)
-	err = sessionClient.Create(session)
+	err = DefaultClient().Create(session)
 	if err != nil {
 		return "", err
 	}
@@ -89,13 +80,13 @@ func createSession(sessionName, ref string) error {
 		},
 	}
 
-	return sessionClient.Create(&session)
+	return DefaultClient().Create(&session)
 }
 
 func waitForRefToComplete(sessionName, ref string) (string, error) {
 	var name string
 	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
-		sessionStatus, err := sessionClient.getSession(sessionName)
+		sessionStatus, err := DefaultClient().getSession(sessionName)
 		if err != nil {
 			return false, nil
 		}
@@ -119,7 +110,7 @@ func waitForRefToComplete(sessionName, ref string) (string, error) {
 }
 
 func removeOrLeaveSession(sessionName, ref string) {
-	session, err := sessionClient.getSession(sessionName)
+	session, err := DefaultClient().getSession(sessionName)
 	if err != nil {
 		return // assume missing, nothing to clean?
 	}
@@ -130,9 +121,9 @@ func removeOrLeaveSession(sessionName, ref string) {
 		}
 	}
 	if len(session.Spec.Refs) == 0 {
-		_ = sessionClient.Delete(session)
+		_ = DefaultClient().Delete(session)
 	} else {
-		_ = sessionClient.Create(session)
+		_ = DefaultClient().Create(session)
 	}
 }
 
