@@ -9,10 +9,8 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -23,12 +21,34 @@ import (
 )
 
 const (
-	finalizer = "finalizers.istio.workspace.session"
+	Finalizer = "finalizers.istio.workspace.session"
 )
 
 var (
 	log = logf.Log.WithName("controller_session")
 )
+
+// defaultManipulators contains the default config for the reconciler
+func defaultManipulators() Manipulators {
+	return Manipulators{
+		Locators: []model.Locator{
+			k8s.DeploymentLocator,
+			//openshift.DeploymentConfigLocator,
+		},
+		Mutators: []model.Mutator{
+			k8s.DeploymentMutator,
+			//openshift.DeploymentConfigMutator,
+			istio.DestinationRuleMutator,
+			istio.VirtualServiceMutator,
+		},
+		Revertors: []model.Revertor{
+			k8s.DeploymentRevertor,
+			//openshift.DeploymentConfigRevertor,
+			istio.DestinationRuleRevertor,
+			istio.VirtualServiceRevertor,
+		},
+	}
+}
 
 // Add creates a new Session Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -39,6 +59,11 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: defaultManipulators()}
+}
+
+// NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager
+func NewStandaloneReconciler(c client.Client, m Manipulators) reconcile.Reconciler {
+	return &ReconcileSession{client: c, manipulators: m}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -63,27 +88,6 @@ type Manipulators struct {
 	Locators  []model.Locator
 	Mutators  []model.Mutator
 	Revertors []model.Revertor
-}
-
-func defaultManipulators() Manipulators {
-	return Manipulators{
-		Locators: []model.Locator{
-			k8s.DeploymentLocator,
-			//openshift.DeploymentConfigLocator,
-		},
-		Mutators: []model.Mutator{
-			k8s.DeploymentMutator,
-			//openshift.DeploymentConfigMutator,
-			istio.DestinationRuleMutator,
-			istio.VirtualServiceMutator,
-		},
-		Revertors: []model.Revertor{
-			k8s.DeploymentRevertor,
-			//openshift.DeploymentConfigRevertor,
-			istio.DestinationRuleRevertor,
-			istio.VirtualServiceRevertor,
-		},
-	}
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}
@@ -124,13 +128,13 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	deleted := session.DeletionTimestamp != nil
 	if deleted {
 		reqLogger.Info("Deleted session")
-		if !session.HasFinalizer(finalizer) {
+		if !session.HasFinalizer(Finalizer) {
 			return reconcile.Result{}, nil
 		}
 	} else {
 		reqLogger.Info("Added session")
-		if !session.HasFinalizer(finalizer) {
-			session.AddFinalizer(finalizer)
+		if !session.HasFinalizer(Finalizer) {
+			session.AddFinalizer(Finalizer)
 			if err := r.client.Update(ctx, session); err != nil {
 				ctx.Log.Error(err, "Failed to add finalizer on session")
 			}
@@ -148,7 +152,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	if deleted {
-		session.RemoveFinalizer(finalizer)
+		session.RemoveFinalizer(Finalizer)
 		if err := r.client.Update(ctx, session); err != nil {
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
 		}

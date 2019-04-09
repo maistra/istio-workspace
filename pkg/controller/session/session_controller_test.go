@@ -1,10 +1,11 @@
-package session
+package session_test
 
 import (
 	"context"
 	"time"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/aslakknutsen/istio-workspace/pkg/controller/session"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,23 +26,23 @@ var (
 var _ = Describe("Basic session manipulation", func() {
 	var (
 		objects                    []runtime.Object
-		controller                 ReconcileSession
+		controller                 reconcile.Reconciler
 		req                        reconcile.Request
 		schema                     *runtime.Scheme
+		c                          client.Client
 		locator, mutator, revertor = &trackedLocator{Action: notFoundTestLocator}, &trackedMutator{Action: emptyTestMutator}, &trackedRevertor{Action: emptyTestRevertor}
 	)
-	GetClient := func(c *ReconcileSession) func() client.Client { return func() client.Client { return c.client } }(&controller)
-	GetSession := func(c func() client.Client) func(namespace, name string) v1alpha1.Session {
+	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
 			s := v1alpha1.Session{}
-			err := c().Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+			err := (*c).Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 			Expect(err).ToNot(HaveOccurred())
 			return s
 		}
-	}(GetClient)
+	}(&c)
 
 	JustBeforeEach(func() {
-		manipulators := Manipulators{
+		manipulators := session.Manipulators{
 			Locators:  []model.Locator{locator.Do},
 			Mutators:  []model.Mutator{mutator.Do},
 			Revertors: []model.Revertor{revertor.Do},
@@ -54,10 +55,8 @@ var _ = Describe("Basic session manipulation", func() {
 				Namespace: "test",
 			},
 		}
-		controller = ReconcileSession{
-			client:       fake.NewFakeClientWithScheme(schema, objects...),
-			manipulators: manipulators,
-		}
+		c = fake.NewFakeClientWithScheme(schema, objects...)
+		controller = session.NewStandaloneReconciler(c, manipulators)
 	})
 
 	Context("session creation", func() {
@@ -136,16 +135,16 @@ var _ = Describe("Basic session manipulation", func() {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:       "test-session",
 							Namespace:  "test",
-							Finalizers: []string{finalizer},
+							Finalizers: []string{session.Finalizer},
 						},
-
 						Spec: v1alpha1.SessionSpec{
 							Refs: []string{"details", "details2"},
 						},
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
 								{
-									Name: "details",
+									Name:      "details",
+									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 								},
 							},
 						},
@@ -178,9 +177,8 @@ var _ = Describe("Basic session manipulation", func() {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:       "test-session",
 							Namespace:  "test",
-							Finalizers: []string{finalizer},
+							Finalizers: []string{session.Finalizer},
 						},
-
 						Spec: v1alpha1.SessionSpec{
 							Refs: []string{},
 						},
@@ -220,9 +218,8 @@ var _ = Describe("Basic session manipulation", func() {
 						Name:              "test-session",
 						Namespace:         "test",
 						DeletionTimestamp: &metav1.Time{Time: time.Now()},
-						Finalizers:        []string{finalizer},
+						Finalizers:        []string{session.Finalizer},
 					},
-
 					Spec: v1alpha1.SessionSpec{
 						Refs: []string{"details"},
 					},
