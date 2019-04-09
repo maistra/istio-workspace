@@ -69,7 +69,7 @@ func (c *client) Delete(session *istiov1alpha1.Session) error {
 	return nil
 }
 
-func (c *client) getSession(sessionName string) (*istiov1alpha1.Session, error) {
+func (c *client) Get(sessionName string) (*istiov1alpha1.Session, error) {
 	session, err := c.client.IstioV1alpha1().Sessions(c.namespace).Get(sessionName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err

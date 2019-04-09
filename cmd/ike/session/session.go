@@ -46,7 +46,7 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
 func createOrJoinSession(sessionName, ref string) (string, error) {
-	session, err := DefaultClient().getSession(sessionName)
+	session, err := DefaultClient().Get(sessionName)
 	if err != nil {
 		err = createSession(sessionName, ref)
 		if err != nil {
@@ -86,7 +86,7 @@ func createSession(sessionName, ref string) error {
 func waitForRefToComplete(sessionName, ref string) (string, error) {
 	var name string
 	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
-		sessionStatus, err := DefaultClient().getSession(sessionName)
+		sessionStatus, err := DefaultClient().Get(sessionName)
 		if err != nil {
 			return false, nil
 		}
@@ -110,7 +110,7 @@ func waitForRefToComplete(sessionName, ref string) (string, error) {
 }
 
 func removeOrLeaveSession(sessionName, ref string) {
-	session, err := DefaultClient().getSession(sessionName)
+	session, err := DefaultClient().Get(sessionName)
 	if err != nil {
 		return // assume missing, nothing to clean?
 	}
