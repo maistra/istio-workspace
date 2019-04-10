@@ -41,7 +41,7 @@ func StatusesToRef(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeP
 	return refs
 }
 
-// StatusToRef filles the ResourceStatus of a Ref based on the Session.Status.Refs with the same name
+// StatusToRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name
 func StatusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
