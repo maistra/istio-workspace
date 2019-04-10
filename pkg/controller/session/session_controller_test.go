@@ -96,7 +96,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.ObjectMeta.Finalizers).To(HaveLen(1))
 			})
 
-			It("found locator", func() {
+			It("mutate when target is located", func() {
 				locator.Action = foundTestLocator
 
 				res, err := controller.Reconcile(req)
@@ -106,8 +106,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 			})
-
-			It("status created", func() {
+			It("revertors not called when mutation occure", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = basicTestMutator(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
 
@@ -118,6 +117,14 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 				Expect(revertor.WasCalled).ToNot(BeTrue())
+			})
+			It("status is updated when mutation occure", func() {
+				locator.Action = foundTestLocator
+				mutator.Action = basicTestMutator(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
+
+				res, err := controller.Reconcile(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
@@ -151,7 +158,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("status updated", func() {
+			It("revertors not called when mutation occure", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = basicTestMutator(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
 
@@ -162,6 +169,14 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 				Expect(revertor.WasCalled).ToNot(BeTrue())
+			})
+			It("existing status is updated when new mutation occure", func() {
+				locator.Action = foundTestLocator
+				mutator.Action = basicTestMutator(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
+
+				res, err := controller.Reconcile(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
@@ -193,7 +208,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("status removed", func() {
+			It("revertors called when ref removed", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = basicTestRevertor("test", "details")
 				res, err := controller.Reconcile(req)
@@ -203,6 +218,14 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 				Expect(revertor.WasCalled).To(BeTrue())
+			})
+
+			It("status removed when ref removed", func() {
+				locator.Action = foundTestLocator
+				revertor.Action = basicTestRevertor("test", "details")
+				res, err := controller.Reconcile(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
@@ -234,7 +257,7 @@ var _ = Describe("Basic session manipulation", func() {
 				},
 			}
 		})
-		It("references removed", func() {
+		It("revertors call when session removed", func() {
 			locator.Action = foundTestLocator
 			revertor.Action = basicTestRevertor("test", "details")
 			res, err := controller.Reconcile(req)
@@ -244,6 +267,13 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(locator.WasCalled).To(BeTrue())
 			Expect(mutator.WasCalled).To(BeTrue())
 			Expect(revertor.WasCalled).To(BeTrue())
+		})
+		It("status removed when session removed", func() {
+			locator.Action = foundTestLocator
+			revertor.Action = basicTestRevertor("test", "details")
+			res, err := controller.Reconcile(req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res.Requeue).To(BeFalse())
 
 			modified := GetSession("test", "test-session")
 			Expect(modified.Status).ToNot(BeNil())

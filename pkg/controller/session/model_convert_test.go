@@ -54,7 +54,7 @@ var _ = Describe("Basic model convertion", func() {
 			Expect(*sess.Status.Refs[0].Resources[2].Action).To(Equal("failed"))
 		})
 
-		Context("ref update based on name", func() {
+		Context("exists in status", func() {
 			BeforeEach(func() {
 				sess = v1alpha1.Session{
 					Status: v1alpha1.SessionStatus{
@@ -72,13 +72,13 @@ var _ = Describe("Basic model convertion", func() {
 				}
 			})
 
-			It("update ref in status if changed", func() {
+			It("update status if existing found", func() {
 				Expect(sess.Status.Refs).To(HaveLen(1))
 				Expect(sess.Status.Refs[0].Resources).To(HaveLen(3))
 				Expect(*sess.Status.Refs[0].Resources[0].Action).To(Equal("created"))
 			})
 		})
-		Context("ref add when different name", func() {
+		Context("missing in status", func() {
 			BeforeEach(func() {
 				sess = v1alpha1.Session{
 					Status: v1alpha1.SessionStatus{
@@ -96,9 +96,10 @@ var _ = Describe("Basic model convertion", func() {
 				}
 			})
 
-			It("append ref in status if no name match", func() {
+			It("append to status if no name match", func() {
 				Expect(sess.Status.Refs).To(HaveLen(2))
 				Expect(sess.Status.Refs[0].Resources).To(HaveLen(1))
+				Expect(*sess.Status.Refs[0].Resources[0].Action).To(Equal("failed"))
 				Expect(sess.Status.Refs[1].Resources).To(HaveLen(3))
 				Expect(*sess.Status.Refs[1].Resources[0].Action).To(Equal("created"))
 			})
