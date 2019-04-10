@@ -44,6 +44,7 @@ linters:
 run:
   skip-dirs:
     - ./pkg/apis/istio
+    - ./pkg/client/clientset
 
 service:
   project-path: github.com/aslakknutsen/istio-workspace

@@ -1,17 +1,13 @@
 package session
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os/user"
 	"time"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
-
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-
-	helper "github.com/aslakknutsen/istio-workspace/pkg/istio"
+	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,6 +29,7 @@ func Offline(cmd *cobra.Command) (func(), error) {
 func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	sessionName := getSessionName(cmd)
 	deploymentName, _ := cmd.Flags().GetString("deployment")
+
 	serviceName, err := createOrJoinSession(sessionName, deploymentName)
 	if err != nil {
 		return func() {}, err
@@ -49,8 +46,7 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
 func createOrJoinSession(sessionName, ref string) (string, error) {
-
-	session, err := getSession(sessionName)
+	session, err := DefaultClient().Get(sessionName)
 	if err != nil {
 		err = createSession(sessionName, ref)
 		if err != nil {
@@ -61,7 +57,7 @@ func createOrJoinSession(sessionName, ref string) (string, error) {
 	// join session
 
 	session.Spec.Refs = append(session.Spec.Refs, ref)
-	err = applySession(session)
+	err = DefaultClient().Create(session)
 	if err != nil {
 		return "", err
 	}
@@ -83,27 +79,14 @@ func createSession(sessionName, ref string) error {
 			},
 		},
 	}
-	return applySession(session)
-}
 
-func applySession(session istiov1alpha1.Session) error { //nolint[:hugeParam]
-	b, err := json.Marshal(session)
-	if err != nil {
-		return err
-	}
-	sessionData := string(b)
-	resp, err := helper.ExecuteOCCMD(&sessionData, fmt.Sprintf("oc apply -f -"))
-	if err != nil {
-		return err
-	}
-	fmt.Println(resp)
-	return nil
+	return DefaultClient().Create(&session)
 }
 
 func waitForRefToComplete(sessionName, ref string) (string, error) {
 	var name string
 	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
-		sessionStatus, err := getSession(sessionName)
+		sessionStatus, err := DefaultClient().Get(sessionName)
 		if err != nil {
 			return false, nil
 		}
@@ -126,21 +109,8 @@ func waitForRefToComplete(sessionName, ref string) (string, error) {
 	return name, nil
 }
 
-func getSession(sessionName string) (istiov1alpha1.Session, error) {
-	status, err := helper.ExecuteOCCMD(nil, fmt.Sprintf("oc get session %v -o json", sessionName))
-	if err != nil {
-		return istiov1alpha1.Session{}, err
-	}
-	sessionStatus := istiov1alpha1.Session{}
-	err = json.Unmarshal([]byte(status), &sessionStatus)
-	if err != nil {
-		return istiov1alpha1.Session{}, err
-	}
-	return sessionStatus, nil
-}
-
 func removeOrLeaveSession(sessionName, ref string) {
-	session, err := getSession(sessionName)
+	session, err := DefaultClient().Get(sessionName)
 	if err != nil {
 		return // assume missing, nothing to clean?
 	}
@@ -151,15 +121,10 @@ func removeOrLeaveSession(sessionName, ref string) {
 		}
 	}
 	if len(session.Spec.Refs) == 0 {
-		removeSession(sessionName)
+		_ = DefaultClient().Delete(session)
 	} else {
-		_ = applySession(session)
+		_ = DefaultClient().Create(session)
 	}
-}
-
-func removeSession(sessionName string) {
-	resp, _ := helper.ExecuteOCCMD(nil, fmt.Sprintf("oc delete session %v", sessionName))
-	fmt.Println(resp)
 }
 
 func getSessionName(cmd *cobra.Command) string {

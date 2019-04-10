@@ -54,21 +54,27 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
+GROUP_VERSIONS:="istio:v1alpha1"
 .PHONY: codegen
 codegen: install-operator-sdk ## Generates operator-sdk code
 	$(call header,"Generates operator-sdk code")
 	$(CUR_DIR)/bin/operator-sdk generate k8s
+	$(call header,"Generates clientset code")
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
+		$(PACKAGE_NAME)/pkg/client \
+		$(PACKAGE_NAME)/pkg/apis \
+		$(GROUP_VERSIONS)
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
-.PHONY: test ## Runs tests
-test: codegen
+.PHONY: test
+test: codegen ## Runs tests
 	$(call header,"Running tests")
 	ginkgo -r -v --skipPackage=e2e ${args}
 
-.PHONY: test-e2e ## Runs end-to-end tests
-test-e2e: codegen
+.PHONY: test-e2e
+test-e2e: codegen ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
 	ginkgo e2e/ -v -p ${args}
 
