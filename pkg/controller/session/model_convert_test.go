@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Basic model convertion", func() {
+var _ = Describe("Basic model conversion", func() {
 
 	var (
 		kind, name, aFailed, aCreated = "test", "1", "failed", "created"
