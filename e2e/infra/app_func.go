@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-// Login logins to the bookinfo app and returns the cookies
+// Login perform log in to the bookinfo app and returns the cookies
 func Login(rawURL, user, password string) (string, []*http.Cookie, error) {
 	form := url.Values{}
 	form["username"] = []string{user}

@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: session_developer
+subjects:
+  - kind: User
+    name: developer
+roleRef:
+  kind: Role
+  name: sessions
+  apiGroup: rbac.authorization.k8s.io

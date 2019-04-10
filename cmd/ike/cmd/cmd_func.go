@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
@@ -51,7 +52,8 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	done := command.Start()
 	ShutdownHook(command, done)
 	RedirectStreams(command, os.Stdout, os.Stderr, done)
-	fmt.Printf("executing: [%s %v]\n", command.Name, command.Args)
+	commandString := command.Name + " " + strings.Join(command.Args, " ")
+	fmt.Printf("executing: [%s]\n", commandString)
 	return command
 }
 
