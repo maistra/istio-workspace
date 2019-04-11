@@ -34,6 +34,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 	return true
 }
 
+// DeploymentMutator attempts to clone the located Deployment
 func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
@@ -57,6 +58,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	return nil
 }
 
+// DeploymentRevertor attempts to delete the cloned Deployment
 func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	statuses := ref.GetResourceStatus(DeploymentKind)
 	for _, status := range statuses {

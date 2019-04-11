@@ -195,15 +195,16 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
+			deployment := appsv1.Deployment{}
+
+			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
 			revertorErr := k8s.DeploymentRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(BeEmpty())
-			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/hello-world:latest"))
+			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+			Expect(revertedFetchErr).To(HaveOccurred())
 		})
 
 	})
