@@ -408,6 +408,12 @@
   version = "v1.5.0"
 
 [[projects]]
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  digest = "1:674610d54812d3c36ab7861fc826176bf581a9426cc09abec0107414c17f89cd"
+=======
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   digest = "1:8bc8f43d2332d035857c92581df240f247c287629d5f60c751df609f9b6215c5"
   name = "github.com/openshift/api"
   packages = ["apps/v1"]
@@ -416,7 +422,12 @@
   version = "v3.9.0"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:fe3c97fb1956829a81d7b8221b4710c40d6dae2c6c3b4d222db5b7f96c975d99"
+=======
+  digest = "1:0bd15e3e708ab1ccba566b024fcf9982b51a3ab8498d53c8d416dd8f3f9b8211"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -438,12 +449,21 @@
   version = "v1.2"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "NT"
   revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
   version = "v1.4.0"
+=======
+  digest = "1:527ecbc8c12b202521f46e1b1547bbb8632b0294386cd05b91f65fa5a4a70fab"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
+  version = "v1.3.0"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 
 [[projects]]
   branch = "master"
@@ -494,13 +514,20 @@
   version = "v0.4.1"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:97d1394f698fbb4694376afc8cda6c63558cdcfbca58fc4b2426d3ff4bb0b133"
+=======
+  branch = "master"
+<<<<<<< HEAD
+  digest = "1:bca8581280a9ba8187941c57f08a89baeaeb87e97f3f093c9a59928425e7bde3"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
     "internal/fs",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "833678b5bb319f2d20a475cb165c6cc59c2cc77c"
   version = "v0.0.2"
 
@@ -511,6 +538,16 @@
   packages = ["."]
   pruneopts = "NT"
   revision = "d3107576ba9425fc1c85f4b3569c4631b805a02e"
+=======
+  revision = "bc6930f2d5103de3e494ee4f4dc68c195271c57b"
+=======
+  digest = "1:75f1b9f32d4d204eac68f3427bc4642453fb4fe20f1596ec058757f01dc16e7b"
+  name = "github.com/prometheus/procfs"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "ea9eea63887261e4d8ed8315f4078e88d540c725"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 
 [[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
@@ -607,7 +644,12 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:c519d84f84199354518c9f2a2dc9bb2fa914e77d32d2ecdc3eb574236cb5effd"
+=======
+<<<<<<< HEAD
+  digest = "1:85c335c09ff58cc10c7829a57d0dc6543c30ea033bae85231857cf48a28c3850"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
@@ -615,7 +657,22 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:148a0a79ec9a3136d61653f3ba76dbd755637aa671370b641d7364d167e813c6"
+=======
+  digest = "1:0df70eb73174e6e58e2c986150b16c61859bea5a7b1a1801f37e12fb1c8ab8d1"
+=======
+  digest = "1:2c0b9b49d155596fecc071bce8db372c193f638265c11ab24914aae99fcfa704"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "NT"
+  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
+
+[[projects]]
+  branch = "master"
+  digest = "1:63708a2bcd353bb6b8392bf265d125c6a11ba8ae284e3548ef75360f11118fdd"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -629,7 +686,15 @@
     "idna",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
+=======
+<<<<<<< HEAD
+  revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
+=======
+  revision = "eb5bcb51f2a31c7d5141d810b70815c05d9c9146"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 
 [[projects]]
   branch = "master"
@@ -644,14 +709,30 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:91b9650a77dd69879c7042591ba704b9ae1dc09ecea3ccddb795e6de3b8453e5"
+=======
+<<<<<<< HEAD
+  digest = "1:4c39e51b435c599624c59051ed37b43a8d1dc12110179fa08fe3643d2dd07bee"
+=======
+  digest = "1:dce1fe2a2ee4028c0914e78d251d199368b4c7fcccb86bdadcd3e2191a93a63f"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
+=======
+<<<<<<< HEAD
+  revision = "2953c62de483abe29031e197e72d3b7061f65f91"
+=======
+  revision = "0ad05ae3009d6413d3363aa09b350b2ec37daf09"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -701,7 +782,15 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
+=======
+<<<<<<< HEAD
+  digest = "1:0e4f8006240b946ed8f591a5c5a86862073ff7ee0dee921a6fa76372caf182c6"
+=======
+  digest = "1:d2e182976cb693e215f0e60768da50faf7e7702bd8b674edd59b9d8244fbd882"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -718,7 +807,15 @@
     "internal/semver",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "8aaa1484dc108aa23dcf2d4a09371c0c9e280f6b"
+=======
+<<<<<<< HEAD
+  revision = "2d16b83fe98cd1bed9e2ce9fdc86bd438d14aab7"
+=======
+  revision = "2538eef75904eff384a2551359968e40c207d9d2"
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+>>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"
