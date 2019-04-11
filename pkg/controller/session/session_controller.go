@@ -21,7 +21,7 @@ import (
 )
 
 const (
-// Finalizer defines the Finalizer name owned by the Session reconciler
+	// Finalizer defines the Finalizer name owned by the Session reconciler
 	Finalizer = "finalizers.istio.workspace.session"
 )
 

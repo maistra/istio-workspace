@@ -47,7 +47,7 @@ func DefaultClient() *client { //nolint[:golint] otherwise golint complains abou
 		if err != nil {
 			log.Panicf("failed to create default client: %s", err)
 		}
-		
+
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
 			log.Panicf("failed to create default client: %s", err)

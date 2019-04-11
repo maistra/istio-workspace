@@ -2,7 +2,8 @@ package k8s_test
 
 import (
 	"context"
-	"k8s.io/api/core/v1"
+
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
@@ -106,7 +107,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 								Containers: []v1.Container{
 									{
 										Image: "datawire/hello-world:latest",
-										Env: []v1.EnvVar{},
+										Env:   []v1.EnvVar{},
 									},
 								},
 							},
@@ -179,7 +180,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 								Containers: []v1.Container{
 									{
 										Image: "datawire/hello-world:latest",
-										Env: []v1.EnvVar{},
+										Env:   []v1.EnvVar{},
 									},
 								},
 							},
@@ -198,7 +199,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(revertorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name }, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(BeEmpty())
