@@ -1,6 +1,7 @@
 package openshift
 
 import (
+	"github.com/maistra/istio-workspace/pkg/apis"
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -10,6 +11,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+func init() {
+	apis.AddToSchemes = append(apis.AddToSchemes, appsv1.SchemeBuilder.AddToScheme)
+}
 
 const (
 	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig
@@ -27,7 +32,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool { //
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
 			return false
 		}
-		ctx.Log.Error(nil, "Could not get Deployment", "name", deployment.Name)
+		ctx.Log.Error(nil, "Could not get DeploymentConfig", "name", deployment.Name)
 		return false
 	}
 	return true
@@ -41,18 +46,21 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error { /
 
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
-	ctx.Log.Info("Found Deployment", "name", ref.Name)
+	ctx.Log.Info("Found DeploymentConfig", "name", ref.Name)
 
 	deploymentClone := cloneDeployment(deployment.DeepCopy())
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
-		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
+		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionFailed})
 		return err
 	}
-	ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
+	ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
 	ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionCreated})
 	return nil
 }
@@ -81,7 +89,7 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error { 
 
 func cloneDeployment(deployment *appsv1.DeploymentConfig) *appsv1.DeploymentConfig {
 	deploymentClone := deployment.DeepCopy()
-	labelsClone := deploymentClone.GetLabels()
+	labelsClone := deploymentClone.Spec.Selector
 	labelsClone["version"] += "-test"
 	labelsClone["telepresence"] = "test"
 	deploymentClone.SetName(deployment.GetName() + "-test")

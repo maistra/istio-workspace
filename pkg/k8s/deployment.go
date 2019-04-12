@@ -44,6 +44,9 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
 	ctx.Log.Info("Found Deployment", "name", ref.Name)
