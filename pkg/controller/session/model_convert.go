@@ -14,7 +14,7 @@ const (
 )
 
 // RefToStatus appends/replaces the Ref in the provided Session.Status.Ref list
-func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) {
+func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:hugeParam]
 	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
 	if ref.Target.Name != "" {
 		action := string(ref.Target.Action)
