@@ -33,6 +33,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 		return false
 	}
+	ref.Target = model.ResourceStatus{Kind: DeploymentKind, Name: deployment.Name, Action: model.ActionLocated}
 	return true
 }
 
@@ -41,7 +42,9 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
 	}
-
+	if !ref.HasTarget(DeploymentKind) {
+		return nil
+	}
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {

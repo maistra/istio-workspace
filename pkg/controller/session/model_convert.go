@@ -16,6 +16,10 @@ const (
 // RefToStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
+	if ref.Target.Name != "" {
+		action := string(ref.Target.Action)
+		statusRef.Target = &istiov1alpha1.RefResource{Kind: &ref.Target.Kind, Name: &ref.Target.Name, Action: &action}
+	}
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
 		action := string(rs.Action)
@@ -53,6 +57,9 @@ func StatusesToRef(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeP
 func StatusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
+			if statusRef.Target != nil {
+				ref.Target = model.ResourceStatus{Kind: *statusRef.Target.Kind, Name: *statusRef.Target.Name, Action: model.ResourceAction(*statusRef.Target.Action)}
+			}
 			for _, resource := range statusRef.Resources {
 				r := resource
 				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action)})

@@ -28,7 +28,13 @@ type Route struct {
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
 type Ref struct {
 	Name             string
+	Target           ResourceStatus
 	ResourceStatuses []ResourceStatus
+}
+
+// HasTarget checks if current Target hasis of a given Kind
+func (r *Ref) HasTarget(kind string) bool {
+	return r.Target.Kind == kind
 }
 
 // AddResourceStatus adds the status of an involved Resource to this ref
@@ -83,6 +89,8 @@ const (
 	ActionModified ResourceAction = "modified"
 	// ActionFailed imply what ever was attempted failed. Assume current state is ok in clean up?
 	ActionFailed ResourceAction = "failed"
+	// ActionLocated imply the resource was found, but nothing was changed.
+	ActionLocated ResourceAction = "located"
 )
 
 // Locator should attempt to resolve a Ref.Name to a target Named kind, e.g. Deployment, DeploymentConfig.

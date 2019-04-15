@@ -49,6 +49,11 @@ func (in *RefStatus) DeepCopyInto(out *RefStatus) {
 			(*out)[key] = val
 		}
 	}
+	if in.Target != nil {
+		in, out := &in.Target, &out.Target
+		*out = new(RefResource)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Resources != nil {
 		in, out := &in.Resources, &out.Resources
 		*out = make([]*RefResource, len(*in))

@@ -29,6 +29,7 @@ type SessionStatus struct {
 type RefStatus struct {
 	Name      string            `json:"name,omitempty"`
 	Params    map[string]string `json:"params,omitempty"`
+	Target    *RefResource      `json:"target,omitempty"`
 	Resources []*RefResource    `json:"resources,omitempty"`
 }
 
