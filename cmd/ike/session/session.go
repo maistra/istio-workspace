@@ -106,7 +106,7 @@ func parseRoute(route string) (*istiov1alpha1.Route, error) {
 	t = typed[0]
 
 	pair := strings.Split(typed[1], "=")
-	if len(typed) != 2 {
+	if len(pair) != 2 {
 		return nil, fmt.Errorf("route in wrong format type:name=value")
 	}
 	n, v = pair[0], pair[1]

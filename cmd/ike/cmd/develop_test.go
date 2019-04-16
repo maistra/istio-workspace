@@ -87,6 +87,12 @@ var _ = Describe("Usage of ike develop command", func() {
 				Expect(developCmd.Flag("method").Value.String()).To(Equal("inject-tcp"))
 			})
 
+			It("should be able to provide the traffic route parameter", func() {
+				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java", "--route", "header:name=value")
+
+				Expect(err).NotTo(HaveOccurred())
+			})
+
 		})
 
 		Context("with config file", func() {
