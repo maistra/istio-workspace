@@ -11,5 +11,5 @@ import (
 
 func TestK8(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "K8 object Suite")
+	RunSpecWithJUnitReporter(t, "k8s object Suite")
 }

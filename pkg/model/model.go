@@ -54,7 +54,7 @@ func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 	}
 }
 
-// GetResourceStatus returns a array of involved Resources based on a k8 Kind
+// GetResourceStatus returns a array of involved Resources based on a k8s Kind
 func (r *Ref) GetResourceStatus(kind string) []ResourceStatus {
 	refs := []ResourceStatus{}
 	for _, status := range r.ResourceStatuses {
@@ -69,7 +69,7 @@ func (r *Ref) GetResourceStatus(kind string) []ResourceStatus {
 type ResourceStatus struct {
 	Kind string
 	Name string
-	// Created, Mutated
+	// created, mutated, failed
 	Action ResourceAction
 }
 
@@ -94,5 +94,5 @@ type Locator func(SessionContext, *Ref) bool
 type Mutator func(SessionContext, *Ref) error
 
 // Revertor should delete/modify a target Kind to return to the original state after a Mutator
-// * Remove status from Ref unless failure that requires retry
+// * Remove status from Ref unless there is a failure that requires retry
 type Revertor func(SessionContext, *Ref) error

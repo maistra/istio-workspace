@@ -1,6 +1,8 @@
 package istio
 
 import (
+	"github.com/aslakknutsen/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -36,16 +38,18 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			JustBeforeEach(func() {
-				mutatedDestinationRule, err = mutateDestinationRule(destinationRule)
+				mutatedDestinationRule, err = mutateDestinationRule(destinationRule, "dr-test")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("new subset added", func() {
 				Expect(mutatedDestinationRule.Spec.Subsets).To(HaveLen(3))
 			})
+
 			It("new subset added with name", func() {
-				Expect(mutatedDestinationRule.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+				Expect(mutatedDestinationRule.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("dr-test"))))
 			})
+
 		})
 	})
 
@@ -58,22 +62,28 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 			var (
 				revertedDestinationRule istionetwork.DestinationRule
+				ctx                     model.SessionContext
 			)
 
 			BeforeEach(func() {
 				yaml = simpleMutatedDestinationRule
-			})
-
-			JustBeforeEach(func() {
-				revertedDestinationRule, err = revertDestinationRule(destinationRule)
-				Expect(err).ToNot(HaveOccurred())
+				ctx = model.SessionContext{
+					Name: "dr-test",
+				}
 			})
 
 			It("new subset removed", func() {
+				revertedDestinationRule, err = revertDestinationRule(destinationRule, ctx)
+				Expect(err).ToNot(HaveOccurred())
+
 				Expect(revertedDestinationRule.Spec.Subsets).To(HaveLen(2))
 			})
+
 			It("correct subset removed", func() {
-				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+				revertedDestinationRule, err = revertDestinationRule(destinationRule, ctx)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("dr-test"))))
 			})
 		})
 	})
@@ -119,6 +129,6 @@ spec:
       version: v2
     name: v2
   - labels:
-      version: v1-test
-    name: v1-test
+      version: dr-test
+    name: dr-test
 `

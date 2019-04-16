@@ -180,6 +180,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 		}
 	}
 }
+
 func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
 	for _, ref := range refs {
 		if err := r.delete(ctx, session, ref); err != nil {
@@ -203,9 +204,9 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 }
 
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
-	for _, sref := range session.Spec.Refs {
-		ctx.Log.Info("Add ref", "name", sref)
-		ref := model.Ref{Name: sref}
+	for _, specRef := range session.Spec.Refs {
+		ctx.Log.Info("Add ref", "name", specRef)
+		ref := model.Ref{Name: specRef}
 		err := r.sync(ctx, session, &ref)
 		if err != nil {
 			return err
