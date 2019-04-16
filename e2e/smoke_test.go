@@ -112,6 +112,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				"--method", "inject-tcp",
 				"--watch",
 				"--run", "ruby details.rb 9080",
+				"--route", "header:end-user=jason",
 			)
 
 			// ensure the new service is running
