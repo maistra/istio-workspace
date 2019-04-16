@@ -108,17 +108,9 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
-	ctx := model.SessionContext{
-		Context:   context.TODO(),
-		Name:      request.Name,
-		Namespace: request.Namespace,
-		Log:       reqLogger,
-		Client:    r.client,
-	}
-
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}
-	err := r.client.Get(ctx, request.NamespacedName, session)
+	err := r.client.Get(context.TODO(), request.NamespacedName, session)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -126,6 +118,16 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+
+	ctx := model.SessionContext{
+		Context:   context.TODO(),
+		Name:      request.Name,
+		Namespace: request.Namespace,
+		Route:     RouteToRoute(session),
+		Log:       reqLogger,
+		Client:    r.client,
+	}
+
 	deleted := session.DeletionTimestamp != nil
 	if deleted {
 		reqLogger.Info("Deleted session")

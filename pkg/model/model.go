@@ -13,8 +13,16 @@ type SessionContext struct {
 
 	Name      string
 	Namespace string
+	Route     Route
 	Client    client.Client
 	Log       logr.Logger
+}
+
+// Route references the strategy used to route to the target Refs
+type Route struct {
+	Type  string
+	Name  string
+	Value string
 }
 
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
