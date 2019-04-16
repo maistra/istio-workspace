@@ -68,7 +68,7 @@ func createOrJoinSession(sessionName, route, ref string) (string, error) {
 }
 
 func createSession(sessionName, route, ref string) error {
-	r, err := parseRoute(route)
+	r, err := ParseRoute(route)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func createSession(sessionName, route, ref string) error {
 	return DefaultClient().Create(&session)
 }
 
-func parseRoute(route string) (*istiov1alpha1.Route, error) {
+func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 	if route == "" {
 		return nil, nil
 	}

@@ -1,6 +1,8 @@
-package session
+package session_test
 
 import (
+	"github.com/aslakknutsen/istio-workspace/cmd/ike/session"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -10,23 +12,23 @@ var _ = Describe("Session operations", func() {
 	Context("route parsing", func() {
 
 		It("should return nil with no error on empty string", func() {
-			r, err := parseRoute("")
+			r, err := session.ParseRoute("")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(r).To(BeNil())
 		})
 
 		It("should error on wrong type format", func() {
-			_, err := parseRoute("a=b")
+			_, err := session.ParseRoute("a=b")
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("should error on wrong value format", func() {
-			_, err := parseRoute("header:a-b")
+			_, err := session.ParseRoute("header:a-b")
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("should return a valid route", func() {
-			r, err := parseRoute("header:a=b")
+			r, err := session.ParseRoute("header:a=b")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(r).ToNot(BeNil())
 
