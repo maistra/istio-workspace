@@ -77,7 +77,8 @@ func NewDevelopCmd() *cobra.Command {
 	}
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
-	developCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. Defaults to X-Workspace-Route header with current session name value")
+	developCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. " +
+		"Defaults to X-Workspace-Route header with current session name value")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
