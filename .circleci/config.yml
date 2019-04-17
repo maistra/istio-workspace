@@ -5,7 +5,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/aslakknutsen/istio-workspace
     docker:
-      - image: circleci/golang:1.12.1
+      - image: circleci/golang:1.12.4
     steps:
       - checkout
       - run: make tools
@@ -18,7 +18,7 @@ jobs:
       - checkout
       - ike/docker_insecure_registry
       - ike/update_golang:
-          version: 1.12.1
+          version: 1.12.4
       - ike/install_telepresence
       - ike/install_maistra:
           version: v3.11.0+maistra-0.9.0
