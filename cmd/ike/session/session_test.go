@@ -20,11 +20,13 @@ var _ = Describe("Session operations", func() {
 		It("should error on wrong type format", func() {
 			_, err := session.ParseRoute("a=b")
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("route in wrong format"))
 		})
 
 		It("should error on wrong value format", func() {
 			_, err := session.ParseRoute("header:a-b")
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("route in wrong format"))
 		})
 
 		It("should return a valid route", func() {
