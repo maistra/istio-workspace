@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os/user"
+	"strings"
 	"time"
 
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
@@ -26,11 +27,13 @@ func Offline(cmd *cobra.Command) (func(), error) {
 // Rely on the following flags:
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
+//  * route - the definition of traffic routing
 func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	sessionName := getSessionName(cmd)
 	deploymentName, _ := cmd.Flags().GetString("deployment")
+	route, _ := cmd.Flags().GetString("route")
 
-	serviceName, err := createOrJoinSession(sessionName, deploymentName)
+	serviceName, err := createOrJoinSession(sessionName, route, deploymentName)
 	if err != nil {
 		return func() {}, err
 	}
@@ -45,10 +48,10 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
-func createOrJoinSession(sessionName, ref string) (string, error) {
+func createOrJoinSession(sessionName, route, ref string) (string, error) {
 	session, err := DefaultClient().Get(sessionName)
 	if err != nil {
-		err = createSession(sessionName, ref)
+		err = createSession(sessionName, route, ref)
 		if err != nil {
 			return "", err
 		}
@@ -64,7 +67,11 @@ func createOrJoinSession(sessionName, ref string) (string, error) {
 	return waitForRefToComplete(sessionName, ref)
 }
 
-func createSession(sessionName, ref string) error {
+func createSession(sessionName, route, ref string) error {
+	r, err := ParseRoute(route)
+	if err != nil {
+		return err
+	}
 	session := istiov1alpha1.Session{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "istio.openshift.com/v1alpha1",
@@ -80,7 +87,34 @@ func createSession(sessionName, ref string) error {
 		},
 	}
 
+	if r != nil {
+		session.Spec.Route = *r
+	}
 	return DefaultClient().Create(&session)
+}
+
+func ParseRoute(route string) (*istiov1alpha1.Route, error) {
+	if route == "" {
+		return nil, nil
+	}
+	var t, n, v string
+
+	typed := strings.Split(route, ":")
+	if len(typed) != 2 {
+		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
+	}
+	t = typed[0]
+
+	pair := strings.Split(typed[1], "=")
+	if len(pair) != 2 {
+		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
+	}
+	n, v = pair[0], pair[1]
+	return &istiov1alpha1.Route{
+		Type:  t,
+		Name:  n,
+		Value: v,
+	}, nil
 }
 
 func waitForRefToComplete(sessionName, ref string) (string, error) {

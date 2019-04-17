@@ -5,6 +5,14 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 )
 
+const (
+	// DefaultRouteHeaderName holds the name of the Header used to route traffic if no Route is provided
+	DefaultRouteHeaderName = "X-Workspace-Route"
+
+	// RouteStrategyHeader holds the Route Type keyword for a Header based Route strategy
+	RouteStrategyHeader = "header"
+)
+
 // RefToStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
@@ -50,5 +58,21 @@ func StatusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:huge
 				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action)})
 			}
 		}
+	}
+}
+
+// RouteToRoute returns the defined route from the session or the Default
+func RouteToRoute(session *istiov1alpha1.Session) model.Route {
+	if session.Spec.Route.Type == "" {
+		return model.Route{
+			Type:  RouteStrategyHeader,
+			Name:  DefaultRouteHeaderName,
+			Value: session.Name,
+		}
+	}
+	return model.Route{
+		Type:  session.Spec.Route.Type,
+		Name:  session.Spec.Route.Name,
+		Value: session.Spec.Route.Value,
 	}
 }

@@ -1,6 +1,8 @@
 package istio
 
 import (
+	"github.com/aslakknutsen/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -26,14 +28,20 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		Context("existing rule", func() {
 			var (
 				mutatedVirtualService istionetwork.VirtualService
+				route                 model.Route
 			)
 
 			BeforeEach(func() {
 				yaml = simpleVirtualService
+				route = model.Route{
+					Type:  "header",
+					Name:  "test",
+					Value: "x",
+				}
 			})
 
 			JustBeforeEach(func() {
-				mutatedVirtualService, err = mutateVirtualService(virtualService)
+				mutatedVirtualService, err = mutateVirtualService(route, virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -45,6 +53,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 			It("first route has subset", func() {
 				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("v1-test"))
+			})
+			It("first route has given header match", func() {
+				Expect(mutatedVirtualService.Spec.Http[0].Match).To(HaveLen(1))
+				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers).To(HaveLen(1))
+				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers["test"]).ToNot(BeNil())
+				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers["test"].GetExact()).To(Equal("x"))
 			})
 		})
 	})

@@ -5,6 +5,8 @@ import (
 	"github.com/aslakknutsen/istio-workspace/pkg/controller/session"
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -150,6 +152,54 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[1].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[1].Resources[0].Kind))
 			Expect(refs[1].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[1].Resources[0].Name))
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
+		})
+
+	})
+	Context("route to route", func() {
+		var (
+			route model.Route
+		)
+		JustBeforeEach(func() {
+			route = session.RouteToRoute(&sess)
+		})
+		Context("missing", func() {
+			BeforeEach(func() {
+				sess = v1alpha1.Session{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "test-session",
+					},
+					Spec: v1alpha1.SessionSpec{
+						Route: v1alpha1.Route{},
+					},
+					Status: v1alpha1.SessionStatus{},
+				}
+			})
+
+			It("should default if no route defined", func() {
+				Expect(route.Type).To(Equal(session.RouteStrategyHeader))
+				Expect(route.Name).To(Equal(session.DefaultRouteHeaderName))
+				Expect(route.Value).To(Equal(sess.ObjectMeta.Name))
+			})
+		})
+		Context("exists", func() {
+			BeforeEach(func() {
+				sess = v1alpha1.Session{
+					Spec: v1alpha1.SessionSpec{
+						Route: v1alpha1.Route{
+							Type:  "header",
+							Name:  "x",
+							Value: "y",
+						},
+					},
+					Status: v1alpha1.SessionStatus{},
+				}
+			})
+
+			It("should map route if provided", func() {
+				Expect(route.Type).To(Equal(sess.Spec.Route.Type))
+				Expect(route.Name).To(Equal(sess.Spec.Route.Name))
+				Expect(route.Value).To(Equal(sess.Spec.Route.Value))
+			})
 		})
 
 	})

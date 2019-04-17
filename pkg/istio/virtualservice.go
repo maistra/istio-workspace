@@ -27,14 +27,14 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 
 	targetName := strings.Split(ref.Name, "-")[0]
 
-	vs, err := getVirtualService2(ctx, ctx.Namespace, targetName)
+	vs, err := getVirtualService(ctx, ctx.Namespace, targetName)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
 	}
 
 	ctx.Log.Info("Found VirtualService", "name", targetName)
-	mutatedVs, err := mutateVirtualService(*vs)
+	mutatedVs, err := mutateVirtualService(ctx.Route, *vs)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -55,7 +55,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	resources := ref.GetResourceStatus(VirtualServiceKind)
 
 	for _, resource := range resources {
-		vs, err := getVirtualService2(ctx, ctx.Namespace, resource.Name)
+		vs, err := getVirtualService(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
@@ -82,7 +82,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	return nil
 }
 
-func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func mutateVirtualService(routeSpec model.Route, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	source := vs.Spec.Http[0]
 
@@ -98,14 +98,16 @@ func mutateVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 		sourceRoutes = append(sourceRoutes, &sourceRoute)
 	}
 
-	route := &v1alpha3.HTTPRoute{
-		Match: []*v1alpha3.HTTPMatchRequest{
-			{
-				Headers: map[string]*v1alpha3.StringMatch{
-					"end-user": {MatchType: &v1alpha3.StringMatch_Exact{Exact: "jason"}},
-				},
+	matches := []*v1alpha3.HTTPMatchRequest{}
+	if routeSpec.Type == "header" {
+		matches = append(matches, &v1alpha3.HTTPMatchRequest{
+			Headers: map[string]*v1alpha3.StringMatch{
+				routeSpec.Name: {MatchType: &v1alpha3.StringMatch_Exact{Exact: routeSpec.Value}},
 			},
-		},
+		})
+	}
+	route := &v1alpha3.HTTPRoute{
+		Match:                 matches,
 		Route:                 sourceRoutes,
 		Redirect:              source.Redirect,
 		AppendHeaders:         source.AppendHeaders,
@@ -137,7 +139,7 @@ func revertVirtualService(vs istionetwork.VirtualService) (istionetwork.VirtualS
 	return vs, nil
 }
 
-func getVirtualService2(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func getVirtualService(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) { //nolint[:hugeParam]
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 	return &virtualService, err
