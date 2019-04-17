@@ -91,6 +91,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java", "--route", "header:name=value")
 
 				Expect(err).NotTo(HaveOccurred())
+				Expect(developCmd.Flag("route").Value.String()).To(Equal("header:name=value"))
 			})
 
 		})
