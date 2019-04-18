@@ -195,6 +195,20 @@ var _ = Describe("Usage of ike develop command", func() {
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
 
+		It("should pass specified parameters and defaults", func() {
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
+				"--run", "java -jar rating.jar",
+				"--namespace", "my-project",
+				"--offline")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(ContainSubstring("--deployment rating-service"))
+			Expect(output).To(ContainSubstring("--namespace my-project"))
+			Expect(output).To(ContainSubstring("--expose 8000"))
+			Expect(output).To(ContainSubstring("--method inject-tcp"))
+			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
+		})
+
 	})
 
 	Context("build execution", func() {
