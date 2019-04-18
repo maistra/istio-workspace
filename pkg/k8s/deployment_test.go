@@ -138,7 +138,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:0.98"))
+				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s"))
 			})
 
 			It("should change add required env variables", func() {
