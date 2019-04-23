@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-// Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
+// Handler is a function to setup a server sessionName before attempting to connect. Returns a 'cleanup' function.
 type Handler func(cmd *cobra.Command) (func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing
@@ -23,17 +23,33 @@ func Offline(cmd *cobra.Command) (func(), error) {
 	return func() {}, nil
 }
 
-// CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
+type handler struct {
+	c           *client
+	ref,
+	namespace,
+	sessionName,
+	route       string
+}
+
+// CreateOrJoinHandler provides the option to either create a new sessionName if non exist or join an existing.
 // Rely on the following flags:
+//  * namespace - the name of the target namespace where deployment is defined
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
-//  * session - the name of the session
+//  * sessionName - the name of the sessionName
 //  * route - the definition of traffic routing
 func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
-	sessionName := getSessionName(cmd)
 	deploymentName, _ := cmd.Flags().GetString("deployment")
+	namespace, _ := cmd.Flags().GetString("namespace")
 	route, _ := cmd.Flags().GetString("route")
+	sessionName := getSessionName(cmd)
 
-	serviceName, err := createOrJoinSession(sessionName, route, deploymentName)
+	h := &handler{c: DefaultClient(namespace),
+		ref:         deploymentName,
+		namespace:   namespace,
+		route:       route,
+		sessionName: sessionName}
+
+	serviceName, err := h.createOrJoinSession()
 	if err != nil {
 		return func() {}, err
 	}
@@ -43,32 +59,32 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	}
 
 	return func() {
-		removeOrLeaveSession(sessionName, deploymentName)
+		h.removeOrLeaveSession()
 	}, nil
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
-func createOrJoinSession(sessionName, route, ref string) (string, error) {
-	session, err := DefaultClient().Get(sessionName)
+func (h *handler) createOrJoinSession() (string, error) {
+
+	session, err := h.c.Get(h.sessionName)
 	if err != nil {
-		err = createSession(sessionName, route, ref)
+		err = h.createSession()
 		if err != nil {
 			return "", err
 		}
-		return waitForRefToComplete(sessionName, ref)
+		return h.waitForRefToComplete()
 	}
-	// join session
-
-	session.Spec.Refs = append(session.Spec.Refs, ref)
-	err = DefaultClient().Create(session)
+	// join sessionName
+	session.Spec.Refs = append(session.Spec.Refs, h.ref)
+	err = h.c.Create(session)
 	if err != nil {
 		return "", err
 	}
-	return waitForRefToComplete(sessionName, ref)
+	return h.waitForRefToComplete()
 }
 
-func createSession(sessionName, route, ref string) error {
-	r, err := ParseRoute(route)
+func (h *handler) createSession() error {
+	r, err := ParseRoute(h.route)
 	if err != nil {
 		return err
 	}
@@ -78,11 +94,11 @@ func createSession(sessionName, route, ref string) error {
 			Kind:       "Session",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: sessionName,
+			Name: h.sessionName,
 		},
 		Spec: istiov1alpha1.SessionSpec{
 			Refs: []string{
-				ref,
+				h.ref,
 			},
 		},
 	}
@@ -90,7 +106,64 @@ func createSession(sessionName, route, ref string) error {
 	if r != nil {
 		session.Spec.Route = *r
 	}
-	return DefaultClient().Create(&session)
+	return h.c.Create(&session)
+}
+
+func (h *handler) waitForRefToComplete() (string, error) {
+	var name string
+	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
+		sessionStatus, err := h.c.Get(h.sessionName)
+		if err != nil {
+			return false, nil
+		}
+		for _, refs := range sessionStatus.Status.Refs {
+			if refs.Name == h.ref {
+				for _, res := range refs.Resources {
+					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
+						name = *res.Name
+						fmt.Printf("found %s\n", name)
+						return true, nil
+					}
+				}
+			}
+		}
+		return false, nil
+	})
+	if err != nil {
+		return "", errors.New("no Deployment or DeploymentConfig found for target")
+	}
+	return name, nil
+}
+
+func (h *handler) removeOrLeaveSession() {
+	session, err := h.c.Get(h.sessionName)
+	if err != nil {
+		return // assume missing, nothing to clean?
+	}
+	// more then one participant, update sessionName
+	for i, r := range session.Spec.Refs {
+		if r == h.ref {
+			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
+		}
+	}
+	if len(session.Spec.Refs) == 0 {
+		_ = h.c.Delete(session)
+	} else {
+		_ = h.c.Create(session)
+	}
+}
+
+func getSessionName(cmd *cobra.Command) string {
+	sessionName, err := cmd.Flags().GetString("sessionName")
+	if err == nil && sessionName != "" {
+		return sessionName
+	}
+	random := naming.RandName(5)
+	u, err := user.Current()
+	if err != nil {
+		return random
+	}
+	return u.Username + "-" + random
 }
 
 func ParseRoute(route string) (*istiov1alpha1.Route, error) {
@@ -115,61 +188,4 @@ func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 		Name:  n,
 		Value: v,
 	}, nil
-}
-
-func waitForRefToComplete(sessionName, ref string) (string, error) {
-	var name string
-	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
-		sessionStatus, err := DefaultClient().Get(sessionName)
-		if err != nil {
-			return false, nil
-		}
-		for _, refs := range sessionStatus.Status.Refs {
-			if refs.Name == ref {
-				for _, res := range refs.Resources {
-					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
-						name = *res.Name
-						fmt.Printf("found %s\n", name)
-						return true, nil
-					}
-				}
-			}
-		}
-		return false, nil
-	})
-	if err != nil {
-		return "", errors.New("no Deployment or DeploymentConfig found for target")
-	}
-	return name, nil
-}
-
-func removeOrLeaveSession(sessionName, ref string) {
-	session, err := DefaultClient().Get(sessionName)
-	if err != nil {
-		return // assume missing, nothing to clean?
-	}
-	// more then one participant, update session
-	for i, r := range session.Spec.Refs {
-		if r == ref {
-			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
-		}
-	}
-	if len(session.Spec.Refs) == 0 {
-		_ = DefaultClient().Delete(session)
-	} else {
-		_ = DefaultClient().Create(session)
-	}
-}
-
-func getSessionName(cmd *cobra.Command) string {
-	sessionName, err := cmd.Flags().GetString("session")
-	if err == nil && sessionName != "" {
-		return sessionName
-	}
-	random := naming.RandName(5)
-	u, err := user.Current()
-	if err != nil {
-		return random
-	}
-	return u.Username + "-" + random
 }

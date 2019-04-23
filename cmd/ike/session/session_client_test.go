@@ -20,7 +20,7 @@ var _ = Describe("Session Client operations", func() {
 			Kind:       "Session",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "sample-session",
+			Name: "sample-sessionName",
 		},
 		Spec: istiov1alpha1.SessionSpec{
 			Refs: []string{
@@ -34,11 +34,11 @@ var _ = Describe("Session Client operations", func() {
 		fakeClient := testclient.NewSimpleClientset()
 		client, _ := session.NewClient(fakeClient, "test-namespace")
 
-		It("should get created session byt its name", func() {
+		It("should get created sessionName byt its name", func() {
 			creationErr := client.Create(sampleSession)
 			Expect(creationErr).ToNot(HaveOccurred())
 
-			foundSession, getErr := client.Get("sample-session")
+			foundSession, getErr := client.Get("sample-sessionName")
 			Expect(getErr).ToNot(HaveOccurred())
 
 			Expect(foundSession.Name).To(Equal(sampleSession.Name))
@@ -56,11 +56,11 @@ var _ = Describe("Session Client operations", func() {
 			Expect(creationErr).ToNot(HaveOccurred())
 		})
 
-		It("should delete session byt its name", func() {
+		It("should delete sessionName byt its name", func() {
 			deleteErr := client.Delete(sampleSession)
 			Expect(deleteErr).ToNot(HaveOccurred())
 
-			_, getErr := client.Get("sample-session")
+			_, getErr := client.Get("sample-sessionName")
 			Expect(getErr).To(HaveOccurred())
 			Expect((getErr.(*errors.StatusError)).Status().Code).To(Equal(int32(404)))
 		})

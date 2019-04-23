@@ -101,9 +101,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 			// given we have details code locally
-			details, err := GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
-			Expect(err).ToNot(HaveOccurred())
-			CreateFile(tmpDir+"/details.rb", details)
+			CreateFile(tmpDir+"/details.rb", DetailsRuby)
 
 			// when we start ike with watch
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
@@ -120,7 +118,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Should(ContainSubstring("No resources found"))
 
 			// and modify the service
-			modifiedDetails := strings.Replace(details, "PublisherA", "Publisher Ike", 1)
+			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
 			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
@@ -144,10 +142,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
+			// switch to different namespace
+			<-cmd.Execute("oc", "project", "my-project").Done()
+
 			// given we have details code locally
-			details, err := GetBody("https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/src/details/details.rb")
-			Expect(err).ToNot(HaveOccurred())
-			CreateFile(tmpDir+"/details.rb", details)
+			CreateFile(tmpDir+"/details.rb", DetailsRuby)
 
 			// when we start ike with watch
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
@@ -165,7 +164,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Should(ContainSubstring("No resources found"))
 
 			// and modify the service
-			modifiedDetails := strings.Replace(details, "PublisherA", "Publisher Ike", 1)
+			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
 			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
