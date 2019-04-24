@@ -1,7 +1,7 @@
 package session
 
 import (
-	"log"
+	logger "log"
 
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned"
@@ -35,23 +35,23 @@ func DefaultClient(namespace string) *client { //nolint[:golint] otherwise golin
 		var err error
 		restCfg, err := kubeCfg.ClientConfig()
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			logger.Panicf("failed to create default client: %s", err)
 		}
 
 		c, err := versioned.NewForConfig(restCfg)
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			logger.Panicf("failed to create default client: %s", err)
 		}
 
 		if namespace == "" {
 			namespace, _, err = kubeCfg.Namespace()
 			if err != nil {
-				log.Panicf("failed to create default client: %s", err)
+				logger.Panicf("failed to create default client: %s", err)
 			}
 		}
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			logger.Panicf("failed to create default client: %s", err)
 		}
 	}
 	return defaultClient

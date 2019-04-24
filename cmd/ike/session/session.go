@@ -13,6 +13,11 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+)
+
+var (
+	log = logf.Log.WithName("session_handler")
 )
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -156,7 +161,10 @@ func (h *handler) removeOrLeaveSession() {
 
 func getSessionName(cmd *cobra.Command) string {
 	sessionName, err := cmd.Flags().GetString("session")
-	if err == nil && sessionName != "" {
+	if err != nil {
+		log.Error(err, "failed to obtain session name from the flag. defaulting to randomized name")
+	}
+	if sessionName != "" {
 		return sessionName
 	}
 	random := naming.RandName(5)
