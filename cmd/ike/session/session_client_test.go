@@ -56,7 +56,7 @@ It("should get created session by its name", func() {
 			Expect(creationErr).ToNot(HaveOccurred())
 		})
 
-		It("should delete sessionName byt its name", func() {
+		It("should delete session by its name", func() {
 			deleteErr := client.Delete(sampleSession)
 			Expect(deleteErr).ToNot(HaveOccurred())
 
