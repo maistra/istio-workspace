@@ -53,6 +53,7 @@ func DefaultClient(namespace string) (*client, error) { //nolint[:golint] otherw
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
 			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 	}
 	return defaultClient, nil
