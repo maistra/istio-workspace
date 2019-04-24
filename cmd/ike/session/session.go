@@ -74,7 +74,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 		}
 		return h.waitForRefToComplete()
 	}
-	// join sessionName
+	// join session
 	session.Spec.Refs = append(session.Spec.Refs, h.ref)
 	err = h.c.Create(session)
 	if err != nil {
