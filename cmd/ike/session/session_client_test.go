@@ -34,11 +34,11 @@ var _ = Describe("Session Client operations", func() {
 		fakeClient := testclient.NewSimpleClientset()
 		client, _ := session.NewClient(fakeClient, "test-namespace")
 
-It("should get created session by its name", func() {
+		It("should get created session by its name", func() {
 			creationErr := client.Create(sampleSession)
 			Expect(creationErr).ToNot(HaveOccurred())
 
-			foundSession, getErr := client.Get("sample-sessionName")
+			foundSession, getErr := client.Get("sample-session")
 			Expect(getErr).ToNot(HaveOccurred())
 
 			Expect(foundSession.Name).To(Equal(sampleSession.Name))
@@ -60,7 +60,7 @@ It("should get created session by its name", func() {
 			deleteErr := client.Delete(sampleSession)
 			Expect(deleteErr).ToNot(HaveOccurred())
 
-			_, getErr := client.Get("sample-sessionName")
+			_, getErr := client.Get("sample-session")
 			Expect(getErr).To(HaveOccurred())
 			Expect((getErr.(*errors.StatusError)).Status().Code).To(Equal(int32(404)))
 		})

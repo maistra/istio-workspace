@@ -23,15 +23,16 @@ func Offline(cmd *cobra.Command) (func(), error) {
 	return func() {}, nil
 }
 
+// handler wraps the session client and required metadata used to manipulate the resources
 type handler struct {
-	c           *client
+	c *client
 	ref,
 	namespace,
 	sessionName,
-	route       string
+	route string
 }
 
-// CreateOrJoinHandler provides the option to either create a new sessionName if non exist or join an existing.
+// CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
