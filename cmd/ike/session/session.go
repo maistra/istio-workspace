@@ -49,7 +49,13 @@ func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	route, _ := cmd.Flags().GetString("route")
 	sessionName := getSessionName(cmd)
 
-	h := &handler{c: DefaultClient(namespace),
+	client, err := DefaultClient(namespace)
+
+	if err != nil {
+		return func() {}, err
+	}
+
+	h := &handler{c: client,
 		ref:         deploymentName,
 		namespace:   namespace,
 		route:       route,

@@ -1,8 +1,6 @@
 package session
 
 import (
-	logger "log"
-
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned"
 
@@ -26,7 +24,7 @@ var defaultClient *client
 // The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
 // If namespace parameter is empty default one from the current context is used
-func DefaultClient(namespace string) *client { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
+func DefaultClient(namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
 	if defaultClient == nil {
 		kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			clientcmd.NewDefaultClientConfigLoadingRules(),
@@ -35,26 +33,29 @@ func DefaultClient(namespace string) *client { //nolint[:golint] otherwise golin
 		var err error
 		restCfg, err := kubeCfg.ClientConfig()
 		if err != nil {
-			logger.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 
 		c, err := versioned.NewForConfig(restCfg)
 		if err != nil {
-			logger.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 
 		if namespace == "" {
 			namespace, _, err = kubeCfg.Namespace()
 			if err != nil {
-				logger.Panicf("failed to create default client: %s", err)
+				log.Error(err, "failed to create default client")
+				return nil, err
 			}
 		}
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
-			logger.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
 		}
 	}
-	return defaultClient
+	return defaultClient, nil
 }
 
 func (c *client) Create(session *istiov1alpha1.Session) error {
