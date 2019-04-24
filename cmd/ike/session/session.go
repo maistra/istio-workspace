@@ -140,7 +140,7 @@ func (h *handler) removeOrLeaveSession() {
 	if err != nil {
 		return // assume missing, nothing to clean?
 	}
-	// more then one participant, update sessionName
+	// more than one participant, update session
 	for i, r := range session.Spec.Refs {
 		if r == h.ref {
 			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
