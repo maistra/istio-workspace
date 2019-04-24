@@ -35,7 +35,7 @@ type handler struct {
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
-//  * sessionName - the name of the sessionName
+//  * session - the name of the session
 //  * route - the definition of traffic routing
 func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
 	deploymentName, _ := cmd.Flags().GetString("deployment")
