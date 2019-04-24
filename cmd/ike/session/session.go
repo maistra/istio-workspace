@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-// Handler is a function to setup a server sessionName before attempting to connect. Returns a 'cleanup' function.
+// Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
 type Handler func(cmd *cobra.Command) (func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing
