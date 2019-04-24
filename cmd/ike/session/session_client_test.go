@@ -20,7 +20,7 @@ var _ = Describe("Session Client operations", func() {
 			Kind:       "Session",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "sample-sessionName",
+			Name: "sample-session",
 		},
 		Spec: istiov1alpha1.SessionSpec{
 			Refs: []string{
