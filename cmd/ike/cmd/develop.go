@@ -79,6 +79,8 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
 	developCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. "+
 		"Defaults to X-Workspace-Route header with current session name value")
+	developCmd.Flags().StringP("namespace", "n", "", "target namespace to develop against "+
+		"(defaults to default for the current context)")
 
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
@@ -106,11 +108,18 @@ func parseArguments(cmd *cobra.Command) []string {
 		}
 	}
 
-	return append([]string{
+	tpCmd := append([]string{
 		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--expose", cmd.Flag("port").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 		"--run"}, runArgs...)
+
+	namespaceFlag := cmd.Flag("namespace")
+	if namespaceFlag.Changed {
+		tpCmd = append([]string{"--" + namespaceFlag.Name, namespaceFlag.Value.String()}, tpCmd...)
+	}
+
+	return tpCmd
 }
 
 func flag(flags *pflag.FlagSet, name string) string {

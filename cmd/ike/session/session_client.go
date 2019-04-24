@@ -1,8 +1,6 @@
 package session
 
 import (
-	"log"
-
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned"
 
@@ -16,8 +14,7 @@ type client struct {
 }
 
 // NewClient creates client to handle Session resources based on passed config
-func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *session.client, which can be annoying to use"
-
+func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
 	return &client{namespace: namespace, Interface: c}, nil
 }
 
@@ -26,7 +23,8 @@ var defaultClient *client
 // DefaultClient creates a client based on existing kube config.
 // The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
-func DefaultClient() *client { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *session.client, which can be annoying to use"
+// If namespace parameter is empty default one from the current context is used
+func DefaultClient(namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
 	if defaultClient == nil {
 		kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			clientcmd.NewDefaultClientConfigLoadingRules(),
@@ -35,25 +33,30 @@ func DefaultClient() *client { //nolint[:golint] otherwise golint complains abou
 		var err error
 		restCfg, err := kubeCfg.ClientConfig()
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 
 		c, err := versioned.NewForConfig(restCfg)
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 
-		namespace, _, err := kubeCfg.Namespace()
-		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+		if namespace == "" {
+			namespace, _, err = kubeCfg.Namespace()
+			if err != nil {
+				log.Error(err, "failed to create default client")
+				return nil, err
+			}
 		}
-
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
-			log.Panicf("failed to create default client: %s", err)
+			log.Error(err, "failed to create default client")
+			return nil, err
 		}
 	}
-	return defaultClient
+	return defaultClient, nil
 }
 
 func (c *client) Create(session *istiov1alpha1.Session) error {

@@ -34,7 +34,7 @@ var _ = Describe("Session Client operations", func() {
 		fakeClient := testclient.NewSimpleClientset()
 		client, _ := session.NewClient(fakeClient, "test-namespace")
 
-		It("should get created session byt its name", func() {
+		It("should get created session by its name", func() {
 			creationErr := client.Create(sampleSession)
 			Expect(creationErr).ToNot(HaveOccurred())
 
@@ -56,7 +56,7 @@ var _ = Describe("Session Client operations", func() {
 			Expect(creationErr).ToNot(HaveOccurred())
 		})
 
-		It("should delete session byt its name", func() {
+		It("should delete session by its name", func() {
 			deleteErr := client.Delete(sampleSession)
 			Expect(deleteErr).ToNot(HaveOccurred())
 
