@@ -154,7 +154,7 @@ func (h *handler) removeOrLeaveSession() {
 }
 
 func getSessionName(cmd *cobra.Command) string {
-	sessionName, err := cmd.Flags().GetString("sessionName")
+	sessionName, err := cmd.Flags().GetString("session")
 	if err == nil && sessionName != "" {
 		return sessionName
 	}
