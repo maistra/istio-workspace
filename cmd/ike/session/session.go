@@ -2,6 +2,7 @@ package session
 
 import (
 	"errors"
+
 	"fmt"
 	"os/user"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/aslakknutsen/istio-workspace/pkg/naming"
 
-	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -20,12 +20,25 @@ var (
 	log = logf.Log.WithName("session_handler")
 )
 
+// Options holds the variables used by the Session Handler
+type Options struct {
+	NamespaceName  string // name of the namespace for target resource
+	DeploymentName string // name of the initial resource to target
+	SessionName    string // name of the session create or join if exist
+	RouteExp       string // expression of how to route the traffic to the target resource
+}
+
+// State holds the new variables as presented by the creation of the session
+type State struct {
+	DeploymentName string // name of the resource to target within the cloned route.
+}
+
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
-type Handler func(cmd *cobra.Command) (func(), error)
+type Handler func(opts Options) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing
-func Offline(cmd *cobra.Command) (func(), error) {
-	return func() {}, nil
+func Offline(opts Options) (State, func(), error) {
+	return State{}, func() {}, nil
 }
 
 // handler wraps the session client and required metadata used to manipulate the resources
@@ -43,36 +56,30 @@ type handler struct {
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
 //  * route - the definition of traffic routing
-func CreateOrJoinHandler(cmd *cobra.Command) (func(), error) {
-	deploymentName, _ := cmd.Flags().GetString("deployment")
-	namespace, _ := cmd.Flags().GetString("namespace")
-	route, _ := cmd.Flags().GetString("route")
-	sessionName := getSessionName(cmd)
+func CreateOrJoinHandler(opts Options) (State, func(), error) {
+	sessionName := getOrCreateSessionName(opts.SessionName)
 
-	client, err := DefaultClient(namespace)
+	client, err := DefaultClient(opts.NamespaceName)
 
 	if err != nil {
-		return func() {}, err
+		return State{}, func() {}, err
 	}
 
 	h := &handler{c: client,
-		ref:         deploymentName,
-		namespace:   namespace,
-		route:       route,
+		ref:         opts.DeploymentName,
+		namespace:   opts.NamespaceName,
+		route:       opts.RouteExp,
 		sessionName: sessionName}
 
 	serviceName, err := h.createOrJoinSession()
 	if err != nil {
-		return func() {}, err
+		return State{}, func() {}, err
 	}
-	err = cmd.Flags().Set("deployment", serviceName) // HACK: pass arguments around, not flags?
-	if err != nil {
-		return func() {}, err
-	}
-
-	return func() {
-		h.removeOrLeaveSession()
-	}, nil
+	return State{
+			DeploymentName: serviceName,
+		}, func() {
+			h.removeOrLeaveSession()
+		}, nil
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
@@ -165,11 +172,7 @@ func (h *handler) removeOrLeaveSession() {
 	}
 }
 
-func getSessionName(cmd *cobra.Command) string {
-	sessionName, err := cmd.Flags().GetString("session")
-	if err != nil {
-		log.Error(err, "failed to obtain session name from the flag. defaulting to randomized name")
-	}
+func getOrCreateSessionName(sessionName string) string {
 	if sessionName != "" {
 		return sessionName
 	}

@@ -31,11 +31,14 @@ func NewDevelopCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 
-			sessionClose, err := sessions(cmd)
+			sessionState, sessionClose, err := sessions(cmd)
 			if err != nil {
 				return err
 			}
 			defer sessionClose()
+
+			// HACK: need contract with TP cmd?
+			cmd.Flags().Set("deployment", sessionState.DeploymentName)
 
 			if err := build(cmd); err != nil {
 				return err
