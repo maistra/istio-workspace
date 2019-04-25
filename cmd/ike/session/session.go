@@ -38,7 +38,7 @@ type Handler func(opts Options) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing
 func Offline(opts Options) (State, func(), error) {
-	return State{}, func() {}, nil
+	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
 // handler wraps the session client and required metadata used to manipulate the resources

@@ -9,7 +9,7 @@ import (
 
 // session expects that cmd has offline, deployment and session flags defined.
 // otherwise it fails
-func sessions(cmd *cobra.Command) (state session.State, closer func(), err error) {
+func sessions(cmd *cobra.Command) (session.State, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 
 	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {

@@ -38,7 +38,9 @@ func NewDevelopCmd() *cobra.Command {
 			defer sessionClose()
 
 			// HACK: need contract with TP cmd?
-			cmd.Flags().Set("deployment", sessionState.DeploymentName)
+			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
+				return err
+			}
 
 			if err := build(cmd); err != nil {
 				return err
