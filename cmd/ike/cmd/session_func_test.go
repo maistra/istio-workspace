@@ -20,6 +20,11 @@ var _ = Describe("Usage of session func", func() {
 			command = NewDevelopCmd()
 		})
 
+		It("should fail if namespace is not defined", func() {
+			_, err := ToOptions(removeFlagFromSet(command.Flags(), "namespace"))
+			Expect(err).To(HaveOccurred())
+		})
+
 		It("should fail if deployment is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "deployment"))
 			Expect(err).To(HaveOccurred())
@@ -33,6 +38,14 @@ var _ = Describe("Usage of session func", func() {
 		It("should fail if route is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "route"))
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("should convert namespace if set", func() {
+			Expect(command.Flags().Set("namespace", "TEST")).ToNot(HaveOccurred())
+			opts, err := ToOptions(command.Flags())
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(opts.NamespaceName).To(Equal("TEST"))
 		})
 
 		It("should convert deployment if set", func() {
@@ -64,6 +77,7 @@ var _ = Describe("Usage of session func", func() {
 			opts, err := ToOptions(command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
+			Expect(opts.NamespaceName).To(Equal(""))
 			Expect(opts.DeploymentName).To(Equal(""))
 			Expect(opts.SessionName).To(Equal(""))
 			Expect(opts.RouteExp).To(Equal(""))
