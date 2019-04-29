@@ -409,11 +409,14 @@
 
 [[projects]]
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
   digest = "1:674610d54812d3c36ab7861fc826176bf581a9426cc09abec0107414c17f89cd"
 =======
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+>>>>>>> bah
   digest = "1:8bc8f43d2332d035857c92581df240f247c287629d5f60c751df609f9b6215c5"
   name = "github.com/openshift/api"
   packages = ["apps/v1"]
@@ -423,11 +426,15 @@
 
 [[projects]]
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:fe3c97fb1956829a81d7b8221b4710c40d6dae2c6c3b4d222db5b7f96c975d99"
 =======
   digest = "1:0bd15e3e708ab1ccba566b024fcf9982b51a3ab8498d53c8d416dd8f3f9b8211"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+  digest = "1:674610d54812d3c36ab7861fc826176bf581a9426cc09abec0107414c17f89cd"
+>>>>>>> bah
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -519,6 +526,7 @@
 =======
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:bca8581280a9ba8187941c57f08a89baeaeb87e97f3f093c9a59928425e7bde3"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "github.com/prometheus/procfs"
@@ -547,7 +555,17 @@
   pruneopts = "NT"
   revision = "ea9eea63887261e4d8ed8315f4078e88d540c725"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  digest = "1:55ff1480a5e2c800636fb8971c08e407acfb321b1002b876e3acc6725402f542"
+  name = "github.com/prometheus/procfs"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "87a4384529e0652f5035fb5cc8095faf73ea9b0b"
+>>>>>>> bah
+>>>>>>> bah
 
 [[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
@@ -658,21 +676,34 @@
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:148a0a79ec9a3136d61653f3ba76dbd755637aa671370b641d7364d167e813c6"
 =======
+=======
+>>>>>>> bah
   digest = "1:0df70eb73174e6e58e2c986150b16c61859bea5a7b1a1801f37e12fb1c8ab8d1"
 =======
   digest = "1:2c0b9b49d155596fecc071bce8db372c193f638265c11ab24914aae99fcfa704"
+=======
+  digest = "1:5f92996be2964f7a413cc8c6b7ff02e88e02db6042371b7acadc06cd9dc5a658"
+>>>>>>> bah
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
-  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
+  revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   digest = "1:63708a2bcd353bb6b8392bf265d125c6a11ba8ae284e3548ef75360f11118fdd"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  digest = "1:940590250ff6229f11678ea802c15e75768bf39b6440d24025bc5bede1f40367"
+>>>>>>> bah
+>>>>>>> bah
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -687,14 +718,23 @@
   ]
   pruneopts = "NT"
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
 =======
+=======
+>>>>>>> bah
 <<<<<<< HEAD
   revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
 =======
   revision = "eb5bcb51f2a31c7d5141d810b70815c05d9c9146"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  revision = "4829fb13d2c62012c17688fa7f629f371014946d"
+>>>>>>> bah
+>>>>>>> bah
 
 [[projects]]
   branch = "master"
@@ -710,14 +750,23 @@
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:91b9650a77dd69879c7042591ba704b9ae1dc09ecea3ccddb795e6de3b8453e5"
 =======
+=======
+>>>>>>> bah
 <<<<<<< HEAD
   digest = "1:4c39e51b435c599624c59051ed37b43a8d1dc12110179fa08fe3643d2dd07bee"
 =======
   digest = "1:dce1fe2a2ee4028c0914e78d251d199368b4c7fcccb86bdadcd3e2191a93a63f"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  digest = "1:6b6dcecf1cf3271a2b8902cab8e2fd119b68eebaacf4eb06e709def6d51bbac7"
+>>>>>>> bah
+>>>>>>> bah
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -725,14 +774,23 @@
   ]
   pruneopts = "NT"
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
 =======
+=======
+>>>>>>> bah
 <<<<<<< HEAD
   revision = "2953c62de483abe29031e197e72d3b7061f65f91"
 =======
   revision = "0ad05ae3009d6413d3363aa09b350b2ec37daf09"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  revision = "2cc0cad0ac78f3ede1f4d2b6ca16ea3038641af4"
+>>>>>>> bah
+>>>>>>> bah
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -783,14 +841,23 @@
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
 =======
+=======
+>>>>>>> bah
 <<<<<<< HEAD
   digest = "1:0e4f8006240b946ed8f591a5c5a86862073ff7ee0dee921a6fa76372caf182c6"
 =======
   digest = "1:d2e182976cb693e215f0e60768da50faf7e7702bd8b674edd59b9d8244fbd882"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  digest = "1:ca39eb14308509455146a1d577b3a424c34c444f1146beeadecd7d73f1d40166"
+>>>>>>> bah
+>>>>>>> bah
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -808,14 +875,23 @@
   ]
   pruneopts = "NT"
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "8aaa1484dc108aa23dcf2d4a09371c0c9e280f6b"
 =======
+=======
+>>>>>>> bah
 <<<<<<< HEAD
   revision = "2d16b83fe98cd1bed9e2ce9fdc86bd438d14aab7"
 =======
   revision = "2538eef75904eff384a2551359968e40c207d9d2"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+<<<<<<< HEAD
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+=======
+  revision = "f97eea45a17d867065d43518bd94037ae88aba9a"
+>>>>>>> bah
+>>>>>>> bah
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"
