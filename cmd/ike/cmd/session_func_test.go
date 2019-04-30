@@ -23,21 +23,34 @@ var _ = Describe("Usage of session func", func() {
 		It("should fail if namespace is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "namespace"))
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("namespace"))
 		})
 
 		It("should fail if deployment is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "deployment"))
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("deployment"))
 		})
 
 		It("should fail if session is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "session"))
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("session"))
 		})
 
 		It("should fail if route is not defined", func() {
 			_, err := ToOptions(removeFlagFromSet(command.Flags(), "route"))
 			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("route"))
+		})
+	})
+
+	Context("checking conversion", func() {
+
+		var command *cobra.Command
+
+		BeforeEach(func() {
+			command = NewDevelopCmd()
 		})
 
 		It("should convert namespace if set", func() {
@@ -82,6 +95,7 @@ var _ = Describe("Usage of session func", func() {
 			Expect(opts.SessionName).To(Equal(""))
 			Expect(opts.RouteExp).To(Equal(""))
 		})
+
 	})
 })
 
