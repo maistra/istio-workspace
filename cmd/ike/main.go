@@ -1,6 +1,9 @@
 package main
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -12,6 +15,9 @@ func main() {
 	// be propagated through the whole operator, generating
 	// uniform and structured logs.
 	logf.SetLogger(logf.ZapLogger(false))
+
+	// Setting random seed e.g. for session name generator
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	rootCmd := cmd.NewRootCmd()
 	rootCmd.AddCommand(cmd.NewVersionCmd(), cmd.NewDevelopCmd(), cmd.NewWatchCmd())

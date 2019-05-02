@@ -130,7 +130,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
-			Expect(ikeWithWatch.Stop()).ToNot(HaveOccurred())
+			stopFailed := ikeWithWatch.Stop()
+			Expect(stopFailed).ToNot(HaveOccurred())
+
 			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
 		})
 
@@ -143,7 +145,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 			// switch to different namespace
-			<-cmd.Execute("oc", "project", "my-project").Done()
+			<-cmd.Execute("oc", "project", "myproject").Done()
 
 			// given we have details code locally
 			CreateFile(tmpDir+"/details.rb", DetailsRuby)
@@ -176,7 +178,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
-			Expect(ikeWithWatch.Stop()).ToNot(HaveOccurred())
+			stopFailed := ikeWithWatch.Stop()
+			Expect(stopFailed).ToNot(HaveOccurred())
+
 			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
 		})
 
