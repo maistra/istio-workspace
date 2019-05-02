@@ -143,7 +143,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 			// switch to different namespace
-			<-cmd.Execute("oc", "project", "my-project").Done()
+			<-cmd.Execute("oc", "project", "myproject").Done()
 
 			// given we have details code locally
 			CreateFile(tmpDir+"/details.rb", DetailsRuby)
