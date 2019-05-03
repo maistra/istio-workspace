@@ -6,7 +6,7 @@ linters-settings:
   gocyclo:
     min-complexity: 12
   dupl:
-    threshold: 128
+    threshold: 128 
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -45,6 +45,15 @@ run:
   skip-dirs:
     - ./pkg/apis/istio
     - ./pkg/client/clientset
+
+issues:
+  exclude-rules:
+    - path: pkg/openshift/
+      linters:
+        - dupl
+    - path: pkg/k8s/
+      linters:
+        - dupl
 
 service:
   project-path: github.com/maistra/istio-workspace
