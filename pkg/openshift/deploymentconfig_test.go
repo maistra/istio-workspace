@@ -97,7 +97,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -109,7 +109,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := appsv1.DeploymentConfig{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
@@ -121,7 +121,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := appsv1.DeploymentConfig{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
@@ -168,13 +168,13 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			deployment := appsv1.DeploymentConfig{}
 
-			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			revertorErr := openshift.DeploymentConfigRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
-			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-test"}, &deployment)
+			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 			Expect(revertedFetchErr).To(HaveOccurred())
 		})
 

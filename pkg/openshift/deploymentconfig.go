@@ -53,7 +53,7 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error { /
 	}
 	ctx.Log.Info("Found DeploymentConfig", "name", ref.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy())
+	deploymentClone := cloneDeployment(deployment.DeepCopy(), ctx.Name)
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
 		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deploymentClone.Name)
@@ -87,12 +87,13 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error { 
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.DeploymentConfig) *appsv1.DeploymentConfig {
+func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) *appsv1.DeploymentConfig {
 	deploymentClone := deployment.DeepCopy()
 	labelsClone := deploymentClone.Spec.Selector
-	labelsClone["version"] += "-test"
 	labelsClone["telepresence"] = "test"
-	deploymentClone.SetName(deployment.GetName() + "-test")
+	labelsClone["version-source"] = labelsClone["version"]
+	labelsClone["version"] = version
+	deploymentClone.SetName(deployment.GetName() + "-" + version)
 	deploymentClone.SetLabels(labelsClone)
 	deploymentClone.Spec.Selector = labelsClone
 	deploymentClone.Spec.Template.SetLabels(labelsClone)
