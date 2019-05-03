@@ -100,7 +100,7 @@ func cloneDeployment(deployment *appsv1.DeploymentConfig) *appsv1.DeploymentConf
 	deploymentClone.Spec.Replicas = 1
 
 	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:0.98"
+	container.Image = "datawire/telepresence-k8s:0.99"
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
 		ValueFrom: &corev1.EnvVarSource{
