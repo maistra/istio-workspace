@@ -64,7 +64,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 		}
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr, err := revertDestinationRule(*dr, ctx)
+		mutatedDr, err := revertDestinationRule(*dr, ctx.Name)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
 			break
@@ -91,9 +91,9 @@ func mutateDestinationRule(dr istionetwork.DestinationRule, name string) (istion
 	return dr, nil
 }
 
-func revertDestinationRule(dr istionetwork.DestinationRule, ctx model.SessionContext) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func revertDestinationRule(dr istionetwork.DestinationRule, name string) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
-		if strings.Contains(dr.Spec.Subsets[i].Name, ctx.Name) {
+		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
 			break
 		}

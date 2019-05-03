@@ -1,8 +1,6 @@
 package istio
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -62,25 +60,21 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 			var (
 				revertedDestinationRule istionetwork.DestinationRule
-				ctx                     model.SessionContext
 			)
 
 			BeforeEach(func() {
 				yaml = simpleMutatedDestinationRule
-				ctx = model.SessionContext{
-					Name: "dr-test",
-				}
 			})
 
 			It("new subset removed", func() {
-				revertedDestinationRule, err = revertDestinationRule(destinationRule, ctx)
+				revertedDestinationRule, err = revertDestinationRule(destinationRule, "dr-test")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(revertedDestinationRule.Spec.Subsets).To(HaveLen(2))
 			})
 
 			It("correct subset removed", func() {
-				revertedDestinationRule, err = revertDestinationRule(destinationRule, ctx)
+				revertedDestinationRule, err = revertDestinationRule(destinationRule, "dr-test")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("dr-test"))))
