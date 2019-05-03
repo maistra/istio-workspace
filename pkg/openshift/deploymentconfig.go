@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	// DeploymentConfigKind is the k8 Kind for a openshift DeploymentConfig
+	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig
 	DeploymentConfigKind = "DeploymentConfig" //nolint[:unused]
 )
 

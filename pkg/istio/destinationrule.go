@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	// DestinationRuleKind is the k8 Kind for a istio DestinationRule
+	// DestinationRuleKind is the k8s Kind for a istio DestinationRule
 	DestinationRuleKind = "DestinationRule"
 )
 
@@ -27,14 +27,14 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 
 	targetName := strings.Split(ref.Name, "-")[0]
 
-	dr, err := getDestinationRule2(ctx, ctx.Namespace, targetName)
+	dr, err := getDestinationRule(ctx, ctx.Namespace, targetName)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
 		return err
 	}
 
 	ctx.Log.Info("Found DestinationRule", "name", targetName)
-	mutatedDr, err := mutateDestinationRule(*dr)
+	mutatedDr, err := mutateDestinationRule(*dr, ctx.Name)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -54,7 +54,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 	resources := ref.GetResourceStatus(DestinationRuleKind)
 
 	for _, resource := range resources {
-		dr, err := getDestinationRule2(ctx, ctx.Namespace, resource.Name)
+		dr, err := getDestinationRule(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
@@ -64,7 +64,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 		}
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr, err := revertDestinationRule(*dr)
+		mutatedDr, err := revertDestinationRule(*dr, ctx.Name)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
 			break
@@ -81,19 +81,19 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 	return nil
 }
 
-func mutateDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func mutateDestinationRule(dr istionetwork.DestinationRule, name string) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	dr.Spec.Subsets = append(dr.Spec.Subsets, &v1alpha3.Subset{
-		Name: "v1-test",
+		Name: name,
 		Labels: map[string]string{
-			"version": "v1-test",
+			"version": name,
 		},
 	})
 	return dr, nil
 }
 
-func revertDestinationRule(dr istionetwork.DestinationRule) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func revertDestinationRule(dr istionetwork.DestinationRule, name string) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
-		if strings.Contains(dr.Spec.Subsets[i].Name, "-test") {
+		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
 			break
 		}
@@ -101,7 +101,7 @@ func revertDestinationRule(dr istionetwork.DestinationRule) (istionetwork.Destin
 	return dr, nil
 }
 
-func getDestinationRule2(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
 	return &destinationRule, err

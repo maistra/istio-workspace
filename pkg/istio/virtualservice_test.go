@@ -28,36 +28,41 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		Context("existing rule", func() {
 			var (
 				mutatedVirtualService istionetwork.VirtualService
-				route                 model.Route
+				ctx                   model.SessionContext
 			)
 
 			BeforeEach(func() {
 				yaml = simpleVirtualService
-				route = model.Route{
-					Type:  "header",
-					Name:  "test",
-					Value: "x",
+				ctx = model.SessionContext{
+					Name: "vs-test",
+					Route: model.Route{
+						Type:  "header",
+						Name:  "test",
+						Value: "x",
+					},
 				}
 			})
 
 			JustBeforeEach(func() {
-				mutatedVirtualService, err = mutateVirtualService(route, virtualService)
+				mutatedVirtualService, err = mutateVirtualService(ctx, virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("route added", func() {
 				Expect(mutatedVirtualService.Spec.Http).To(HaveLen(2))
 			})
+
 			It("first route has match", func() {
 				Expect(mutatedVirtualService.Spec.Http[0].Match).ToNot(BeNil())
 			})
+
 			It("first route has subset", func() {
-				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("v1-test"))
+				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("vs-test"))
 			})
+
 			It("first route has given header match", func() {
 				Expect(mutatedVirtualService.Spec.Http[0].Match).To(HaveLen(1))
 				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers).To(HaveLen(1))
-				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers["test"]).ToNot(BeNil())
 				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers["test"].GetExact()).To(Equal("x"))
 			})
 		})
@@ -72,22 +77,31 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		Context("existing rule", func() {
 			var (
 				revertedVirtualService istionetwork.VirtualService
+				ctx                    model.SessionContext
 			)
 
 			BeforeEach(func() {
 				yaml = simpleMutatedVirtualService
+				ctx = model.SessionContext{
+					Route: model.Route{
+						Type:  "header",
+						Name:  "test",
+						Value: "x",
+					},
+				}
 			})
 
 			JustBeforeEach(func() {
-				revertedVirtualService, err = revertVirtualService(virtualService)
+				revertedVirtualService, err = revertVirtualService(ctx, virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("route removed", func() {
 				Expect(revertedVirtualService.Spec.Http).To(HaveLen(1))
 			})
+
 			It("correct route removed", func() {
-				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-test"))
+				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("vs-test"))
 			})
 		})
 	})
@@ -132,7 +146,7 @@ spec:
     route:
     - destination:
         host: details
-        subset: v1-test
+        subset: vs-test
   - route:
     - destination:
         host: details

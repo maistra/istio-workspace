@@ -7,7 +7,7 @@ import (
 
 const (
 	// DefaultRouteHeaderName holds the name of the Header used to route traffic if no Route is provided
-	DefaultRouteHeaderName = "X-Workspace-Route"
+	DefaultRouteHeaderName = "x-workspace-route"
 
 	// RouteStrategyHeader holds the Route Type keyword for a Header based Route strategy
 	RouteStrategyHeader = "header"

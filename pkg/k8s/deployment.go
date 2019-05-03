@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	// DeploymentKind is the k8 Kind for a Deployment
+	// DeploymentKind is the k8s Kind for a Deployment
 	DeploymentKind = "Deployment"
 )
 
@@ -46,7 +46,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	}
 	ctx.Log.Info("Found Deployment", "name", ref.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy())
+	deploymentClone := cloneDeployment(deployment.DeepCopy(), ctx.Name)
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
@@ -80,13 +80,14 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.Deployment) *appsv1.Deployment {
+func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Deployment {
 	deploymentClone := deployment.DeepCopy()
 	replicasClone := int32(1)
 	labelsClone := deploymentClone.GetLabels()
-	labelsClone["version"] += "-test"
 	labelsClone["telepresence"] = "test"
-	deploymentClone.SetName(deployment.GetName() + "-test")
+	labelsClone["version-source"] = labelsClone["version"]
+	labelsClone["version"] = version
+	deploymentClone.SetName(deployment.GetName() + "-" + version)
 	deploymentClone.SetLabels(labelsClone)
 	deploymentClone.Spec.Selector.MatchLabels = labelsClone
 	deploymentClone.Spec.Template.SetLabels(labelsClone)
