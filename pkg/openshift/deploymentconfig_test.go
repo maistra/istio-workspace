@@ -5,6 +5,7 @@ import (
 
 	"github.com/aslakknutsen/istio-workspace/pkg/model"
 	"github.com/aslakknutsen/istio-workspace/pkg/openshift"
+
 	appsv1 "github.com/openshift/api/apps/v1"
 
 	v1 "k8s.io/api/core/v1"
@@ -24,7 +25,8 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 	var ctx model.SessionContext
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()
-		appsv1.AddToScheme(schema)
+		err := appsv1.AddToScheme(schema)
+		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
 			Context:   context.TODO(),
 			Name:      "test",
