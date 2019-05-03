@@ -457,6 +457,7 @@
 
 [[projects]]
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
@@ -471,6 +472,14 @@
   revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
   version = "v1.3.0"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
+=======
+  digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
+  version = "v1.4.0"
+>>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   branch = "master"
@@ -659,6 +668,7 @@
   pruneopts = "NT"
   revision = "27376062155ad36be76b0f12cf1572a221d3a48c"
   version = "v1.10.0"
+<<<<<<< HEAD
 
 [[projects]]
   branch = "master"
@@ -671,7 +681,13 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
+=======
+  revision = "e1dfcc566284e143ba8f9afbb3fa563f2a0d212b"
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   branch = "master"
@@ -695,6 +711,7 @@
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:63708a2bcd353bb6b8392bf265d125c6a11ba8ae284e3548ef75360f11118fdd"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
 <<<<<<< HEAD
@@ -703,7 +720,13 @@
 =======
   digest = "1:940590250ff6229f11678ea802c15e75768bf39b6440d24025bc5bede1f40367"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  digest = "1:03f62941b29f828d0cebf93c0793cf2bf40dee688a89cdba79e1d57382d39fe2"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -719,10 +742,13 @@
   pruneopts = "NT"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
 =======
 =======
 >>>>>>> bah
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
 <<<<<<< HEAD
   revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
 =======
@@ -734,7 +760,13 @@
 =======
   revision = "4829fb13d2c62012c17688fa7f629f371014946d"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  revision = "7f726cade0ab7c929c16ce0b5b25bd201e25f39f"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   branch = "master"
@@ -751,10 +783,13 @@
   branch = "master"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:91b9650a77dd69879c7042591ba704b9ae1dc09ecea3ccddb795e6de3b8453e5"
 =======
 =======
 >>>>>>> bah
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
 <<<<<<< HEAD
   digest = "1:4c39e51b435c599624c59051ed37b43a8d1dc12110179fa08fe3643d2dd07bee"
 =======
@@ -766,7 +801,13 @@
 =======
   digest = "1:6b6dcecf1cf3271a2b8902cab8e2fd119b68eebaacf4eb06e709def6d51bbac7"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  digest = "1:a64674ecb5ee410753e0e84e438b8c8022fb516895a9595805da35ddd6bcb4e9"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -775,10 +816,13 @@
   pruneopts = "NT"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "4c4f7f33c9ed00de01c4c741d2177abfcfe19307"
 =======
 =======
 >>>>>>> bah
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
 <<<<<<< HEAD
   revision = "2953c62de483abe29031e197e72d3b7061f65f91"
 =======
@@ -790,7 +834,13 @@
 =======
   revision = "2cc0cad0ac78f3ede1f4d2b6ca16ea3038641af4"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  revision = "a43fa875dd822b81eb6d2ad538bc1f4caba169bd"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -842,10 +892,13 @@
   branch = "master"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
 =======
 =======
 >>>>>>> bah
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
 <<<<<<< HEAD
   digest = "1:0e4f8006240b946ed8f591a5c5a86862073ff7ee0dee921a6fa76372caf182c6"
 =======
@@ -857,7 +910,13 @@
 =======
   digest = "1:ca39eb14308509455146a1d577b3a424c34c444f1146beeadecd7d73f1d40166"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  digest = "1:a66f11b02656ebac51a48a5135a10009065270efd199785ff28c38c86dc3a2de"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -876,10 +935,13 @@
   pruneopts = "NT"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "8aaa1484dc108aa23dcf2d4a09371c0c9e280f6b"
 =======
 =======
 >>>>>>> bah
+=======
+>>>>>>> fix(test): remove unused code and avoid nil map
 <<<<<<< HEAD
   revision = "2d16b83fe98cd1bed9e2ce9fdc86bd438d14aab7"
 =======
@@ -891,7 +953,13 @@
 =======
   revision = "f97eea45a17d867065d43518bd94037ae88aba9a"
 >>>>>>> bah
+<<<<<<< HEAD
 >>>>>>> bah
+=======
+=======
+  revision = "5cec639030af3a6ada2732d9bfa1d3731ed55106"
+>>>>>>> fix(test): remove unused code and avoid nil map
+>>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"

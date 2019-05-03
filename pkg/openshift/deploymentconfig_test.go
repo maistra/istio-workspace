@@ -36,32 +36,6 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		}
 	})
 
-	BeforeEach(func() {
-		objects = []runtime.Object{
-			&appsv1.DeploymentConfig{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-ref",
-					Namespace: "test",
-					Labels: map[string]string{
-						"version": "0.0.1",
-					},
-				},
-
-				Spec: appsv1.DeploymentConfigSpec{
-					Template: &v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Image: "datawire/hello-world:latest",
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	})
-
 	Context("locators", func() {
 		BeforeEach(func() {
 			objects = []runtime.Object{
@@ -100,9 +74,8 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 							"version": "0.0.1",
 						},
 					},
-
 					Spec: appsv1.DeploymentConfigSpec{
-						Selector: map[string]string{},
+						Selector: map[string]string{"A": "A"},
 						Template: &v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
@@ -171,9 +144,8 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 							"version": "0.0.1",
 						},
 					},
-
 					Spec: appsv1.DeploymentConfigSpec{
-						Selector: map[string]string{},
+						Selector: map[string]string{"A": "A"},
 						Template: &v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{

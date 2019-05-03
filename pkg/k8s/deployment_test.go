@@ -33,32 +33,6 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		}
 	})
 
-	BeforeEach(func() {
-		objects = []runtime.Object{
-			&appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-ref",
-					Namespace: "test",
-					Labels: map[string]string{
-						"version": "0.0.1",
-					},
-				},
-
-				Spec: appsv1.DeploymentSpec{
-					Template: v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Image: "datawire/hello-world:latest",
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-	})
-
 	Context("locators", func() {
 		BeforeEach(func() {
 			objects = []runtime.Object{
