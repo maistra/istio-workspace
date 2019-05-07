@@ -26,6 +26,18 @@
   version = "1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0cee42ed50d47c28503d3baf68c4e7e7e79276c60e812cef304d07534cb19542"
+  name = "github.com/aslakknutsen/istio-workspace"
+  packages = [
+    "pkg/model",
+    "pkg/openshift",
+    "test",
+  ]
+  pruneopts = "NT"
+  revision = "84bc78fb69993f1d94f01ceba32829b81eeb35e3"
+
+[[projects]]
   digest = "1:c819830f4f5ef85874a90ac3cbcc96cd322c715f5c96fbe4722eacd3dafbaa07"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -456,30 +468,12 @@
   version = "v1.2"
 
 [[projects]]
-<<<<<<< HEAD
-<<<<<<< HEAD
   digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "NT"
   revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
   version = "v1.4.0"
-=======
-  digest = "1:527ecbc8c12b202521f46e1b1547bbb8632b0294386cd05b91f65fa5a4a70fab"
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
-  version = "v1.3.0"
->>>>>>> feat(openshift): Support Kind DeploymentConfig targets
-=======
-  digest = "1:5e2ce9b90fcb9747d5ead0fefec4221c898ee7e2f6516ad7590bd999c808b834"
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "728039f679cbcd4f6a54e080d2219a4c4928c546"
-  version = "v1.4.0"
->>>>>>> fix(test): remove unused code and avoid nil map
 
 [[projects]]
   branch = "master"
@@ -534,8 +528,6 @@
   digest = "1:97d1394f698fbb4694376afc8cda6c63558cdcfbca58fc4b2426d3ff4bb0b133"
 =======
   branch = "master"
-<<<<<<< HEAD
-<<<<<<< HEAD
   digest = "1:bca8581280a9ba8187941c57f08a89baeaeb87e97f3f093c9a59928425e7bde3"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "github.com/prometheus/procfs"
@@ -544,6 +536,7 @@
     "internal/fs",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
   revision = "833678b5bb319f2d20a475cb165c6cc59c2cc77c"
   version = "v0.0.2"
@@ -575,6 +568,9 @@
   revision = "87a4384529e0652f5035fb5cc8095faf73ea9b0b"
 >>>>>>> bah
 >>>>>>> bah
+=======
+  revision = "5867b95ac084bbfee6ea16595c4e05ab009021da"
+>>>>>>> update(rebase): renamed
 
 [[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
@@ -668,14 +664,16 @@
   pruneopts = "NT"
   revision = "27376062155ad36be76b0f12cf1572a221d3a48c"
   version = "v1.10.0"
-<<<<<<< HEAD
 
 [[projects]]
   branch = "master"
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:c519d84f84199354518c9f2a2dc9bb2fa914e77d32d2ecdc3eb574236cb5effd"
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> update(rebase): renamed
   digest = "1:85c335c09ff58cc10c7829a57d0dc6543c30ea033bae85231857cf48a28c3850"
 >>>>>>> feat(openshift): Support Kind DeploymentConfig targets
   name = "golang.org/x/crypto"
@@ -685,6 +683,7 @@
   revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
 =======
   revision = "e1dfcc566284e143ba8f9afbb3fa563f2a0d212b"
+<<<<<<< HEAD
 =======
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
@@ -727,6 +726,12 @@
   digest = "1:03f62941b29f828d0cebf93c0793cf2bf40dee688a89cdba79e1d57382d39fe2"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+
+[[projects]]
+  branch = "master"
+  digest = "1:0df70eb73174e6e58e2c986150b16c61859bea5a7b1a1801f37e12fb1c8ab8d1"
+>>>>>>> update(rebase): renamed
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -740,6 +745,7 @@
     "idna",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -767,6 +773,9 @@
   revision = "7f726cade0ab7c929c16ce0b5b25bd201e25f39f"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+  revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
+>>>>>>> update(rebase): renamed
 
 [[projects]]
   branch = "master"
@@ -781,6 +790,7 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -808,12 +818,16 @@
   digest = "1:a64674ecb5ee410753e0e84e438b8c8022fb516895a9595805da35ddd6bcb4e9"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+  digest = "1:92eb734bbccfbbfb09af03597f17389335a2d3936c6b6fe25555d1dfebf61076"
+>>>>>>> update(rebase): renamed
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -841,6 +855,9 @@
   revision = "a43fa875dd822b81eb6d2ad538bc1f4caba169bd"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+  revision = "ecd444e8653b66b20d764e53c22e3e615eea5fae"
+>>>>>>> update(rebase): renamed
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -893,6 +910,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
 =======
 =======
@@ -917,6 +935,9 @@
   digest = "1:a66f11b02656ebac51a48a5135a10009065270efd199785ff28c38c86dc3a2de"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+  digest = "1:0e4f8006240b946ed8f591a5c5a86862073ff7ee0dee921a6fa76372caf182c6"
+>>>>>>> update(rebase): renamed
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -933,6 +954,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -960,6 +982,9 @@
   revision = "5cec639030af3a6ada2732d9bfa1d3731ed55106"
 >>>>>>> fix(test): remove unused code and avoid nil map
 >>>>>>> fix(test): remove unused code and avoid nil map
+=======
+  revision = "2d16b83fe98cd1bed9e2ce9fdc86bd438d14aab7"
+>>>>>>> update(rebase): renamed
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"
@@ -1305,6 +1330,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/aslakknutsen/istio-workspace/pkg/model",
+    "github.com/aslakknutsen/istio-workspace/pkg/openshift",
+    "github.com/aslakknutsen/istio-workspace/test",
     "github.com/fsnotify/fsnotify",
     "github.com/go-cmd/cmd",
     "github.com/go-logr/logr",
