@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 
 	"github.com/onsi/gomega"
 )

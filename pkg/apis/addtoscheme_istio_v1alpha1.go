@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 )
 
 func init() {

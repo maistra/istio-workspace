@@ -1,7 +1,7 @@
 package session_test
 
 import (
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/session"
+	"github.com/maistra/istio-workspace/cmd/ike/session"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

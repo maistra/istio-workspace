@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
-	. "github.com/aslakknutsen/istio-workspace/e2e/infra"
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
-	. "github.com/aslakknutsen/istio-workspace/test"
+	"github.com/maistra/istio-workspace/cmd/ike/cmd"
+	. "github.com/maistra/istio-workspace/e2e/infra"
+	"github.com/maistra/istio-workspace/pkg/naming"
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

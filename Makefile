@@ -1,5 +1,5 @@
 PROJECT_NAME:=istio-workspace
-PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
+PACKAGE_NAME:=github.com/maistra/istio-workspace
 
 OPERATOR_NAMESPACE?=istio-workspace-operator
 EXAMPLE_NAMESPACE?=bookinfo

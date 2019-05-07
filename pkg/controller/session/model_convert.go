@@ -1,8 +1,8 @@
 package session
 
 import (
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 const (

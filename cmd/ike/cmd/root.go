@@ -8,9 +8,9 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
-	"github.com/aslakknutsen/istio-workspace/pkg/apis"
-	"github.com/aslakknutsen/istio-workspace/pkg/controller"
+	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/pkg/apis"
+	"github.com/maistra/istio-workspace/pkg/controller"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/spf13/cobra"

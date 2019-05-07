@@ -3,7 +3,7 @@ package watch_test
 import (
 	"fmt"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
+	"github.com/maistra/istio-workspace/cmd/ike/watch"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"

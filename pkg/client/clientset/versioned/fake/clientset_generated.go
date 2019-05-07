@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned"
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
-	fakeistiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1/fake"
+	clientset "github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
+	fakeistiov1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

@@ -3,10 +3,10 @@ package session
 import (
 	"context"
 
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	"github.com/aslakknutsen/istio-workspace/pkg/istio"
-	"github.com/aslakknutsen/istio-workspace/pkg/k8s"
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
+	"github.com/maistra/istio-workspace/pkg/k8s"
+	"github.com/maistra/istio-workspace/pkg/model"
 
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"

@@ -1,7 +1,7 @@
 package openshift
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 const (

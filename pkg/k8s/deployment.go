@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model"
 
 	appsv1 "k8s.io/api/apps/v1"
 

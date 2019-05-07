@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/aslakknutsen/istio-workspace/version"
+	"github.com/maistra/istio-workspace/version"
 
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/afero"
 	"go.uber.org/goleak"
 
-	. "github.com/aslakknutsen/istio-workspace/test"
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,13 +29,13 @@ func TestCmd(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	mvnBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "mvn")
-	javaBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "java",
+	mvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
+	javaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
 		"-ldflags", "-w -X main.SleepMs=50")
-	ikeBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "ike",
+	ikeBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
-	tpBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo", "telepresence")
-	tpSleepBin = buildBinary("github.com/aslakknutsen/istio-workspace/test/echo",
+	tpBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence")
+	tpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
 		"telepresence", "-ldflags", "-w -X main.SleepMs=50")
 })
 
@@ -43,8 +43,8 @@ var _ = AfterSuite(func() {
 	CleanUpTmpFiles(GinkgoT())
 	gexec.CleanupBuildArtifacts()
 	goleak.VerifyNone(GinkgoT(),
-		goleak.IgnoreTopFunction("github.com/aslakknutsen/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
-		goleak.IgnoreTopFunction("github.com/aslakknutsen/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
+		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
+		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
 	)
 })
 
