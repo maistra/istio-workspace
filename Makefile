@@ -111,7 +111,7 @@ DOCKER_IMAGE?=$(PROJECT_NAME)
 DOCKER_IMAGE_TAG?=$(COMMIT)
 export DOCKER_IMAGE_TAG
 DOCKER_REGISTRY?=docker.io
-DOCKER_REPOSITORY?=maistra
+DOCKER_REPOSITORY?=aslakknutsen
 
 .PHONY: docker-build
 docker-build: ## Builds the docker image
