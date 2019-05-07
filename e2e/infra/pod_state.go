@@ -3,7 +3,7 @@ package infra
 import (
 	"fmt"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 )
 
 func AllPodsNotInState(namespace, state string) func() string {

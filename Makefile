@@ -1,5 +1,5 @@
 PROJECT_NAME:=istio-workspace
-PACKAGE_NAME:=github.com/aslakknutsen/istio-workspace
+PACKAGE_NAME:=github.com/maistra/istio-workspace
 
 OPERATOR_NAMESPACE?=istio-workspace-operator
 EXAMPLE_NAMESPACE?=bookinfo
@@ -111,7 +111,7 @@ DOCKER_IMAGE?=$(PROJECT_NAME)
 DOCKER_IMAGE_TAG?=$(COMMIT)
 export DOCKER_IMAGE_TAG
 DOCKER_REGISTRY?=docker.io
-DOCKER_REPOSITORY?=aslakknutsen
+DOCKER_REPOSITORY?=maistra
 
 .PHONY: docker-build
 docker-build: ## Builds the docker image

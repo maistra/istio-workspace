@@ -1,6 +1,6 @@
 package infra
 
-import "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+import "github.com/maistra/istio-workspace/cmd/ike/cmd"
 
 func CreateNewApp(name string) {
 	<-cmd.Execute("oc", "login", "-u", "developer").Done()

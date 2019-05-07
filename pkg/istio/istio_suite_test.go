@@ -3,7 +3,7 @@ package istio_test
 import (
 	"testing"
 
-	. "github.com/aslakknutsen/istio-workspace/test"
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

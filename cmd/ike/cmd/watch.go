@@ -3,8 +3,8 @@ package cmd
 import (
 	"strings"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/config"
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
+	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/cmd/ike/watch"
 
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"

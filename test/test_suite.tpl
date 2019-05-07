@@ -3,7 +3,7 @@ package {{.Package}}
 import (
 	"testing"
 
-	. "github.com/aslakknutsen/istio-workspace/test"
+	. "github.com/maistra/istio-workspace/test"
 
 	{{.GinkgoImport}}
 	{{.GomegaImport}}

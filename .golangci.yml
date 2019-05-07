@@ -23,7 +23,7 @@ linters-settings:
   lll:
     line-length: 180
   goimports:
-    local-prefixes: github.com/aslakknutsen/istio-workspace
+    local-prefixes: github.com/maistra/istio-workspace
   gocritic:
     enabled-tags:
       - performance
@@ -47,6 +47,6 @@ run:
     - ./pkg/client/clientset
 
 service:
-  project-path: github.com/aslakknutsen/istio-workspace
+  project-path: github.com/maistra/istio-workspace
   prepare:
     - make tools deps codegen

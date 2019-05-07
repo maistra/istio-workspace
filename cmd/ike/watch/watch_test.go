@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aslakknutsen/istio-workspace/cmd/ike/watch"
+	"github.com/maistra/istio-workspace/cmd/ike/watch"
 
 	"go.uber.org/goleak"
 
@@ -12,15 +12,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/aslakknutsen/istio-workspace/test"
+	. "github.com/maistra/istio-workspace/test"
 )
 
 var _ = Describe("File changes watch", func() {
 
 	AfterSuite(func() {
 		goleak.VerifyNone(GinkgoT(),
-			goleak.IgnoreTopFunction("github.com/aslakknutsen/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
-			goleak.IgnoreTopFunction("github.com/aslakknutsen/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
+			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
+			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
 		)
 		CleanUpTmpFiles(GinkgoT())
 	})
