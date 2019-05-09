@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
-      - image: circleci/golang:1.12.4
+      - image: circleci/golang:1.12.5
     steps:
       - checkout
       - run: make tools
@@ -22,7 +22,7 @@ jobs:
           echo "Configured Docker daemon with insecure-registry"
       - run: |
           sudo rm -rf /usr/local/go
-          sudo circleci-install golang 1.12.4
+          sudo circleci-install golang 1.12.5
       - run: |
           cd ~
           pyenv global 3.5.2
