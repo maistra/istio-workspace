@@ -26,18 +26,6 @@
   version = "1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:0cee42ed50d47c28503d3baf68c4e7e7e79276c60e812cef304d07534cb19542"
-  name = "github.com/aslakknutsen/istio-workspace"
-  packages = [
-    "pkg/model",
-    "pkg/openshift",
-    "test",
-  ]
-  pruneopts = "NT"
-  revision = "84bc78fb69993f1d94f01ceba32829b81eeb35e3"
-
-[[projects]]
   digest = "1:c819830f4f5ef85874a90ac3cbcc96cd322c715f5c96fbe4722eacd3dafbaa07"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -512,7 +500,11 @@
   revision = "fd36f4220a901265f90734c3183c5f0c91daa0b8"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:70a61f24e419a65b6f030b73f66b620da038e57089165577bdf945f3c3bb8b51"
+=======
+  digest = "1:d58e080134e5ca08ba6beebade31362d5f56e64fdb6dd649ec8b5e52445e8489"
+>>>>>>> fix(rename): missed some packages
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
@@ -520,8 +512,13 @@
     "model",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
   revision = "17f5ca1748182ddf24fc33a5a7caaaf790a52fcc"
   version = "v0.4.1"
+=======
+  revision = "1ba88736f028e37bc17328369e94a537ae9e0234"
+  version = "v0.4.0"
+>>>>>>> fix(rename): missed some packages
 
 [[projects]]
 <<<<<<< HEAD
@@ -749,6 +746,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   revision = "60506f45cf65977eb3a9c6e30f995f54a721c271"
 =======
 =======
@@ -776,6 +774,9 @@
 =======
   revision = "f4e77d36d62c17c2336347bb2670ddbd02d092b7"
 >>>>>>> update(rebase): renamed
+=======
+  revision = "a4d6f7feada510cc50e69a37b484cb0fdc6b7876"
+>>>>>>> fix(rename): missed some packages
 
 [[projects]]
   branch = "master"
@@ -790,6 +791,7 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -821,12 +823,16 @@
 =======
   digest = "1:92eb734bbccfbbfb09af03597f17389335a2d3936c6b6fe25555d1dfebf61076"
 >>>>>>> update(rebase): renamed
+=======
+  digest = "1:0dd0b475fc1a7d536dd8250c8ea3aa928ff3370a08419af538e8621a4e08c6eb"
+>>>>>>> fix(rename): missed some packages
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -858,6 +864,9 @@
 =======
   revision = "ecd444e8653b66b20d764e53c22e3e615eea5fae"
 >>>>>>> update(rebase): renamed
+=======
+  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
+>>>>>>> fix(rename): missed some packages
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -911,6 +920,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
 =======
 =======
@@ -938,6 +948,9 @@
 =======
   digest = "1:0e4f8006240b946ed8f591a5c5a86862073ff7ee0dee921a6fa76372caf182c6"
 >>>>>>> update(rebase): renamed
+=======
+  digest = "1:00deabbaf49e82bc39bd028fe3a038836d8506c47fa43f4e20a0709d1bed9a1a"
+>>>>>>> fix(rename): missed some packages
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -954,6 +967,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -985,6 +999,9 @@
 =======
   revision = "2d16b83fe98cd1bed9e2ce9fdc86bd438d14aab7"
 >>>>>>> update(rebase): renamed
+=======
+  revision = "73554e0f78058c37e5421bc48273a72400172221"
+>>>>>>> fix(rename): missed some packages
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"
@@ -1330,9 +1347,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/aslakknutsen/istio-workspace/pkg/model",
-    "github.com/aslakknutsen/istio-workspace/pkg/openshift",
-    "github.com/aslakknutsen/istio-workspace/test",
     "github.com/fsnotify/fsnotify",
     "github.com/go-cmd/cmd",
     "github.com/go-logr/logr",

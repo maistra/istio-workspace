@@ -3,8 +3,8 @@ package openshift_test
 import (
 	"context"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
-	"github.com/aslakknutsen/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 
