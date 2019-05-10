@@ -1,3 +1,7 @@
 * xref:index.adoc[Introduction to Istio Workspace]
 
+* xref:getting_started.adoc[Getting Started]
+
+* xref:contribution_guide.adoc[Contribution Guide]
+
 * xref:ideas.adoc[Ideas]

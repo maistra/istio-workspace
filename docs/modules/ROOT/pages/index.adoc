@@ -4,5 +4,5 @@ Do you have confidence that your Test and Stage environments reflect reality? Ar
 
 It's been always hard to test new functionality before it reaches production. Even more so, with the shift from a monolith to microservices and increasing scale. Can you still spin up the entire solution on your laptop to debug and test a suspicious piece of code? Testing on production is no longer a meme. It’s reality and a necessity.
 
-This project works with Istio and Kubernetes or Openshift to give you confidence that your changes won't blow up production cluster and your users won’t even notice a glitch.
+This project works with https://istio.io/[Istio] and https://k8s.io[Kubernetes] or https://openshift.com[Openshift] to give you confidence that your changes won't blow up production cluster and your users won’t even notice a glitch.
 
