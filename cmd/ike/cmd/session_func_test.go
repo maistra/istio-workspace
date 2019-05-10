@@ -1,7 +1,7 @@
 package cmd_test
 
 import (
-	. "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
+	. "github.com/maistra/istio-workspace/cmd/ike/cmd"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

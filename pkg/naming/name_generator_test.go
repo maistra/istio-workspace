@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
-	. "github.com/aslakknutsen/istio-workspace/test/matchers"
+	"github.com/maistra/istio-workspace/pkg/naming"
+	. "github.com/maistra/istio-workspace/test/matchers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

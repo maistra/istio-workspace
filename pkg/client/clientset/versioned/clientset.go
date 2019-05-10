@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

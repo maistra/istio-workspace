@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	"github.com/aslakknutsen/istio-workspace/pkg/naming"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/naming"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"

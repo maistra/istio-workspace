@@ -3,7 +3,7 @@ package istio
 import (
 	"strings"
 
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model"
 
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 

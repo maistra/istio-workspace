@@ -21,8 +21,8 @@ package v1alpha1
 import (
 	"time"
 
-	v1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	scheme "github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	scheme "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

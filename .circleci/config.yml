@@ -1,27 +1,46 @@
 version: 2.1
-orbs:
-  ike: bartoszmajsak/ike@0.0.3
 jobs:
   build:
-    working_directory: /go/src/github.com/aslakknutsen/istio-workspace
+    working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
-      - image: circleci/golang:1.12.4
+      - image: circleci/golang:1.12.5
     steps:
       - checkout
       - run: make tools
       - run: make
   e2e_tests:
-    working_directory: ~/.go_workspace/src/github.com/aslakknutsen/istio-workspace
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - ike/docker_insecure_registry
-      - ike/update_golang:
-          version: 1.12.4
-      - ike/install_telepresence
-      - ike/install_maistra:
-          version: v3.11.0+maistra-0.10.0
+      - run: |
+          json=`mktemp`
+          echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80" ] }' > ${json}
+          sudo mv ${json} /etc/docker/daemon.json
+          sudo service docker restart
+          echo "Configured Docker daemon with insecure-registry"
+      - run: |
+          sudo rm -rf /usr/local/go
+          sudo circleci-install golang 1.12.5
+      - run: |
+          cd ~
+          pyenv global 3.5.2
+          curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
+          sudo apt install --no-install-recommends telepresence
+          telepresence --version
+      - run:  |
+          cd ~
+
+          curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.10.0/istiooc_linux && \
+          chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
+          sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
+          echo "Installed istiooc\n$(istiooc version)\n"
+
+          kube_version=$(istiooc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
+          curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+          echo "Installed kubectl\n$(kubectl version)\n"
       - run: make tools deps compile test-e2e
 
 workflows:

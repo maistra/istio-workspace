@@ -1,8 +1,8 @@
 package session
 
 import (
-	istiov1alpha1 "github.com/aslakknutsen/istio-workspace/pkg/apis/istio/v1alpha1"
-	"github.com/aslakknutsen/istio-workspace/pkg/client/clientset/versioned"
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"

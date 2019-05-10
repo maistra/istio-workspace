@@ -1,7 +1,7 @@
 package istio
 
 import (
-	"github.com/aslakknutsen/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/aslakknutsen/istio-workspace/cmd/ike/cmd"
-	. "github.com/aslakknutsen/istio-workspace/test"
+	. "github.com/maistra/istio-workspace/cmd/ike/cmd"
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
