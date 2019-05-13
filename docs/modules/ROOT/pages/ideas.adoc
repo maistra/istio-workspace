@@ -1,4 +1,4 @@
-== ISTIO Dev Ideation
+== ISTIO Workspace Ideation
 
 === Related resources
 
