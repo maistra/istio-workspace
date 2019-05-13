@@ -1,11 +1,11 @@
 image:https://goreportcard.com/badge/github.com/maistra/istio-workspace["Go Report Card", link="https://goreportcard.com/report/github.com/maistra/istio-workspace"]
 image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", link="https://circleci.com/gh/Maistra/istio-workspace"]
 
-= Istio Workspace
+== Istio Workspace
 
-== Development
+=== Development
 
-=== Setup
+==== Setup
 
 Assuming that you have all the link:https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
 
@@ -28,7 +28,7 @@ From now on you are ready to hack. Run `make help` to see what targets are avail
 NOTE: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
 and management of different versions of Go.
 
-== License
+=== License
 
 This project is licensed under the link:http://www.apache.org/licenses/[Apache License, Version 2.0]
 .
