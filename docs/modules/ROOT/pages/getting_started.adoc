@@ -1,2 +1,26 @@
 == Getting Started
 
+In this section we walk you through necessary steps to start using `ike`. It just takes few minutes and you are ready to start coding!
+
+=== What do you need
+
+* [x] `oc` or `kubectl`
+* [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
+* [x] Ike binary
+
+
+=== Using `ike` CLI
+
+[source,bash]
+----
+
+ike develop --deployment details-v1 --port 9080 --watch --run 'ruby details.rb 9080' --route header:end-user=alien-ike
+----
+
+Now you have process based on your local code base which proxies connections to your Kubernetes cluster! Have fun hacking!
+
+NOTE: `// TODO add screencast showing the basic flow`
+
+NOTE: `// TODO add sources to our binary once released`
+
+NOTE: `// TODO single install script`
