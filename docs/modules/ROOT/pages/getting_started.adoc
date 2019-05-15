@@ -1,15 +1,16 @@
-== Getting Started
+= Getting Started
+include::_attributes.adoc[]
 
-In this section we walk you through necessary steps to start using `ike`. It just takes few minutes and you are ready to start coding!
+In this section we walk you through necessary steps to start using `ike`. It will take you just a few minutes to start coding!
 
-=== What do you need
+== What do you need
 
 * [x] `oc` or `kubectl`
 * [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
 * [x] Ike binary
 
 
-=== Using `ike` CLI
+== Using `ike` CLI
 
 [source,bash]
 ----
