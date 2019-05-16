@@ -15,8 +15,15 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 [source,bash]
 ----
 
-ike develop --deployment details-v1 --port 9080 --watch --run 'ruby details.rb 9080' --route header:end-user=alien-ike
+ike develop  \
+  --deployment details-v1 \
+  --port 9080 \
+  --watch \
+  --run 'ruby details.rb 9080' \
+  --route header:end-user=alien-ike \
 ----
+
+Let's break it down to see what is going on under the hood.
 
 Now you have process based on your local code base which proxies connections to your Kubernetes cluster! Have fun hacking!
 
