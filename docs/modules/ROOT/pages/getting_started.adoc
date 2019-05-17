@@ -1,5 +1,4 @@
 = Getting Started
-include::_attributes.adoc[]
 
 In this section we walk you through necessary steps to start using `ike`. It will take you just a few minutes to start coding!
 
@@ -10,25 +9,34 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 * [x] Ike binary
 
 
+NOTE: `// TODO single install script`
+
 == Using `ike` CLI
 
 [source,bash]
 ----
 
 ike develop  \
-  --deployment details-v1 \
-  --port 9080 \
-  --watch \
-  --run 'ruby details.rb 9080' \
-  --route header:end-user=alien-ike \
+  --deployment details-v1 \ <1>
+  --port 9080 \ <2>
+  --watch \ <3>
+  --run 'ruby details.rb 9080' \ <4>
+  --route header:end-user=alien-ike \ <5>
 ----
 
-Let's break it down to see what is going on under the hood.
+Now you have process based on your local code base which proxies connections from/to your Kubernetes cluster! Have fun hacking!
 
-Now you have process based on your local code base which proxies connections to your Kubernetes cluster! Have fun hacking!
+Let's break it down to see what is going on under the hood:
+
+<1> Name of the `Deployment` or `DeploymentConfig` you want to work with
+<2> exposed port of the service
+<3> whether to watch changes in the file system and re-run the process when they occur
+<4> command to run 
+<5> route differentiation based on which the traffic will be directed to your forked service
+
+// TIP: All command line flags can also be persisted in the configuration file and shared in the project. For more details jump to configuration section.
+
 
 NOTE: `// TODO add screencast showing the basic flow`
 
 NOTE: `// TODO add sources to our binary once released`
-
-NOTE: `// TODO single install script`
