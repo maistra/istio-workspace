@@ -9,7 +9,7 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 * [x] Ike binary
 
 
-NOTE: `// TODO single install script`
+// TODO single install script
 
 == Using `ike` CLI
 
@@ -37,6 +37,6 @@ Let's break it down to see what is going on under the hood:
 // TIP: All command line flags can also be persisted in the configuration file and shared in the project. For more details jump to configuration section.
 
 
-NOTE: `// TODO add screencast showing the basic flow`
+// TODO add screencast showing the basic flow
 
-NOTE: `// TODO add sources to our binary once released`
+// TODO add sources to our binary once released
