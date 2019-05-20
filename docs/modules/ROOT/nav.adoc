@@ -2,6 +2,8 @@
 
 * xref:getting_started.adoc[Getting Started]
 
+* xref:cli_reference.adoc[CLI Reference]
+
 * xref:contribution_guide.adoc[Contribution Guide]
 
 
