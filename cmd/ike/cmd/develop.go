@@ -26,7 +26,6 @@ func NewDevelopCmd() *cobra.Command {
 			if !BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
-
 			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]

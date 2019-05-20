@@ -32,7 +32,6 @@ func NewRootCmd() *cobra.Command {
 		Use:          "ike",
 		Short:        "ike lets you safely develop and test on prod without a sweat",
 		SilenceUsage: true,
-
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
@@ -45,7 +44,12 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
+	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
+	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
+		log.Error(err, "failed while trying to hide a flag")
+	}
 
+	EnhanceHelper(rootCmd)
 	return rootCmd
 }
 
