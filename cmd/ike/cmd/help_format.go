@@ -14,6 +14,7 @@ import (
 func EnhanceHelper(command *cobra.Command) {
 	originalHelpFunc := command.HelpFunc()
 	command.SetHelpFunc(func(cmd *cobra.Command, i []string) {
+		defer originalHelpFunc(cmd, i) // always delegate to original helper function
 		helpFormat, err := cmd.Flags().GetString("help-format")
 		if err != nil {
 			return
@@ -45,8 +46,6 @@ func EnhanceHelper(command *cobra.Command) {
 		} else {
 			fmt.Printf("unknown help format: [%s]. using standard one\n", helpFormat)
 		}
-
-		originalHelpFunc(cmd, i)
 	})
 }
 
