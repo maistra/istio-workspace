@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// EnhanceHelper wraps helper function with alternative formatting and templates (e.g. asciidoc) based on --helper-format flag
+// EnhanceHelper wraps helper function with alternative formatting
+// and templates (e.g. asciidoc) based on --helper-format flag
 // Applies to all subcommands.
 // This can be useful when automatically generating documentation for CLI
 func EnhanceHelper(command *cobra.Command) {
@@ -34,7 +35,7 @@ func EnhanceHelper(command *cobra.Command) {
 		cobra.AddTemplateFunc("type", func(flag *pflag.Flag) string {
 			flagType := flag.Value.Type()
 			if strings.Contains(flagType, "Slice") {
-				return "takes comma-separated value as arguments and split them accordingly (`" + strings.Replace(flagType, "Slice", "", 1) + "`)"
+				return "comma-separated list of " + strings.Replace(flagType, "Slice", "", 1) + "s"
 			}
 			return "`" + flagType + "`"
 		})
@@ -52,14 +53,14 @@ func EnhanceHelper(command *cobra.Command) {
 const (
 	OnlyUsageString = "{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}"
 	ADocHelpTable   = `{{if .HasAvailableLocalFlags}}{{ $tick := "` + "`" + `" }}
-[cols="2,4,1,1"]
+[cols="2,4,2,1"]
 |===
 |Option|Purpose|Format|Default
 {{range localFlagsSlice .LocalFlags}}{{ if not .Hidden }}
 |{{$tick}}--{{.Name}}{{$tick}} {{if .Shorthand}}({{$tick}}-{{.Shorthand}}{{$tick}}){{end}}
 |{{.Usage}}
 |{{type .}}
-|{{.DefValue | trimTrailingWhitespaces}}{{end}}
+|{{$tick}}{{.DefValue | trimTrailingWhitespaces}}{{$tick}}{{end}}
 {{end}}
 |===
 {{end}}`
