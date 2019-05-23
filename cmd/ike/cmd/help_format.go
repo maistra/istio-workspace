@@ -40,7 +40,9 @@ func registerTemplateFuncs() {
 	cobra.AddTemplateFunc("localFlagsSlice", func(set *pflag.FlagSet) []pflag.Flag {
 		flags := make([]pflag.Flag, 0)
 		set.VisitAll(func(flag *pflag.Flag) {
-			flags = append(flags, *flag)
+			if flag.Name != "help" {
+				flags = append(flags, *flag)
+			}
 		})
 		return flags
 	})
