@@ -65,7 +65,7 @@ const (
 |{{$tick}}--{{.Name}}{{$tick}} {{if .Shorthand}}({{$tick}}-{{.Shorthand}}{{$tick}}){{end}}
 |{{.Usage}}
 |{{type .}}
-|{{$tick}}{{.DefValue | trimTrailingWhitespaces}}{{$tick}}{{end}}
+|{{if .DefValue}}{{$tick}}{{.DefValue | trimTrailingWhitespaces}}{{$tick}}{{end}}{{end}}
 {{end}}
 |===
 {{end}}`
