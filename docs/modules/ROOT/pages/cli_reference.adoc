@@ -1,7 +1,45 @@
 = CLI Reference
 
+In this section you will learn about:
+
+* [x] ways to configure `ike` (through flags, files et al)
+* [x] complete list of commands and their available flags
+
+[#configuration]
+== Configuration
+
+There are several ways to configure `ike` commands:
+
+. Flags
+. Environment variables
+. Configuration file
+
+Each item takes precedence over the item below it.
+
+Environment variables are prefixed with `IKE` and have fully qualified names, for example
+in case of `develop` command and its `port` flag corresponding environment variable is
+`IKE_DEVELOP_PORT`.
+
+Each of the commands can be persisted in the configuration file with all their flags respectively.
+
+In case of `develop` command `yaml` file could look like:
+
+[source,yml]
+----
+develop:
+  deployment: test
+  run: "java -jar config.jar"
+  port: 9876
+----
+
+See <<ike,ike root command>> to learn about the global config flag and available formats.
+
+Below you can find a documented list of all commands and their available flags.
+
+== Available commands
+
 [#ike]
-== `ike`
+=== `ike`
 
 Main command, which starts the operator.
 // TODO section about operator and how it works + link here
@@ -9,7 +47,7 @@ Main command, which starts the operator.
 include::cmd:ike[flags='--help --help-format=adoc']
 
 [#ike-develop]
-== `ike develop`
+=== `ike develop`
 
 Creates or joins existing development session in the cluster.
 Allows to re-route cluster network traffic to your local process.
@@ -17,12 +55,7 @@ Allows to re-route cluster network traffic to your local process.
 include::cmd:ike[flags='develop --help --help-format=adoc']
 
 [#ike-version]
-== `ike version`
+=== `ike version`
 
 Prints version of the binary and build metadata.
 include::cmd:ike[flags='version',block=true,print=true]
-
-[#configuration]
-== Configuration
-
-Settings / flags for every command can be persisted in `yaml` file.
