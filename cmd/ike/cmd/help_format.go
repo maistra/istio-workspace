@@ -25,28 +25,31 @@ func EnhanceHelper(command *cobra.Command) {
 			return
 		}
 
-		cobra.AddTemplateFunc("localFlagsSlice", func(set *pflag.FlagSet) []pflag.Flag {
-			flags := make([]pflag.Flag, 0)
-			set.VisitAll(func(flag *pflag.Flag) {
-				flags = append(flags, *flag)
-			})
-			return flags
-		})
-		cobra.AddTemplateFunc("type", func(flag *pflag.Flag) string {
-			flagType := flag.Value.Type()
-			if strings.Contains(flagType, "Slice") {
-				return "comma-separated list of " + strings.Replace(flagType, "Slice", "", 1) + "s"
-			}
-			return "`" + flagType + "`"
-		})
+		registerTemplateFuncs()
 
 		cmd.SetHelpTemplate(OnlyUsageString)
-
 		if helpFormat == "adoc" {
 			cmd.SetUsageTemplate(ADocHelpTable)
 		} else {
 			fmt.Printf("unknown help format: [%s]. using standard one\n", helpFormat)
 		}
+	})
+}
+
+func registerTemplateFuncs() {
+	cobra.AddTemplateFunc("localFlagsSlice", func(set *pflag.FlagSet) []pflag.Flag {
+		flags := make([]pflag.Flag, 0)
+		set.VisitAll(func(flag *pflag.Flag) {
+			flags = append(flags, *flag)
+		})
+		return flags
+	})
+	cobra.AddTemplateFunc("type", func(flag *pflag.Flag) string {
+		flagType := flag.Value.Type()
+		if strings.Contains(flagType, "Slice") {
+			return "comma-separated list of " + strings.Replace(flagType, "Slice", "", 1) + "s"
+		}
+		return "`" + flagType + "`"
 	})
 }
 
