@@ -42,7 +42,7 @@ Below you can find a documented list of all commands and their available flags.
 === `ike`
 
 Main command, which starts the operator.
-// TODO brief mentionn about operator and how it works + link to the dedicated docs
+// TODO brief mention about operator and how it works + link to the dedicated docs
 
 include::cmd:ike[flags='--help --help-format=adoc']
 
