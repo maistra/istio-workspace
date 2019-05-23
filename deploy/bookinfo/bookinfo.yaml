@@ -44,7 +44,12 @@ spec:
     spec:
       containers:
       - name: details
-        image: istio/examples-bookinfo-details-v1:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: details-v1
+          - name: HTTP_ADDR
+            value: :9080
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
@@ -81,7 +86,12 @@ spec:
     spec:
       containers:
       - name: ratings
-        image: istio/examples-bookinfo-ratings-v1:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: ratings-v1
+          - name: HTTP_ADDR
+            value: :9080
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
@@ -118,7 +128,12 @@ spec:
     spec:
       containers:
       - name: reviews
-        image: istio/examples-bookinfo-reviews-v1:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: reviews-v1
+          - name: HTTP_ADDR
+            value: :9080
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
@@ -139,7 +154,14 @@ spec:
     spec:
       containers:
       - name: reviews
-        image: istio/examples-bookinfo-reviews-v2:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: reviews-v2
+          - name: HTTP_ADDR
+            value: :9080
+          - name: SERVICE_CALL
+            value: http://ratings:9080/
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
@@ -160,7 +182,14 @@ spec:
     spec:
       containers:
       - name: reviews
-        image: istio/examples-bookinfo-reviews-v3:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: ratings-v3
+          - name: HTTP_ADDR
+            value: :9080
+          - name: SERVICE_CALL
+            value: http://ratings:9080/
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
@@ -197,7 +226,14 @@ spec:
     spec:
       containers:
       - name: productpage
-        image: istio/examples-bookinfo-productpage-v1:1.8.0
+        image: aslakknutsen/istio-workspace-test:latest
+        env:
+          - name: SERVICE_NAME
+            value: productpage-v1
+          - name: HTTP_ADDR
+            value: :9080
+          - name: SERVICE_CALL
+            value: http://reviews:9080/,http://details:9080/
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080

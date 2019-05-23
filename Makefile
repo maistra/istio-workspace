@@ -7,7 +7,7 @@ EXAMPLE_NAMESPACE?=bookinfo
 CUR_DIR:=$(shell pwd)
 BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
-BINARY_NAME:=ike
+TEST_BINARY_NAME:=test-service
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
@@ -105,11 +105,16 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
+$(BINARY_DIR)/$(TEST_BINARY_NAME):
+	$(call header,"Compiling test service... carry on!")
+	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TEST_BINARY_NAME)/
+
 # ##########################################################################
 # Docker build
 # ##########################################################################
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_IMAGE_TAG?=$(COMMIT)
 export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=docker.io
@@ -130,6 +135,22 @@ docker-push: ## Pushes docker image to the registry
 	$(call header,"Pushing docker image $(IKE_IMAGE_NAME)")
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
+
+.PHONY: docker-build-test
+docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME) ## Builds the docker test image
+	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
+	docker build \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		-f $(BUILD_DIR)/DockerfileTest $(CUR_DIR)
+	docker tag \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+
+.PHONY: docker-push-test
+docker-push-test: ## Pushes docker image to the registry
+	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 # ##########################################################################
 # Istio operator deployment
@@ -203,8 +224,8 @@ deploy-bookinfo: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml
 	# Required due to circle-ci memory limitations
-	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v2
-	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v3
+	#oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v2
+	#oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v3
 
 .PHONY: undeploy-bookinfo
 undeploy-bookinfo: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
