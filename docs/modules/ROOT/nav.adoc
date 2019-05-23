@@ -5,5 +5,3 @@
 * xref:cli_reference.adoc[CLI Reference]
 
 * xref:contribution_guide.adoc[Contribution Guide]
-
-
