@@ -8,7 +8,8 @@ import (
 
 func AllPodsNotInState(namespace, state string) func() string {
 	return func() string {
-		ocGetPods := cmd.Execute("oc", "get", "pods",
+		ocGetPods := cmd.ExecuteInDir(".",
+			"oc", "get", "pods",
 			"-n", namespace,
 			"--field-selector", "status.phase!="+state,
 		)
@@ -19,7 +20,8 @@ func AllPodsNotInState(namespace, state string) func() string {
 
 func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
 	return func() string {
-		ocGetPods := cmd.Execute("oc", "get", "pods",
+		ocGetPods := cmd.ExecuteInDir(".",
+			"oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
 			"--field-selector", "status.phase=="+state,
@@ -31,7 +33,8 @@ func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
 
 func PodCompletedStatus(namespace, label string) func() string {
 	return func() string {
-		ocGetPods := cmd.Execute("oc", "get", "pods",
+		ocGetPods := cmd.ExecuteInDir(".",
+			"oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
 			"-o", "go-template='{{range .items}}{{range .status.containerStatuses}}{{.state.terminated.reason}}{{end}}{{end}}'",

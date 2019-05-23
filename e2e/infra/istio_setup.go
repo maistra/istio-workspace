@@ -11,7 +11,7 @@ import (
 
 func LoadIstio() {
 	projectDir := os.Getenv("CUR_DIR")
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.Execute("oc login -u system:admin").Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "load-istio").Done()
 	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"),
 		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
@@ -19,15 +19,15 @@ func LoadIstio() {
 
 func DeployBookinfoInto(namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.Execute("oc login -u system:admin").Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-bookinfo", "EXAMPLE_NAMESPACE="+namespace).Done()
 }
 
 func BuildOperator() (registry string) {
 	projectDir := os.Getenv("CUR_DIR")
 	_, registry = setDockerEnv()
-	<-cmd.Execute("oc", "login", "-u", "admin", "-p", "admin").Done()
-	<-cmd.Execute("bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-cmd.Execute("oc login -u admin -p admin").Done()
+	<-cmd.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
@@ -35,7 +35,7 @@ func BuildOperator() (registry string) {
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.Execute("oc login -u system:admin").Done()
 
 	namespace, _ = setDockerEnv()
 	// override and use internal address on Deployment

@@ -33,20 +33,20 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			<-cmd.Execute("istiooc", "cluster", "up",
+			<-cmd.ExecuteInDir(".", "istiooc", "cluster", "up",
 				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
 
-			<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+			<-cmd.Execute("oc login -u system:admin").Done()
 
 			fmt.Printf("\nExposing Docker Registry\n")
-			<-cmd.Execute("oc", "expose", "service", "docker-registry", "-n", "default").Done()
+			<-cmd.Execute("oc expose service docker-registry -n default").Done()
 
 			// create a 'real user' we can use to push to the DockerRegistry
 			fmt.Printf("\nAdd admin user\n")
-			<-cmd.Execute("oc", "create", "user", "admin").Done()
-			<-cmd.Execute("oc", "adm", "policy", "add-cluster-role-to-user", "cluster-admin", "admin").Done()
+			<-cmd.Execute("oc create user admin").Done()
+			<-cmd.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
 
 			LoadIstio()
 			// Deploy first so the namespace exists when we push it to the local openshift registry
@@ -67,7 +67,7 @@ var _ = SynchronizedAfterSuite(func() {},
 		if !skipClusterShutdown {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
-				cmd.Execute("oc", "cluster", "down")
+				cmd.Execute("oc cluster down")
 			})
 		}
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
@@ -76,7 +76,7 @@ var _ = SynchronizedAfterSuite(func() {},
 	})
 
 func clusterNotRunning() bool {
-	clusterStatus := cmd.Execute("oc", "cluster", "status")
+	clusterStatus := cmd.Execute("oc cluster status")
 	<-clusterStatus.Done()
 	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running")
 }

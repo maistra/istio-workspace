@@ -40,8 +40,9 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 
 // Execute executes given command in the current directory
 // Adds shutdown hook and redirects streams to stdout/err
-func Execute(name string, args ...string) *gocmd.Cmd {
-	return ExecuteInDir("", name, args...)
+func Execute(command string) *gocmd.Cmd {
+	cmd := strings.Split(command, " ")
+	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
 // ExecuteInDir executes given command in the defined directory

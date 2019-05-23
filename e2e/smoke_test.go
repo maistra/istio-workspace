@@ -37,7 +37,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		AfterEach(func() {
 			tmpPath.Restore()
-			<-cmd.Execute("oc", "delete", "project", appName).Done()
+			<-cmd.Execute("oc delete project " + appName).Done()
 		})
 
 		It("should watch python code changes and replace service when they occur", func() {
@@ -81,15 +81,15 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
-			<-cmd.Execute("oc", "login", "-u", "developer").Done()
-			<-cmd.Execute("oc", "new-project", namespace).Done()
+			<-cmd.Execute("oc login -u developer").Done()
+			<-cmd.Execute("oc new-project " + namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
 			DeployBookinfoInto(namespace)
 		})
 
 		AfterEach(func() {
 			tmpPath.Restore()
-			<-cmd.Execute("oc", "delete", "project", namespace).Done()
+			<-cmd.Execute("oc delete project " + namespace).Done()
 		})
 
 		It("should watch for changes in details service and serve it", func() {
@@ -107,10 +107,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", "details-v1",
 				"--port", "9080",
-				"--method", "inject-tcp",
 				"--watch",
 				"--run", "ruby details.rb 9080",
-				"--route", "header:end-user=jason",
+				"--route", "header:end-user=ike",
 			)
 
 			// ensure the new service is running
@@ -122,7 +121,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			CreateFile(tmpDir+"/details.rb", modifiedDetails)
 
 			// then
-			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "jason", "jason")
+			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "ike", "ike")
 			Expect(err).ToNot(HaveOccurred())
 
 			Eventually(func() (string, error) {
@@ -145,7 +144,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 			// switch to different namespace
-			<-cmd.Execute("oc", "project", "myproject").Done()
+			<-cmd.Execute("oc project myproject").Done()
 
 			// given we have details code locally
 			CreateFile(tmpDir+"/details.rb", DetailsRuby)
