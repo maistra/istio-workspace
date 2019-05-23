@@ -8,7 +8,6 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 * [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
 * [x] Ike binary
 
-
 // TODO single install script
 
 == Using `ike` CLI
