@@ -66,12 +66,12 @@ jobs:
 
       - restore_cache:
           keys:
-            - vendor-cache-{{ checksum "Gopkg.lock" }}
+            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: make tools deps compile test-e2e
       - save_cache:
-          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
 
