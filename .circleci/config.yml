@@ -1,13 +1,27 @@
 version: 2.1
 jobs:
+
+  ## Regular build running unit tests and linters
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
       - image: circleci/golang:1.12.5
     steps:
       - checkout
-      - run: make tools
-      - run: make
+      - restore_cache:
+          keys:
+            - vendor-cache-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: Running the build
+          command: |
+            make tools && \
+            make
+      - save_cache:
+          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          paths:
+            - ./vendor
+
+  ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
@@ -41,7 +55,15 @@ jobs:
           curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
           chmod +x kubectl && sudo mv kubectl /usr/local/bin/
           echo "Installed kubectl\n$(kubectl version)\n"
+
+      - restore_cache:
+          keys:
+            - vendor-cache-{{ checksum "Gopkg.lock" }}
       - run: make tools deps compile test-e2e
+      - save_cache:
+          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          paths:
+            - ./vendor
 
 workflows:
   version: 2.1
