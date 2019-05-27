@@ -22,7 +22,7 @@ var _ = Describe("File pattern", func() {
 			parsed := watch.ParseFilePatterns(regexpDef)
 
 			// then
-			Expect(parsed).To(ConsistOf(watch.FilePattern{Regexp: "my-regexp"}))
+			Expect(parsed).To(ConsistOf(watch.FilePattern{RegExp: "my-regexp"}))
 		})
 	})
 
