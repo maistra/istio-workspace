@@ -1,47 +1,79 @@
 version: 2.1
 jobs:
+
+  ## Regular build running unit tests and linters
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
       - image: circleci/golang:1.12.5
     steps:
       - checkout
-      - run: make tools
-      - run: make
+      - restore_cache:
+          keys:
+            - vendor-cache-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: "Runs the build"
+          command: |
+            make tools && \
+            make
+      - save_cache:
+          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          paths:
+            - ./vendor
+
+  ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - run: |
-          json=`mktemp`
-          echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80" ] }' > ${json}
-          sudo mv ${json} /etc/docker/daemon.json
-          sudo service docker restart
-          echo "Configured Docker daemon with insecure-registry"
-      - run: |
-          sudo rm -rf /usr/local/go
-          sudo circleci-install golang 1.12.5
-      - run: |
-          cd ~
-          pyenv global 3.5.2
-          curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-          sudo apt install --no-install-recommends telepresence
-          telepresence --version
-      - run:  |
-          cd ~
+      - run:
+          name: "Configures Docker daemon with insecure-registry"
+          command: |
+            json=`mktemp`
+            echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80" ] }' > ${json}
+            sudo mv ${json} /etc/docker/daemon.json
+            sudo service docker restart
+            echo "Configured Docker daemon with insecure-registry"
+      - run:
+          name: "Installs latest Golang"
+          command: |
+            sudo rm -rf /usr/local/go
+            sudo circleci-install golang 1.12.5
+      - run:
+          name: "Installs telepresence"
+          command: |
+            cd ~
+            pyenv global 3.5.2
+            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
+            sudo apt install --no-install-recommends telepresence
+            telepresence --version
+      - run:
+          name: "Installs Maistra"
+          command: |
+            cd ~
 
-          curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.10.0/istiooc_linux && \
-          chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
-          sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
-          echo "Installed istiooc\n$(istiooc version)\n"
+            curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.10.0/istiooc_linux && \
+            chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
+            sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
+            echo "Installed istiooc\n$(istiooc version)\n"
 
-          kube_version=$(istiooc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
-          curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
-          chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-          echo "Installed kubectl\n$(kubectl version)\n"
-      - run: make tools deps compile test-e2e
+            kube_version=$(istiooc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
+            chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+            echo "Installed kubectl\n$(kubectl version)\n"
+
+      - restore_cache:
+          keys:
+            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: "Runs end-to-end tests"
+          command: make tools deps compile test-e2e
+      - save_cache:
+          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+          paths:
+            - ./vendor
 
 workflows:
   version: 2.1
