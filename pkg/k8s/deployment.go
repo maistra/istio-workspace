@@ -1,8 +1,9 @@
 package k8s
 
 import (
-	"github.com/maistra/istio-workspace/pkg/model"
 	"os"
+
+	"github.com/maistra/istio-workspace/pkg/model"
 
 	appsv1 "k8s.io/api/apps/v1"
 
@@ -101,7 +102,7 @@ func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Depl
 	}
 
 	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:"+tpVersion
+	container.Image = "datawire/telepresence-k8s:" + tpVersion
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
 		ValueFrom: &corev1.EnvVarSource{
