@@ -58,18 +58,16 @@ jobs:
             chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
             sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
             echo "Installed istiooc\n$(istiooc version)\n"
-
             kube_version=$(istiooc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
             curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
-
       - restore_cache:
           keys:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
-          command: make tools deps compile test-e2e
+          command: TELEPRESENCE_VERSION=$(telepresence --version) make tools deps compile test-e2e
       - save_cache:
           key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
