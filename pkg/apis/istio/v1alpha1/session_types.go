@@ -53,6 +53,7 @@ type Session struct {
 	Status SessionStatus `json:"status,omitempty"`
 }
 
+// HasFinalizer checks if session has a finalizer attached to it
 func (s *Session) HasFinalizer(finalizer string) bool {
 	for _, f := range s.Finalizers {
 		if f == finalizer {
@@ -62,10 +63,12 @@ func (s *Session) HasFinalizer(finalizer string) bool {
 	return false
 }
 
+// AddFinalizer adds a finalizer to the session
 func (s *Session) AddFinalizer(finalizer string) {
 	s.Finalizers = append(s.Finalizers, finalizer)
 }
 
+// RemoveFinalizer removes given finalize
 func (s *Session) RemoveFinalizer(finalizer string) {
 	finalizers := []string{}
 	for _, f := range s.Finalizers {

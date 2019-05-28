@@ -18,10 +18,12 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool { //
 	return false
 }
 
+// DeploymentConfigMutator attempts to clone the located DeploymentConfig
 func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return nil
 }
 
+// DeploymentConfigRevertor attempts to delete the cloned DeploymentConfig
 func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	return nil
 }
