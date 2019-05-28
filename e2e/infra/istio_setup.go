@@ -9,6 +9,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
+// LoadIstio calls make load-istio target and waits until operator sets up mesh
 func LoadIstio() {
 	projectDir := os.Getenv("CUR_DIR")
 	<-cmd.Execute("oc login -u system:admin").Done()
@@ -17,12 +18,14 @@ func LoadIstio() {
 		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 }
 
+// DeployBookinfoInto deploys book info sample application into specified namespace
 func DeployBookinfoInto(namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	<-cmd.Execute("oc login -u system:admin").Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-bookinfo", "EXAMPLE_NAMESPACE="+namespace).Done()
 }
 
+// BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
 	projectDir := os.Getenv("CUR_DIR")
 	_, registry = setDockerEnv()
@@ -32,6 +35,7 @@ func BuildOperator() (registry string) {
 	return
 }
 
+// DeployOperator deploys istio-workspace operator into specified namespace
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
