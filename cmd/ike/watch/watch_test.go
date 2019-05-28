@@ -6,8 +6,6 @@ import (
 
 	"github.com/maistra/istio-workspace/cmd/ike/watch"
 
-	"go.uber.org/goleak"
-
 	"github.com/fsnotify/fsnotify"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,14 +14,6 @@ import (
 )
 
 var _ = Describe("File changes watch", func() {
-
-	AfterSuite(func() {
-		goleak.VerifyNone(GinkgoT(),
-			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
-			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
-		)
-		CleanUpTmpFiles(GinkgoT())
-	})
 
 	It("should recognize file change", func() {
 		// given
