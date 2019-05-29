@@ -58,11 +58,13 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 				return nil, e
 			}
 		} else {
+			if e := wb.w.addGitIgnore(p); e != nil {
+				return nil, e
+			}
 			if e := wb.w.addRecursiveWatch(p); e != nil {
 				return nil, e
 			}
 		}
-
 	}
 
 	return wb.w, nil

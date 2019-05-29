@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"os"
 	"regexp"
 	"strings"
 )
@@ -14,7 +15,7 @@ const (
 	anythingRegExp                 = ".*"
 	twoStarsReplacement            = "<two-stars-replacement>"
 	endOfLineRegExp                = "$"
-	directorySeparator             = "/"
+	directorySeparator             = string(os.PathSeparator)
 )
 
 // FilePatterns is an alias type representing slice of FilePattern

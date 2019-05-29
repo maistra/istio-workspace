@@ -88,3 +88,7 @@ required = [
 [[constraint]]
   name = "go.uber.org/goleak"
   branch = "master"
+
+[[constraint]]
+  name = "github.com/denormal/go-gitignore"
+  branch = "master"

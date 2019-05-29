@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/denormal/go-gitignore"
 	"github.com/fsnotify/fsnotify"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -20,6 +22,7 @@ type Watch struct {
 	watcher    *fsnotify.Watcher
 	handlers   []Handler
 	exclusions FilePatterns
+	gitignores []gitignore.GitIgnore
 	interval   time.Duration
 	done       chan struct{}
 }
@@ -41,7 +44,7 @@ func (w *Watch) Start() {
 				if !ok {
 					return
 				}
-				if w.exclusions.Matches(event.Name) {
+				if w.Excluded(event.Name) {
 					log.V(10).Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
@@ -72,6 +75,17 @@ func (w *Watch) Start() {
 		close(w.done)
 	}()
 
+}
+
+// Excluded checks whether a path is excluded from watch by first inspecting .gitignores and only then user-defined
+// exclusions
+func (w *Watch) Excluded(path string) bool {
+	for _, ignore := range w.gitignores {
+		if ignore.Ignore(path) {
+			return true
+		}
+	}
+	return w.exclusions.Matches(path)
 }
 
 // Close attempts to close underlying fsnotify.Watcher.
@@ -119,6 +133,25 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 	return nil
 }
 
+// addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path
+func (w *Watch) addGitIgnore(path string) error {
+	gitIgnorePath := path + string(os.PathSeparator) + ".gitignore"
+	file, err := os.Open(gitIgnorePath)
+	if err == nil {
+		err := file.Close()
+		if err != nil {
+			return err
+		}
+		ignore, err := gitignore.NewFromFile(gitIgnorePath)
+		if err != nil {
+			return err
+		}
+		w.gitignores = append(w.gitignores, ignore)
+	}
+
+	return nil
+}
+
 // getSubFolders recursively retrieves all subfolders of the specified path.
 func getSubFolders(filePath string) (paths []string, err error) {
 	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
@@ -131,7 +164,7 @@ func getSubFolders(filePath string) (paths []string, err error) {
 		}
 		return nil
 	})
-	return paths, err
+	return
 }
 
 // extractValues takes a map and returns slice of all values

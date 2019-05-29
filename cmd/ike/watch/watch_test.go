@@ -130,6 +130,31 @@ var _ = Describe("File changes watch", func() {
 		Eventually(done).Should(BeClosed())
 	})
 
+	FIt("should not recognize file change if it's git-ignored", func() {
+		// given
+		done := make(chan struct{})
+
+		watchTmpDir := TmpDir(GinkgoT(), "watch")
+		config := TmpFile(GinkgoT(), watchTmpDir+"/config.yaml", "content")
+		TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", "*.yaml")
+		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
+
+		watcher, e := watch.CreateWatch(1).
+			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
+			OnPaths(watchTmpDir)
+		Expect(e).ToNot(HaveOccurred())
+
+		defer watcher.Close()
+
+		// when
+		watcher.Start()
+		_, _ = config.WriteString(" should not be watched")
+		_, _ = code.WriteString("\n // Bla!")
+
+		// then
+		Eventually(done).Should(BeClosed())
+	})
+
 })
 
 func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
