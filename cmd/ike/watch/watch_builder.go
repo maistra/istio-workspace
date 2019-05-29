@@ -9,7 +9,8 @@ import (
 
 // Builder is a struct which allows to use fluent API to create underlying instance of Watch
 type Builder struct {
-	w *Watch
+	w          *Watch
+	exclusions []string
 }
 
 // CreateWatch creates instance of Builder providing fluent functions to customize watch
@@ -29,7 +30,7 @@ func (wb *Builder) WithHandlers(handlers ...Handler) *Builder {
 
 // Excluding allows to define exclusion patterns (as glob expressions)
 func (wb *Builder) Excluding(exclusions ...string) *Builder {
-	wb.w.exclusions = ParseFilePatterns(exclusions)
+	wb.exclusions = exclusions
 	return wb
 }
 
@@ -46,22 +47,23 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 
 	wb.w.watcher = fsWatcher
 
-	for _, p := range paths {
-		dir, err := os.Stat(p)
+	for _, path := range paths {
+		dir, err := os.Stat(path)
 
 		if err != nil {
 			return nil, err
 		}
 
 		if !dir.IsDir() {
-			if e := wb.w.addPath(p); e != nil {
+			if e := wb.w.addPath(path); e != nil {
 				return nil, e
 			}
 		} else {
-			if e := wb.w.addGitIgnore(p); e != nil {
+			wb.w.addExclusions(path, wb.exclusions)
+			if e := wb.w.addGitIgnore(path); e != nil {
 				return nil, e
 			}
-			if e := wb.w.addRecursiveWatch(p); e != nil {
+			if e := wb.w.addRecursiveWatch(path); e != nil {
 				return nil, e
 			}
 		}

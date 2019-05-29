@@ -3,6 +3,7 @@ package watch_test
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/maistra/istio-workspace/cmd/ike/watch"
 
@@ -115,8 +116,8 @@ var _ = Describe("File changes watch", func() {
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
-			Excluding("/tmp/**/skip_watch/*").
-			OnPaths(skipTmpDir, watchTmpDir)
+			Excluding("skip_watch/**").
+			OnPaths(filepath.Dir(skipTmpDir), filepath.Dir(watchTmpDir))
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
@@ -130,7 +131,7 @@ var _ = Describe("File changes watch", func() {
 		Eventually(done).Should(BeClosed())
 	})
 
-	FIt("should not recognize file change if it's git-ignored", func() {
+	It("should not recognize file change if it's git-ignored", func() {
 		// given
 		done := make(chan struct{})
 
