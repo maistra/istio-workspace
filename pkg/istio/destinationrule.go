@@ -20,6 +20,8 @@ const (
 var _ model.Mutator = DestinationRuleMutator
 var _ model.Revertor = DestinationRuleRevertor
 
+// DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
+// of the forked service
 func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(DestinationRuleKind)) > 0 {
 		return nil

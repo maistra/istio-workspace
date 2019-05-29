@@ -20,6 +20,7 @@ const (
 var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
 
+// VirtualServiceMutator attempts to create a virtual service for forked service
 func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
 	if len(ref.GetResourceStatus(VirtualServiceKind)) > 0 {
 		return nil

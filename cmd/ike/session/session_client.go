@@ -59,6 +59,7 @@ func DefaultClient(namespace string) (*client, error) { //nolint[:golint] otherw
 	return defaultClient, nil
 }
 
+// Create creates a session instance in a cluster
 func (c *client) Create(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.IstioV1alpha1().Sessions(c.namespace).Create(session); err != nil {
 		return err
@@ -66,6 +67,7 @@ func (c *client) Create(session *istiov1alpha1.Session) error {
 	return nil
 }
 
+// Delete deletes a session instance in a cluster
 func (c *client) Delete(session *istiov1alpha1.Session) error {
 	if err := c.IstioV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{}); err != nil {
 		return err
@@ -73,6 +75,7 @@ func (c *client) Delete(session *istiov1alpha1.Session) error {
 	return nil
 }
 
+// Get retrieves details of the Session instance matching passed name
 func (c *client) Get(sessionName string) (*istiov1alpha1.Session, error) {
 	session, err := c.IstioV1alpha1().Sessions(c.namespace).Get(sessionName, metav1.GetOptions{})
 	if err != nil {

@@ -12,14 +12,17 @@ import (
 
 var appFs = afero.NewOsFs()
 
+// ModifyServerCodeIn changes the code base of a simple python-based web server and puts it in the defined directory
 func ModifyServerCodeIn(tmpDir string) {
 	CreateFile(tmpDir+"/"+"server.py", ModifiedServerPy)
 }
 
+// OriginalServerCodeIn puts the original code base of a simple python-based web server in the defined directory
 func OriginalServerCodeIn(tmpDir string) {
 	CreateFile(tmpDir+"/"+"server.py", OrigServerPy)
 }
 
+// CreateFile creates file under defined path with a given content
 func CreateFile(filePath, content string) {
 	file, err := appFs.Create(filePath)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
@@ -33,6 +36,7 @@ func CreateFile(filePath, content string) {
 	}()
 }
 
+// GetBody calls GET on a given URL and returns its body or error in case there's one
 func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	req, err := http.NewRequest("GET", rawURL, nil)
 	if err != nil {
@@ -50,6 +54,10 @@ func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	return string(content), nil
 }
 
+// PostBody issues a POST to the specified URL,
+// with data's keys and values URL-encoded as the request body.
+//
+// Returns response's content, cookies or error if the POST failed
 func PostBody(rawURL string, data url.Values, follow bool) (string, []*http.Cookie, error) {
 	client := &http.Client{}
 	if !follow {
