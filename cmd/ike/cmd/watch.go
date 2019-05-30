@@ -12,7 +12,7 @@ import (
 )
 
 // NewWatchCmd creates watch command which observes file system changes in the defined set of directories
-// and re-runs build and run command when they occur
+// and re-runs build and run command when they occur.
 // It is hidden (not user facing) as it's integral part of develop command
 func NewWatchCmd() *cobra.Command {
 	watchCmd := &cobra.Command{

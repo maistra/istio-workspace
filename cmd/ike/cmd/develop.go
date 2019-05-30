@@ -8,7 +8,6 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 const telepresenceBin = "telepresence"
@@ -103,8 +102,8 @@ func parseArguments(cmd *cobra.Command) []string {
 	if watch {
 		runArgs = []string{
 			"ike", "watch",
-			"--dir", flag(cmd.Flags(), "watch-include"),
-			"--exclude", flag(cmd.Flags(), "watch-exclude"),
+			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
+			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
 			"--interval", cmd.Flag("watch-interval").Value.String(),
 			"--" + runFlagName, run,
 		}
@@ -125,9 +124,4 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return tpCmd
-}
-
-func flag(flags *pflag.FlagSet, name string) string {
-	slice, _ := flags.GetStringSlice(name)
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }
