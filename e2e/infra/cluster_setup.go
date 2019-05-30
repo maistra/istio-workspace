@@ -2,6 +2,8 @@ package infra
 
 import "github.com/maistra/istio-workspace/cmd/ike/cmd"
 
+// CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
+// it service
 func CreateNewApp(name string) {
 	<-cmd.Execute("oc login -u developer").Done()
 
@@ -19,6 +21,7 @@ func CreateNewApp(name string) {
 	<-cmd.Execute("oc status").Done()
 }
 
+// UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespave
 func UpdateSecurityConstraintsFor(namespace string) {
 	<-cmd.Execute("oc login -u system:admin").Done()
 	<-cmd.Execute("oc adm policy add-scc-to-user anyuid -z default -n " + namespace).Done()
