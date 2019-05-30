@@ -12,7 +12,7 @@ import (
 
 const telepresenceBin = "telepresence"
 
-var excludeLogs = []string{"*.log"}
+var defaultExclusions = []string{"*.log", ".git/"}
 
 // NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
@@ -70,7 +70,7 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{CurrentDir()}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.Flags().StringSlice("watch-exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	developCmd.Flags().StringSlice("watch-exclude", defaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", defaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")

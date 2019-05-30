@@ -35,7 +35,7 @@ func NewWatchCmd() *cobra.Command {
 			if e != nil {
 				return e
 			}
-			excluded = append(excluded, excludeLogs...)
+			excluded = append(excluded, defaultExclusions...)
 
 			ms, _ := cmd.Flags().GetInt64("interval")
 			w, err := watch.CreateWatch(ms).
@@ -102,7 +102,7 @@ func NewWatchCmd() *cobra.Command {
 	watchCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	watchCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
 	watchCmd.Flags().StringSliceP("dir", "w", []string{CurrentDir()}, "list of directories to watch")
-	watchCmd.Flags().StringSlice("exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	watchCmd.Flags().StringSlice("exclude", defaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := watchCmd.Flags().MarkHidden("interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
