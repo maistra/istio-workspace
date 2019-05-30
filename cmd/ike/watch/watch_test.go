@@ -136,12 +136,16 @@ var _ = Describe("File changes watch", func() {
 		done := make(chan struct{})
 
 		watchTmpDir := TmpDir(GinkgoT(), "watch")
-		config := TmpFile(GinkgoT(), watchTmpDir+"/config.yaml", "content")
-		TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", "*.yaml")
+		config := TmpFile(GinkgoT(), watchTmpDir+"/.idea/config.toml", "content")
+		test := TmpFile(GinkgoT(), watchTmpDir+"/.idea/test.yaml", "content")
+		TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", `
+*.yaml
+.idea/
+`)
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
 		watcher, e := watch.CreateWatch(1).
-			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
+			WithHandlers(notExpectFileChange(config.Name(), test.Name()), expectFileChange(code.Name(), done)).
 			OnPaths(watchTmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
@@ -149,6 +153,7 @@ var _ = Describe("File changes watch", func() {
 
 		// when
 		watcher.Start()
+		_, _ = test.WriteString(" should not be watched")
 		_, _ = config.WriteString(" should not be watched")
 		_, _ = code.WriteString("\n // Bla!")
 
@@ -167,14 +172,16 @@ func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
 	}
 }
 
-func notExpectFileChange(fileName string) watch.Handler {
+func notExpectFileChange(fileNames ...string) watch.Handler {
 	return func(events []fsnotify.Event) error {
 		defer GinkgoRecover()
 		for _, event := range events {
-			if event.Name == fileName {
-				errMsg := fmt.Sprintf("expected %s to not change", fileName)
-				Fail(errMsg)
-				return errors.New(errMsg)
+			for _, fileName := range fileNames {
+				if event.Name == fileName {
+					errMsg := fmt.Sprintf("expected %s to not change", fileName)
+					Fail(errMsg)
+					return errors.New(errMsg)
+				}
 			}
 		}
 		return nil

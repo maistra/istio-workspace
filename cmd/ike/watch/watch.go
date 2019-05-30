@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/denormal/go-gitignore"
 	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -22,7 +21,7 @@ type Handler func(events []fsnotify.Event) error
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handlers   []Handler
-	gitignores []gitignore.GitIgnore
+	gitignores []ignore.GitIgnore
 	interval   time.Duration
 	done       chan struct{}
 }
@@ -78,8 +77,8 @@ func (w *Watch) Start() {
 // Excluded checks whether a path is excluded from watch by first inspecting .gitignores
 // and user-defined exclusions
 func (w *Watch) Excluded(path string) bool {
-	for _, ignore := range w.gitignores {
-		if ignore.Ignore(path) {
+	for _, gitIgnore := range w.gitignores {
+		if gitIgnore.MatchesPath(path) {
 			return true
 		}
 	}
@@ -134,9 +133,13 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 	return nil
 }
 
-func (w *Watch) addExclusions(base string, exclusions []string) {
-	ignore := gitignore.New(strings.NewReader(strings.Join(exclusions, "\n")), base, nil)
-	w.gitignores = append(w.gitignores, ignore)
+func (w *Watch) addExclusions(exclusions []string) error {
+	gitIgnore, e := ignore.CompileIgnoreLines(exclusions...)
+	if e != nil {
+		return e
+	}
+	w.gitignores = append(w.gitignores, *gitIgnore)
+	return nil
 }
 
 // addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path
@@ -148,11 +151,11 @@ func (w *Watch) addGitIgnore(path string) error {
 		if err != nil {
 			return err
 		}
-		ignore, err := gitignore.NewFromFile(gitIgnorePath)
+		gitIgnore, err := ignore.CompileIgnoreFile(gitIgnorePath)
 		if err != nil {
 			return err
 		}
-		w.gitignores = append(w.gitignores, ignore)
+		w.gitignores = append(w.gitignores, *gitIgnore)
 	}
 
 	return nil

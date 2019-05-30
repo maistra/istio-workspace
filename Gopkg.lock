@@ -47,28 +47,12 @@
   version = "v0.29.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b82a20a024bc968d222cdc5f57769ab79502bb77f85384376734193c833bc295"
-  name = "github.com/danwakefield/fnmatch"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "cbb64ac3d964b81592e64f957ad53df015803288"
-
-[[projects]]
   digest = "1:4b8b5811da6970495e04d1f4e98bb89518cc3cfc3b3f456bdb876ed7b6c74049"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = "NT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:38d81af9a107733d51e8247cfeabef898922ab7e82c4dc538be0ea020ab96ae1"
-  name = "github.com/denormal/go-gitignore"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "ae8ad1d07817b3d3b49cabb21559a3f493a357a3"
 
 [[projects]]
   digest = "1:1302bdd23af4264a095d48c2c28660a8ecf2e02454ce172cef5cb946029a1383"
@@ -511,6 +495,14 @@
   ]
   pruneopts = "NT"
   revision = "bc6930f2d5103de3e494ee4f4dc68c195271c57b"
+
+[[projects]]
+  branch = "master"
+  digest = "1:460228dd728b9c7f41827af94ada4412830c6a69964aa460009be8d3eb2daaca"
+  name = "github.com/sabhiram/go-gitignore"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "d3107576ba9425fc1c85f4b3569c4631b805a02e"
 
 [[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
@@ -1063,7 +1055,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/denormal/go-gitignore",
     "github.com/fsnotify/fsnotify",
     "github.com/go-cmd/cmd",
     "github.com/go-logr/logr",
@@ -1079,6 +1070,7 @@
     "github.com/operator-framework/operator-sdk/pkg/metrics",
     "github.com/operator-framework/operator-sdk/pkg/predicate",
     "github.com/operator-framework/operator-sdk/version",
+    "github.com/sabhiram/go-gitignore",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",

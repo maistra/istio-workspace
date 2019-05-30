@@ -59,7 +59,9 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 				return nil, e
 			}
 		} else {
-			wb.w.addExclusions(path, wb.exclusions)
+			if e := wb.w.addExclusions(wb.exclusions); e != nil {
+				return nil, e
+			}
 			if e := wb.w.addGitIgnore(path); e != nil {
 				return nil, e
 			}
