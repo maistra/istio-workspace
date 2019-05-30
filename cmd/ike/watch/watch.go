@@ -60,7 +60,7 @@ func (w *Watch) Start() {
 					continue
 				}
 				log.Info("firing change event")
-				changes := extractValues(events)
+				changes := extractEvents(events)
 				for _, handler := range w.handlers {
 					if err := handler(changes); err != nil {
 						log.Error(err, "failed to handle file change!")
@@ -75,8 +75,8 @@ func (w *Watch) Start() {
 	}()
 }
 
-// Excluded checks whether a path is excluded from watch by first inspecting .gitignores and only then user-defined
-// exclusions
+// Excluded checks whether a path is excluded from watch by first inspecting .gitignores
+// and user-defined exclusions
 func (w *Watch) Excluded(path string) bool {
 	for _, ignore := range w.gitignores {
 		if ignore.Ignore(path) {
@@ -102,7 +102,8 @@ func (w *Watch) addPath(filePath string) error {
 
 // addRecursiveWatch handles adding watches recursively for the path provided
 // and its subdirectories. If a non-directory is specified, this call is a no-op.
-// Based on https://github.com/openshift/origin/blob/85eb37b34f0657631592356d020cef5a58470f8e/pkg/util/fsnotification/fsnotification.go
+//
+// Based on https://github.com/openshift/origin/blob/85eb37b3/pkg/util/fsnotification/fsnotification.go
 func (w *Watch) addRecursiveWatch(filePath string) error {
 	file, err := os.Stat(filePath)
 	if err != nil {
@@ -116,7 +117,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		return nil
 	}
 
-	folders, err := getSubFolders(filePath)
+	folders, err := allSubFoldersOf(filePath)
 	if err != nil {
 		return err
 	}
@@ -157,8 +158,8 @@ func (w *Watch) addGitIgnore(path string) error {
 	return nil
 }
 
-// getSubFolders recursively retrieves all subfolders of the specified path.
-func getSubFolders(filePath string) (paths []string, err error) {
+// allSubFoldersOf recursively retrieves all subfolders of the specified path.
+func allSubFoldersOf(filePath string) (paths []string, err error) {
 	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -172,8 +173,8 @@ func getSubFolders(filePath string) (paths []string, err error) {
 	return
 }
 
-// extractValues takes a map and returns slice of all values
-func extractValues(events map[string]fsnotify.Event) []fsnotify.Event {
+// extractEvents takes a map and returns slice of all values
+func extractEvents(events map[string]fsnotify.Event) []fsnotify.Event {
 	changes := make([]fsnotify.Event, len(events))
 	i := 0
 	for _, event := range events {
