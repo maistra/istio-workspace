@@ -15,8 +15,9 @@ import (
 // and re-runs build and run command when they occur
 func NewWatchCmd() *cobra.Command {
 	watchCmd := &cobra.Command{
-		Use:    "watch",
-		Hidden: true,
+		Use:          "watch",
+		Hidden:       true,
+		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFlags(cmd)
 		},

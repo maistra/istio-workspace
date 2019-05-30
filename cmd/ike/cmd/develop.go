@@ -19,9 +19,9 @@ var excludeLogs = []string{"*.log"}
 func NewDevelopCmd() *cobra.Command {
 
 	developCmd := &cobra.Command{
-		Use:   "develop",
-		Short: "Starts the development flow",
-
+		Use:          "develop",
+		Short:        "Starts the development flow",
+		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if !BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
