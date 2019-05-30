@@ -138,14 +138,23 @@ var _ = Describe("File changes watch", func() {
 		watchTmpDir := TmpDir(GinkgoT(), "watch")
 		config := TmpFile(GinkgoT(), watchTmpDir+"/.idea/config.toml", "content")
 		test := TmpFile(GinkgoT(), watchTmpDir+"/.idea/test.yaml", "content")
-		TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", `
+		nestedFile := TmpFile(GinkgoT(), watchTmpDir+"/src/main/org/acme/Main.java", "package org.acme")
+		gitIgnore := TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", `
 *.yaml
+src/main/**/*.java
 .idea/
 `)
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
+		defer func() {
+			config.Close()
+			test.Close()
+			nestedFile.Close()
+			gitIgnore.Close()
+		}()
+
 		watcher, e := watch.CreateWatch(1).
-			WithHandlers(notExpectFileChange(config.Name(), test.Name()), expectFileChange(code.Name(), done)).
+			WithHandlers(notExpectFileChange(config.Name(), test.Name(), nestedFile.Name()), expectFileChange(code.Name(), done)).
 			OnPaths(watchTmpDir)
 		Expect(e).ToNot(HaveOccurred())
 
@@ -155,12 +164,12 @@ var _ = Describe("File changes watch", func() {
 		watcher.Start()
 		_, _ = test.WriteString(" should not be watched")
 		_, _ = config.WriteString(" should not be watched")
-		_, _ = code.WriteString("\n // Bla!")
+		_, _ = nestedFile.WriteString("\n// TODO implement me but now ignore")
+		_, _ = code.WriteString("\n // Bla! Should trigger watch reaction")
 
 		// then
 		Eventually(done).Should(BeClosed())
 	})
-
 })
 
 func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {

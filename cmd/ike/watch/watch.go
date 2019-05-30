@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -21,6 +22,7 @@ type Handler func(events []fsnotify.Event) error
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handlers   []Handler
+	basePaths  []string
 	gitignores []ignore.GitIgnore
 	interval   time.Duration
 	done       chan struct{}
@@ -77,8 +79,15 @@ func (w *Watch) Start() {
 // Excluded checks whether a path is excluded from watch by first inspecting .gitignores
 // and user-defined exclusions
 func (w *Watch) Excluded(path string) bool {
+	reducedPath := path
+	for _, basePath := range w.basePaths {
+		if strings.HasPrefix(path, basePath) {
+			reducedPath = strings.TrimPrefix(path, basePath)
+			break
+		}
+	}
 	for _, gitIgnore := range w.gitignores {
-		if gitIgnore.MatchesPath(path) {
+		if gitIgnore.MatchesPath(reducedPath) {
 			return true
 		}
 	}
@@ -96,6 +105,7 @@ func (w *Watch) Close() {
 
 // addPath adds single path (non-recursive) to be watch
 func (w *Watch) addPath(filePath string) error {
+	w.basePaths = append(w.basePaths, filePath)
 	return w.watcher.Add(filePath)
 }
 
@@ -134,6 +144,9 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 }
 
 func (w *Watch) addExclusions(exclusions []string) error {
+	if len(exclusions) == 0 {
+		return nil
+	}
 	gitIgnore, e := ignore.CompileIgnoreLines(exclusions...)
 	if e != nil {
 		return e
