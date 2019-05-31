@@ -43,7 +43,7 @@ func DeployOperator() (namespace string) {
 
 	namespace, _ = setDockerEnv()
 	// override and use internal address on Deployment
-	err := os.Setenv("DOCKER_REGISTRY", "172.30.1.1:5000")
+	err := os.Setenv("IKE_DOCKER_REGISTRY", "172.30.1.1:5000")
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-operator").Done()
@@ -57,10 +57,10 @@ func setDockerEnv() (operatorNS, dockerRegistry string) {
 	err := os.Setenv("OPERATOR_NAMESPACE", operatorNS)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
-	err = os.Setenv("DOCKER_REPOSITORY", operatorNS)
+	err = os.Setenv("IKE_DOCKER_REPOSITORY", operatorNS)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
-	err = os.Setenv("DOCKER_REGISTRY", dockerRegistry)
+	err = os.Setenv("IKE_DOCKER_REGISTRY", dockerRegistry)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	return

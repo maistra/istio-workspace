@@ -363,7 +363,6 @@
   packages = [
     ".",
     "config",
-    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -496,6 +495,14 @@
   ]
   pruneopts = "NT"
   revision = "bc6930f2d5103de3e494ee4f4dc68c195271c57b"
+
+[[projects]]
+  branch = "master"
+  digest = "1:460228dd728b9c7f41827af94ada4412830c6a69964aa460009be8d3eb2daaca"
+  name = "github.com/sabhiram/go-gitignore"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "d3107576ba9425fc1c85f4b3569c4631b805a02e"
 
 [[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
@@ -1053,7 +1060,6 @@
     "github.com/go-logr/logr",
     "github.com/hashicorp/go-multierror",
     "github.com/onsi/ginkgo",
-    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/format",
@@ -1064,6 +1070,7 @@
     "github.com/operator-framework/operator-sdk/pkg/metrics",
     "github.com/operator-framework/operator-sdk/pkg/predicate",
     "github.com/operator-framework/operator-sdk/version",
+    "github.com/sabhiram/go-gitignore",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",

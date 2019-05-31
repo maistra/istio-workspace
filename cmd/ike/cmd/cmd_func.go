@@ -9,6 +9,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/spf13/pflag"
+
 	gocmd "github.com/go-cmd/cmd"
 )
 
@@ -134,4 +136,9 @@ func BinaryExists(binName, hint string) bool {
 	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
 	return true
+}
+
+func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
+	slice, _ := flags.GetStringSlice(name)
+	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }
