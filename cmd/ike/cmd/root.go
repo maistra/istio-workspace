@@ -19,11 +19,18 @@ func NewRootCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
+		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
+			if shouldPrintVersion {
+				printVersion()
+			}
+			return nil
+		},
 	}
 
 	rootCmd.PersistentFlags().
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
-
+	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
 	return rootCmd
 }
