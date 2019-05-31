@@ -1,16 +1,16 @@
 kind: Template
 apiVersion: v1
 parameters:
-  - name: DOCKER_REGISTRY
+  - name: IKE_DOCKER_REGISTRY
     required: true
     value: docker.io
-  - name: DOCKER_REPOSITORY
+  - name: IKE_DOCKER_REPOSITORY
     required: true
     value: aslakknusten
-  - name: IMAGE_NAME
+  - name: IKE_IMAGE_NAME
     required: true
     value: istio-workspace
-  - name: IMAGE_TAG
+  - name: IKE_IMAGE_TAG
     required: true
     value: latest
   - name: TELEPRESENCE_VERSION
@@ -34,7 +34,7 @@ objects:
           serviceAccountName: istio-workspace
           containers:
             - name: istio-workspace
-              image: ${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}/${IMAGE_NAME}:${IMAGE_TAG}
+              image: ${IKE_DOCKER_REGISTRY}/${IKE_DOCKER_REPOSITORY}/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
               command:
               - ike
               imagePullPolicy: Always
