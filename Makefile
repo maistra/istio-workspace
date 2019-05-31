@@ -107,27 +107,27 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 # Docker build
 # ##########################################################################
 
-DOCKER_IMAGE?=$(PROJECT_NAME)
-DOCKER_IMAGE_TAG?=$(COMMIT)
-export DOCKER_IMAGE_TAG
-DOCKER_REGISTRY?=docker.io
-DOCKER_REPOSITORY?=aslakknutsen
+IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_IMAGE_TAG?=$(COMMIT)
+export IKE_IMAGE_TAG
+IKE_DOCKER_REGISTRY?=docker.io
+IKE_DOCKER_REPOSITORY?=aslakknutsen
 
 .PHONY: docker-build
 docker-build: ## Builds the docker image
-	$(call header,"Building docker image $(DOCKER_IMAGE_CORE)")
+	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
-		-t $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT) \
 		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
 	docker tag \
-		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT) \
-		$(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 .PHONY: docker-push
 docker-push: ## Pushes docker image to the registry
-	$(call header,"Pushing docker image $(DOCKER_IMAGE_CORE)")
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):$(COMMIT)
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_REPOSITORY)/$(DOCKER_IMAGE):latest
+	$(call header,"Pushing docker image $(IKE_IMAGE_NAME)")
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 # ##########################################################################
 # Istio operator deployment
@@ -138,10 +138,10 @@ define process_template # params: template location
 		-o yaml \
 		--ignore-unknown-parameters=true \
 		--local \
-		-p DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
-		-p DOCKER_REPOSITORY=$(DOCKER_REPOSITORY) \
-		-p IMAGE_NAME=$(DOCKER_IMAGE) \
-		-p IMAGE_TAG=$(DOCKER_IMAGE_TAG) \
+		-p IKE_DOCKER_REGISTRY=$(IKE_DOCKER_REGISTRY) \
+		-p IKE_DOCKER_REPOSITORY=$(IKE_DOCKER_REPOSITORY) \
+		-p IKE_IMAGE_NAME=$(IKE_IMAGE_NAME) \
+		-p IKE_IMAGE_TAG=$(IKE_IMAGE_TAG) \
 		-p NAMESPACE=$(OPERATOR_NAMESPACE) \
 		-p TELEPRESENCE_VERSION=$(TELEPRESENCE_VERSION)
 endef
