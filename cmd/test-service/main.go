@@ -17,7 +17,7 @@ const (
 	// EnvServiceName name of Env variable that sets the Service name used in call stack
 	EnvServiceName = "SERVICE_NAME"
 
-	// EnvServiceCall name of Env variable that holds a colon seperated list of URLs to call
+	// EnvServiceCall name of Env variable that holds a colon separated list of URLs to call
 	EnvServiceCall = "SERVICE_CALL"
 )
 

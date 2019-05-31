@@ -24,7 +24,7 @@ func Generate(services []string, modifiers ...Modifier) {
 			modifier(service, object)
 		}
 	}
-	print := func(object runtime.Object) {
+	printObj := func(object runtime.Object) {
 		b, err := yaml.Marshal(object)
 		if err != nil {
 			fmt.Println("Marshal error", err)
@@ -40,13 +40,13 @@ func Generate(services []string, modifiers ...Modifier) {
 					continue
 				}
 				modify(service, object)
-				print(object)
+				printObj(object)
 			}
 		}(service)
 	}
 	gw := Gateway()
 	modify("gateway", gw)
-	print(gw)
+	printObj(gw)
 }
 
 func Deployment(service string) runtime.Object {

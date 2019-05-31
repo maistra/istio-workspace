@@ -23,7 +23,7 @@ type CallStack struct {
 	Called    []CallStack `json:"called,omitempty"`
 }
 
-// NewBasic constructs a new basic HandlerFunc that behaves as decribed by the provided Config
+// NewBasic constructs a new basic HandlerFunc that behaves as described0 by the provided Config
 func NewBasic(config Config) http.HandlerFunc {
 	return basic(config)
 }
@@ -40,6 +40,10 @@ func basic(config Config) http.HandlerFunc {
 		for _, url := range config.Call {
 			func() {
 				request, err := http.NewRequest("GET", url.String(), nil)
+				if err != nil {
+					fmt.Println("Failed to create request", url, err)
+					return
+				}
 				copyHeaders(
 					request,
 					req,
@@ -56,7 +60,11 @@ func basic(config Config) http.HandlerFunc {
 				}
 				dec := json.NewDecoder(resp.Body)
 				child := CallStack{}
-				dec.Decode(&child)
+				err = dec.Decode(&child)
+				if err != nil {
+					fmt.Println("Failed to decode", url, err)
+					return
+				}
 				callStack.Called = append(callStack.Called, child)
 			}()
 		}
@@ -68,11 +76,15 @@ func basic(config Config) http.HandlerFunc {
 
 		enc := json.NewEncoder(resp)
 		enc.SetIndent("", "  ")
-		enc.Encode(callStack)
+		err := enc.Encode(callStack)
+		if err != nil {
+			fmt.Println("Failed to encode", err)
+			return
+		}
 	}
 }
 
-func copyHeaders(target *http.Request, source *http.Request, headers ...string) {
+func copyHeaders(target, source *http.Request, headers ...string) {
 	for _, header := range headers {
 		if value := source.Header.Get(header); value != "" {
 			target.Header.Set(header, value)
