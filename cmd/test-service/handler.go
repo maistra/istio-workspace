@@ -39,7 +39,14 @@ func basic(config Config) http.HandlerFunc {
 
 		for _, url := range config.Call {
 			func() {
-				resp, err := http.Get(url.String())
+				request, err := http.NewRequest("GET", url.String(), nil)
+				copyHeaders(
+					request,
+					req,
+					"x-request-id", "x-b3-traceid", "x-b3-spanid",
+					"x-b3-parentspanid", "x-b3-sampled", "x-b3-flags",
+					"x-ot-span-context")
+				resp, err := http.DefaultClient.Do(request)
 				if resp != nil {
 					defer resp.Body.Close()
 				}
@@ -62,5 +69,13 @@ func basic(config Config) http.HandlerFunc {
 		enc := json.NewEncoder(resp)
 		enc.SetIndent("", "  ")
 		enc.Encode(callStack)
+	}
+}
+
+func copyHeaders(target *http.Request, source *http.Request, headers ...string) {
+	for _, header := range headers {
+		if value := source.Header.Get(header); value != "" {
+			target.Header.Set(header, value)
+		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/maistra/istio-workspace-testservice/pkg/controller"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 )
 
 func main() {
-	c := controller.Config{}
+	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {
 		c.Name = v
 	}
@@ -40,8 +40,11 @@ func main() {
 		adr = v
 	}
 
-	http.HandleFunc("/", controller.NewBasic(c))
-	fmt.Println("listening to " + adr)
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
+		resp.WriteHeader(http.StatusOK)
+	})
+	http.HandleFunc("/", NewBasic(c))
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
 		fmt.Println(err)
