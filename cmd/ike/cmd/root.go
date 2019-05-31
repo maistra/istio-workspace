@@ -38,6 +38,10 @@ func NewRootCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			printVersion()
+			justPrintVersion, _ := cmd.Flags().GetBool("version")
+			if justPrintVersion {
+				return nil
+			}
 			return startOperator()
 		},
 	}
@@ -45,7 +49,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
-
+	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
 	return rootCmd
 }
 
