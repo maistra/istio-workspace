@@ -8,20 +8,19 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 const telepresenceBin = "telepresence"
 
-var excludeLogs = []string{"*.log"}
+var defaultExclusions = []string{"*.log", ".git/"}
 
 // NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
 
 	developCmd := &cobra.Command{
-		Use:   "develop",
-		Short: "Starts the development flow",
-
+		Use:          "develop",
+		Short:        "Starts the development flow",
+		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if !BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
@@ -70,8 +69,8 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
 	developCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
-	developCmd.Flags().StringSliceP("watch-include", "w", []string{CurrentDir()}, "list of directories to watch")
-	developCmd.Flags().StringSlice("watch-exclude", excludeLogs, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	developCmd.Flags().StringSliceP("watch-include", "w", []string{CurrentDir()}, "list of directories to watch (relative to the one from which ike has been started)")
+	developCmd.Flags().StringSlice("watch-exclude", defaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", defaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
@@ -103,8 +102,8 @@ func parseArguments(cmd *cobra.Command) []string {
 	if watch {
 		runArgs = []string{
 			"ike", "watch",
-			"--dir", flag(cmd.Flags(), "watch-include"),
-			"--exclude", flag(cmd.Flags(), "watch-exclude"),
+			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
+			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
 			"--interval", cmd.Flag("watch-interval").Value.String(),
 			"--" + runFlagName, run,
 		}
@@ -125,9 +124,4 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return tpCmd
-}
-
-func flag(flags *pflag.FlagSet, name string) string {
-	slice, _ := flags.GetStringSlice(name)
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

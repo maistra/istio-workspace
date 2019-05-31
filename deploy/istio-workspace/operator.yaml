@@ -36,7 +36,9 @@ objects:
             - name: istio-workspace
               image: ${IKE_DOCKER_REGISTRY}/${IKE_DOCKER_REPOSITORY}/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
               command:
-              - ike
+                - ike
+              args:
+                - serve
               imagePullPolicy: Always
               env:
                 - name: WATCH_NAMESPACE
