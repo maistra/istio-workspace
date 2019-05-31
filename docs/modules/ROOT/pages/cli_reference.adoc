@@ -41,10 +41,17 @@ Below you can find a documented list of all commands and their available flags.
 [#ike]
 === `ike`
 
-Main command, which starts the operator.
-// TODO brief mention about operator and how it works + link to the dedicated docs
+Main command, which holds global flags and prints the overall usage of the tool.
 
 include::cmd:ike[flags='--help --help-format=adoc']
+
+[#ike serve]
+=== `ike-serve`
+
+Starts the operator in the cluster.
+// TODO brief mention about operator and how it works + link to the dedicated docs
+
+include::cmd:ike[flags='serve --help --help-format=adoc']
 
 [#ike-develop]
 === `ike develop`
@@ -70,13 +77,6 @@ TIP: Have a look at https://git-scm.com/docs/gitignore[official Git documentatio
 
 WARNING: Only root `.gitignore` is handled. If you happen to have additional `.gitignore` files in subdirectories
 those won't be respected.
-
-
-
-
-
-
-
 
 [#ike-version]
 === `ike version`
