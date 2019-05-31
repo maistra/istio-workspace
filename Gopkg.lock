@@ -1070,7 +1070,11 @@
     "github.com/operator-framework/operator-sdk/pkg/metrics",
     "github.com/operator-framework/operator-sdk/pkg/predicate",
     "github.com/operator-framework/operator-sdk/version",
+<<<<<<< HEAD
     "github.com/sabhiram/go-gitignore",
+=======
+    "github.com/prometheus/client_golang/prometheus/promhttp",
+>>>>>>> feat(test): add framework for test scenario setup via code
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",

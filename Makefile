@@ -7,6 +7,7 @@ EXAMPLE_NAMESPACE?=bookinfo
 CUR_DIR:=$(shell pwd)
 BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
+BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
@@ -105,7 +106,7 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
-$(BINARY_DIR)/$(TEST_BINARY_NAME):
+$(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling test service... carry on!")
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TEST_BINARY_NAME)/
 
@@ -211,29 +212,22 @@ undeploy-example: ## Undeploys istio-workspace specific resources from defined E
 # Istio bookinfo deployment
 # ##########################################################################
 
-.PHONY: deploy-bookinfo
-deploy-bookinfo: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
+deploy-test-%: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
 	$(call header,"Deploying bookinfo app to $(EXAMPLE_NAMESPACE)")
 	oc new-project $(EXAMPLE_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(EXAMPLE_NAMESPACE)
 	oc adm policy add-scc-to-user privileged -z default -n $(EXAMPLE_NAMESPACE)
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml
-	# Required due to circle-ci memory limitations
-	#oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v2
-	#oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v3
 
-.PHONY: undeploy-bookinfo
-undeploy-bookinfo: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
+	$(eval scenario:=$(subst deploy-test-,,$@))
+	go run ./cmd/test-scenario/ $(scenario) | oc apply -n $(EXAMPLE_NAMESPACE) -f -
+
+undeploy-test-%: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
 	$(call header,"Undeploying bookinfo app to $(EXAMPLE_NAMESPACE)")
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml	
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
+
+	$(eval scenario:=$(subst undeploy-test-,,$@))
+	go run ./cmd/test-scenario/ $(scenario) | oc delete -n $(EXAMPLE_NAMESPACE) -f -
 	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 
