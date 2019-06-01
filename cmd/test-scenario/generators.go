@@ -77,22 +77,22 @@ func Deployment(service string) runtime.Object {
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
-						corev1.Container{
+						{
 							Name:            service,
 							Image:           "aslakknutsen/istio-workspace-test:latest",
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
-								corev1.EnvVar{
+								{
 									Name:  "SERVICE_NAME",
 									Value: service,
 								},
-								corev1.EnvVar{
+								{
 									Name:  "HTTP_ADDR",
 									Value: ":9080",
 								},
 							},
 							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
+								{
 									ContainerPort: 9080,
 								},
 							},
@@ -138,7 +138,7 @@ func Service(service string) runtime.Object {
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
+				{
 					Name: "http",
 					Port: 9080,
 				},
@@ -194,7 +194,7 @@ func Gateway() runtime.Object {
 				"istio": "ingressgateway",
 			},
 			Servers: []*istiov1alpha3.Server{
-				&istiov1alpha3.Server{
+				{
 					Port: &istiov1alpha3.Port{
 						Protocol: "HTTP",
 						Name:     "http",

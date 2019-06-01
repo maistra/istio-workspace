@@ -51,7 +51,7 @@ func WithVersion(version string) Modifier {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Http = append(obj.Spec.Http, &istiov1alpha3.HTTPRoute{
 				Route: []*istiov1alpha3.HTTPRouteDestination{
-					&istiov1alpha3.HTTPRouteDestination{
+					{
 						Destination: &istiov1alpha3.Destination{
 							Host:   service,
 							Subset: version,
