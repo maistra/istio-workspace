@@ -11,7 +11,7 @@ import (
 // Config describes the basic Name and who to call next for a given HandlerFunc
 type Config struct {
 	Name string
-	Call []url.URL
+	Call []*url.URL
 }
 
 // CallStack holds the complete transaction stack

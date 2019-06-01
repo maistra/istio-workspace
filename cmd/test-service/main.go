@@ -51,15 +51,15 @@ func main() {
 	}
 }
 
-func parseURL(value string) ([]url.URL, error) {
-	urls := []url.URL{}
+func parseURL(value string) ([]*url.URL, error) {
+	urls := []*url.URL{}
 	vs := strings.Split(value, ",")
 	for _, v := range vs {
 		u, err := url.Parse(v)
 		if err != nil {
 			return nil, err
 		}
-		urls = append(urls, *u)
+		urls = append(urls, u)
 	}
 
 	return urls, nil
