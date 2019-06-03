@@ -44,6 +44,7 @@ linters:
 run:
   skip-dirs:
     - ./pkg/apis/istio
+    - ./pkg/assets
     - ./pkg/client/clientset
 
 service:

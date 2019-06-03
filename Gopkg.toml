@@ -92,3 +92,7 @@ required = [
 [[constraint]]
   name = "github.com/sabhiram/go-gitignore"
   branch = "master"
+
+[[override]]
+  name = "github.com/go-bindata/go-bindata"
+  branch = "v3.1.1"
