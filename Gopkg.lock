@@ -408,7 +408,19 @@
   version = "v1.5.0"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:fe3c97fb1956829a81d7b8221b4710c40d6dae2c6c3b4d222db5b7f96c975d99"
+=======
+  digest = "1:8bc8f43d2332d035857c92581df240f247c287629d5f60c751df609f9b6215c5"
+  name = "github.com/openshift/api"
+  packages = ["apps/v1"]
+  pruneopts = "NT"
+  revision = "0d921e363e951d89f583292c60d013c318df64dc"
+  version = "v3.9.0"
+
+[[projects]]
+  digest = "1:ce4e43d2eef4a4c40c6e8439c724e34e6fd7e48959a340038e3cd02762cdb437"
+>>>>>>> test(openshift): add DeploymentConfig to generator
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -1065,6 +1077,7 @@
     "github.com/onsi/gomega/format",
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/types",
+    "github.com/openshift/api/apps/v1",
     "github.com/operator-framework/operator-sdk/pkg/k8sutil",
     "github.com/operator-framework/operator-sdk/pkg/leader",
     "github.com/operator-framework/operator-sdk/pkg/metrics",
@@ -1080,7 +1093,6 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "go.uber.org/goleak",
-    "gopkg.in/yaml.v2",
     "istio.io/api/networking/v1alpha3",
     "istio.io/api/pkg/kube/apis/networking/v1alpha3",
     "k8s.io/api/apps/v1",

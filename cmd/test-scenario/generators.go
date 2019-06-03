@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
+
+	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
@@ -18,7 +20,7 @@ type SubGenerator func(service string) runtime.Object
 
 func Generate(services []string, modifiers ...Modifier) {
 
-	sub := []SubGenerator{Deployment, Service, DestinationRule, VirtualService}
+	sub := []SubGenerator{DeploymentConfig, Service, DestinationRule, VirtualService}
 	modify := func(service string, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
@@ -47,6 +49,80 @@ func Generate(services []string, modifiers ...Modifier) {
 	gw := Gateway()
 	modify("gateway", gw)
 	printObj(gw)
+}
+
+func DeploymentConfig(service string) runtime.Object {
+	return &osappsv1.DeploymentConfig{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "DeploymentConfig",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name: service,
+		},
+		Spec: osappsv1.DeploymentConfigSpec{
+			Replicas: 1,
+			Template: &corev1.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"sidecar.istio.io/inject": "true",
+						"prometheus.io/scrape":    "true",
+						"prometheus.io/port":      "9080",
+						"prometheus.io/scheme":    "http",
+						"prometheus.io/path":      "/metrics",
+						"kiali.io/runtimes":       "go",
+					},
+					Labels: map[string]string{
+						"app": service,
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            service,
+							Image:           "aslakknutsen/istio-workspace-test:latest",
+							ImagePullPolicy: "Always",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "SERVICE_NAME",
+									Value: service,
+								},
+								{
+									Name:  "HTTP_ADDR",
+									Value: ":9080",
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 9080,
+								},
+							},
+							LivenessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz",
+										Port: intstr.FromInt(9080),
+									},
+								},
+								InitialDelaySeconds: 1,
+								PeriodSeconds:       3,
+							},
+							ReadinessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz",
+										Port: intstr.FromInt(9080),
+									},
+								},
+								InitialDelaySeconds: 1,
+								PeriodSeconds:       3,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func Deployment(service string) runtime.Object {
