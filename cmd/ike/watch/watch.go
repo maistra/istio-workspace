@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	ignore "github.com/sabhiram/go-gitignore"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -19,7 +22,8 @@ type Handler func(events []fsnotify.Event) error
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handlers   []Handler
-	exclusions FilePatterns
+	basePaths  []string
+	gitignores []ignore.GitIgnore
 	interval   time.Duration
 	done       chan struct{}
 }
@@ -41,11 +45,10 @@ func (w *Watch) Start() {
 				if !ok {
 					return
 				}
-				if w.exclusions.Matches(event.Name) {
+				if w.Excluded(event.Name) {
 					log.V(10).Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
-				println(event.String())
 				log.Info("file changed", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
@@ -58,7 +61,7 @@ func (w *Watch) Start() {
 					continue
 				}
 				log.Info("firing change event")
-				changes := extractValues(events)
+				changes := extractEvents(events)
 				for _, handler := range w.handlers {
 					if err := handler(changes); err != nil {
 						log.Error(err, "failed to handle file change!")
@@ -71,7 +74,24 @@ func (w *Watch) Start() {
 		}
 		close(w.done)
 	}()
+}
 
+// Excluded checks whether a path is excluded from watch by first inspecting .gitignores
+// and user-defined exclusions
+func (w *Watch) Excluded(path string) bool {
+	reducedPath := path
+	for _, basePath := range w.basePaths {
+		if strings.HasPrefix(path, basePath) {
+			reducedPath = strings.TrimPrefix(path, basePath)
+			break
+		}
+	}
+	for _, gitIgnore := range w.gitignores {
+		if gitIgnore.MatchesPath(reducedPath) {
+			return true
+		}
+	}
+	return false
 }
 
 // Close attempts to close underlying fsnotify.Watcher.
@@ -85,12 +105,14 @@ func (w *Watch) Close() {
 
 // addPath adds single path (non-recursive) to be watch
 func (w *Watch) addPath(filePath string) error {
+	w.basePaths = append(w.basePaths, filePath)
 	return w.watcher.Add(filePath)
 }
 
 // addRecursiveWatch handles adding watches recursively for the path provided
 // and its subdirectories. If a non-directory is specified, this call is a no-op.
-// Based on https://github.com/openshift/origin/blob/85eb37b34f0657631592356d020cef5a58470f8e/pkg/util/fsnotification/fsnotification.go
+//
+// Based on https://github.com/openshift/origin/blob/85eb37b3/pkg/util/fsnotification/fsnotification.go
 func (w *Watch) addRecursiveWatch(filePath string) error {
 	file, err := os.Stat(filePath)
 	if err != nil {
@@ -99,14 +121,16 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		}
 		return fmt.Errorf("error introspecting filePath %s: %v", filePath, err)
 	}
+
 	if !file.IsDir() {
 		return nil
 	}
 
-	folders, err := getSubFolders(filePath)
+	folders, err := allSubFoldersOf(filePath)
 	if err != nil {
 		return err
 	}
+
 	for _, v := range folders {
 		log.V(3).Info(fmt.Sprintf("adding watch on filePath %s", v))
 		err = w.addPath(v)
@@ -119,8 +143,39 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 	return nil
 }
 
-// getSubFolders recursively retrieves all subfolders of the specified path.
-func getSubFolders(filePath string) (paths []string, err error) {
+func (w *Watch) addExclusions(exclusions []string) error {
+	if len(exclusions) == 0 {
+		return nil
+	}
+	gitIgnore, e := ignore.CompileIgnoreLines(exclusions...)
+	if e != nil {
+		return e
+	}
+	w.gitignores = append(w.gitignores, *gitIgnore)
+	return nil
+}
+
+// addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path
+func (w *Watch) addGitIgnore(path string) error {
+	gitIgnorePath := path + string(os.PathSeparator) + ".gitignore"
+	file, err := os.Open(gitIgnorePath)
+	if err == nil {
+		err := file.Close()
+		if err != nil {
+			return err
+		}
+		gitIgnore, err := ignore.CompileIgnoreFile(gitIgnorePath)
+		if err != nil {
+			return err
+		}
+		w.gitignores = append(w.gitignores, *gitIgnore)
+	}
+
+	return nil
+}
+
+// allSubFoldersOf recursively retrieves all subfolders of the specified path.
+func allSubFoldersOf(filePath string) (paths []string, err error) {
 	err = filepath.Walk(filePath, func(newPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -131,11 +186,11 @@ func getSubFolders(filePath string) (paths []string, err error) {
 		}
 		return nil
 	})
-	return paths, err
+	return
 }
 
-// extractValues takes a map and returns slice of all values
-func extractValues(events map[string]fsnotify.Event) []fsnotify.Event {
+// extractEvents takes a map and returns slice of all values
+func extractEvents(events map[string]fsnotify.Event) []fsnotify.Event {
 	changes := make([]fsnotify.Event, len(events))
 	i := 0
 	for _, event := range events {

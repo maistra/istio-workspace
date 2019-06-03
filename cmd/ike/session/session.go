@@ -184,6 +184,7 @@ func getOrCreateSessionName(sessionName string) string {
 	return u.Username + "-" + random
 }
 
+// ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value
 func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 	if route == "" {
 		return nil, nil

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/spf13/pflag"
+
 	gocmd "github.com/go-cmd/cmd"
 )
 
@@ -40,8 +42,9 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 
 // Execute executes given command in the current directory
 // Adds shutdown hook and redirects streams to stdout/err
-func Execute(name string, args ...string) *gocmd.Cmd {
-	return ExecuteInDir("", name, args...)
+func Execute(command string) *gocmd.Cmd {
+	cmd := strings.Split(command, " ")
+	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
 // ExecuteInDir executes given command in the defined directory
@@ -133,4 +136,9 @@ func BinaryExists(binName, hint string) bool {
 	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
 	return true
+}
+
+func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
+	slice, _ := flags.GetStringSlice(name)
+	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

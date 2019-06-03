@@ -363,7 +363,6 @@
   packages = [
     ".",
     "config",
-    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -409,7 +408,7 @@
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:674610d54812d3c36ab7861fc826176bf581a9426cc09abec0107414c17f89cd"
+  digest = "1:fe3c97fb1956829a81d7b8221b4710c40d6dae2c6c3b4d222db5b7f96c975d99"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -419,8 +418,8 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "7e07b20c9e22560fb22a3295b612eae7652b8b14"
-  version = "v0.7.0"
+  revision = "33b3bfe10176f8647f5354516fff29dea42b6342"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -498,6 +497,14 @@
   revision = "bc6930f2d5103de3e494ee4f4dc68c195271c57b"
 
 [[projects]]
+  branch = "master"
+  digest = "1:460228dd728b9c7f41827af94ada4412830c6a69964aa460009be8d3eb2daaca"
+  name = "github.com/sabhiram/go-gitignore"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "d3107576ba9425fc1c85f4b3569c4631b805a02e"
+
+[[projects]]
   digest = "1:49b6e0d199dc20969bf7c9d14647313e1dd1b102178fad4ca999d8a9584edfab"
   name = "github.com/spf13/afero"
   packages = [
@@ -565,7 +572,7 @@
     "internal/stack",
   ]
   pruneopts = "NT"
-  revision = "71b3642dd8af77945e4c485eff2d5dea7f70b625"
+  revision = "3b0196519f167e6dec046a95449f0b5d0ec986fa"
 
 [[projects]]
   digest = "1:58ca93bdf81bac106ded02226b5395a0595d5346cdc4caa8d9c1f3a5f8f9976e"
@@ -1053,7 +1060,6 @@
     "github.com/go-logr/logr",
     "github.com/hashicorp/go-multierror",
     "github.com/onsi/ginkgo",
-    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/format",
@@ -1064,6 +1070,7 @@
     "github.com/operator-framework/operator-sdk/pkg/metrics",
     "github.com/operator-framework/operator-sdk/pkg/predicate",
     "github.com/operator-framework/operator-sdk/version",
+    "github.com/sabhiram/go-gitignore",
     "github.com/spf13/afero",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",

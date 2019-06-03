@@ -3,10 +3,9 @@ package watch_test
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/maistra/istio-workspace/cmd/ike/watch"
-
-	"go.uber.org/goleak"
 
 	"github.com/fsnotify/fsnotify"
 	. "github.com/onsi/ginkgo"
@@ -16,14 +15,6 @@ import (
 )
 
 var _ = Describe("File changes watch", func() {
-
-	AfterSuite(func() {
-		goleak.VerifyNone(GinkgoT(),
-			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
-			goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
-		)
-		CleanUpTmpFiles(GinkgoT())
-	})
 
 	It("should recognize file change", func() {
 		// given
@@ -125,8 +116,8 @@ var _ = Describe("File changes watch", func() {
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
-			Excluding("/tmp/**/skip_watch/*").
-			OnPaths(skipTmpDir, watchTmpDir)
+			Excluding("skip_watch/**").
+			OnPaths(filepath.Dir(skipTmpDir), filepath.Dir(watchTmpDir))
 		Expect(e).ToNot(HaveOccurred())
 
 		defer watcher.Close()
@@ -140,6 +131,45 @@ var _ = Describe("File changes watch", func() {
 		Eventually(done).Should(BeClosed())
 	})
 
+	It("should not recognize file change if it's git-ignored", func() {
+		// given
+		done := make(chan struct{})
+
+		watchTmpDir := TmpDir(GinkgoT(), "watch")
+		config := TmpFile(GinkgoT(), watchTmpDir+"/.idea/config.toml", "content")
+		test := TmpFile(GinkgoT(), watchTmpDir+"/.idea/test.yaml", "content")
+		nestedFile := TmpFile(GinkgoT(), watchTmpDir+"/src/main/org/acme/Main.java", "package org.acme")
+		gitIgnore := TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", `
+*.yaml
+src/main/**/*.java
+.idea/
+`)
+		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
+
+		defer func() {
+			config.Close()
+			test.Close()
+			nestedFile.Close()
+			gitIgnore.Close()
+		}()
+
+		watcher, e := watch.CreateWatch(1).
+			WithHandlers(notExpectFileChange(config.Name(), test.Name(), nestedFile.Name()), expectFileChange(code.Name(), done)).
+			OnPaths(watchTmpDir)
+		Expect(e).ToNot(HaveOccurred())
+
+		defer watcher.Close()
+
+		// when
+		watcher.Start()
+		_, _ = test.WriteString(" should not be watched")
+		_, _ = config.WriteString(" should not be watched")
+		_, _ = nestedFile.WriteString("\n// TODO implement me but now ignore")
+		_, _ = code.WriteString("\n // Bla! Should trigger watch reaction")
+
+		// then
+		Eventually(done).Should(BeClosed())
+	})
 })
 
 func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
@@ -151,14 +181,16 @@ func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
 	}
 }
 
-func notExpectFileChange(fileName string) watch.Handler {
+func notExpectFileChange(fileNames ...string) watch.Handler {
 	return func(events []fsnotify.Event) error {
 		defer GinkgoRecover()
 		for _, event := range events {
-			if event.Name == fileName {
-				errMsg := fmt.Sprintf("expected %s to not change", fileName)
-				Fail(errMsg)
-				return errors.New(errMsg)
+			for _, fileName := range fileNames {
+				if event.Name == fileName {
+					errMsg := fmt.Sprintf("expected %s to not change", fileName)
+					Fail(errMsg)
+					return errors.New(errMsg)
+				}
 			}
 		}
 		return nil
