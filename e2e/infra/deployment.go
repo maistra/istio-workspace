@@ -54,6 +54,23 @@ func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	return string(content), nil
 }
 
+func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
+	req, err := http.NewRequest("GET", rawURL, nil)
+	if err != nil {
+		return "", err
+	}
+	for k, v := range headers {
+		req.Header[k] = []string{v}
+	}
+	resp, err := http.DefaultClient.Do(req) //nolint[:gosec]
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	content, _ := ioutil.ReadAll(resp.Body)
+	return string(content), nil
+}
+
 // PostBody issues a POST to the specified URL,
 // with data's keys and values URL-encoded as the request body.
 //

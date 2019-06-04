@@ -18,11 +18,11 @@ func LoadIstio() {
 		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 }
 
-// DeployBookinfoInto deploys book info sample application into specified namespace
-func DeployBookinfoInto(namespace string) {
+// DeployTestScenario1 deploys book info sample application into specified namespace
+func DeployTestScenario1(namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
-	<-cmd.Execute("oc login -u system:admin").Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "deploy-bookinfo", "EXAMPLE_NAMESPACE="+namespace).Done()
+	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.ExecuteInDir(projectDir, "make", "deploy-test-scenario-1", "EXAMPLE_NAMESPACE="+namespace).Done()
 }
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry

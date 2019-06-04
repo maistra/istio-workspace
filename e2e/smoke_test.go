@@ -84,7 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc login -u developer").Done()
 			<-cmd.Execute("oc new-project " + namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
-			DeployBookinfoInto(namespace)
+			DeployTestScenario1(namespace)
 		})
 
 		AfterEach(func() {
@@ -92,24 +92,24 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc delete project " + namespace).Done()
 		})
 
-		It("should watch for changes in details service and serve it", func() {
+		It("should watch for changes in ratings service and serve it", func() {
 			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 				Should(ContainSubstring("No resources found"))
 
 			Eventually(func() (string, error) {
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 			// given we have details code locally
-			CreateFile(tmpDir+"/details.rb", DetailsRuby)
+			CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 			// when we start ike with watch
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
-				"--deployment", "details-v1",
+				"--deployment", "ratings-v1",
 				"--port", "9080",
 				"--watch",
-				"--run", "ruby details.rb 9080",
-				"--route", "header:end-user=ike",
+				"--run", "ruby ratings.rb 9080",
+				"--route", "header:x-test-suite=smoke",
 			)
 
 			// ensure the new service is running
@@ -118,15 +118,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			// and modify the service
 			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
-			CreateFile(tmpDir+"/details.rb", modifiedDetails)
+			CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 			// then
-			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "ike", "ike")
-			Expect(err).ToNot(HaveOccurred())
-
 			Eventually(func() (string, error) {
 				fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
+				return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
 			stopFailed := ikeWithWatch.Stop()
@@ -135,29 +132,29 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
 		})
 
-		It("should watch for changes in details service in specified namespace and serve it", func() {
+		It("should watch for changes in ratings service in specified namespace and serve it", func() {
 			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 				Should(ContainSubstring("No resources found"))
 
 			Eventually(func() (string, error) {
 				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 			// switch to different namespace
 			<-cmd.Execute("oc project myproject").Done()
 
 			// given we have details code locally
-			CreateFile(tmpDir+"/details.rb", DetailsRuby)
+			CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 			// when we start ike with watch
 			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
-				"--deployment", "details-v1",
+				"--deployment", "ratings-v1",
 				"-n", namespace,
 				"--port", "9080",
 				"--method", "inject-tcp",
 				"--watch",
-				"--run", "ruby details.rb 9080",
-				"--route", "header:end-user=jason",
+				"--run", "ruby ratings.rb 9080",
+				"--route", "header:x-test-suite=smoke",
 			)
 
 			// ensure the new service is running
@@ -166,15 +163,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			// and modify the service
 			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
-			CreateFile(tmpDir+"/details.rb", modifiedDetails)
+			CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 			// then
-			_, cookies, err := Login("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/login", "jason", "jason")
-			Expect(err).ToNot(HaveOccurred())
-
 			Eventually(func() (string, error) {
 				fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", cookies...)
+				return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
 			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
 			stopFailed := ikeWithWatch.Stop()
