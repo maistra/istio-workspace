@@ -1,6 +1,8 @@
 package openshift
 
 import (
+	"os"
+
 	"github.com/maistra/istio-workspace/pkg/apis"
 	"github.com/maistra/istio-workspace/pkg/model"
 
@@ -100,8 +102,14 @@ func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) *appsv
 	deploymentClone.SetResourceVersion("")
 	deploymentClone.Spec.Replicas = 1
 
+	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
+	if !found {
+		tpVersion = "0.99"
+	}
+
 	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:0.99"
+	container.Image = "datawire/telepresence-k8s:" + tpVersion
+
 	container.Env = append(container.Env, corev1.EnvVar{
 		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
 		ValueFrom: &corev1.EnvVarSource{
