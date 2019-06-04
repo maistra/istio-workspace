@@ -21,7 +21,7 @@ func LoadIstio() {
 // DeployTestScenario1 deploys book info sample application into specified namespace
 func DeployTestScenario1(namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
-	<-cmd.Execute("oc", "login", "-u", "system:admin").Done()
+	<-cmd.Execute("oc login -u system:admin").Done()
 	<-cmd.ExecuteInDir(projectDir, "make", "deploy-test-scenario-1", "EXAMPLE_NAMESPACE="+namespace).Done()
 }
 
