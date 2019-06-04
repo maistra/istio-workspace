@@ -12,7 +12,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type Modifier func(service string, object runtime.Object)
@@ -20,7 +19,7 @@ type SubGenerator func(service string) runtime.Object
 
 func Generate(services []string, modifiers ...Modifier) {
 
-	sub := []SubGenerator{DeploymentConfig, Service, DestinationRule, VirtualService}
+	sub := []SubGenerator{Deployment, Service, DestinationRule, VirtualService}
 	modify := func(service string, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
@@ -97,26 +96,28 @@ func DeploymentConfig(service string) runtime.Object {
 									ContainerPort: 9080,
 								},
 							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+							/*
+								LivenessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+								ReadinessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
+							*/
 						},
 					},
 				},
@@ -172,26 +173,28 @@ func Deployment(service string) runtime.Object {
 									ContainerPort: 9080,
 								},
 							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+							/*
+								LivenessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+								ReadinessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
+							*/
 						},
 					},
 				},
