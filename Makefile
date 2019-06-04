@@ -150,7 +150,7 @@ endef
 
 .PHONY: load-istio
 load-istio: ## Triggers installation of istio in the cluster
-	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
+	$(call header,"Deploys minimal istio operator")
 	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
 
 .PHONY: deploy-operator
