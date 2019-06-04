@@ -50,6 +50,9 @@ func basic(config Config) http.HandlerFunc {
 					"x-request-id", "x-b3-traceid", "x-b3-spanid",
 					"x-b3-parentspanid", "x-b3-sampled", "x-b3-flags",
 					"x-ot-span-context")
+
+				// custom header used by test suite
+				copyHeaders(request, req, "x-test-suite")
 				resp, err := http.DefaultClient.Do(request)
 				if resp != nil {
 					defer resp.Body.Close()
