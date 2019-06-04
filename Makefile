@@ -9,6 +9,8 @@ BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
 
+TELEPRESENCE_VERSION?=$(shell telepresence --version)
+
 # Call this function with $(call header,"Your message")
 define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
@@ -89,7 +91,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
-	COMMIT:=$(COMMIT)-dirty
+	COMMIT:=$(COMMIT)-dirty-$(shell date +%s)
 endif
 VERSION?=0.0.1
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
@@ -117,16 +119,16 @@ IKE_DOCKER_REPOSITORY?=aslakknutsen
 docker-build: ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT) \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
 	docker tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 .PHONY: docker-push
 docker-push: ## Pushes docker image to the registry
 	$(call header,"Pushing docker image $(IKE_IMAGE_NAME)")
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(COMMIT)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 # ##########################################################################
@@ -148,7 +150,7 @@ endef
 
 .PHONY: load-istio
 load-istio: ## Triggers installation of istio in the cluster
-	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
+	$(call header,"Deploys minimal istio operator")
 	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
 
 .PHONY: deploy-operator
