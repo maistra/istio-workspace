@@ -9,6 +9,8 @@ BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
 
+TELEPRESENCE_VERSION?=$(shell telepresence --version)
+
 # Call this function with $(call header,"Your message")
 define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
