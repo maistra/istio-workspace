@@ -5,13 +5,17 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+)
+
+const (
+	envServiceName = "SERVICE_NAME"
+	envServiceCall = "SERVICE_CALL"
 )
 
 type Modifier func(service string, object runtime.Object)
@@ -50,6 +54,7 @@ func Generate(services []string, modifiers ...Modifier) {
 	printObj(gw)
 }
 
+/*
 func DeploymentConfig(service string) runtime.Object {
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
@@ -96,7 +101,6 @@ func DeploymentConfig(service string) runtime.Object {
 									ContainerPort: 9080,
 								},
 							},
-							/*
 								LivenessProbe: &corev1.Probe{
 									Handler: corev1.Handler{
 										HTTPGet: &corev1.HTTPGetAction{
@@ -117,7 +121,6 @@ func DeploymentConfig(service string) runtime.Object {
 									InitialDelaySeconds: 1,
 									PeriodSeconds:       3,
 								},
-							*/
 						},
 					},
 				},
@@ -125,6 +128,7 @@ func DeploymentConfig(service string) runtime.Object {
 		},
 	}
 }
+*/
 
 func Deployment(service string) runtime.Object {
 	replica := int32(1)
@@ -160,7 +164,7 @@ func Deployment(service string) runtime.Object {
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
-									Name:  "SERVICE_NAME",
+									Name:  envServiceName,
 									Value: service,
 								},
 								{

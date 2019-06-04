@@ -3,7 +3,6 @@ package infra
 import (
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/onsi/gomega"
@@ -54,6 +53,7 @@ func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	return string(content), nil
 }
 
+// GetBodyWithHeaders calls GET on a given URL with a specific set request headers and returns its body or error in case there's one
 func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
 	req, err := http.NewRequest("GET", rawURL, nil)
 	if err != nil {
@@ -69,26 +69,4 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
 	return string(content), nil
-}
-
-// PostBody issues a POST to the specified URL,
-// with data's keys and values URL-encoded as the request body.
-//
-// Returns response's content, cookies or error if the POST failed
-func PostBody(rawURL string, data url.Values, follow bool) (string, []*http.Cookie, error) {
-	client := &http.Client{}
-	if !follow {
-		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		}
-	}
-	resp, err := client.PostForm(rawURL, data) //nolint[:gosec]
-	if err != nil {
-		return "", nil, err
-	}
-	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
-	cookies := resp.Cookies()
-
-	return string(content), cookies, nil
 }

@@ -22,13 +22,13 @@ func Call(target string) Modifier {
 	return func(service string, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-				Name:  "SERVICE_CALL",
+				Name:  envServiceCall,
 				Value: "http://" + target + ":9080/",
 			})
 		}
 		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-				Name:  "SERVICE_CALL",
+				Name:  envServiceCall,
 				Value: "http://" + target + ":9080/",
 			})
 		}
@@ -72,7 +72,7 @@ func WithVersion(version string) Modifier {
 			obj.ObjectMeta.Name = obj.ObjectMeta.Name + "-" + version
 
 			for index, env := range obj.Spec.Template.Spec.Containers[0].Env {
-				if env.Name == "SERVICE_NAME" {
+				if env.Name == envServiceName {
 					env.Value = env.Value + "-" + version
 					obj.Spec.Template.Spec.Containers[0].Env[index] = env
 				}
@@ -83,7 +83,7 @@ func WithVersion(version string) Modifier {
 			obj.ObjectMeta.Name = obj.ObjectMeta.Name + "-" + version
 
 			for index, env := range obj.Spec.Template.Spec.Containers[0].Env {
-				if env.Name == "SERVICE_NAME" {
+				if env.Name == envServiceName {
 					env.Value = env.Value + "-" + version
 					obj.Spec.Template.Spec.Containers[0].Env[index] = env
 				}
