@@ -18,9 +18,13 @@ const (
 	envServiceCall = "SERVICE_CALL"
 )
 
-type Modifier func(service string, object runtime.Object)
+// SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification
 type SubGenerator func(service string) runtime.Object
 
+// Modifier is a function to change a runtime.Object into something more specific for a given scenario
+type Modifier func(service string, object runtime.Object)
+
+// Generate runs and prints the full test scenario generation to sysout
 func Generate(services []string, modifiers ...Modifier) {
 
 	sub := []SubGenerator{Deployment, Service, DestinationRule, VirtualService}
@@ -130,6 +134,7 @@ func DeploymentConfig(service string) runtime.Object {
 }
 */
 
+// Deployment basic SubGenerator for the kind Deployment
 func Deployment(service string) runtime.Object {
 	replica := int32(1)
 	return &appsv1.Deployment{
@@ -207,6 +212,7 @@ func Deployment(service string) runtime.Object {
 	}
 }
 
+// Service basic SubGenerator for the kind Service
 func Service(service string) runtime.Object {
 	return &corev1.Service{
 		TypeMeta: v1.TypeMeta{
@@ -233,6 +239,7 @@ func Service(service string) runtime.Object {
 	}
 }
 
+// DestinationRule basic SubGenerator for the kind DestinationRule
 func DestinationRule(service string) runtime.Object {
 	return &istionetwork.DestinationRule{
 		TypeMeta: v1.TypeMeta{
@@ -248,6 +255,7 @@ func DestinationRule(service string) runtime.Object {
 	}
 }
 
+// VirtualService basic SubGenerator for the kind VirtualService
 func VirtualService(service string) runtime.Object {
 	return &istionetwork.VirtualService{
 		TypeMeta: v1.TypeMeta{
@@ -263,6 +271,7 @@ func VirtualService(service string) runtime.Object {
 	}
 }
 
+// Gateway basic SubGenerator for the kind Gateway
 func Gateway() runtime.Object {
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{

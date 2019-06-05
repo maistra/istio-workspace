@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// ConnectToGatway modifier to connect VirtualService to a Gatway. Combine with ForService.
 func ConnectToGatway() Modifier {
 	return func(service string, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
@@ -18,6 +19,7 @@ func ConnectToGatway() Modifier {
 	}
 }
 
+// Call modifier to have the test service call another. Combine with ForService
 func Call(target string) Modifier {
 	return func(service string, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
@@ -34,6 +36,8 @@ func Call(target string) Modifier {
 		}
 	}
 }
+
+// ForService modifier is a filter to only execute the given modifiers if the target object belongs to the named target.
 func ForService(target string, modifiers ...Modifier) Modifier {
 	return func(service string, object runtime.Object) {
 		if target != service {
@@ -45,6 +49,7 @@ func ForService(target string, modifiers ...Modifier) Modifier {
 	}
 }
 
+// WithVersion modifier adds a single istio 'version' to DestinationRule/VirtualService/Deployment
 func WithVersion(version string) Modifier {
 	return func(service string, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.DestinationRule); ok {
