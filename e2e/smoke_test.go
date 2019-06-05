@@ -84,6 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc login -u developer").Done()
 			<-cmd.Execute("oc new-project " + namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
+			BuildTestService(namespace)
 			DeployTestScenario1(namespace)
 		})
 

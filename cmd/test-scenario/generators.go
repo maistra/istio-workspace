@@ -84,11 +84,11 @@ func DeploymentConfig(service string) runtime.Object {
 					Containers: []corev1.Container{
 						{
 							Name:            service,
-							Image:           "aslakknutsen/istio-workspace-test:latest",
+							Image:           testImageName,
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
-									Name:  "SERVICE_NAME",
+									Name:  envServiceName,
 									Value: service,
 								},
 								{
@@ -160,7 +160,7 @@ func Deployment(service string) runtime.Object {
 					Containers: []corev1.Container{
 						{
 							Name:            service,
-							Image:           "aslakknutsen/istio-workspace-test:latest",
+							Image:           testImageName,
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
