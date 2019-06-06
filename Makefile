@@ -2,7 +2,7 @@ PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/maistra/istio-workspace
 
 OPERATOR_NAMESPACE?=istio-workspace-operator
-EXAMPLE_NAMESPACE?=bookinfo
+TEST_NAMESPACE?=bookinfo
 
 CUR_DIR:=$(shell pwd)
 BUILD_DIR:=$(CUR_DIR)/build
@@ -199,35 +199,35 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 # ##########################################################################
 
 .PHONY: deploy-example
-deploy-example: ## Deploys istio-workspace specific resources to defined EXAMPLE_NAMESPACE
-	$(call header,"Deploying session custom resource to $(EXAMPLE_NAMESPACE)")
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
+	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
+	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
-undeploy-example: ## Undeploys istio-workspace specific resources from defined EXAMPLE_NAMESPACE
-	$(call header,"Undeploying session custom resource to $(EXAMPLE_NAMESPACE)")
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
+	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
+	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
 
 # ##########################################################################
 # Istio bookinfo deployment
 # ##########################################################################
 
-deploy-test-%: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
-	$(call header,"Deploying bookinfo app to $(EXAMPLE_NAMESPACE)")
-	oc new-project $(EXAMPLE_NAMESPACE) || true
-	oc adm policy add-scc-to-user anyuid -z default -n $(EXAMPLE_NAMESPACE)
-	oc adm policy add-scc-to-user privileged -z default -n $(EXAMPLE_NAMESPACE)
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
+deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
+	$(call header,"Deploying bookinfo app to $(TEST_NAMESPACE)")
+	oc new-project $(TEST_NAMESPACE) || true
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE)
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE)
+	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 
 	$(eval scenario:=$(subst deploy-test-,,$@))
-	go run ./cmd/test-scenario/ $(scenario) | oc apply -n $(EXAMPLE_NAMESPACE) -f -
+	go run ./cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
 
-undeploy-test-%: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
-	$(call header,"Undeploying bookinfo app to $(EXAMPLE_NAMESPACE)")
+undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
+	$(call header,"Undeploying bookinfo app to $(TEST_NAMESPACE)")
 
 	$(eval scenario:=$(subst undeploy-test-,,$@))
-	go run ./cmd/test-scenario/ $(scenario) | oc delete -n $(EXAMPLE_NAMESPACE) -f -
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+	go run ./cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
+	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 

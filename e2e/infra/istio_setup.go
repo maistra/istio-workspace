@@ -61,12 +61,12 @@ func DeployOperator() (namespace string) {
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
-	setExampleNamespace(namespace)
+	setTestNamespace(namespace)
 	return setDockerRegistryExternal()
 }
 
 func setDockerEnvForTestServiceDeploy(namespace string) (registry string) {
-	setExampleNamespace(namespace)
+	setTestNamespace(namespace)
 	return setDockerRegistryInternal()
 }
 
@@ -82,8 +82,8 @@ func setDockerEnvForOperatorDeploy() (namespace, registry string) {
 	return ns, repo
 }
 
-func setExampleNamespace(namespace string) {
-	err := os.Setenv("EXAMPLE_NAMESPACE", namespace)
+func setTestNamespace(namespace string) {
+	err := os.Setenv("TEST_NAMESPACE", namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	setDockerRepository(namespace)
