@@ -7,7 +7,7 @@ func TestScenario1_Three_Services_In_Sequence() {
 	Generate(
 		services,
 		WithVersion("v1"),
-		ForService("productpage", Call("reviews"), ConnectToGatway()),
+		ForService("productpage", Call("reviews"), ConnectToGateway()),
 		ForService("reviews", Call("ratings")),
 	)
 }
