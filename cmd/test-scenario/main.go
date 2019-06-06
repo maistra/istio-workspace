@@ -18,7 +18,7 @@ func main() {
 	testImageName = getTestImageName()
 
 	scenarios := map[string]func(){
-		"scenario-1": TestScenario1_Three_Services_In_Sequence,
+		"scenario-1": TestScenario1ThreeServicesInSequence,
 	}
 	scenario := os.Args[1]
 	if f, ok := scenarios[scenario]; ok {

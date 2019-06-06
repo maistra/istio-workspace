@@ -1,8 +1,7 @@
 package main
 
-// TestScenario1_Three_Services_In_Sequence is a basic test setup with a few services calling each other in a chain. Similar to the original bookinfo example setup.
-func TestScenario1_Three_Services_In_Sequence() {
-	// Scenario 1
+// TestScenario1ThreeServicesInSequence is a basic test setup with a few services calling each other in a chain. Similar to the original bookinfo example setup.
+func TestScenario1ThreeServicesInSequence() {
 	services := []string{"productpage", "reviews", "ratings"}
 	Generate(
 		services,
