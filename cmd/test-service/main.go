@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// EnvHTTPAddr name of Env variable that sets the listning address
+	// EnvHTTPAddr name of Env variable that sets the listening address
 	EnvHTTPAddr = "HTTP_ADDR"
 
 	// EnvServiceName name of Env variable that sets the Service name used in call stack
