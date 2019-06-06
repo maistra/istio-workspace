@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ConnectToGatway modifier to connect VirtualService to a Gatway. Combine with ForService.
+// ConnectToGateway modifier to connect VirtualService to a Gateway. Combine with ForService.
 func ConnectToGatway() Modifier {
 	return func(service string, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
