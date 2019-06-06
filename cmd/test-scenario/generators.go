@@ -58,6 +58,7 @@ func Generate(services []string, modifiers ...Modifier) {
 	printObj(gw)
 }
 
+// TODO enable once #95 lands in master
 /*
 func DeploymentConfig(service string) runtime.Object {
 	return &osappsv1.DeploymentConfig{
