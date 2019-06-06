@@ -29,7 +29,7 @@ func BuildTestService(namespace string) (registry string) {
 	return
 }
 
-// DeployTestScenario1 deploys book info sample application into specified namespace
+// DeployTestScenario1 deploys book-info like sample application into the specified namespace
 func DeployTestScenario1(namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	setDockerEnvForTestServiceDeploy(namespace)
