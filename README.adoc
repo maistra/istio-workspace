@@ -28,6 +28,12 @@ From now on you are ready to hack. Run `make help` to see what targets are avail
 NOTE: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
 and management of different versions of Go.
 
+==== Coding style
+
+We follow standard Go coding conventions which we ensure using `goimports` during the build. 
+
+In addition we provide `.editorconfig` file which is supported by https://editorconfig.org/#download[majority of the IDEs].
+
 === License
 
 This project is licensed under the link:http://www.apache.org/licenses/[Apache License, Version 2.0]
