@@ -2,12 +2,13 @@ PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/maistra/istio-workspace
 
 OPERATOR_NAMESPACE?=istio-workspace-operator
-EXAMPLE_NAMESPACE?=bookinfo
+TEST_NAMESPACE?=bookinfo
 
 CUR_DIR:=$(shell pwd)
 BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
+TEST_BINARY_NAME:=test-service
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
@@ -105,11 +106,16 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
+$(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
+	$(call header,"Compiling test service... carry on!")
+	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TEST_BINARY_NAME)/
+
 # ##########################################################################
 # Docker build
 # ##########################################################################
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_IMAGE_TAG?=$(COMMIT)
 export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=docker.io
@@ -130,6 +136,22 @@ docker-push: ## Pushes docker image to the registry
 	$(call header,"Pushing docker image $(IKE_IMAGE_NAME)")
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
+
+.PHONY: docker-build-test
+docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME) ## Builds the docker test image
+	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
+	docker build \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		-f $(BUILD_DIR)/DockerfileTest $(CUR_DIR)
+	docker tag \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+
+.PHONY: docker-push-test
+docker-push-test: ## Pushes docker image to the registry
+	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 # ##########################################################################
 # Istio operator deployment
@@ -177,42 +199,35 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 # ##########################################################################
 
 .PHONY: deploy-example
-deploy-example: ## Deploys istio-workspace specific resources to defined EXAMPLE_NAMESPACE
-	$(call header,"Deploying session custom resource to $(EXAMPLE_NAMESPACE)")
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
+	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
+	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
-undeploy-example: ## Undeploys istio-workspace specific resources from defined EXAMPLE_NAMESPACE
-	$(call header,"Undeploying session custom resource to $(EXAMPLE_NAMESPACE)")
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
+	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
+	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
 
 # ##########################################################################
 # Istio bookinfo deployment
 # ##########################################################################
 
-.PHONY: deploy-bookinfo
-deploy-bookinfo: ## Deploys bookinfo app into defined EXAMPLE_NAMESPACE
-	$(call header,"Deploying bookinfo app to $(EXAMPLE_NAMESPACE)")
-	oc new-project $(EXAMPLE_NAMESPACE) || true
-	oc adm policy add-scc-to-user anyuid -z default -n $(EXAMPLE_NAMESPACE)
-	oc adm policy add-scc-to-user privileged -z default -n $(EXAMPLE_NAMESPACE)
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
-	oc apply -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml
-	# Required due to circle-ci memory limitations
-	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v2
-	oc delete -n $(EXAMPLE_NAMESPACE) deployment reviews-v3
+deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
+	$(call header,"Deploying bookinfo app to $(TEST_NAMESPACE)")
+	oc new-project $(TEST_NAMESPACE) || true
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE)
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE)
+	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 
-.PHONY: undeploy-bookinfo
-undeploy-bookinfo: ## Undeploys bookinfo app into defined EXAMPLE_NAMESPACE
-	$(call header,"Undeploying bookinfo app to $(EXAMPLE_NAMESPACE)")
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo.yaml	
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/virtual-service-all-v1.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/destination-rule-all.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/bookinfo-gateway.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
-	oc delete -n $(EXAMPLE_NAMESPACE) -f deploy/bookinfo/session_role.yaml
+	$(eval scenario:=$(subst deploy-test-,,$@))
+	go run ./cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
+
+undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
+	$(call header,"Undeploying bookinfo app to $(TEST_NAMESPACE)")
+
+	$(eval scenario:=$(subst undeploy-test-,,$@))
+	go run ./cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
+	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 
