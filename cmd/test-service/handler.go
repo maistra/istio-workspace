@@ -23,7 +23,7 @@ type CallStack struct {
 	Called    []CallStack `json:"called,omitempty"`
 }
 
-// NewBasic constructs a new basic HandlerFunc that behaves as described0 by the provided Config
+// NewBasic constructs a new basic HandlerFunc that behaves as described by the provided Config
 func NewBasic(config Config) http.HandlerFunc {
 	return basic(config)
 }
