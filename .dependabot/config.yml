@@ -1,3 +1,5 @@
+# for details, see: https://dependabot.com/docs/config-file/
+# to validate: 
 version: 1
 update_configs:
   - package_manager: "go:dep"
