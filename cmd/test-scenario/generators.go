@@ -12,7 +12,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -118,26 +117,28 @@ func DeploymentConfig(service Entry) runtime.Object {
 									ContainerPort: 9080,
 								},
 							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+							/*
+								LivenessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
+								ReadinessProbe: &corev1.Probe{
+									Handler: corev1.Handler{
+										HTTPGet: &corev1.HTTPGetAction{
+											Path: "/healthz",
+											Port: intstr.FromInt(9080),
+										},
 									},
+									InitialDelaySeconds: 1,
+									PeriodSeconds:       3,
 								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
+							*/
 						},
 					},
 				},

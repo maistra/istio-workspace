@@ -73,9 +73,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		var (
 			namespace,
 			tmpDir string
+			scenario string
 		)
 
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 			namespace = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
@@ -85,7 +86,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc new-project " + namespace).Done()
 			UpdateSecurityConstraintsFor(namespace)
 			BuildTestService(namespace)
-			DeployTestScenario1(namespace)
+			DeployTestScenario(scenario, namespace)
 		})
 
 		AfterEach(func() {
@@ -93,93 +94,112 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-cmd.Execute("oc delete project " + namespace).Done()
 		})
 
-		It("should watch for changes in ratings service and serve it", func() {
-			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
+		Context("scenario-1-basic-deployment", func() {
+			BeforeEach(func() {
+				scenario = "scenario-1"
+			})
 
-			Eventually(func() (string, error) {
-				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+			It("should watch for changes in ratings service and serve it", func() {
+				Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+					Should(ContainSubstring("No resources found"))
 
-			// given we have details code locally
-			CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
+				Eventually(func() (string, error) {
+					return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+				}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
-			// when we start ike with watch
-			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
-				"--deployment", "ratings-v1",
-				"--port", "9080",
-				"--watch",
-				"--run", "ruby ratings.rb 9080",
-				"--route", "header:x-test-suite=smoke",
-			)
+				// given we have details code locally
+				CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
-			// ensure the new service is running
-			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
+				// when we start ike with watch
+				ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+					"--deployment", "ratings-v1",
+					"--port", "9080",
+					"--watch",
+					"--run", "ruby ratings.rb 9080",
+					"--route", "header:x-test-suite=smoke",
+				)
 
-			// and modify the service
-			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
-			CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
+				// ensure the new service is running
+				Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+					Should(ContainSubstring("No resources found"))
 
-			// then
-			Eventually(func() (string, error) {
-				fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-				return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+				// and modify the service
+				modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
+				CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-			stopFailed := ikeWithWatch.Stop()
-			Expect(stopFailed).ToNot(HaveOccurred())
+				// then
+				Eventually(func() (string, error) {
+					fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
+					return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
+				}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
-			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+				stopFailed := ikeWithWatch.Stop()
+				Expect(stopFailed).ToNot(HaveOccurred())
+
+				Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+			})
+
+			It("should watch for changes in ratings service in specified namespace and serve it", func() {
+				doBasicScenarioCheck(tmpDir, namespace)
+			})
 		})
 
-		It("should watch for changes in ratings service in specified namespace and serve it", func() {
-			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
+		Context("scenario-2-basic-deploymentconfig", func() {
+			BeforeEach(func() {
+				scenario = "scenario-2"
+			})
 
-			Eventually(func() (string, error) {
-				return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
-
-			// switch to different namespace
-			<-cmd.Execute("oc project myproject").Done()
-
-			// given we have details code locally
-			CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
-
-			// when we start ike with watch
-			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
-				"--deployment", "ratings-v1",
-				"-n", namespace,
-				"--port", "9080",
-				"--method", "inject-tcp",
-				"--watch",
-				"--run", "ruby ratings.rb 9080",
-				"--route", "header:x-test-suite=smoke",
-			)
-
-			// ensure the new service is running
-			Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
-
-			// and modify the service
-			modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
-			CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
-
-			// then
-			Eventually(func() (string, error) {
-				fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-				return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
-			}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
-
-			stopFailed := ikeWithWatch.Stop()
-			Expect(stopFailed).ToNot(HaveOccurred())
-
-			Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+			It("should watch for changes in ratings service in specified namespace and serve it", func() {
+				doBasicScenarioCheck(tmpDir, namespace)
+			})
 		})
-
 	})
 })
+
+func doBasicScenarioCheck(tmpDir, namespace string) {
+	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+		Should(ContainSubstring("No resources found"))
+
+	Eventually(func() (string, error) {
+		return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
+	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+
+	// switch to different namespace
+	<-cmd.Execute("oc project myproject").Done()
+
+	// given we have details code locally
+	CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
+
+	// when we start ike with watch
+	ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+		"--deployment", "ratings-v1",
+		"-n", namespace,
+		"--port", "9080",
+		"--method", "inject-tcp",
+		"--watch",
+		"--run", "ruby ratings.rb 9080",
+		"--route", "header:x-test-suite=smoke",
+	)
+
+	// ensure the new service is running
+	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
+		Should(ContainSubstring("No resources found"))
+
+	// and modify the service
+	modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
+	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
+
+	// then
+	Eventually(func() (string, error) {
+		fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
+		return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
+	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+
+	stopFailed := ikeWithWatch.Stop()
+	Expect(stopFailed).ToNot(HaveOccurred())
+
+	Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+}
 
 func callGetOn(name string) func() (string, error) {
 	return func() (string, error) {

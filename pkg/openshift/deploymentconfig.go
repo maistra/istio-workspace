@@ -34,7 +34,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool { //
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
 			return false
 		}
-		ctx.Log.Error(nil, "Could not get DeploymentConfig", "name", deployment.Name)
+		ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
 		return false
 	}
 	return true

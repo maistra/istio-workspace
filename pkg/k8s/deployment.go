@@ -30,7 +30,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
 			return false
 		}
-		ctx.Log.Error(nil, "Could not get Deployment", "name", deployment.Name)
+		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 		return false
 	}
 	return true
