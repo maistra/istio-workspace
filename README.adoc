@@ -7,7 +7,7 @@ image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", 
 
 ==== Setup
 
-Assuming that you have all the link:https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
+Assuming that you have all the https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
 
 [source,bash]
 ----
@@ -16,17 +16,23 @@ $ git clone https://github.com/maistra/istio-workspace $GOPATH/src/github.com/ma
 
 then run `make tools` which will take care of installing all the tools mentioned below:
 
-* link:https://golang.github.io/dep/[`dep`] for dependency management
-* link:https://github.com/golangci/golangci-lint[`golang-ci`] linter
-* link:https://github.com/onsi/ginkgo[`ginkgo`] for testing
-* link:https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
-* link:https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
+* https://golang.github.io/dep/[`dep`] for dependency management
+* https://github.com/golangci/golangci-lint[`golang-ci`] linter
+* https://github.com/onsi/ginkgo[`ginkgo`] for testing
+* https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
+* https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
 
 From now on you are ready to hack. Run `make help` to see what targets are available, but you will use
 `make build` and `make test` most often.
 
-NOTE: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
+NOTE: Have a look how https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
 and management of different versions of Go.
+
+==== Coding style
+
+We follow standard Go coding conventions which we ensure using `goimports` during the build. 
+
+In addition we provide `.editorconfig` file which is supported by https://editorconfig.org/#download[majority of the IDEs].
 
 === License
 

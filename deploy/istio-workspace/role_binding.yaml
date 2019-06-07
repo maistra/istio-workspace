@@ -10,9 +10,9 @@ objects:
     metadata:
       name: istio-workspace
     subjects:
-    - kind: ServiceAccount
-      name: istio-workspace
-      namespace: ${NAMESPACE}
+      - kind: ServiceAccount
+        name: istio-workspace
+        namespace: ${NAMESPACE}
     roleRef:
       kind: ClusterRole
       name: istio-workspace
