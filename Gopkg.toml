@@ -19,27 +19,22 @@ required = [
 
 [[override]]
   name = "k8s.io/code-generator"
-  # revision for tag "kubernetes-1.13.3"
   revision = "c2090bec4d9b1fb25de3812f868accc2bc9ecbae"
 
 [[override]]
   name = "k8s.io/api"
-  # revision for tag "kubernetes-1.13.3"
   revision = "74b699b93c15473932b89e3d1818ba8282f3b5ab"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  # revision for tag "kubernetes-1.13.3"
   revision = "d4288ab6494571219e781fa423db363247635942"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision for tag "kubernetes-1.13.3"
   revision = "572dfc7bdfcb4531361a17d27b92851f59acf0dc"
 
 [[override]]
   name = "k8s.io/client-go"
-  # revision for tag "kubernetes-1.13.3"
   revision = "6e4752048fde21176ab35eb54ec1117359830d8a"
 
 [[override]]
@@ -57,7 +52,7 @@ required = [
 
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
-  version = ">= 0.8.0, < 1.0.0"
+  version = "=0.8.1"
 
 [[override]]
   name = "k8s.io/kube-openapi"
@@ -92,7 +87,3 @@ required = [
 [[constraint]]
   name = "github.com/sabhiram/go-gitignore"
   branch = "master"
-
-[[override]]
-  name = "github.com/go-bindata/go-bindata"
-  branch = "v3.1.1"

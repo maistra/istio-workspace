@@ -26,6 +26,8 @@ func NewRootCmd() *cobra.Command {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
 			if shouldPrintVersion {
 				printVersion()
+			} else {
+				fmt.Print(cmd.UsageString())
 			}
 			return nil
 		},
