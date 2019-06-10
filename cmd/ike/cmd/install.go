@@ -16,11 +16,17 @@ func NewInstallCmd() *cobra.Command {
 		RunE:         InstallOperator,
 	}
 
+	installCmd.Flags().StringP("namespace", "n", "istio-workspace-operator", "Target namespace to which istio-workspace operator is deployed to.")
+
 	return installCmd
 }
 
 func InstallOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-	app, err := newApplier("istio-workspace-operator")
+	namespace, err := cmd.Flags().GetString("namespace")
+	if err != nil {
+		return err
+	}
+	app, err := newApplier(namespace)
 	if err != nil {
 		return err
 	}
