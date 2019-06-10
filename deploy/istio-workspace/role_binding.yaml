@@ -3,7 +3,7 @@ apiVersion: template.openshift.io/v1
 parameters:
   - name: NAMESPACE
     required: true
-    value: istio-system
+    value: istio-workspace-operator
 objects:
   - kind: ClusterRoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
