@@ -1,17 +1,17 @@
-package k8s_test
+package openshift_test
 
 import (
 	"context"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 
-	appsv1 "k8s.io/api/apps/v1"
+	appsv1 "github.com/openshift/api/apps/v1"
+
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
@@ -19,24 +19,27 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Operations for k8s Deployment kind", func() {
+var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 	var objects []runtime.Object
 	var ctx model.SessionContext
 	JustBeforeEach(func() {
+		schema := runtime.NewScheme()
+		err := appsv1.AddToScheme(schema)
+		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
 			Context:   context.TODO(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       logf.Log.WithName("test"),
-			Client:    fake.NewFakeClient(objects...),
+			Client:    fake.NewFakeClientWithScheme(schema, objects...),
 		}
 	})
 
 	Context("locators", func() {
 		BeforeEach(func() {
 			objects = []runtime.Object{
-				&appsv1.Deployment{
+				&appsv1.DeploymentConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-ref",
 						Namespace: "test",
@@ -47,13 +50,13 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should report false on not found", func() {
 			ref := model.Ref{Name: "test-ref-other"}
-			locatorErr := k8s.DeploymentLocator(ctx, &ref)
+			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
 			Expect(locatorErr).To(BeFalse())
 		})
 
 		It("should report true on found", func() {
 			ref := model.Ref{Name: "test-ref"}
-			locatorErr := k8s.DeploymentLocator(ctx, &ref)
+			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
 			Expect(locatorErr).To(BeTrue())
 		})
 
@@ -63,7 +66,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		BeforeEach(func() {
 			objects = []runtime.Object{
-				&appsv1.Deployment{
+				&appsv1.DeploymentConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-ref",
 						Namespace: "test",
@@ -71,12 +74,9 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							"version": "0.0.1",
 						},
 					},
-
-					Spec: appsv1.DeploymentSpec{
-						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{},
-						},
-						Template: v1.PodTemplateSpec{
+					Spec: appsv1.DeploymentConfigSpec{
+						Selector: map[string]string{"A": "A"},
+						Template: &v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
@@ -91,12 +91,12 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			}
 		})
 
-		It("should add suffix to the cloned deployment", func() {
+		It("should add suffix to the cloned deploymentconfig", func() {
 			ref := model.Ref{Name: "test-ref"}
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
+			deployment := appsv1.DeploymentConfig{}
 			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -105,10 +105,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should change container to telepresence", func() {
 				ref := model.Ref{Name: "test-ref"}
-				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.Deployment{}
+				deployment := appsv1.DeploymentConfig{}
 				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -117,10 +117,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should change add required env variables", func() {
 				ref := model.Ref{Name: "test-ref"}
-				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.Deployment{}
+				deployment := appsv1.DeploymentConfig{}
 				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -136,7 +136,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		BeforeEach(func() {
 			objects = []runtime.Object{
-				&appsv1.Deployment{
+				&appsv1.DeploymentConfig{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-ref",
 						Namespace: "test",
@@ -144,12 +144,9 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							"version": "0.0.1",
 						},
 					},
-
-					Spec: appsv1.DeploymentSpec{
-						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{},
-						},
-						Template: v1.PodTemplateSpec{
+					Spec: appsv1.DeploymentConfigSpec{
+						Selector: map[string]string{"A": "A"},
+						Template: &v1.PodTemplateSpec{
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
@@ -164,17 +161,17 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			}
 		})
 
-		It("should revert to original deployment", func() {
+		It("should revert to original deploymentconfig", func() {
 			ref := model.Ref{Name: "test-ref"}
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
+			deployment := appsv1.DeploymentConfig{}
 
 			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
-			revertorErr := k8s.DeploymentRevertor(ctx, &ref)
+			revertorErr := openshift.DeploymentConfigRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
 			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)

@@ -5,6 +5,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
@@ -18,17 +19,22 @@ const (
 	envServiceCall = "SERVICE_CALL"
 )
 
+type Entry struct {
+	Name           string
+	DeploymentType string
+}
+
 // SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification
-type SubGenerator func(service string) runtime.Object
+type SubGenerator func(service Entry) runtime.Object
 
 // Modifier is a function to change a runtime.Object into something more specific for a given scenario
-type Modifier func(service string, object runtime.Object)
+type Modifier func(service Entry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout
-func Generate(services []string, modifiers ...Modifier) {
+func Generate(services []Entry, modifiers ...Modifier) {
 
-	sub := []SubGenerator{Deployment, Service, DestinationRule, VirtualService}
-	modify := func(service string, object runtime.Object) {
+	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
+	modify := func(service Entry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
 		}
@@ -42,7 +48,7 @@ func Generate(services []string, modifiers ...Modifier) {
 		fmt.Println("---")
 	}
 	for _, service := range services {
-		func(service string) {
+		func(service Entry) {
 			for _, subGenerator := range sub {
 				object := subGenerator(service)
 				if object == nil {
@@ -54,20 +60,25 @@ func Generate(services []string, modifiers ...Modifier) {
 		}(service)
 	}
 	gw := Gateway()
-	modify("gateway", gw)
+	modify(Entry{Name: "gateway"}, gw)
 	printObj(gw)
 }
 
-// TODO enable once #95 lands in master
-/*
-func DeploymentConfig(service string) runtime.Object {
+// DeploymentConfig basic SubGenerator for the kind DeploymentConfig
+func DeploymentConfig(service Entry) runtime.Object {
+	if service.DeploymentType != "DeploymentConfig" {
+		return nil
+	}
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "DeploymentConfig",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service,
+			Name: service.Name,
+			Labels: map[string]string{
+				"app": service.Name,
+			},
 		},
 		Spec: osappsv1.DeploymentConfigSpec{
 			Replicas: 1,
@@ -82,19 +93,19 @@ func DeploymentConfig(service string) runtime.Object {
 						"kiali.io/runtimes":       "go",
 					},
 					Labels: map[string]string{
-						"app": service,
+						"app": service.Name,
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:            service,
+							Name:            service.Name,
 							Image:           testImageName,
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
 									Name:  envServiceName,
-									Value: service,
+									Value: service.Name,
 								},
 								{
 									Name:  "HTTP_ADDR",
@@ -106,6 +117,7 @@ func DeploymentConfig(service string) runtime.Object {
 									ContainerPort: 9080,
 								},
 							},
+							/*
 								LivenessProbe: &corev1.Probe{
 									Handler: corev1.Handler{
 										HTTPGet: &corev1.HTTPGetAction{
@@ -126,6 +138,7 @@ func DeploymentConfig(service string) runtime.Object {
 									InitialDelaySeconds: 1,
 									PeriodSeconds:       3,
 								},
+							*/
 						},
 					},
 				},
@@ -133,10 +146,12 @@ func DeploymentConfig(service string) runtime.Object {
 		},
 	}
 }
-*/
 
 // Deployment basic SubGenerator for the kind Deployment
-func Deployment(service string) runtime.Object {
+func Deployment(service Entry) runtime.Object {
+	if service.DeploymentType != "Deployment" {
+		return nil
+	}
 	replica := int32(1)
 	return &appsv1.Deployment{
 		TypeMeta: v1.TypeMeta{
@@ -144,7 +159,7 @@ func Deployment(service string) runtime.Object {
 			Kind:       "Deployment",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service,
+			Name: service.Name,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replica,
@@ -159,19 +174,19 @@ func Deployment(service string) runtime.Object {
 						"kiali.io/runtimes":       "go",
 					},
 					Labels: map[string]string{
-						"app": service,
+						"app": service.Name,
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:            service,
+							Name:            service.Name,
 							Image:           testImageName,
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
 									Name:  envServiceName,
-									Value: service,
+									Value: service.Name,
 								},
 								{
 									Name:  "HTTP_ADDR",
@@ -214,16 +229,16 @@ func Deployment(service string) runtime.Object {
 }
 
 // Service basic SubGenerator for the kind Service
-func Service(service string) runtime.Object {
+func Service(service Entry) runtime.Object {
 	return &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Service",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service,
+			Name: service.Name,
 			Labels: map[string]string{
-				"app": service,
+				"app": service.Name,
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -234,40 +249,40 @@ func Service(service string) runtime.Object {
 				},
 			},
 			Selector: map[string]string{
-				"app": service,
+				"app": service.Name,
 			},
 		},
 	}
 }
 
 // DestinationRule basic SubGenerator for the kind DestinationRule
-func DestinationRule(service string) runtime.Object {
+func DestinationRule(service Entry) runtime.Object {
 	return &istionetwork.DestinationRule{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
 			Kind:       "DestinationRule",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service,
+			Name: service.Name,
 		},
 		Spec: istiov1alpha3.DestinationRule{
-			Host: service,
+			Host: service.Name,
 		},
 	}
 }
 
 // VirtualService basic SubGenerator for the kind VirtualService
-func VirtualService(service string) runtime.Object {
+func VirtualService(service Entry) runtime.Object {
 	return &istionetwork.VirtualService{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
 			Kind:       "VirtualService",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service,
+			Name: service.Name,
 		},
 		Spec: istiov1alpha3.VirtualService{
-			Hosts: []string{service},
+			Hosts: []string{service.Name},
 		},
 	}
 }

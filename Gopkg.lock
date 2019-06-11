@@ -607,11 +607,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c519d84f84199354518c9f2a2dc9bb2fa914e77d32d2ecdc3eb574236cb5effd"
+  digest = "1:c30df5de56c16819103cf2b843cf25dc48754955d99d4844583b22c09a126acb"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
-  revision = "20be4c3c3ed52bfccdb2d59a412ee1a936d175a7"
+  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
 
 [[projects]]
   branch = "master"
@@ -701,7 +701,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:11a1544427e25694149d39e90cbca283584a3de9e7f288762590a7b709530486"
+  digest = "1:bc31c2e71e790e3a80c64f98394a233dc6cbbfdef59085a9962be21f8922bb50"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -718,7 +718,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "8aaa1484dc108aa23dcf2d4a09371c0c9e280f6b"
+  revision = "4d9ae51c2468f6d6621b356e95df4bffa253f0b6"
 
 [[projects]]
   digest = "1:d85bd4497eba4bba5620f30ba3b7bc3e2d5d73b85dd494eeb6ad79c73cdc23a3"

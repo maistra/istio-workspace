@@ -11,7 +11,7 @@ import (
 
 // ConnectToGateway modifier to connect VirtualService to a Gateway. Combine with ForService.
 func ConnectToGateway() Modifier {
-	return func(service string, object runtime.Object) {
+	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{"*"}
 			obj.Spec.Gateways = append(obj.Spec.Gateways, "test-gateway")
@@ -21,7 +21,7 @@ func ConnectToGateway() Modifier {
 
 // Call modifier to have the test service call another. Combine with ForService
 func Call(target string) Modifier {
-	return func(service string, object runtime.Object) {
+	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 				Name:  envServiceCall,
@@ -39,8 +39,8 @@ func Call(target string) Modifier {
 
 // ForService modifier is a filter to only execute the given modifiers if the target object belongs to the named target.
 func ForService(target string, modifiers ...Modifier) Modifier {
-	return func(service string, object runtime.Object) {
-		if target != service {
+	return func(service Entry, object runtime.Object) {
+		if target != service.Name {
 			return
 		}
 		for _, modifier := range modifiers {
@@ -51,7 +51,7 @@ func ForService(target string, modifiers ...Modifier) Modifier {
 
 // WithVersion modifier adds a single istio 'version' to DestinationRule/VirtualService/Deployment
 func WithVersion(version string) Modifier {
-	return func(service string, object runtime.Object) {
+	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.DestinationRule); ok {
 			obj.Spec.Subsets = append(obj.Spec.Subsets, &istiov1alpha3.Subset{
 				Name: version,
@@ -65,7 +65,7 @@ func WithVersion(version string) Modifier {
 				Route: []*istiov1alpha3.HTTPRouteDestination{
 					{
 						Destination: &istiov1alpha3.Destination{
-							Host:   service,
+							Host:   service.Name,
 							Subset: version,
 						},
 					},
