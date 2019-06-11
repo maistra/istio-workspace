@@ -32,19 +32,39 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 		return err
 	}
 	if err := app.applyResource("crds/istio_v1alpha1_session_crd.yaml"); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			log.Error(err, "failed creating session crd")
+			return err
+		}
+		log.Info("session crd already exists")
 	}
 	if err := app.applyResource("service_account.yaml"); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			log.Error(err, "failed creating service account")
+			return err
+		}
+		log.Info("service account already exists")
 	}
 	if err := app.applyResource("role.yaml"); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			log.Error(err, "failed creating role")
+			return err
+		}
+		log.Info("role already exists")
 	}
 	if err := app.applyTemplate("role_binding.yaml"); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			log.Error(err, "failed creating role binding")
+			return err
+		}
+		log.Info("role binding already exists")
 	}
 	if err := app.applyTemplate("operator.yaml"); err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			log.Error(err, "failed creating an operator")
+			return err
+		}
+		log.Info("operator already exists")
 	}
 
 	return nil
