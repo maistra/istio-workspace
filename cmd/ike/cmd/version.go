@@ -12,7 +12,7 @@ import (
 
 // NewVersionCmd creates version cmd which prints version and build details of the executed binary
 func NewVersionCmd() *cobra.Command {
-	versionCmd := &cobra.Command{
+	return &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
@@ -22,8 +22,6 @@ func NewVersionCmd() *cobra.Command {
 			return nil
 		},
 	}
-
-	return versionCmd
 }
 
 func printVersion() {

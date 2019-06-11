@@ -5,6 +5,7 @@ import (
 
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 // NewInstallCmd takes care of deploying server-side components of istio-workspace
@@ -13,7 +14,7 @@ func NewInstallCmd() *cobra.Command {
 		Use:          "install-operator",
 		Short:        "Takes care of deploying server-side components of istio-workspace",
 		SilenceUsage: true,
-		RunE:         InstallOperator,
+		RunE:         installOperator,
 	}
 
 	installCmd.Flags().StringP("namespace", "n", "istio-workspace-operator", "Target namespace to which istio-workspace operator is deployed to.")
@@ -21,7 +22,7 @@ func NewInstallCmd() *cobra.Command {
 	return installCmd
 }
 
-func InstallOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	namespace, err := cmd.Flags().GetString("namespace")
 	if err != nil {
 		return err
