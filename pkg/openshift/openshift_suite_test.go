@@ -3,9 +3,9 @@ package openshift_test
 import (
 	"testing"
 
-	"go.uber.org/goleak"
-
 	. "github.com/maistra/istio-workspace/test"
+
+	"go.uber.org/goleak"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,4 +22,3 @@ var _ = SynchronizedAfterSuite(func() {}, func() {
 		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
 	)
 })
-
