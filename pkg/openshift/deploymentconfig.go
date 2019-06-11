@@ -31,7 +31,7 @@ var _ model.Revertor = DeploymentConfigRevertor
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
-		if errors.IsNotFound(err) { // Ref is not a Deployment type
+		if errors.IsNotFound(err) { // Ref is not a DeploymentConfig type
 			return false
 		}
 		ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
