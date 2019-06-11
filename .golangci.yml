@@ -42,6 +42,7 @@ linters:
     - gochecknoglobals # TODO discuss
 
 run:
+  deadline: 10m
   skip-dirs:
     - ./pkg/apis
     - ./pkg/assets
