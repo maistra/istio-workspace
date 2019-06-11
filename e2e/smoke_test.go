@@ -140,7 +140,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
-				doBasicScenarioCheck(tmpDir, namespace)
+				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
 			})
 		})
 
@@ -150,13 +150,13 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
-				doBasicScenarioCheck(tmpDir, namespace)
+				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
 			})
 		})
 	})
 })
 
-func doBasicScenarioCheck(tmpDir, namespace string) {
+func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 		Should(ContainSubstring("No resources found"))
 
