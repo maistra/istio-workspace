@@ -37,27 +37,27 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
-
-			<-cmd.Execute("oc login -u system:admin").Done()
-
-			fmt.Printf("\nExposing Docker Registry\n")
-			<-cmd.Execute("oc expose service docker-registry -n default").Done()
-
-			// create a 'real user' we can use to push to the DockerRegistry
-			fmt.Printf("\nAdd admin user\n")
-			<-cmd.Execute("oc create user admin").Done()
-			<-cmd.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
-
-			LoadIstio()
-			// Deploy first so the namespace exists when we push it to the local openshift registry
-			workspaceNamespace := DeployOperator()
-			BuildOperator()
-			Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
-				Should(ContainSubstring("No resources found"))
-
 		})
 		skipClusterShutdown = true
 	}
+	executeWithTimer(func() {
+		<-cmd.Execute("oc login -u system:admin").Done()
+
+		fmt.Printf("\nExposing Docker Registry\n")
+		<-cmd.Execute("oc expose service docker-registry -n default").Done()
+
+		// create a 'real user' we can use to push to the DockerRegistry
+		fmt.Printf("\nAdd admin user\n")
+		<-cmd.Execute("oc create user admin").Done()
+		<-cmd.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
+
+		LoadIstio()
+		// Deploy first so the namespace exists when we push it to the local openshift registry
+		workspaceNamespace := DeployOperator()
+		BuildOperator()
+		Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
+			Should(ContainSubstring("No resources found"))
+	})
 	return nil
 },
 	func(data []byte) {})

@@ -97,7 +97,7 @@ func deployIstioWorkspaceCrdsIstio_v1alpha1_session_crYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml", size: 178, mode: os.FileMode(436), modTime: time.Unix(1560245876, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml", size: 178, mode: os.FileMode(436), modTime: time.Unix(1560259028, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -137,7 +137,7 @@ func deployIstioWorkspaceOperatorYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1441, mode: os.FileMode(436), modTime: time.Unix(1560245876, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1441, mode: os.FileMode(436), modTime: time.Unix(1560261058, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -157,7 +157,7 @@ func deployIstioWorkspaceRoleYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/role.yaml", size: 868, mode: os.FileMode(436), modTime: time.Unix(1560245876, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/role.yaml", size: 868, mode: os.FileMode(436), modTime: time.Unix(1560259028, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -177,7 +177,7 @@ func deployIstioWorkspaceRole_bindingYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/role_binding.yaml", size: 476, mode: os.FileMode(436), modTime: time.Unix(1560245873, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/role_binding.yaml", size: 476, mode: os.FileMode(436), modTime: time.Unix(1560261058, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
