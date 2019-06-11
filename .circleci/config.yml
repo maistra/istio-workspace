@@ -67,7 +67,7 @@ jobs:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
-          command: TELEPRESENCE_VERSION=$(telepresence --version) make tools deps compile test-e2e
+          command: TELEPRESENCE_VERSION=$(telepresence --version) make tools deps test-e2e
       - save_cache:
           key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
