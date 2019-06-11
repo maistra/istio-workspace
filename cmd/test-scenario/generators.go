@@ -70,6 +70,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 	if service.DeploymentType != "DeploymentConfig" {
 		return nil
 	}
+	template := template(service.Name)
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
@@ -83,65 +84,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 		},
 		Spec: osappsv1.DeploymentConfigSpec{
 			Replicas: 1,
-			Template: &corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
-					Annotations: map[string]string{
-						"sidecar.istio.io/inject": "true",
-						"prometheus.io/scrape":    "true",
-						"prometheus.io/port":      "9080",
-						"prometheus.io/scheme":    "http",
-						"prometheus.io/path":      "/metrics",
-						"kiali.io/runtimes":       "go",
-					},
-					Labels: map[string]string{
-						"app": service.Name,
-					},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            service.Name,
-							Image:           testImageName,
-							ImagePullPolicy: "Always",
-							Env: []corev1.EnvVar{
-								{
-									Name:  envServiceName,
-									Value: service.Name,
-								},
-								{
-									Name:  "HTTP_ADDR",
-									Value: ":9080",
-								},
-							},
-							Ports: []corev1.ContainerPort{
-								{
-									ContainerPort: 9080,
-								},
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
-									},
-								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
-									},
-								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-						},
-					},
-				},
-			},
+			Template: &template,
 		},
 	}
 }
@@ -162,65 +105,7 @@ func Deployment(service Entry) runtime.Object {
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replica,
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: v1.ObjectMeta{
-					Annotations: map[string]string{
-						"sidecar.istio.io/inject": "true",
-						"prometheus.io/scrape":    "true",
-						"prometheus.io/port":      "9080",
-						"prometheus.io/scheme":    "http",
-						"prometheus.io/path":      "/metrics",
-						"kiali.io/runtimes":       "go",
-					},
-					Labels: map[string]string{
-						"app": service.Name,
-					},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            service.Name,
-							Image:           testImageName,
-							ImagePullPolicy: "Always",
-							Env: []corev1.EnvVar{
-								{
-									Name:  envServiceName,
-									Value: service.Name,
-								},
-								{
-									Name:  "HTTP_ADDR",
-									Value: ":9080",
-								},
-							},
-							Ports: []corev1.ContainerPort{
-								{
-									ContainerPort: 9080,
-								},
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
-									},
-								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: "/healthz",
-										Port: intstr.FromInt(9080),
-									},
-								},
-								InitialDelaySeconds: 1,
-								PeriodSeconds:       3,
-							},
-						},
-					},
-				},
-			},
+			Template: template(service.Name),
 		},
 	}
 }
@@ -306,6 +191,68 @@ func Gateway() runtime.Object {
 						Number:   80,
 					},
 					Hosts: []string{"*"},
+				},
+			},
+		},
+	}
+}
+
+func template(name string) corev1.PodTemplateSpec {
+	return corev1.PodTemplateSpec{
+		ObjectMeta: v1.ObjectMeta{
+			Annotations: map[string]string{
+				"sidecar.istio.io/inject": "true",
+				"prometheus.io/scrape":    "true",
+				"prometheus.io/port":      "9080",
+				"prometheus.io/scheme":    "http",
+				"prometheus.io/path":      "/metrics",
+				"kiali.io/runtimes":       "go",
+			},
+			Labels: map[string]string{
+				"app": name,
+			},
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:            name,
+					Image:           testImageName,
+					ImagePullPolicy: "Always",
+					Env: []corev1.EnvVar{
+						{
+							Name:  envServiceName,
+							Value: name,
+						},
+						{
+							Name:  "HTTP_ADDR",
+							Value: ":9080",
+						},
+					},
+					Ports: []corev1.ContainerPort{
+						{
+							ContainerPort: 9080,
+						},
+					},
+					LivenessProbe: &corev1.Probe{
+						Handler: corev1.Handler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path: "/healthz",
+								Port: intstr.FromInt(9080),
+							},
+						},
+						InitialDelaySeconds: 1,
+						PeriodSeconds:       3,
+					},
+					ReadinessProbe: &corev1.Probe{
+						Handler: corev1.Handler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path: "/healthz",
+								Port: intstr.FromInt(9080),
+							},
+						},
+						InitialDelaySeconds: 1,
+						PeriodSeconds:       3,
+					},
 				},
 			},
 		},
