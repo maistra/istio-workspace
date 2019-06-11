@@ -48,11 +48,18 @@ func BuildOperator() (registry string) {
 	return
 }
 
+func CreateOperatorNamespace() (namespace string) {
+	namespace, _ = setDockerEnvForOperatorDeploy()
+	<-cmd.Execute("oc login -u admin -p admin").Done()
+	<-cmd.Execute("oc new-project " + namespace).Done()
+	return
+}
+
 // DeployOperator deploys istio-workspace operator into specified namespace
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	<-cmd.Execute("oc login -u system:admin").Done()
+	<-cmd.Execute("oc login -u admin -p admin").Done()
 
 	namespace, _ = setDockerEnvForOperatorDeploy()
 

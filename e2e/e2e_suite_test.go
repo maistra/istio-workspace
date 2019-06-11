@@ -52,9 +52,11 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		<-cmd.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
 
 		LoadIstio()
-		// Deploy first so the namespace exists when we push it to the local openshift registry
-		workspaceNamespace := DeployOperator()
+
+		<-cmd.Execute("oc login -u admin -p admin").Done()
+		workspaceNamespace := CreateOperatorNamespace()
 		BuildOperator()
+		DeployOperator()
 		Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
 			Should(ContainSubstring("No resources found"))
 	})
