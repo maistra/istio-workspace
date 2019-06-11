@@ -2,6 +2,7 @@ package infra
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 )
@@ -10,13 +11,23 @@ import (
 // Returns content of Stderr to determine if there was an error
 func AllPodsNotInState(namespace, state string) func() string {
 	return func() string {
-		ocGetPods := cmd.ExecuteInDir(".",
+		ocGetAllPods := cmd.ExecuteInDir(".",
+			"oc", "get", "pods",
+			"-n", namespace,
+		)
+		<-ocGetAllPods.Done()
+
+		if strings.Contains(fmt.Sprintf("%v", ocGetAllPods.Status().Stderr), "No resources found") {
+			return fmt.Sprintf("no pods in any state found in %s namespace", namespace)
+		}
+
+		ocGetFilteredPods := cmd.ExecuteInDir(".",
 			"oc", "get", "pods",
 			"-n", namespace,
 			"--field-selector", "status.phase!="+state,
 		)
-		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stderr)
+		<-ocGetFilteredPods.Done()
+		return fmt.Sprintf("%v", ocGetFilteredPods.Status().Stderr)
 	}
 }
 

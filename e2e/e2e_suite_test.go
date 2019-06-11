@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
@@ -26,7 +27,10 @@ var _, skipClusterShutdown = os.LookupEnv("SKIP_CLUSTER_SHUTDOWN")
 
 var tmpClusterDir string
 
+var tmpPath = NewTmpPath()
+
 var _ = SynchronizedBeforeSuite(func() []byte {
+	tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
 	if clusterNotRunning() {
 		rand.Seed(time.Now().UTC().UnixNano())
@@ -66,6 +70,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
+		tmpPath.Restore()
 		if !skipClusterShutdown {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
@@ -84,6 +89,7 @@ func clusterNotRunning() bool {
 }
 
 func ensureRequiredBinaries() {
+	Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 	Expect(cmd.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
 	Expect(cmd.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
 	Expect(cmd.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())
