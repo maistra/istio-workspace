@@ -3,6 +3,8 @@ package openshift_test
 import (
 	"testing"
 
+	"go.uber.org/goleak"
+
 	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
