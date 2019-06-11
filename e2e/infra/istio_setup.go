@@ -56,7 +56,7 @@ func DeployOperator() (namespace string) {
 
 	namespace, _ = setDockerEnvForOperatorDeploy()
 
-	<-cmd.ExecuteInDir(projectDir, "ike", "install").Done()
+	<-cmd.ExecuteInDir(projectDir, "ike", "install-operator").Done()
 	return
 }
 

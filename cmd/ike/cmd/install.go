@@ -10,7 +10,7 @@ import (
 // NewInstallCmd takes care of deploying server-side components of istio-workspace
 func NewInstallCmd() *cobra.Command {
 	installCmd := &cobra.Command{
-		Use:          "install",
+		Use:          "install-operator",
 		Short:        "Takes care of deploying server-side components of istio-workspace",
 		SilenceUsage: true,
 		RunE:         InstallOperator,
