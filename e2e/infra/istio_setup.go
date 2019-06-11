@@ -29,13 +29,13 @@ func BuildTestService(namespace string) (registry string) {
 	return
 }
 
-// DeployTestScenario1 deploys book-info like sample application into the specified namespace
-func DeployTestScenario1(namespace string) {
+// DeployTestScenario deploys a test scenario into the specified namespace
+func DeployTestScenario(scenario, namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	setDockerEnvForTestServiceDeploy(namespace)
 
 	<-cmd.Execute("oc login -u system:admin").Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "deploy-test-scenario-1").Done()
+	<-cmd.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry

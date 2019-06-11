@@ -30,7 +30,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
 			return false
 		}
-		ctx.Log.Error(nil, "Could not get Deployment", "name", deployment.Name)
+		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 		return false
 	}
 	return true
@@ -44,6 +44,9 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
 	ctx.Log.Info("Found Deployment", "name", ref.Name)
@@ -98,7 +101,7 @@ func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Depl
 
 	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !found {
-		tpVersion = "0.99"
+		tpVersion = "0.100"
 	}
 
 	container := deploymentClone.Spec.Template.Spec.Containers[0]

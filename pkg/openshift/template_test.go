@@ -130,7 +130,7 @@ parameters:
     value: latest
   - name: TELEPRESENCE_VERSION
     required: true
-    value: "0.99"
+    value: "0.100"
 objects:
   - kind: Deployment
     apiVersion: apps/v1
@@ -165,5 +165,5 @@ objects:
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
                 - name: TELEPRESENCE_VERSION
-                  value: "0.99"
+                  value: "0.100"
 `

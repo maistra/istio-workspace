@@ -1,19 +1,19 @@
-package openshift_test
+package main
 
 import (
 	"testing"
 
-	. "github.com/maistra/istio-workspace/test"
-
 	"go.uber.org/goleak"
+
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestOpenshift(t *testing.T) {
+func TestSessionController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Openshift Suite")
+	RunSpecWithJUnitReporter(t, "Session reconciler Suite")
 }
 
 var _ = SynchronizedAfterSuite(func() {}, func() {

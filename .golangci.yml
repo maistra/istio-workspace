@@ -47,6 +47,15 @@ run:
     - ./pkg/assets
     - ./pkg/client/clientset
 
+issues:
+  exclude-rules:
+    - path: pkg/openshift/
+      linters:
+        - dupl
+    - path: pkg/k8s/
+      linters:
+        - dupl
+
 service:
   project-path: github.com/maistra/istio-workspace
   prepare:
