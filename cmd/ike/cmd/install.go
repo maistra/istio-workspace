@@ -31,40 +31,12 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err != nil {
 		return err
 	}
-	if err := app.applyResource("crds/istio_v1alpha1_session_crd.yaml"); err != nil {
-		if !errors.IsAlreadyExists(err) {
-			log.Error(err, "failed creating session crd")
-			return err
-		}
-		log.Info("session crd already exists")
+
+	if err := apply(app.applyResource, "crds/istio_v1alpha1_session_crd.yaml", "service_account.yaml", "role.yaml"); err != nil {
+		return err
 	}
-	if err := app.applyResource("service_account.yaml"); err != nil {
-		if !errors.IsAlreadyExists(err) {
-			log.Error(err, "failed creating service account")
-			return err
-		}
-		log.Info("service account already exists")
-	}
-	if err := app.applyResource("role.yaml"); err != nil {
-		if !errors.IsAlreadyExists(err) {
-			log.Error(err, "failed creating role")
-			return err
-		}
-		log.Info("role already exists")
-	}
-	if err := app.applyTemplate("role_binding.yaml"); err != nil {
-		if !errors.IsAlreadyExists(err) {
-			log.Error(err, "failed creating role binding")
-			return err
-		}
-		log.Info("role binding already exists")
-	}
-	if err := app.applyTemplate("operator.yaml"); err != nil {
-		if !errors.IsAlreadyExists(err) {
-			log.Error(err, "failed creating an operator")
-			return err
-		}
-		log.Info("operator already exists")
+	if err := apply(app.applyTemplate, "role_binding.yaml", "operator.yaml"); err != nil {
+		return err
 	}
 
 	return nil
@@ -73,6 +45,32 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 type applier struct {
 	c *openshift.Client
 	d openshift.DecodeFunc
+}
+
+func newApplier(namespace string) (*applier, error) { //nolint[:golint]
+	client, err := openshift.NewDefaultDynamicClient(namespace)
+	if err != nil {
+		return nil, err
+	}
+	decode, err := openshift.Decoder()
+	if err != nil {
+		return nil, err
+	}
+
+	return &applier{c: client, d: decode}, nil
+}
+
+func apply(a func(path string) error, paths ...string) error {
+	for _, p := range paths {
+		if err := a(p); err != nil {
+			if !errors.IsAlreadyExists(err) {
+				log.Error(err, "failed creating "+p)
+				return err
+			}
+			log.Info(p + "already exists")
+		}
+	}
+	return nil
 }
 
 func (app *applier) applyResource(resourcePath string) error {
@@ -111,17 +109,4 @@ func (app *applier) applyTemplate(templatePath string) error {
 		}
 	}
 	return nil
-}
-
-func newApplier(namespace string) (*applier, error) { //nolint[:golint]
-	client, err := openshift.NewDefaultDynamicClient(namespace)
-	if err != nil {
-		return nil, err
-	}
-	decode, err := openshift.Decoder()
-	if err != nil {
-		return nil, err
-	}
-
-	return &applier{c: client, d: decode}, nil
 }
