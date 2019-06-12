@@ -68,7 +68,7 @@ codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code and bundles 
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
 	$(call header,"Adds assets to the binary")
-	go-bindata -o pkg/assets/isto-workspace-deploy.go -pkg assets deploy/istio-workspace/...
+	go-bindata -o pkg/assets/isto-workspace-deploy.go -pkg assets -ignore 'example.yaml' deploy/istio-workspace/...
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
