@@ -204,12 +204,12 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 .PHONY: deploy-example
 deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
 	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
-	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
 
 .PHONY: undeploy-example
 undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
 	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
-	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
 
 # ##########################################################################
 # Istio bookinfo deployment
