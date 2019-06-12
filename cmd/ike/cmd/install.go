@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/openshift/dynclient"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
@@ -43,16 +43,16 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 }
 
 type applier struct {
-	c *openshift.Client
-	d openshift.DecodeFunc
+	c *dynclient.Client
+	d dynclient.DecodeFunc
 }
 
 func newApplier(namespace string) (*applier, error) { //nolint[:golint]
-	client, err := openshift.NewDefaultDynamicClient(namespace)
+	client, err := dynclient.NewDefaultDynamicClient(namespace)
 	if err != nil {
 		return nil, err
 	}
-	decode, err := openshift.Decoder()
+	decode, err := dynclient.Decoder()
 	if err != nil {
 		return nil, err
 	}
@@ -75,11 +75,11 @@ func apply(a func(path string) error, paths ...string) error {
 }
 
 func (app *applier) applyResource(resourcePath string) error {
-	rawCrd, err := openshift.Load("deploy/istio-workspace/" + resourcePath)
+	rawCrd, err := dynclient.Load("deploy/istio-workspace/" + resourcePath)
 	if err != nil {
 		return err
 	}
-	crd, err := openshift.Parse(rawCrd)
+	crd, err := dynclient.Parse(rawCrd)
 	if err != nil {
 		return err
 	}
@@ -88,12 +88,12 @@ func (app *applier) applyResource(resourcePath string) error {
 }
 
 func (app *applier) applyTemplate(templatePath string) error {
-	yaml, err := openshift.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
+	yaml, err := dynclient.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
 	if err != nil {
 		return err
 	}
 
-	rawRoleBinding, err := openshift.Parse(yaml)
+	rawRoleBinding, err := dynclient.Parse(yaml)
 	if err != nil {
 		return err
 	}

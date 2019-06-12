@@ -1,4 +1,4 @@
-package openshift
+package dynclient
 
 import (
 	coreV1 "k8s.io/api/core/v1"
