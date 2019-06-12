@@ -108,7 +108,7 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling test service... carry on!")
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TEST_BINARY_NAME)/
+	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 # ##########################################################################
 # Docker build
@@ -221,13 +221,13 @@ deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
 	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 
 	$(eval scenario:=$(subst deploy-test-,,$@))
-	go run ./cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
+	go run ./test/cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
 	$(call header,"Undeploying bookinfo app to $(TEST_NAMESPACE)")
 
 	$(eval scenario:=$(subst undeploy-test-,,$@))
-	go run ./cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
+	go run ./test/cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 
