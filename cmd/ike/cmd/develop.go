@@ -16,7 +16,6 @@ var defaultExclusions = []string{"*.log", ".git/"}
 
 // NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
-
 	developCmd := &cobra.Command{
 		Use:          "develop",
 		Short:        "Starts the development flow",
@@ -28,7 +27,6 @@ func NewDevelopCmd() *cobra.Command {
 			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-
 			sessionState, sessionClose, err := sessions(cmd)
 			if err != nil {
 				return err
@@ -57,7 +55,6 @@ func NewDevelopCmd() *cobra.Command {
 			}()
 
 			finalStatus := <-done
-
 			return finalStatus.Error
 		},
 	}

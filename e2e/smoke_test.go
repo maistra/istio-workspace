@@ -2,8 +2,6 @@ package e2e_test
 
 import (
 	"fmt"
-	"os"
-	"path"
 	"strings"
 	"time"
 
@@ -21,22 +19,18 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	// Can't be ran without a session (not using --swap-deployment)
 	XContext("using ike develop in offline mode", func() {
 
-		tmpPath := test.NewTmpPath()
-
 		var (
 			appName,
 			tmpDir string
 		)
 
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 			appName = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
 		AfterEach(func() {
-			tmpPath.Restore()
 			<-cmd.Execute("oc delete project " + appName).Done()
 		})
 
@@ -68,8 +62,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 	Context("using ike develop with istio-bookinfo example", func() {
 
-		tmpPath := test.NewTmpPath()
-
 		var (
 			namespace,
 			tmpDir string
@@ -77,10 +69,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		JustBeforeEach(func() {
-			tmpPath.SetPath(path.Dir(cmd.CurrentDir())+"/dist", os.Getenv("PATH"))
 			namespace = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
-			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 
 			<-cmd.Execute("oc login -u developer").Done()
 			<-cmd.Execute("oc new-project " + namespace).Done()
@@ -90,7 +80,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 
 		AfterEach(func() {
-			tmpPath.Restore()
 			<-cmd.Execute("oc delete project " + namespace).Done()
 		})
 

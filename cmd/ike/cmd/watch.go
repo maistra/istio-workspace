@@ -22,81 +22,7 @@ func NewWatchCmd() *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFlags(cmd)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := build(cmd); err != nil {
-				return err
-			}
-
-			run := strings.Split(cmd.Flag(runFlagName).Value.String(), " ")
-			done := make(chan gocmd.Status)
-			restart := make(chan struct{})
-
-			slice, _ := cmd.Flags().GetStringSlice("dir")
-			excluded, e := cmd.Flags().GetStringSlice("exclude")
-			if e != nil {
-				return e
-			}
-			excluded = append(excluded, defaultExclusions...)
-
-			ms, _ := cmd.Flags().GetInt64("interval")
-			w, err := watch.CreateWatch(ms).
-				WithHandlers(func(events []fsnotify.Event) error {
-					for _, event := range events {
-						_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
-					}
-
-					if err := build(cmd); err != nil {
-						done <- gocmd.Status{
-							Error:    err,
-							Complete: false,
-						}
-						return err
-					}
-					restart <- struct{}{}
-					return nil
-				}).
-				Excluding(excluded...).
-				OnPaths(slice...)
-
-			if err != nil {
-				return err
-			}
-
-			w.Start()
-			defer w.Close()
-
-			runDone := make(chan gocmd.Status)
-			defer close(runDone)
-
-			go func() {
-				var runCmd *gocmd.Cmd
-			OutOfLoop:
-				for {
-					select {
-					case <-restart:
-						if runCmd != nil {
-							err = runCmd.Stop()
-							<-runCmd.Done()
-							runDone <- gocmd.Status{
-								Error:    err,
-								Complete: true,
-							}
-						}
-						runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
-						RedirectStreams(runCmd, cmd.OutOrStdout(), cmd.OutOrStderr(), runDone)
-						ShutdownHook(runCmd, runDone)
-						go Start(runCmd, runDone)
-					case status := <-runDone:
-						done <- status
-						break OutOfLoop
-					}
-				}
-			}()
-
-			restart <- struct{}{}
-			status := <-done
-			return status.Error
-		},
+		RunE: watchForChanges,
 	}
 
 	watchCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
@@ -110,5 +36,80 @@ func NewWatchCmd() *cobra.Command {
 	}
 
 	return watchCmd
+}
 
+func watchForChanges(cmd *cobra.Command, args []string) error {
+	if err := build(cmd); err != nil {
+		return err
+	}
+
+	run := strings.Split(cmd.Flag(runFlagName).Value.String(), " ")
+	done := make(chan gocmd.Status)
+	restart := make(chan struct{})
+
+	slice, _ := cmd.Flags().GetStringSlice("dir")
+	excluded, e := cmd.Flags().GetStringSlice("exclude")
+	if e != nil {
+		return e
+	}
+	excluded = append(excluded, defaultExclusions...)
+
+	ms, _ := cmd.Flags().GetInt64("interval")
+	w, err := watch.CreateWatch(ms).
+		WithHandlers(func(events []fsnotify.Event) error {
+			for _, event := range events {
+				_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+			}
+
+			if err := build(cmd); err != nil {
+				done <- gocmd.Status{
+					Error:    err,
+					Complete: false,
+				}
+				return err
+			}
+			restart <- struct{}{}
+			return nil
+		}).
+		Excluding(excluded...).
+		OnPaths(slice...)
+
+	if err != nil {
+		return err
+	}
+
+	w.Start()
+	defer w.Close()
+
+	runDone := make(chan gocmd.Status)
+	defer close(runDone)
+
+	go func() {
+		var runCmd *gocmd.Cmd
+	OutOfLoop:
+		for {
+			select {
+			case <-restart:
+				if runCmd != nil {
+					err = runCmd.Stop()
+					<-runCmd.Done()
+					runDone <- gocmd.Status{
+						Error:    err,
+						Complete: true,
+					}
+				}
+				runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
+				RedirectStreams(runCmd, cmd.OutOrStdout(), cmd.OutOrStderr(), runDone)
+				ShutdownHook(runCmd, runDone)
+				go Start(runCmd, runDone)
+			case status := <-runDone:
+				done <- status
+				break OutOfLoop
+			}
+		}
+	}()
+
+	restart <- struct{}{}
+	status := <-done
+	return status.Error
 }

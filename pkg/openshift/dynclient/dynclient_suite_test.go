@@ -1,19 +1,19 @@
-package openshift_test
+package dynclient_test
 
 import (
 	"testing"
 
-	. "github.com/maistra/istio-workspace/test"
-
 	"go.uber.org/goleak"
+
+	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestOpenshift(t *testing.T) {
+func TestDynclient(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Openshift Suite")
+	RunSpecWithJUnitReporter(t, "Dynclient Suite")
 }
 
 var _ = SynchronizedAfterSuite(func() {}, func() {

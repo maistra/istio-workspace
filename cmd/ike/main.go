@@ -25,6 +25,7 @@ func main() {
 		cmd.NewDevelopCmd(),
 		cmd.NewWatchCmd(),
 		cmd.NewServeCmd(),
+		cmd.NewInstallCmd(),
 	)
 	_ = rootCmd.Execute()
 }

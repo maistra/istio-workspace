@@ -57,7 +57,7 @@ required = [
 
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
-  version = ">= 0.8.0, < 1.0.0"
+  version = "=0.8.1"
 
 [[override]]
   name = "k8s.io/kube-openapi"
@@ -68,6 +68,10 @@ required = [
 [[override]]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
+
+[[constraint]]
+  name = "github.com/openshift/api"
+  version = "=v3.9.0"
 
 [[constraint]]
   name = "github.com/go-cmd/cmd"
