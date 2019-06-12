@@ -37,11 +37,11 @@ func basic(config Config) http.HandlerFunc {
 			StartTime: start,
 		}
 
-		for _, url := range config.Call {
+		for _, u := range config.Call {
 			func() {
-				request, err := http.NewRequest("GET", url.String(), nil)
+				request, err := http.NewRequest("GET", u.String(), nil)
 				if err != nil {
-					fmt.Println("Failed to create request", url, err)
+					fmt.Println("Failed to create request", u, err)
 					return
 				}
 				copyHeaders(
@@ -58,14 +58,14 @@ func basic(config Config) http.HandlerFunc {
 					defer resp.Body.Close()
 				}
 				if err != nil {
-					fmt.Println("Failed to call", url, err)
+					fmt.Println("Failed to call", u, err)
 					return
 				}
 				dec := json.NewDecoder(resp.Body)
 				child := CallStack{}
 				err = dec.Decode(&child)
 				if err != nil {
-					fmt.Println("Failed to decode", url, err)
+					fmt.Println("Failed to decode", u, err)
 					return
 				}
 				callStack.Called = append(callStack.Called, child)

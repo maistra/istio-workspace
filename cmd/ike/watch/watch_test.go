@@ -147,10 +147,10 @@ src/main/**/*.java
 		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
 
 		defer func() {
-			config.Close()
-			test.Close()
-			nestedFile.Close()
-			gitIgnore.Close()
+			_ = config.Close()
+			_ = test.Close()
+			_ = nestedFile.Close()
+			_ = gitIgnore.Close()
 		}()
 
 		watcher, e := watch.CreateWatch(1).
