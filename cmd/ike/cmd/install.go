@@ -62,6 +62,7 @@ func newApplier(namespace string) (*applier, error) { //nolint[:golint]
 
 func apply(a func(path string) error, paths ...string) error {
 	for _, p := range paths {
+		log.Info("applying " + p)
 		if err := a(p); err != nil {
 			if !errors.IsAlreadyExists(err) {
 				log.Error(err, "failed creating "+p)
