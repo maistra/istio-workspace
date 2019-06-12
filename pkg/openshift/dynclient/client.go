@@ -18,7 +18,7 @@ import (
 )
 
 type Client struct {
-	namespace string
+	Namespace string
 	dynClient dynamic.Interface
 	crdClient apixv1beta1client.ApiextensionsV1beta1Client
 	clientset *kubernetes.Clientset
@@ -62,7 +62,7 @@ func NewDefaultDynamicClient(namespace string) (*Client, error) {
 			clientset: clientset,
 			crdClient: *crdClient,
 			mapper:    rm,
-			namespace: namespace},
+			Namespace: namespace},
 		nil
 }
 
@@ -86,7 +86,7 @@ func (c *Client) Create(obj runtime.Object) error {
 	case *rbacV1.ClusterRoleBinding:
 	default:
 		// For all the other types we should create resources in the desired namespace
-		resourceInterface = nsResourceInterface.Namespace(c.namespace)
+		resourceInterface = nsResourceInterface.Namespace(c.Namespace)
 	}
 
 	unstructuredObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
@@ -100,7 +100,7 @@ func (c *Client) Create(obj runtime.Object) error {
 }
 
 func (c *Client) createNamespaceIfNotExists() error {
-	nsSpec := &coreV1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: c.namespace}}
+	nsSpec := &coreV1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: c.Namespace}}
 	_, err := c.clientset.CoreV1().Namespaces().Create(nsSpec)
 	if errors.IsAlreadyExists(err) {
 		return nil

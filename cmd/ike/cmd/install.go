@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/maistra/istio-workspace/pkg/openshift/dynclient"
 
 	openshiftApi "github.com/openshift/api/template/v1"
@@ -62,13 +64,12 @@ func newApplier(namespace string) (*applier, error) { //nolint[:golint]
 
 func apply(a func(path string) error, paths ...string) error {
 	for _, p := range paths {
-		log.Info("applying " + p)
 		if err := a(p); err != nil {
 			if !errors.IsAlreadyExists(err) {
 				log.Error(err, "failed creating "+p)
 				return err
 			}
-			log.Info(p + "already exists")
+			log.Info(p + " already exists")
 		}
 	}
 	return nil
@@ -83,6 +84,8 @@ func (app *applier) applyResource(resourcePath string) error {
 	if err != nil {
 		return err
 	}
+	kind := crd.GetObjectKind()
+	log.Info(fmt.Sprintf("Applying %s [Kind: %s] in namespace: %s", resourcePath, kind.GroupVersionKind().Kind, app.c.Namespace))
 	err = app.c.Create(crd)
 	return err
 }
@@ -100,10 +103,11 @@ func (app *applier) applyTemplate(templatePath string) error {
 
 	r := rawRoleBinding.(*openshiftApi.Template)
 	for _, obj := range r.Objects {
-		object, _, err := app.d(obj.Raw, nil, nil)
+		object, gav, err := app.d(obj.Raw, nil, nil)
 		if err != nil {
 			return err
 		}
+		log.Info(fmt.Sprintf("Applying %s [Kind: %s] in namespace: %s", templatePath, gav.Kind, app.c.Namespace))
 		err = app.c.Create(object)
 		if err != nil {
 			return err
