@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/runtime"
+
+	"k8s.io/apimachinery/pkg/api/meta"
 
 	"github.com/maistra/istio-workspace/pkg/openshift/dynclient"
 
@@ -66,10 +71,10 @@ func apply(a func(path string) error, paths ...string) error {
 	for _, p := range paths {
 		if err := a(p); err != nil {
 			if !errors.IsAlreadyExists(err) {
-				log.Error(err, "failed creating "+p)
+				log.Error(err, "failed creating "+strings.TrimSuffix(p, ".yaml"))
 				return err
 			}
-			log.Info(p + " already exists")
+			log.Info(strings.TrimSuffix(p, ".yaml") + " already exists")
 		}
 	}
 	return nil
@@ -85,9 +90,23 @@ func (app *applier) applyResource(resourcePath string) error {
 		return err
 	}
 	kind := crd.GetObjectKind()
-	log.Info(fmt.Sprintf("Applying %s [Kind: %s] in namespace: %s", resourcePath, kind.GroupVersionKind().Kind, app.c.Namespace))
+	log.Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]",
+		strings.TrimSuffix(resourcePath, ".yaml"),
+		app.c.Namespace,
+		name(crd, resourcePath),
+		kind.GroupVersionKind().Kind))
 	err = app.c.Create(crd)
 	return err
+}
+
+func name(object runtime.Object, fallback string) (name string) {
+	accessor := meta.NewAccessor()
+	name, err := accessor.Name(object)
+	if err != nil {
+		name = fallback
+	}
+
+	return
 }
 
 func (app *applier) applyTemplate(templatePath string) error {
@@ -107,7 +126,10 @@ func (app *applier) applyTemplate(templatePath string) error {
 		if err != nil {
 			return err
 		}
-		log.Info(fmt.Sprintf("Applying %s [Kind: %s] in namespace: %s", templatePath, gav.Kind, app.c.Namespace))
+		log.Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]", strings.TrimSuffix(templatePath, ".yaml"),
+			app.c.Namespace,
+			name(object, templatePath),
+			gav.Kind))
 		err = app.c.Create(object)
 		if err != nil {
 			return err
