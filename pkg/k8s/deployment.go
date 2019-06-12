@@ -115,6 +115,9 @@ func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Depl
 			},
 		},
 	})
+	// remove unneeded fields
+	container.LivenessProbe = nil
+	container.ReadinessProbe = nil
 
 	deploymentClone.Spec.Template.Spec.Containers[0] = container
 	return deploymentClone
