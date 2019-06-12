@@ -137,7 +137,7 @@ func deployIstioWorkspaceOperatorYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1441, mode: os.FileMode(436), modTime: time.Unix(1560267910, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1441, mode: os.FileMode(436), modTime: time.Unix(1560336075, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -177,7 +177,7 @@ func deployIstioWorkspaceRole_bindingYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/role_binding.yaml", size: 476, mode: os.FileMode(436), modTime: time.Unix(1560267910, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/role_binding.yaml", size: 476, mode: os.FileMode(436), modTime: time.Unix(1560336075, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
