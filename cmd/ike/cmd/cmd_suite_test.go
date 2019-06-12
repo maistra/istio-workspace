@@ -19,7 +19,6 @@ var (
 	mvnBin     string
 	tpBin      string
 	tpSleepBin string
-	ikeBin     string
 	javaBin    string
 )
 
@@ -32,7 +31,7 @@ var _ = BeforeSuite(func() {
 	mvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
 	javaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
 		"-ldflags", "-w -X main.SleepMs=50")
-	ikeBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
+	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
 	tpBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence")
 	tpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
