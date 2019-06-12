@@ -44,7 +44,8 @@ linters:
 run:
   deadline: 10m
   skip-dirs:
-    - ./pkg/apis/istio
+    - ./pkg/apis
+    - ./pkg/assets/generated
     - ./pkg/client/clientset
 
 issues:

@@ -25,20 +25,15 @@ var (
 // NewServeCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
 // cluster as it starts istio-workspace operator
 func NewServeCmd() *cobra.Command {
-
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Starts istio-workspace operator in the cluster",
-
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			return startOperator()
-		},
+		RunE:  startOperator,
 	}
-
 	return serveCmd
 }
 
-func startOperator() error {
+func startOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		log.Error(err, "Failed to get watch namespace")

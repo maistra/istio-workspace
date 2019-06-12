@@ -8,14 +8,11 @@ import (
 
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
-
-var log = logf.Log.WithName("cmd")
 
 // NewVersionCmd creates version cmd which prints version and build details of the executed binary
 func NewVersionCmd() *cobra.Command {
-	versionCmd := &cobra.Command{
+	return &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
@@ -25,8 +22,6 @@ func NewVersionCmd() *cobra.Command {
 			return nil
 		},
 	}
-
-	return versionCmd
 }
 
 func printVersion() {

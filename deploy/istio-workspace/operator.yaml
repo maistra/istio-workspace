@@ -6,7 +6,7 @@ parameters:
     value: docker.io
   - name: IKE_DOCKER_REPOSITORY
     required: true
-    value: aslakknusten
+    value: aslakknutsen
   - name: IKE_IMAGE_NAME
     required: true
     value: istio-workspace
@@ -50,4 +50,4 @@ objects:
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
                 - name: TELEPRESENCE_VERSION
-                  value: ${TELEPRESENCE_VERSION}
+                  value: "${TELEPRESENCE_VERSION}"

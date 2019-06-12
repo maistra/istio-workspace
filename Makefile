@@ -43,6 +43,7 @@ tools: ## Installs required go tools
 	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/go-bindata/go-bindata/...
 
 $(CUR_DIR)/bin/operator-sdk: ## Downloads operator-sdk cli tool aligned with version defined in Gopkg
 	$(call header,"Installing operator-sdk cli tool")
@@ -58,7 +59,7 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 
 GROUP_VERSIONS:="istio:v1alpha1"
 .PHONY: codegen
-codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code
+codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	$(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
@@ -66,6 +67,8 @@ codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
+	$(call header,"Adds assets to the binary")
+	go-bindata -o pkg/assets/isto-workspace-deploy.go -pkg assets -ignore 'example.yaml' deploy/istio-workspace/...
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
@@ -76,7 +79,7 @@ test: codegen ## Runs tests
 	ginkgo -r -v --skipPackage=e2e ${args}
 
 .PHONY: test-e2e
-test-e2e: codegen ## Runs end-to-end tests
+test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
 	ginkgo e2e/ -v -p ${args}
 
@@ -201,12 +204,12 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 .PHONY: deploy-example
 deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
 	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
-	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
 
 .PHONY: undeploy-example
 undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
 	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
-	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
 
 # ##########################################################################
 # Istio bookinfo deployment

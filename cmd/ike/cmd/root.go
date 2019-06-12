@@ -7,7 +7,10 @@ import (
 	"github.com/maistra/istio-workspace/cmd/ike/config"
 
 	"github.com/spf13/cobra"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd")
 
 // NewRootCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
 func NewRootCmd() *cobra.Command {
@@ -23,6 +26,8 @@ func NewRootCmd() *cobra.Command {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
 			if shouldPrintVersion {
 				printVersion()
+			} else {
+				fmt.Print(cmd.UsageString())
 			}
 			return nil
 		},
