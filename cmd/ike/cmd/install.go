@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,6 +33,9 @@ func NewInstallCmd() *cobra.Command {
 func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	namespace, err := cmd.Flags().GetString("namespace")
 	if err != nil {
+		return err
+	}
+	if err := os.Setenv("NAMESPACE", namespace); err != nil {
 		return err
 	}
 	app, err := newApplier(namespace)
