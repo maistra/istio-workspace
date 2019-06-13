@@ -2,6 +2,7 @@ kind: Template
 apiVersion: template.openshift.io/v1
 parameters:
   - name: NAMESPACE
+    description: "Target namespace for which role binding should be defined"
     required: true
     value: istio-workspace-operator
 objects:

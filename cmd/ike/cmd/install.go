@@ -35,8 +35,9 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err != nil {
 		return err
 	}
-	if err := os.Setenv("NAMESPACE", namespace); err != nil {
-		return err
+	// Propagates NAMESPACE env var which is used by templates
+	if envErr := os.Setenv("NAMESPACE", namespace); envErr != nil {
+		return envErr
 	}
 	app, err := newApplier(namespace)
 	if err != nil {

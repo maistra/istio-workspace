@@ -2,18 +2,23 @@ kind: Template
 apiVersion: template.openshift.io/v1
 parameters:
   - name: IKE_DOCKER_REGISTRY
+    description: "Docker registry where deployed image is available"
     required: true
     value: docker.io
   - name: IKE_DOCKER_REPOSITORY
+    description: "Repository in which the image can be found"
     required: true
     value: aslakknutsen
   - name: IKE_IMAGE_NAME
+    description: "The name of the image with ike binary"
     required: true
     value: istio-workspace
   - name: IKE_IMAGE_TAG
+    description: "The tag of the image to be used"
     required: true
     value: latest
   - name: TELEPRESENCE_VERSION
+    description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
     required: true
     value: "0.100"
 objects:
