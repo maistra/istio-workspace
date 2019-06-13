@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/cmd/ike/config"
+
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,6 +31,15 @@ func NewInstallCmd() *cobra.Command {
 
 	installCmd.Flags().StringP("namespace", "n", "istio-workspace-operator", "Target namespace to which istio-workspace operator is deployed to.")
 
+	cobra.AddTemplateFunc("tplParams", func() []openshiftApi.Parameter {
+		return config.Parameters
+	})
+
+	helpTpl := installCmd.HelpTemplate() + `
+Environment variables you can override:{{range tplParams}}
+{{.Name}} - {{.Description}} (default "{{.Value}}"){{end}}
+`
+	installCmd.SetHelpTemplate(helpTpl)
 	return installCmd
 }
 

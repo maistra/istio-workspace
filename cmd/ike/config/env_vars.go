@@ -16,12 +16,12 @@ const (
 
 var (
 	log        = logf.Log.WithName("session_handler")
-	parameters []openshiftApi.Parameter
+	Parameters []openshiftApi.Parameter
 )
 
 func init() {
-	collectTplParams("operator.yaml")
-	collectTplParams("role_binding.yaml")
+	collectTplParams("deploy/istio-workspace/operator.yaml")
+	collectTplParams("deploy/istio-workspace/role_binding.yaml")
 }
 
 func collectTplParams(resource string) {
@@ -34,5 +34,5 @@ func collectTplParams(resource string) {
 	if err != nil {
 		log.Error(err, "failed parsing parameters in the template "+resource)
 	}
-	parameters = append(parameters, tplParams...)
+	Parameters = append(Parameters, tplParams...)
 }
