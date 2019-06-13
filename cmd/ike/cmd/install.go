@@ -2,7 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
+
+	"github.com/maistra/istio-workspace/cmd/ike/config"
+
+	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -26,6 +31,15 @@ func NewInstallCmd() *cobra.Command {
 
 	installCmd.Flags().StringP("namespace", "n", "istio-workspace-operator", "Target namespace to which istio-workspace operator is deployed to.")
 
+	cobra.AddTemplateFunc("tplParams", func() []openshiftApi.Parameter {
+		return config.Parameters
+	})
+
+	helpTpl := installCmd.HelpTemplate() + `
+Environment variables you can override:{{range tplParams}}
+{{.Name}} - {{.Description}} (default "{{.Value}}"){{end}}
+`
+	installCmd.SetHelpTemplate(helpTpl)
 	return installCmd
 }
 
@@ -33,6 +47,10 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	namespace, err := cmd.Flags().GetString("namespace")
 	if err != nil {
 		return err
+	}
+	// Propagates NAMESPACE env var which is used by templates
+	if envErr := os.Setenv("NAMESPACE", namespace); envErr != nil {
+		return envErr
 	}
 	app, err := newApplier(namespace)
 	if err != nil {
@@ -51,7 +69,7 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 
 type applier struct {
 	c *dynclient.Client
-	d dynclient.DecodeFunc
+	d parser.DecodeFunc
 }
 
 func newApplier(namespace string) (*applier, error) { //nolint[:golint]
@@ -59,7 +77,7 @@ func newApplier(namespace string) (*applier, error) { //nolint[:golint]
 	if err != nil {
 		return nil, err
 	}
-	decode, err := dynclient.Decoder()
+	decode, err := parser.Decoder()
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +99,11 @@ func apply(a func(path string) error, paths ...string) error {
 }
 
 func (app *applier) applyResource(resourcePath string) error {
-	rawCrd, err := dynclient.Load("deploy/istio-workspace/" + resourcePath)
+	rawCrd, err := parser.Load("deploy/istio-workspace/" + resourcePath)
 	if err != nil {
 		return err
 	}
-	crd, err := dynclient.Parse(rawCrd)
+	crd, err := parser.Parse(rawCrd)
 	if err != nil {
 		return err
 	}
@@ -110,12 +128,12 @@ func name(object runtime.Object, fallback string) (name string) {
 }
 
 func (app *applier) applyTemplate(templatePath string) error {
-	yaml, err := dynclient.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
+	yaml, err := parser.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
 	if err != nil {
 		return err
 	}
 
-	rawRoleBinding, err := dynclient.Parse(yaml)
+	rawRoleBinding, err := parser.Parse(yaml)
 	if err != nil {
 		return err
 	}

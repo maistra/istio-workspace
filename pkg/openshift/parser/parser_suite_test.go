@@ -1,4 +1,4 @@
-package dynclient_test
+package parser_test
 
 import (
 	"testing"
@@ -11,9 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDynclient(t *testing.T) {
+func TestTemplateParser(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Dynclient Suite")
+	RunSpecWithJUnitReporter(t, "Openshift Template Test Suite")
 }
 
 var _ = SynchronizedAfterSuite(func() {}, func() {

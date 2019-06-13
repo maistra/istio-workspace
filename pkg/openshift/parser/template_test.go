@@ -1,9 +1,9 @@
-package dynclient_test
+package parser_test
 
 import (
 	"os"
 
-	"github.com/maistra/istio-workspace/pkg/openshift/dynclient"
+	. "github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 
@@ -20,7 +20,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := dynclient.ProcessTemplate("deploy/istio-workspace/role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
+			yaml, err := ProcessTemplate("deploy/istio-workspace/role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -36,11 +36,11 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := dynclient.ProcessTemplate("deploy/istio-workspace/operator.yaml", nil)
+			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", nil)
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
-			Expect(string(yaml)).To(Equal(processedTmplWithDefaults))
+			Expect(string(yaml)).To(Equal(processedOperatorTmplWithDefaults))
 		})
 
 		It("should process operator template using defaults and custom values", func() {
@@ -53,7 +53,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := dynclient.ProcessTemplate("deploy/istio-workspace/operator.yaml", templateValues)
+			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", templateValues)
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -85,7 +85,7 @@ var _ = Describe("template processing", func() {
 				var yaml []byte
 
 				// when
-				yaml, err := dynclient.ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+				yaml, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
 				Expect(err).ToNot(HaveOccurred())
 
 				// then
@@ -99,10 +99,10 @@ var _ = Describe("template processing", func() {
 		It("should process yaml to Openshift Template", func() {
 
 			// when
-			rawTemplate, err := dynclient.ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+			rawTemplate, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			raw, err := dynclient.Parse(rawTemplate)
+			raw, err := Parse(rawTemplate)
 			Expect(err).ToNot(HaveOccurred())
 			template := raw.(*openshiftApi.Template)
 
@@ -113,22 +113,27 @@ var _ = Describe("template processing", func() {
 	})
 })
 
-const processedTmplWithDefaults = `kind: Template
+const processedOperatorTmplWithDefaults = `kind: Template
 apiVersion: template.openshift.io/v1
 parameters:
   - name: IKE_DOCKER_REGISTRY
+    description: "Docker registry where deployed image is available"
     required: true
     value: docker.io
   - name: IKE_DOCKER_REPOSITORY
+    description: "Repository in which the image can be found"
     required: true
     value: aslakknutsen
   - name: IKE_IMAGE_NAME
+    description: "The name of the image with ike binary"
     required: true
     value: istio-workspace
   - name: IKE_IMAGE_TAG
+    description: "The tag of the image to be used"
     required: true
     value: latest
   - name: TELEPRESENCE_VERSION
+    description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
     required: true
     value: "0.100"
 objects:
