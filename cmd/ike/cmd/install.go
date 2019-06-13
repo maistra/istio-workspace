@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/openshift/parser"
+
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -56,7 +58,7 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 
 type applier struct {
 	c *dynclient.Client
-	d dynclient.DecodeFunc
+	d parser.DecodeFunc
 }
 
 func newApplier(namespace string) (*applier, error) { //nolint[:golint]
@@ -64,7 +66,7 @@ func newApplier(namespace string) (*applier, error) { //nolint[:golint]
 	if err != nil {
 		return nil, err
 	}
-	decode, err := dynclient.Decoder()
+	decode, err := parser.Decoder()
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +88,11 @@ func apply(a func(path string) error, paths ...string) error {
 }
 
 func (app *applier) applyResource(resourcePath string) error {
-	rawCrd, err := dynclient.Load("deploy/istio-workspace/" + resourcePath)
+	rawCrd, err := parser.Load("deploy/istio-workspace/" + resourcePath)
 	if err != nil {
 		return err
 	}
-	crd, err := dynclient.Parse(rawCrd)
+	crd, err := parser.Parse(rawCrd)
 	if err != nil {
 		return err
 	}
@@ -115,12 +117,12 @@ func name(object runtime.Object, fallback string) (name string) {
 }
 
 func (app *applier) applyTemplate(templatePath string) error {
-	yaml, err := dynclient.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
+	yaml, err := parser.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
 	if err != nil {
 		return err
 	}
 
-	rawRoleBinding, err := dynclient.Parse(yaml)
+	rawRoleBinding, err := parser.Parse(yaml)
 	if err != nil {
 		return err
 	}
