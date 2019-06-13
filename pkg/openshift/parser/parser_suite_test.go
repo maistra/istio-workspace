@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDynclient(t *testing.T) {
+func TestTemplateParser(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "Openshift Template Test Suite")
 }
