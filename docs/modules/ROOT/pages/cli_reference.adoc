@@ -45,8 +45,17 @@ Main command, which holds global flags and prints the overall usage of the tool.
 
 include::cmd:ike[flags='--help --help-format=adoc']
 
-[#ike serve]
-=== `ike-serve`
+[#ike-install-operator]
+=== `ike install-operator`
+
+Aims to install operator in the target cluster. 
+
+//IMPORTANT: 
+
+include::cmd:ike[flags='install-operator --help --help-format=adoc']
+
+[#ike-serve]
+=== `ike serve`
 
 Starts the operator in the cluster.
 // TODO brief mention about operator and how it works + link to the dedicated docs
@@ -56,8 +65,7 @@ include::cmd:ike[flags='serve --help --help-format=adoc']
 [#ike-develop]
 === `ike develop`
 
-Creates or joins existing development session in the cluster.
-Allows to re-route cluster network traffic to your local process.
+Creates or joins existing development session in the cluster. Allows to re-route cluster network traffic to your local process.
 
 include::cmd:ike[flags='develop --help --help-format=adoc']
 
