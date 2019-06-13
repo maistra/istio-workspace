@@ -1,4 +1,4 @@
-package dynclient
+package parser
 
 import (
 	"bytes"
@@ -45,12 +45,8 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
-
-	var parameters struct {
-		Parameter []openshiftApi.Parameter `yaml:"parameters"`
-	}
-
-	if err := yaml.Unmarshal(data, &parameters); err != nil {
+	parameters, err := ParseParameters(data)
+	if err != nil {
 		return nil, err
 	}
 
@@ -58,7 +54,7 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 		variables = map[string]string{}
 	}
 
-	for _, v := range parameters.Parameter {
+	for _, v := range parameters {
 		if _, exists := variables[v.Name]; !exists {
 			if v.Value == "" && v.Required {
 				return nil, fmt.Errorf("expected %s to be defined but "+
@@ -73,10 +69,22 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 
 	var processed bytes.Buffer
 	if err := t.Execute(&processed, variables); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return processed.Bytes(), nil
+}
+
+// ParseParameters parses parameters defined in the template
+func ParseParameters(tpl []byte) ([]openshiftApi.Parameter, error) {
+	var parameters struct {
+		Parameter []openshiftApi.Parameter `yaml:"parameters"`
+	}
+
+	if err := yaml.Unmarshal(tpl, &parameters); err != nil {
+		return nil, err
+	}
+	return parameters.Parameter, nil
 }
 
 // Load loads file asset into byte array

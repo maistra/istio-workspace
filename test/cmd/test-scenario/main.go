@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/maistra/istio-workspace/cmd/ike/config"
 )
 
 var (
@@ -37,13 +39,13 @@ func getTestImageName() string {
 	image := "istio-workspace-test"
 	tag := "latest"
 
-	if s, f := os.LookupEnv("IKE_DOCKER_REGISTRY"); f {
+	if s, f := os.LookupEnv(config.EnvDockerRegistry); f {
 		reg = s + "/"
 	}
-	if s, f := os.LookupEnv("IKE_DOCKER_REPOSITORY"); f {
+	if s, f := os.LookupEnv(config.EnvDockerRepository); f {
 		repo = s
 	}
-	if s, f := os.LookupEnv("IKE_TEST_IMAGE_NAME"); f {
+	if s, f := os.LookupEnv(config.EnvDockerTestImage); f {
 		image = s
 	}
 	if s, f := os.LookupEnv("COMMIT"); f {
