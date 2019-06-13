@@ -45,7 +45,7 @@ func getTestImageName() string {
 	if s, f := os.LookupEnv(config.EnvDockerRepository); f {
 		repo = s
 	}
-	if s, f := os.LookupEnv("IKE_TEST_IMAGE_NAME"); f {
+	if s, f := os.LookupEnv(config.EnvDockerTestImage); f {
 		image = s
 	}
 	if s, f := os.LookupEnv("COMMIT"); f {

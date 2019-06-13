@@ -13,6 +13,7 @@ import (
 const (
 	EnvDockerRepository = "IKE_DOCKER_REPOSITORY"
 	EnvDockerRegistry   = "IKE_DOCKER_REGISTRY"
+	EnvDockerTestImage  = "IKE_TEST_IMAGE_NAME"
 )
 
 var (
