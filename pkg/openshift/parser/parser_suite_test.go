@@ -1,4 +1,4 @@
-package dynclient_test
+package parser_test
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ import (
 
 func TestDynclient(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Dynclient Suite")
+	RunSpecWithJUnitReporter(t, "Openshift Template Test Suite")
 }
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
