@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/maistra/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/cmd/ike/config"
 
 	"github.com/onsi/gomega"
 )
@@ -107,7 +108,7 @@ func setOperatorNamespace() (namespace string) {
 }
 
 func setDockerRepository(namespace string) {
-	err := os.Setenv("IKE_DOCKER_REPOSITORY", namespace)
+	err := os.Setenv(config.EnvDockerRepository, namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
@@ -124,6 +125,6 @@ func setDockerRegistryExternal() (registry string) {
 }
 
 func setDockerRegistry(registry string) {
-	err := os.Setenv("IKE_DOCKER_REGISTRY", registry)
+	err := os.Setenv(config.EnvDockerRegistry, registry)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
