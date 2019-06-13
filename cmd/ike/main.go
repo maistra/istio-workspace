@@ -14,6 +14,7 @@ func main() {
 	// implementing the logr.Logger interface. This logger will
 	// be propagated through the whole operator, generating
 	// uniform and structured logs.
+	// Logs to os.Stderr, where all structured logging should go
 	logf.SetLogger(logf.ZapLogger(false))
 
 	// Setting random seed e.g. for session name generator

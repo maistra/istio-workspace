@@ -3,7 +3,9 @@ image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", 
 
 == Istio Workspace
 
-=== Development
+=== Documentation
+
+Full documentation preview can be found https://determined-roentgen-63f771.netlify.com/[here].
 
 ==== Setup
 

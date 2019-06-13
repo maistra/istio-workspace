@@ -37,5 +37,12 @@ func NewRootCmd() *cobra.Command {
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
 	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
+	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
+	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
+		log.Error(err, "failed while trying to hide a flag")
+	}
+
+	EnhanceHelper(rootCmd)
+
 	return rootCmd
 }
