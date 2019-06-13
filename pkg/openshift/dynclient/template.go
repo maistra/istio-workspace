@@ -73,7 +73,7 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 
 	var processed bytes.Buffer
 	if err := t.Execute(&processed, variables); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return processed.Bytes(), nil
