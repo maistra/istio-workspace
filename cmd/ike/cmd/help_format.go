@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/maistra/istio-workspace/cmd/ike/config"
+
+	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -53,6 +56,11 @@ func registerTemplateFuncs() {
 		}
 		return "`" + flagType + "`"
 	})
+
+	cobra.AddTemplateFunc("tplParams", func() []openshiftApi.Parameter {
+		return config.Parameters
+	})
+
 }
 
 const (
