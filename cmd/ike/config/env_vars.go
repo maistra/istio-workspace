@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/maistra/istio-workspace/pkg/assets"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	openshiftApi "github.com/openshift/api/template/v1"
@@ -20,8 +21,9 @@ var (
 )
 
 func init() {
-	collectTplParams("deploy/istio-workspace/operator.yaml")
-	collectTplParams("deploy/istio-workspace/role_binding.yaml")
+	for _, asset := range assets.AssetNames() {
+		collectTplParams(asset)
+	}
 }
 
 func collectTplParams(resource string) {
