@@ -48,9 +48,12 @@ include::cmd:ike[flags='--help --help-format=adoc']
 [#ike-install-operator]
 === `ike install-operator`
 
-Aims to install operator in the target cluster. 
+Simple installation process of the operator in the cluster. 
 
-//IMPORTANT: 
+IMPORTANT: Connection configuration is taken from `KUBECONFIG` context. 
+It's important to have user with sufficient privileges. 
+In case of OpenShift you can add `cluster-user` role for your user by executing 
+`oc adm policy add-cluster-role-to-user cluster-admin USER`. 
 
 include::cmd:ike[flags='install-operator --help --help-format=adoc']
 
