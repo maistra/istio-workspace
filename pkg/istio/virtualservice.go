@@ -1,6 +1,7 @@
 package istio
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -35,7 +36,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	}
 
 	ctx.Log.Info("Found VirtualService", "name", targetName)
-	mutatedVs, err := mutateVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), *vs)
+	mutatedVs, err := mutateVirtualService(ctx, ref.Target, *vs)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -83,51 +84,66 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func mutateVirtualService(ctx model.SessionContext, sourceResource model.LocatedResourceStatus, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
-	source := vs.Spec.Http[0]
-	routeSpec := ctx.Route
-
-	sourceRoutes := []*v1alpha3.HTTPRouteDestination{}
-	for _, r := range source.Route {
-		sourceRoute := v1alpha3.HTTPRouteDestination{
-			Destination: &v1alpha3.Destination{
-				Host:   r.Destination.Host,
-				Port:   r.Destination.Port,
-				Subset: subsetName,
-			},
+	findRoute := func(vs *istionetwork.VirtualService, host, subset string) (v1alpha3.HTTPRoute, bool) {
+		for _, h := range vs.Spec.Http {
+			for _, r := range h.Route {
+				if r.Destination.Host == host && r.Destination.Subset == subset {
+					return *h, true
+				}
+			}
 		}
-		sourceRoutes = append(sourceRoutes, &sourceRoute)
+		return v1alpha3.HTTPRoute{}, false
+	}
+	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host, subset string) v1alpha3.HTTPRoute {
+		for i, r := range http.Route {
+			if !(r.Destination.Host == host && r.Destination.Subset == subset) {
+				http.Route = append(http.Route[:i], http.Route[i+1:]...)
+			}
+		}
+		return http
+	}
+	updateSubset := func(http v1alpha3.HTTPRoute, subset string) v1alpha3.HTTPRoute {
+		for _, r := range http.Route {
+			r.Destination.Subset = subset
+		}
+		return http
+	}
+	addHeaderMatch := func(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
+		for _, m := range http.Match {
+			if route.Type == "header" {
+				if m.Headers == nil {
+					m.Headers = map[string]*v1alpha3.StringMatch{}
+				}
+				m.Headers[route.Name] = &v1alpha3.StringMatch{MatchType: &v1alpha3.StringMatch_Exact{Exact: route.Value}}
+			}
+		}
+		return http
+	}
+	removeWeight := func(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
+		for _, r := range http.Route {
+			r.Weight = 0
+		}
+		return http
 	}
 
-	matches := []*v1alpha3.HTTPMatchRequest{}
-	if routeSpec.Type == "header" {
-		matches = append(matches, &v1alpha3.HTTPMatchRequest{
-			Headers: map[string]*v1alpha3.StringMatch{
-				routeSpec.Name: {MatchType: &v1alpha3.StringMatch_Exact{Exact: routeSpec.Value}},
-			},
-		})
-	}
-	route := &v1alpha3.HTTPRoute{
-		Match:                 matches,
-		Route:                 sourceRoutes,
-		Redirect:              source.Redirect,
-		AppendHeaders:         source.AppendHeaders,
-		AppendResponseHeaders: source.AppendResponseHeaders,
-		RemoveRequestHeaders:  source.RemoveRequestHeaders,
-		RemoveResponseHeaders: source.RemoveResponseHeaders,
-		CorsPolicy:            source.CorsPolicy,
-		Fault:                 source.Fault,
-		Headers:               source.Headers,
-		Mirror:                source.Mirror,
-		Retries:               source.Retries,
-		Rewrite:               source.Rewrite,
-		Timeout:               source.Timeout,
-		WebsocketUpgrade:      source.WebsocketUpgrade,
-	}
-	vs.Spec.Http = append([]*v1alpha3.HTTPRoute{route}, vs.Spec.Http...)
+	target := source.DeepCopy()
+	clonedSource := source.DeepCopy()
 
-	return vs, nil
+	targetHTTP, found := findRoute(clonedSource, sourceResource.GetHostName(), sourceResource.GetVersion())
+	if !found {
+		return istionetwork.VirtualService{}, fmt.Errorf("Route not found")
+	}
+	targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
+	targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
+	targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
+	targetHTTP = removeWeight(targetHTTP)
+	targetHTTP.Mirror = nil
+	targetHTTP.Redirect = nil
+
+	target.Spec.Http = append(target.Spec.Http, &targetHTTP)
+	return *target, nil
 }
 
 func revertVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
