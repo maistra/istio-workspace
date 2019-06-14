@@ -133,7 +133,7 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 
 	targetHTTP, found := findRoute(clonedSource, sourceResource.GetHostName(), sourceResource.GetVersion())
 	if !found {
-		return istionetwork.VirtualService{}, fmt.Errorf("Route not found")
+		return istionetwork.VirtualService{}, fmt.Errorf("route not found")
 	}
 	targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
 	targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
