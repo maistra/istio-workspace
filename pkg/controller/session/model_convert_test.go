@@ -28,8 +28,11 @@ var _ = Describe("Basic model conversion", func() {
 		})
 		BeforeEach(func() {
 			ref = model.Ref{
-				Name:   "ref-name",
-				Target: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
+				Name: "ref-name",
+				Target: model.LocatedResourceStatus{
+					ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
+					Labels:         map[string]string{},
+				},
 				ResourceStatuses: []model.ResourceStatus{
 					{Kind: "test", Name: "1", Action: model.ActionCreated},
 					{Kind: "test", Name: "2", Action: model.ActionModified},
@@ -129,8 +132,11 @@ var _ = Describe("Basic model conversion", func() {
 				Status: v1alpha1.SessionStatus{
 					Refs: []*v1alpha1.RefStatus{
 						{
-							Name:   name,
-							Target: &v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
+							Name: name,
+							Target: &v1alpha1.LabeledRefResource{
+								RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
+								Labels:      map[string]string{},
+							},
 							Resources: []*v1alpha1.RefResource{
 								{
 									Kind: &kind, Name: &name, Action: &aCreated,

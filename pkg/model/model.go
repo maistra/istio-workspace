@@ -28,11 +28,11 @@ type Route struct {
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
 type Ref struct {
 	Name             string
-	Target           ResourceStatus
+	Target           LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
 }
 
-// HasTarget checks if current Target hasis of a given Kind
+// HasTarget checks if current Target is of a given Kind
 func (r *Ref) HasTarget(kind string) bool {
 	return r.Target.Kind == kind
 }
@@ -77,6 +77,12 @@ type ResourceStatus struct {
 	Name string
 	// created, mutated, failed
 	Action ResourceAction
+}
+
+type LocatedResourceStatus struct {
+	ResourceStatus
+
+	Labels map[string]string
 }
 
 // ResourceAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.

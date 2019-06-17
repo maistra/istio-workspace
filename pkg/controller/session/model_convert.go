@@ -18,7 +18,10 @@ func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:huge
 	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
 	if ref.Target.Name != "" {
 		action := string(ref.Target.Action)
-		statusRef.Target = &istiov1alpha1.RefResource{Kind: &ref.Target.Kind, Name: &ref.Target.Name, Action: &action}
+		statusRef.Target = &istiov1alpha1.LabeledRefResource{
+			RefResource: istiov1alpha1.RefResource{Kind: &ref.Target.Kind, Name: &ref.Target.Name, Action: &action},
+			Labels:      ref.Target.Labels,
+		}
 	}
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
@@ -58,7 +61,10 @@ func StatusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:huge
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			if statusRef.Target != nil {
-				ref.Target = model.ResourceStatus{Kind: *statusRef.Target.Kind, Name: *statusRef.Target.Name, Action: model.ResourceAction(*statusRef.Target.Action)}
+				ref.Target = model.LocatedResourceStatus{
+					ResourceStatus: model.ResourceStatus{Kind: *statusRef.Target.Kind, Name: *statusRef.Target.Name, Action: model.ResourceAction(*statusRef.Target.Action)},
+					Labels:         statusRef.Target.Labels,
+				}
 			}
 			for _, resource := range statusRef.Resources {
 				r := resource
