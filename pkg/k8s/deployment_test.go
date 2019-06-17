@@ -109,7 +109,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should add suffix to the cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -119,7 +119,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -130,7 +130,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should remove readiness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -153,7 +153,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		Context("telepresence mutations", func() {
 
 			It("should change container to telepresence", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -165,7 +165,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			})
 
 			It("should change add required env variables", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -214,7 +214,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should revert to original deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: k8s.DeploymentKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 

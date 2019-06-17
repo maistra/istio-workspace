@@ -116,7 +116,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should add suffix to the cloned deploymentconfig", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -126,7 +126,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -137,7 +137,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should remove readiness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -150,7 +150,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		Context("telepresence mutations", func() {
 
 			It("should change container to telepresence", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -162,7 +162,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			})
 
 			It("should change add required env variables", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
@@ -208,7 +208,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should revert to original deploymentconfig", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: openshift.DeploymentConfigKind, Name: "test-ref", Action: model.ActionLocated}}}
+			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", nil)}
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 

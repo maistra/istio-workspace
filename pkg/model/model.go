@@ -79,10 +79,23 @@ type ResourceStatus struct {
 	Action ResourceAction
 }
 
+// LocatedResourceStatus is a ResourceStatus with labels
 type LocatedResourceStatus struct {
 	ResourceStatus
 
 	Labels map[string]string
+}
+
+// NewLocatedResource is a simple helper to create LocatedResourceStatus
+func NewLocatedResource(kind, name string, labels map[string]string) LocatedResourceStatus {
+	return LocatedResourceStatus{
+		ResourceStatus: ResourceStatus{
+			Kind:   kind,
+			Name:   name,
+			Action: ActionLocated,
+		},
+		Labels: labels,
+	}
 }
 
 // ResourceAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.
