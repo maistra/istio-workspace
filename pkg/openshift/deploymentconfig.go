@@ -37,14 +37,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool { //
 		ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
 		return false
 	}
-	ref.Target = model.LocatedResourceStatus{
-		ResourceStatus: model.ResourceStatus{
-			Kind:   DeploymentConfigKind,
-			Name:   deployment.Name,
-			Action: model.ActionLocated,
-		},
-		Labels: deployment.Spec.Template.Labels,
-	}
+	ref.Target = model.NewLocatedResource(DeploymentConfigKind, deployment.Name, deployment.Spec.Template.Labels)
 	return true
 }
 
