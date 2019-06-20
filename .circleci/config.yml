@@ -29,6 +29,7 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Checks for [skip-e2e] directive"
           command: |
             COMMIT_MSG=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
             if [[ $COMMIT_MSG == *"[skip-e2e]"* ]]; then
