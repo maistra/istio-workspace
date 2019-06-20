@@ -17,8 +17,13 @@ define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
 endef
 
+.DEFAULT_GOAL:=all
+
 .PHONY: all
-all: deps format lint test compile ## (default) Runs 'deps format lint test compile' targets
+all: deps format lint compile test ## (default) Runs 'deps format lint test compile' targets
+
+.PHONY: build-ci
+build-ci: deps format compile test ## Like 'all', but without linter which is executed as separated PR check
 
 export CUR_DIR
 
