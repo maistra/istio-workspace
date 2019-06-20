@@ -1,6 +1,9 @@
 ---
 name: Bug report
 about: Use this issue type to report anything unusual observed while using istio-workspace.
+title: ''
+labels: bug
+assignees: ''
 
 ---
 
