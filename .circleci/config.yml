@@ -29,6 +29,14 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Checks for [skip-e2e] directive"
+          command: |
+            COMMIT_MSG=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
+            if [[ $COMMIT_MSG == *"[skip-e2e]"* ]]; then
+              echo "[skip-e2e] detected. Explictly stopping e2e tests."
+              circleci step halt
+            fi
+      - run:
           name: "Configures Docker daemon with insecure-registry"
           command: |
             json=`mktemp`
