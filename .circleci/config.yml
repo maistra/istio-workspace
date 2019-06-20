@@ -15,7 +15,7 @@ jobs:
           name: "Runs the build"
           command: |
             make tools && \
-            make
+            make build-ci
       - save_cache:
           key: vendor-cache-{{ checksum "Gopkg.lock" }}
           paths:
