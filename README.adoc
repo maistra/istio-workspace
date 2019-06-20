@@ -5,7 +5,7 @@ image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", 
 
 === Documentation
 
-Full documentation preview can be found https://istio-workspace-docs.netlify.com/istio-workspace/[here].
+Full documentation preview can be found https://istio-workspace-docs.netlify.com/[here].
 
 ==== Setup
 
