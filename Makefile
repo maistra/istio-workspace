@@ -17,6 +17,8 @@ define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
 endef
 
+.DEFAULT_GOAL:=all
+
 .PHONY: all
 all: deps format lint test compile ## (default) Runs 'deps format lint test compile' targets
 
