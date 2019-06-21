@@ -123,7 +123,7 @@ parameters:
   - name: IKE_DOCKER_REPOSITORY
     description: "Repository in which the image can be found"
     required: true
-    value: aslakknutsen
+    value: maistra
   - name: IKE_IMAGE_NAME
     description: "The name of the image with ike binary"
     required: true
@@ -154,7 +154,7 @@ objects:
           serviceAccountName: istio-workspace
           containers:
             - name: istio-workspace
-              image: docker.io/aslakknutsen/istio-workspace:latest
+              image: docker.io/maistra/istio-workspace:latest
               command:
                 - ike
               args:

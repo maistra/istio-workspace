@@ -35,7 +35,7 @@ func main() {
 
 func getTestImageName() string {
 	reg := ""
-	repo := "aslakknutsen"
+	repo := "maistra"
 	image := "istio-workspace-test"
 	tag := "latest"
 
