@@ -5,7 +5,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
-      - image: circleci/golang:1.12.5
+      - image: circleci/golang:1.12.6
     steps:
       - checkout
       - restore_cache:
@@ -48,7 +48,7 @@ jobs:
           name: "Installs latest Golang"
           command: |
             sudo rm -rf /usr/local/go
-            sudo circleci-install golang 1.12.5
+            sudo circleci-install golang 1.12.6
       - run:
           name: "Installs telepresence"
           command: |
