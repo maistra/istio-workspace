@@ -104,7 +104,7 @@ func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) *appsv
 
 	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !found {
-		tpVersion = "0.100"
+		tpVersion = "0.101"
 	}
 
 	container := deploymentClone.Spec.Template.Spec.Containers[0]
