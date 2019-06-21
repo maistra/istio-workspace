@@ -116,7 +116,7 @@ func deployIstioWorkspaceOperatorYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1798, mode: os.FileMode(436), modTime: time.Unix(1560431092, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/operator.yaml", size: 1798, mode: os.FileMode(436), modTime: time.Unix(1561109514, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
