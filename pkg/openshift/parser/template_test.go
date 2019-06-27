@@ -135,7 +135,7 @@ parameters:
   - name: TELEPRESENCE_VERSION
     description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
     required: true
-    value: "0.100"
+    value: "0.101"
 objects:
   - kind: Deployment
     apiVersion: apps/v1
@@ -170,5 +170,5 @@ objects:
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
                 - name: TELEPRESENCE_VERSION
-                  value: "0.100"
+                  value: "0.101"
 `
