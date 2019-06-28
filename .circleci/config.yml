@@ -87,6 +87,8 @@ jobs:
         - image: circleci/golang:1.12.6
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - restore_cache:
           keys:
             - vendor-cache-{{ checksum "Gopkg.lock" }}
