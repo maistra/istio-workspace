@@ -20,7 +20,7 @@ builds:
     - amd64
   ldflags:
     ## FIXME Overlaps with what is defined in Makefile - we should find a away of having it defined only once
-    - -s -w -X {{.Env.PACKAGE_NAME}}/version.Version={{.Version}} -X {{.Env.PACKAGE_NAME}}/version.Commit={{.ShortCommit}} -X {{.Env.PACKAGE_NAME}}/version.BuildTime={{.Date}}
+    - -s -w -X {{.Env.PACKAGE_NAME}}/version.Version=v{{.Version}} -X {{.Env.PACKAGE_NAME}}/version.Commit={{.ShortCommit}} -X {{.Env.PACKAGE_NAME}}/version.BuildTime={{.Date}}
 archives:
   - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     replacements:
