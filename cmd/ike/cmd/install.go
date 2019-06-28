@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/version"
+
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -42,10 +44,21 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err != nil {
 		return err
 	}
+
 	// Propagates NAMESPACE env var which is used by templates
-	if envErr := os.Setenv("NAMESPACE", namespace); envErr != nil {
-		return envErr
+	if os.Getenv("NAMESPACE") == "" {
+		if envErr := os.Setenv("NAMESPACE", namespace); envErr != nil {
+			return envErr
+		}
 	}
+
+	// Propagates IKE_IMAGE_TAG env var which is used by templates to be aligned with the version of the actual built binary
+	if os.Getenv("IKE_IMAGE_TAG") == "" {
+		if envErr := os.Setenv("IKE_IMAGE_TAG", version.Version); envErr != nil {
+			return envErr
+		}
+	}
+
 	app, err := newApplier(namespace)
 	if err != nil {
 		return err
