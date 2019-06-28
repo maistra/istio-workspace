@@ -9,6 +9,8 @@ BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
+ASSETS:=pkg/assets/isto-workspace-deploy.go
+ASSET_SRCS=$(shell find ./deploy/istio-workspace -name "*.yaml")
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
@@ -57,6 +59,10 @@ $(CUR_DIR)/bin/operator-sdk: ## Downloads operator-sdk cli tool aligned with ver
 	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
 	chmod +x $(CUR_DIR)/bin/operator-sdk
 
+$(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
+	$(call header,"Adds assets to the binary")
+	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
+
 .PHONY: lint
 lint: deps ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
@@ -64,7 +70,7 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 
 GROUP_VERSIONS:="istio:v1alpha1"
 .PHONY: codegen
-codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code and bundles packages using go-bindata
+codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	$(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
@@ -72,8 +78,6 @@ codegen: $(CUR_DIR)/bin/operator-sdk ## Generates operator-sdk code and bundles 
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
-	$(call header,"Adds assets to the binary")
-	go-bindata -o pkg/assets/isto-workspace-deploy.go -pkg assets -ignore 'example.yaml' deploy/istio-workspace/...
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
