@@ -81,6 +81,28 @@ jobs:
           paths:
             - ./vendor
 
+  release:
+    working_directory: /go/src/github.com/maistra/istio-workspace
+      docker:
+          - image: circleci/golang:1.12.6
+      steps:
+        - checkout
+        - run:
+            name: "Installing goreleaser"
+            command: |
+              curl -sL https://git.io/goreleaser | bash
+        - restore_cache:
+            keys:
+              - vendor-cache-{{ checksum "Gopkg.lock" }}
+        - run:
+            name: "Release it!"
+            command: |
+              goreleaser release --rm-dist --release-notes=docs/modules/ROOT/release_notes/${CIRCLE_TAG}.adoc
+        - save_cache:
+            key: vendor-cache-{{ checksum "Gopkg.lock" }}
+            paths:
+              - ./vendor
+
 workflows:
   version: 2.1
   circleci_build:
@@ -89,3 +111,19 @@ workflows:
   circleci_e2e_tests:
     jobs:
       - e2e_tests
+  circleci_release:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - release:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
