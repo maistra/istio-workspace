@@ -127,7 +127,7 @@ IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_IMAGE_TAG?=$(COMMIT)
 export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=docker.io
-IKE_DOCKER_REPOSITORY?=aslakknutsen
+IKE_DOCKER_REPOSITORY?=maistra
 
 .PHONY: docker-build
 docker-build: ## Builds the docker image
