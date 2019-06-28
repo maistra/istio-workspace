@@ -95,6 +95,11 @@ jobs:
           keys:
             - vendor-cache-{{ checksum "Gopkg.lock" }}
       - run:
+          name: "Push it!"
+          command: |
+            docker login -u="${QUAY_USER}" -p="${QUAY_PWD}" quay.io
+            IKE_DOCKER_REGISTRY=quay.io IKE_DOCKER_REPOSITORY=bmajsak make docker-build docker-push
+      - run:
           name: "Release it!"
           command: |
             goreleaser release --rm-dist --release-notes=docs/modules/ROOT/release_notes/${CIRCLE_TAG}.adoc
