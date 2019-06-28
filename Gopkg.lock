@@ -1065,8 +1065,8 @@
     "pkg/webhook/types",
   ]
   pruneopts = "NT"
-  revision = "477bf4f046c31c351b46fa00262bc814ac0bbca1"
-  version = "v0.1.11"
+  revision = "f1eaba5087d69cebb154c6a48193e6667f5b512c"
+  version = "v0.1.12"
 
 [[projects]]
   digest = "1:8730e0150dfb2b7e173890c8b9868e7a273082ef8e39f4940e3506a481cf895c"
