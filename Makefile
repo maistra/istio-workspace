@@ -106,9 +106,16 @@ COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
 	COMMIT:=$(COMMIT)-dirty-$(shell date +%s)
 endif
-VERSION?=$(shell echo "$(git describe --tags 2>/dev/null || echo 'v0.0.0')-next")
-LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 
+VERSION:=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
+ifneq ($(GIT_TAG),0)
+	VERSION:=$(VERSION)-next-$(COMMIT)
+else ifneq ($(GITUNTRACKEDCHANGES),)
+	VERSION:=$(VERSION)-dirty-$(shell date +%s)
+endif
+
+LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
 
 $(BINARY_DIR):
@@ -128,13 +135,13 @@ $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
-IKE_IMAGE_TAG?=$(COMMIT)
+IKE_IMAGE_TAG?=$(VERSION)
 export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=docker.io
 IKE_DOCKER_REPOSITORY?=maistra
 
 .PHONY: docker-build
-docker-build: ## Builds the docker image
+docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
