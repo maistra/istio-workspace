@@ -135,11 +135,7 @@ $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
-### If on the clean git tag - use that instead of commit
-IKE_IMAGE_TAG?=$(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null || echo $(VERSION))
-ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_IMAGE_TAG:=$(VERSION)
-endif
+IKE_IMAGE_TAG?=$(VERSION)
 export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=docker.io
 IKE_DOCKER_REPOSITORY?=maistra
