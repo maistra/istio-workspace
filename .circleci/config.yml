@@ -96,11 +96,11 @@ jobs:
           name: "Push it!"
           command: |
             docker login -u="${QUAY_USER}" -p="${QUAY_PWD}" quay.io
-            IKE_DOCKER_REGISTRY=quay.io IKE_DOCKER_REPOSITORY=bmajsak make docker-build docker-push
+            IKE_DOCKER_REPOSITORY=bmajsak make docker-build docker-push
       - run:
           name: "Release it!"
           command: |
-            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=docs/modules/ROOT/release_notes/${CIRCLE_TAG}.adoc
+            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=docs/modules/ROOT/release_notes/${CIRCLE_TAG}.md
       - save_cache:
           key: vendor-cache-{{ checksum "Gopkg.lock" }}
           paths:
