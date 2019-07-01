@@ -95,7 +95,8 @@ jobs:
       - run:
           name: "Push it!"
           command: |
-            docker login -u="${QUAY_USER}" -p="${QUAY_PWD}" quay.io
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
             IKE_DOCKER_REPOSITORY=bmajsak make docker-build docker-push
       - run:
           name: "Release it!"
