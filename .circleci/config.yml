@@ -82,33 +82,40 @@ jobs:
             - ./vendor
 
   release:
-    working_directory: /go/src/github.com/maistra/istio-workspace
-    docker:
-        - image: circleci/golang:1.12.6
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
+    machine:
+      image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - restore_cache:
-          keys:
-            - vendor-cache-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: "Sets up Quay.io"
+          command: |
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
+      - run:
+          name: "Installs release tools prerequisites"
+          command: |
+            gem install asciidoctor
+            sudo apt-get install pandoc
+      - run:
+          name: "Installs latest Golang"
+          command: |
+            sudo rm -rf /usr/local/go
+            sudo circleci-install golang 1.12.6
+      - run:
+          name: "Install Golang project prerequisites"
+          command: make tools
       - run:
           name: "Push it!"
           command: |
-            echo $QUAY_AUTH_JSON > ~/.docker/config.json
-            docker login quay.io
-            IKE_DOCKER_REPOSITORY=bmajsak make docker-build docker-push
+            IKE_DOCKER_REPOSITORY=bmajsak make deps docker-build docker-push
       - run:
           name: "Release it!"
           command: |
-            gem install asciidoctor
-            apt-get install pandoc
-            asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> notes.md
-            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=notes.md
-      - save_cache:
-          key: vendor-cache-{{ checksum "Gopkg.lock" }}
-          paths:
-            - ./vendor
+            asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> converted-release-notes.md
+            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=converted-release-notes.md
 
 workflows:
   version: 2.1

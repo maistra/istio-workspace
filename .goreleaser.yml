@@ -4,7 +4,7 @@ release:
     name: istio-workspace
 before:
   hooks:
-    - make deps codegen
+    - make tools deps codegen
 builds:
 - env:
   - CGO_ENABLED=0
