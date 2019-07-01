@@ -101,7 +101,10 @@ jobs:
       - run:
           name: "Release it!"
           command: |
-            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=docs/modules/ROOT/release_notes/${CIRCLE_TAG}.md
+            gem install asciidoctor
+            apt-get install pandoc
+            asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> notes.md
+            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=notes.md
       - save_cache:
           key: vendor-cache-{{ checksum "Gopkg.lock" }}
           paths:
