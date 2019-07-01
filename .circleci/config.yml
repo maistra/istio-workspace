@@ -110,7 +110,7 @@ jobs:
       - run:
           name: "Push it!"
           command: |
-            make deps docker-build docker-push
+            make deps docker-build docker-push-versioned
       - run:
           name: "Release it!"
           command: |
