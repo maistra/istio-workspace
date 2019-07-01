@@ -105,12 +105,12 @@ jobs:
             sudo rm -rf /usr/local/go
             sudo circleci-install golang 1.12.6
       - run:
-          name: "Install Golang project prerequisites"
+          name: "Installs Golang project prerequisites"
           command: make tools
       - run:
           name: "Push it!"
           command: |
-            IKE_DOCKER_REPOSITORY=bmajsak make deps docker-build docker-push
+            make deps docker-build docker-push
       - run:
           name: "Release it!"
           command: |
