@@ -1,7 +1,3 @@
-release:
-  github:
-    owner: bartoszmajsak
-    name: istio-workspace
 before:
   hooks:
     - make tools deps codegen
