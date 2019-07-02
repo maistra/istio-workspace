@@ -104,7 +104,7 @@ git commit -am"release: next iteration"
 
 if ! ${dry_run}; then
   echo "Pushing changes to remote"
-  # git push && git push --tags
+  git push && git push --tags
 else
   echo "In dry-run mode, not pushing changes to remote"
 fi
