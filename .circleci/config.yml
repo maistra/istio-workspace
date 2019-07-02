@@ -81,6 +81,42 @@ jobs:
           paths:
             - ./vendor
 
+  release:
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: "Sets up Quay.io"
+          command: |
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
+      - run:
+          name: "Installs release tools prerequisites"
+          command: |
+            gem install asciidoctor
+            sudo apt-get install pandoc
+      - run:
+          name: "Installs latest Golang"
+          command: |
+            sudo rm -rf /usr/local/go
+            sudo circleci-install golang 1.12.6
+      - run:
+          name: "Installs Golang project prerequisites"
+          command: make tools
+      - run:
+          name: "Push it!"
+          command: |
+            make deps docker-build docker-push-versioned
+      - run:
+          name: "Release it!"
+          command: |
+            asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> converted-release-notes.md
+            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=converted-release-notes.md
+
 workflows:
   version: 2.1
   circleci_build:
@@ -89,3 +125,19 @@ workflows:
   circleci_e2e_tests:
     jobs:
       - e2e_tests
+  circleci_release:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - release:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

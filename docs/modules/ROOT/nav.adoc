@@ -5,3 +5,7 @@
 * xref:cli_reference.adoc[CLI Reference]
 
 * xref:contribution_guide.adoc[Contribution Guide]
+
+* xref:dev_guide.adoc[Development Guide]
+
+* xref:release_notes.adoc[Releases]

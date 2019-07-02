@@ -119,7 +119,7 @@ parameters:
   - name: IKE_DOCKER_REGISTRY
     description: "Docker registry where deployed image is available"
     required: true
-    value: docker.io
+    value: quay.io
   - name: IKE_DOCKER_REPOSITORY
     description: "Repository in which the image can be found"
     required: true
@@ -154,7 +154,7 @@ objects:
           serviceAccountName: istio-workspace
           containers:
             - name: istio-workspace
-              image: docker.io/maistra/istio-workspace:latest
+              image: quay.io/maistra/istio-workspace:latest
               command:
                 - ike
               args:
