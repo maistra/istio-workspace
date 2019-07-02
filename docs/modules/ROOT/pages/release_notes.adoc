@@ -1,3 +1,2 @@
 == Releases
 
-include::release_notes/v0.0.1.adoc[]
