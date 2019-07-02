@@ -4,7 +4,7 @@
 
 === Release Process
 
-Release automation is based on a tagged commit (i.e. named `release: v0.0.1` with associated annotated tag `v0.0.11)
+Release automation is based on a tagged commit (i.e. named `release: v0.0.1` with associated annotated tag `v0.0.1`)
 Such a commit should have the following content:
 
 . The version in `docs/antora.yml` changed to a matching `tag`
