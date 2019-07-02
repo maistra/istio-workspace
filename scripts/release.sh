@@ -107,4 +107,5 @@ if ! ${dry_run}; then
   git push && git push --tags
 else
   echo "In dry-run mode, not pushing changes to remote"
+  echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag (git tag -d ${version})"
 fi
