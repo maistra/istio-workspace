@@ -239,20 +239,21 @@ undeploy-example: ## Undeploys istio-workspace specific resources from defined T
 # ##########################################################################
 
 deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
-	$(call header,"Deploying bookinfo app to $(TEST_NAMESPACE)")
+	$(eval scenario:=$(subst deploy-test-,,$@))
+	$(call header,"Deploying bookinfo $(scenario) app to $(TEST_NAMESPACE)")
+
 	oc new-project $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE)
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE)
 	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 	oc apply -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 
-	$(eval scenario:=$(subst deploy-test-,,$@))
 	go run ./test/cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
-	$(call header,"Undeploying bookinfo app to $(TEST_NAMESPACE)")
-
 	$(eval scenario:=$(subst undeploy-test-,,$@))
+	$(call header,"Undeploying bookinfo $(scenario) app from $(TEST_NAMESPACE)")
+
 	go run ./test/cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
