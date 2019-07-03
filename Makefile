@@ -20,7 +20,7 @@ define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
 endef
 
-##@ Default (all you need - just run "make")
+##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
 all: deps format lint compile test ## Runs 'deps format lint test compile' targets
@@ -130,7 +130,7 @@ $(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
 
 
 # ##########################################################################
-##@ Docker build
+##@ Docker
 # ##########################################################################
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
@@ -258,5 +258,5 @@ undeploy-test-%:
 ##@ Helpers
 
 .PHONY: help
-help:  ## Display this help
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[4m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+help:  ## Displays this help \o/
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m\033[2m %s\033[0m\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
