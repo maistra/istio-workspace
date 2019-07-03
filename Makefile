@@ -5,6 +5,7 @@ OPERATOR_NAMESPACE?=istio-workspace-operator
 TEST_NAMESPACE?=bookinfo
 
 CUR_DIR:=$(shell pwd)
+export CUR_DIR
 BUILD_DIR:=$(CUR_DIR)/build
 BINARY_DIR:=$(CUR_DIR)/dist
 BINARY_NAME:=ike
@@ -14,70 +15,20 @@ ASSET_SRCS=$(shell find ./deploy/istio-workspace -name "*.yaml")
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
-# Call this function with $(call header,"Your message")
+# Call this function with $(call header,"Your message") to see underscored green text
 define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
 endef
 
+##@ Default (all you need - just run "make")
 .DEFAULT_GOAL:=all
-
 .PHONY: all
-all: deps format lint compile test ## (default) Runs 'deps format lint test compile' targets
+all: deps format lint compile test ## Runs 'deps format lint test compile' targets
+
+##@ Build
 
 .PHONY: build-ci
-build-ci: deps format compile test ## Like 'all', but without linter which is executed as separated PR check
-
-export CUR_DIR
-
-.PHONY: help
-help:
-	 @echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sort | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
-
-.PHONY: deps
-deps: ## Fetches all dependencies
-	$(call header,"Fetching dependencies")
-	dep ensure -v
-
-.PHONY: format
-format: ## Removes unneeded imports and formats source code
-	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
-
-.PHONY: tools
-tools: ## Installs required go tools
-	$(call header,"Installing required tools")
-	go get -u github.com/golang/dep/cmd/dep
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-	go get -u golang.org/x/tools/cmd/goimports
-	go get -u github.com/onsi/ginkgo/ginkgo
-	go get -u github.com/go-bindata/go-bindata/...
-
-$(CUR_DIR)/bin/operator-sdk: ## Downloads operator-sdk cli tool aligned with version defined in Gopkg
-	$(call header,"Installing operator-sdk cli tool")
-	mkdir -p $(CUR_DIR)/bin/
-	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
-	chmod +x $(CUR_DIR)/bin/operator-sdk
-
-$(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
-	$(call header,"Adds assets to the binary")
-	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
-
-.PHONY: lint
-lint: deps ## Concurrently runs a whole bunch of static analysis tools
-	$(call header,"Running a whole bunch of static analysis tools")
-	golangci-lint run
-
-GROUP_VERSIONS:="istio:v1alpha1"
-.PHONY: codegen
-codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
-	$(call header,"Generates operator-sdk code")
-	$(CUR_DIR)/bin/operator-sdk generate k8s
-	$(call header,"Generates clientset code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
-		$(PACKAGE_NAME)/pkg/client \
-		$(PACKAGE_NAME)/pkg/apis \
-		$(GROUP_VERSIONS)
+build-ci: deps format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
 compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
@@ -95,6 +46,32 @@ test-e2e: compile ## Runs end-to-end tests
 .PHONY: clean
 clean: ## Removes build artifacts
 	rm -rf $(BINARY_DIR) $(CUR_DIR)/bin/
+
+.PHONY: deps
+deps: ## Fetches all dependencies
+	$(call header,"Fetching dependencies")
+	dep ensure -v
+
+.PHONY: format
+format: ## Removes unneeded imports and formats source code
+	$(call header,"Formatting code")
+	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
+
+.PHONY: lint
+lint: deps ## Concurrently runs a whole bunch of static analysis tools
+	$(call header,"Running a whole bunch of static analysis tools")
+	golangci-lint run
+
+GROUP_VERSIONS:="istio:v1alpha1"
+.PHONY: codegen
+codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
+	$(call header,"Generates operator-sdk code")
+	$(CUR_DIR)/bin/operator-sdk generate k8s
+	$(call header,"Generates clientset code")
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
+		$(PACKAGE_NAME)/pkg/client \
+		$(PACKAGE_NAME)/pkg/apis \
+		$(GROUP_VERSIONS)
 
 # ##########################################################################
 # Build configuration
@@ -129,8 +106,31 @@ $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling test service... carry on!")
 	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
+##@ Setup
+
+.PHONY: tools
+tools: ## Installs required go tools
+	$(call header,"Installing required tools")
+	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	go get -u golang.org/x/tools/cmd/goimports
+	go get -u github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/go-bindata/go-bindata/...
+
+$(CUR_DIR)/bin/operator-sdk:
+	$(call header,"Installing operator-sdk cli tool")
+	mkdir -p $(CUR_DIR)/bin/
+	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
+	chmod +x $(CUR_DIR)/bin/operator-sdk
+
+$(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
+	$(call header,"Adds assets to the binary")
+	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
+
+
 # ##########################################################################
-# Docker build
+##@ Docker build
 # ##########################################################################
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
@@ -153,7 +153,7 @@ docker-build: compile ## Builds the docker image
 .PHONY: docker-push
 docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry
 
-docker-push-versioned: docker-push--$(IKE_IMAGE_TAG) ## Left only for CI to have simple target to call
+docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
 
 docker-push--%:
 	$(eval image_tag:=$(subst docker-push--,,$@))
@@ -161,7 +161,7 @@ docker-push--%:
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
-docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME) ## Builds the docker test image
+docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
 	docker build \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
@@ -171,13 +171,13 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME) ## Builds the docker test i
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-push-test
-docker-push-test: ## Pushes docker image to the registry
+docker-push-test:
 	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 # ##########################################################################
-# Istio operator deployment
+##@ Istio operator deployment
 # ##########################################################################
 
 define process_template # params: template location
@@ -199,7 +199,7 @@ load-istio: ## Triggers installation of istio in the cluster
 	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
 
 .PHONY: deploy-operator
-deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
+deploy-operator: ## Deploys istio-workspace operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
 	oc new-project $(OPERATOR_NAMESPACE) || true
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
@@ -209,7 +209,7 @@ deploy-operator: ## Deploys operator resources to defined OPERATOR_NAMESPACE
 	$(call process_template,deploy/istio-workspace/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
-undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPACE
+undeploy-operator: ## Undeploys istio-workspace operator resources from defined OPERATOR_NAMESPACE
 	$(call header,"Undeploying operator to $(OPERATOR_NAMESPACE)")
 	$(call process_template,deploy/istio-workspace/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
@@ -218,7 +218,7 @@ undeploy-operator: ## Undeploys operator resources from defined OPERATOR_NAMESPA
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
 
 # ##########################################################################
-# Istio example deployment
+##@ Istio-workspace example deployment
 # ##########################################################################
 
 .PHONY: deploy-example
@@ -232,10 +232,10 @@ undeploy-example: ## Undeploys istio-workspace specific resources from defined T
 	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
 
 # ##########################################################################
-# Istio bookinfo deployment
+# Istio test application deployment
 # ##########################################################################
 
-deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
+deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
 	$(call header,"Deploying bookinfo $(scenario) app to $(TEST_NAMESPACE)")
 
@@ -247,7 +247,7 @@ deploy-test-%: ## Deploys bookinfo app into defined TEST_NAMESPACE
 
 	go run ./test/cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
 
-undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
+undeploy-test-%:
 	$(eval scenario:=$(subst undeploy-test-,,$@))
 	$(call header,"Undeploying bookinfo $(scenario) app from $(TEST_NAMESPACE)")
 
@@ -255,3 +255,8 @@ undeploy-test-%: ## Undeploys bookinfo app into defined TEST_NAMESPACE
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_rolebinding.yaml
 	oc delete -n $(TEST_NAMESPACE) -f deploy/bookinfo/session_role.yaml
 
+##@ Helpers
+
+.PHONY: help
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[4m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
