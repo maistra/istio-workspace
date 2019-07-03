@@ -151,17 +151,14 @@ docker-build: compile ## Builds the docker image
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 .PHONY: docker-push
-docker-push: docker-push-latest docker-push-versioned ## Pushes docker images to the registry
+docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry
 
-.PHONY: docker-push-latest
-docker-push-latest:  ## Pushes latest docker image to the registry
-	$(call header,"Pushing docker image :latest")
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
+docker-push-versioned: docker-push--$(IKE_IMAGE_TAG) ## Left only for CI to have simple target to call
 
-.PHONY: docker-push-versioned
-docker-push-versioned:  ## Pushes versioned docker image to the registry
-	$(call header,"Pushing docker image :$(IKE_IMAGE_NAME)")
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+docker-push--%:
+	$(eval image_tag:=$(subst docker-push--,,$@))
+	$(call header,"Pushing docker image $(image_tag)")
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME) ## Builds the docker test image
