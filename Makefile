@@ -177,7 +177,7 @@ docker-push-test:
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 # ##########################################################################
-##@ Istio operator deployment
+##@ Istio-workspace operator deployment
 # ##########################################################################
 
 define process_template # params: template location
@@ -194,7 +194,7 @@ define process_template # params: template location
 endef
 
 .PHONY: load-istio
-load-istio: ## Triggers installation of istio in the cluster
+load-istio: ## Triggers installation of minimal Istio in the cluster (see deploy/istio/minimal-cr.yaml)
 	$(call header,"Deploys minimal istio operator")
 	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
 
