@@ -20,7 +20,7 @@ curl -sL http://git.io/get-ike | bash
 
 TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s -- --version=v0.0.1 --dir=~/bin`
 
-When logged in to the cluster  simply run:
+When logged in to the cluster simply run:
 
 [source,bash]
 ----

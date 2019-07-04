@@ -68,7 +68,7 @@ while test $# -gt 0; do
             if test $# -gt 0; then
               dir=$1
             else
-              die "Please provide a version name"
+              die "Please provide a version"
             fi
             shift
             ;;
