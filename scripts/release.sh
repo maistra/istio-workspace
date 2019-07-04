@@ -69,7 +69,7 @@ while test $# -gt 0; do
             if test $# -gt 0; then
               version=$1
             else
-              die "Please provide tag name"
+              die "Please provide version (according https://semver.org/)"
             fi
             shift
             ;;
