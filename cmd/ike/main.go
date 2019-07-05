@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/maistra/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/pkg/cmd"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )

@@ -1,9 +1,9 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/cmd/ike/session"
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

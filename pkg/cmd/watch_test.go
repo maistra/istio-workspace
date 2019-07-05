@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/maistra/istio-workspace/cmd/ike/cmd"
+	. "github.com/maistra/istio-workspace/pkg/cmd"
 	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"

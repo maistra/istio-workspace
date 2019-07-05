@@ -1,6 +1,6 @@
 package infra
 
-import "github.com/maistra/istio-workspace/cmd/ike/cmd"
+import "github.com/maistra/istio-workspace/pkg/cmd"
 
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
 // it service

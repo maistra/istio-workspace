@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 	. "github.com/maistra/istio-workspace/e2e/infra"
+	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	. "github.com/maistra/istio-workspace/test"
 

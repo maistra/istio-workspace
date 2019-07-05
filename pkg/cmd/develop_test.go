@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	. "github.com/maistra/istio-workspace/cmd/ike/cmd"
+	. "github.com/maistra/istio-workspace/pkg/cmd"
 	. "github.com/maistra/istio-workspace/test"
 
 	"github.com/spf13/afero"

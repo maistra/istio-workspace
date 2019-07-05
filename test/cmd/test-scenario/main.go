@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
 )
 
 var (
