@@ -9,7 +9,27 @@ More details can be found on our https://istio-workspace-docs.netlify.com/[docum
 
 We use amazing https://antora.org/[Antora] project to build it and you should too!
 
-==== Setup
+=== Install (in two easy steps)
+
+Get latest `ike` binary through simple download script:
+
+[source,bash]
+----
+curl -sL http://git.io/get-ike | bash
+----
+
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s -- --version=v0.0.1 --dir=~/bin`
+
+When logged in to the cluster simply run:
+
+[source,bash]
+----
+ike install-operator
+----
+
+And you are all set!
+
+=== Development Setup
 
 Assuming that you have all the https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
 

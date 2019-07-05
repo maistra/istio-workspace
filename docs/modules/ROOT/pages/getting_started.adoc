@@ -9,6 +9,19 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 * [x] Ike binary
 * [x] Kubernetes cluster with Istio (i.e. Maistra)
 
+== Installing `ike` CLI
+
+Run:
+
+[source,bash]
+----
+curl -sL http://git.io/get-ike | bash
+----
+
+to get latest `ike` binary.
+
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s -- --version=v0.0.1 --dir=~/bin`
+
 == Installing cluster component
 
 Before you can start using CLI we have to add few backend bits to the cluster, so that we can safely swap services you will work on.
