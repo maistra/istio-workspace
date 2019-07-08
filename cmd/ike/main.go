@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/spf13/cobra"
 	"math/rand"
 	"time"
 
@@ -26,6 +27,19 @@ func main() {
 		cmd.NewWatchCmd(),
 		cmd.NewServeCmd(),
 		cmd.NewInstallCmd(),
+		cmd.NewCompletionCmd(),
 	)
+
+	visitAll(rootCmd, cmd.AddFlagCompletion)
+
 	_ = rootCmd.Execute()
+}
+
+
+func visitAll(cmd *cobra.Command, fn func(command *cobra.Command)) {
+
+	for _, child := range cmd.Commands() {
+		visitAll(child, fn)
+	}
+	fn(cmd)
 }
