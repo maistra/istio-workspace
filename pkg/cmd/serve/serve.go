@@ -1,4 +1,4 @@
-package cmd
+package serve
 
 import (
 	"context"
@@ -14,8 +14,11 @@ import (
 	"github.com/spf13/cobra"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "serve")
 
 var (
 	metricsHost       = "0.0.0.0"

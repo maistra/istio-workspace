@@ -4,6 +4,14 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/install"
+	"github.com/maistra/istio-workspace/pkg/cmd/serve"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/watch"
+
 	"github.com/maistra/istio-workspace/pkg/cmd"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -21,11 +29,11 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	rootCmd := cmd.NewRootCmd()
-	rootCmd.AddCommand(cmd.NewVersionCmd(),
-		cmd.NewDevelopCmd(),
-		cmd.NewWatchCmd(),
-		cmd.NewServeCmd(),
-		cmd.NewInstallCmd(),
+	rootCmd.AddCommand(version.NewVersionCmd(),
+		develop.NewDevelopCmd(),
+		watch.NewWatchCmd(),
+		serve.NewServeCmd(),
+		install.NewInstallCmd(),
 	)
 	_ = rootCmd.Execute()
 }

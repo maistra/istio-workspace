@@ -1,18 +1,28 @@
-package cmd
+package develop
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/develop/internal"
+
+	"github.com/spf13/pflag"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	"github.com/maistra/istio-workspace/pkg/shell"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "develop")
 
 const telepresenceBin = "telepresence"
 
-var defaultExclusions = []string{"*.log", ".git/"}
+var DefaultExclusions = []string{"*.log", ".git/"}
 
 // NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
 func NewDevelopCmd() *cobra.Command {
@@ -21,13 +31,13 @@ func NewDevelopCmd() *cobra.Command {
 		Short:        "Starts the development flow",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			if !BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
+			if !shell.BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
 			}
 			return config.SyncFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			sessionState, sessionClose, err := sessions(cmd)
+			sessionState, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
 				return err
 			}
@@ -38,7 +48,7 @@ func NewDevelopCmd() *cobra.Command {
 				return err
 			}
 
-			if err := build(cmd); err != nil {
+			if err := build.Build(cmd); err != nil {
 				return err
 			}
 
@@ -48,10 +58,10 @@ func NewDevelopCmd() *cobra.Command {
 			arguments := parseArguments(cmd)
 
 			go func() {
-				tp := gocmd.NewCmdOptions(StreamOutput, telepresenceBin, arguments...)
-				RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
-				ShutdownHook(tp, done)
-				Start(tp, done)
+				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresenceBin, arguments...)
+				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
+				shell.ShutdownHook(tp, done)
+				shell.Start(tp, done)
 			}()
 
 			finalStatus := <-done
@@ -61,12 +71,12 @@ func NewDevelopCmd() *cobra.Command {
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().StringP("port", "p", "8000", "port to be exposed in format local[:remote]")
-	developCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
-	developCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
-	developCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
+	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
+	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
+	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{"."}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.Flags().StringSlice("watch-exclude", defaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", defaultExclusions))
+	developCmd.Flags().StringSlice("watch-exclude", DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
@@ -85,13 +95,13 @@ func NewDevelopCmd() *cobra.Command {
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
 	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired(runFlagName)
+	_ = developCmd.MarkFlagRequired(build.RunFlagName)
 
 	return developCmd
 }
 
 func parseArguments(cmd *cobra.Command) []string {
-	run := cmd.Flag(runFlagName).Value.String()
+	run := cmd.Flag(build.RunFlagName).Value.String()
 	watch, _ := cmd.Flags().GetBool("watch")
 	runArgs := strings.Split(run, " ") // default value
 
@@ -101,10 +111,10 @@ func parseArguments(cmd *cobra.Command) []string {
 			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
 			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
 			"--interval", cmd.Flag("watch-interval").Value.String(),
-			"--" + runFlagName, run,
+			"--" + build.RunFlagName, run,
 		}
-		if cmd.Flag(buildFlagName).Changed {
-			runArgs = append(runArgs, "--"+buildFlagName, cmd.Flag(buildFlagName).Value.String())
+		if cmd.Flag(build.BuildFlagName).Changed {
+			runArgs = append(runArgs, "--"+build.BuildFlagName, cmd.Flag(build.BuildFlagName).Value.String())
 		}
 	}
 
@@ -120,4 +130,9 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return tpCmd
+}
+
+func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
+	slice, _ := flags.GetStringSlice(name)
+	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

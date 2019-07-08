@@ -4,7 +4,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/cmd"
+	"github.com/maistra/istio-workspace/pkg/shell"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	"github.com/onsi/gomega"
@@ -13,8 +14,8 @@ import (
 // LoadIstio calls make load-istio target and waits until operator sets up mesh
 func LoadIstio() {
 	projectDir := os.Getenv("CUR_DIR")
-	<-cmd.Execute("oc login -u system:admin").Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "load-istio").Done()
+	<-shell.Execute("oc login -u system:admin").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
 	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"),
 		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 }
@@ -24,9 +25,9 @@ func BuildTestService(namespace string) (registry string) {
 	projectDir := os.Getenv("CUR_DIR")
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
-	<-cmd.Execute("oc login -u admin -p admin").Done()
-	<-cmd.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
+	<-shell.Execute("oc login -u admin -p admin").Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
 }
 
@@ -35,24 +36,24 @@ func DeployTestScenario(scenario, namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	setDockerEnvForTestServiceDeploy(namespace)
 
-	<-cmd.Execute("oc login -u system:admin").Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
+	<-shell.Execute("oc login -u system:admin").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
 	projectDir := os.Getenv("CUR_DIR")
 	_, registry = setDockerEnvForOperatorBuild()
-	<-cmd.Execute("oc login -u admin -p admin").Done()
-	<-cmd.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
-	<-cmd.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
+	<-shell.Execute("oc login -u admin -p admin").Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
 
 func CreateOperatorNamespace() (namespace string) {
 	namespace, _ = setDockerEnvForOperatorDeploy()
-	<-cmd.Execute("oc login -u admin -p admin").Done()
-	<-cmd.Execute("oc new-project " + namespace).Done()
+	<-shell.Execute("oc login -u admin -p admin").Done()
+	<-shell.Execute("oc new-project " + namespace).Done()
 	return
 }
 
@@ -60,11 +61,11 @@ func CreateOperatorNamespace() (namespace string) {
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("CUR_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	<-cmd.Execute("oc login -u admin -p admin").Done()
+	<-shell.Execute("oc login -u admin -p admin").Done()
 
 	namespace, _ = setDockerEnvForOperatorDeploy()
 
-	<-cmd.ExecuteInDir(projectDir, "ike", "install-operator").Done()
+	<-shell.ExecuteInDir(projectDir, "ike", "install-operator").Done()
 	return
 }
 

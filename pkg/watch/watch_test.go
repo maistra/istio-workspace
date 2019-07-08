@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/watch"
+	"github.com/maistra/istio-workspace/pkg/watch"
 
 	"github.com/fsnotify/fsnotify"
 	. "github.com/onsi/ginkgo"

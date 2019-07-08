@@ -1,7 +1,7 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

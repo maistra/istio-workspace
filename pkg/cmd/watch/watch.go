@@ -1,15 +1,23 @@
-package cmd
+package watch
 
 import (
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	"github.com/maistra/istio-workspace/pkg/shell"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/watch"
+	"github.com/maistra/istio-workspace/pkg/watch"
 
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "watch")
 
 // NewWatchCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.
@@ -25,11 +33,11 @@ func NewWatchCmd() *cobra.Command {
 		RunE: watchForChanges,
 	}
 
-	watchCmd.Flags().StringP(buildFlagName, "b", "", "command to build your application before run")
-	watchCmd.Flags().Bool(noBuildFlagName, false, "always skips build")
-	watchCmd.Flags().StringP(runFlagName, "r", "", "command to run your application")
-	watchCmd.Flags().StringSliceP("dir", "w", []string{CurrentDir()}, "list of directories to watch")
-	watchCmd.Flags().StringSlice("exclude", defaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	watchCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
+	watchCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
+	watchCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
+	watchCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
+	watchCmd.Flags().StringSlice("exclude", develop.DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := watchCmd.Flags().MarkHidden("interval"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
@@ -38,30 +46,30 @@ func NewWatchCmd() *cobra.Command {
 	return watchCmd
 }
 
-func watchForChanges(cmd *cobra.Command, args []string) error {
-	if err := build(cmd); err != nil {
+func watchForChanges(command *cobra.Command, args []string) error {
+	if err := build.Build(command); err != nil {
 		return err
 	}
 
-	run := strings.Split(cmd.Flag(runFlagName).Value.String(), " ")
+	run := strings.Split(command.Flag(build.RunFlagName).Value.String(), " ")
 	done := make(chan gocmd.Status)
 	restart := make(chan struct{})
 
-	slice, _ := cmd.Flags().GetStringSlice("dir")
-	excluded, e := cmd.Flags().GetStringSlice("exclude")
+	slice, _ := command.Flags().GetStringSlice("dir")
+	excluded, e := command.Flags().GetStringSlice("exclude")
 	if e != nil {
 		return e
 	}
-	excluded = append(excluded, defaultExclusions...)
+	excluded = append(excluded, develop.DefaultExclusions...)
 
-	ms, _ := cmd.Flags().GetInt64("interval")
+	ms, _ := command.Flags().GetInt64("interval")
 	w, err := watch.CreateWatch(ms).
 		WithHandlers(func(events []fsnotify.Event) error {
 			for _, event := range events {
-				_, _ = cmd.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+				_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 			}
 
-			if err := build(cmd); err != nil {
+			if err := build.Build(command); err != nil {
 				done <- gocmd.Status{
 					Error:    err,
 					Complete: false,
@@ -98,10 +106,10 @@ func watchForChanges(cmd *cobra.Command, args []string) error {
 						Complete: true,
 					}
 				}
-				runCmd = gocmd.NewCmdOptions(StreamOutput, run[0], run[1:]...)
-				RedirectStreams(runCmd, cmd.OutOrStdout(), cmd.OutOrStderr(), runDone)
-				ShutdownHook(runCmd, runDone)
-				go Start(runCmd, runDone)
+				runCmd = gocmd.NewCmdOptions(shell.StreamOutput, run[0], run[1:]...)
+				shell.RedirectStreams(runCmd, command.OutOrStdout(), command.OutOrStderr(), runDone)
+				shell.ShutdownHook(runCmd, runDone)
+				go shell.Start(runCmd, runDone)
 			case status := <-runDone:
 				done <- status
 				break OutOfLoop
