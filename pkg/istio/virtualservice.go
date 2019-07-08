@@ -26,7 +26,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 		return nil
 	}
 
-	targetName := strings.Split(ref.Name, "-")[0]
+	targetName := ref.Target.GetHostName()
 
 	vs, err := getVirtualService(ctx, ctx.Namespace, targetName)
 	if err != nil {

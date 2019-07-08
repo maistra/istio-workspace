@@ -27,7 +27,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 		return nil
 	}
 
-	targetName := strings.Split(ref.Name, "-")[0]
+	targetName := ref.Target.GetHostName()
 
 	dr, err := getDestinationRule(ctx, ctx.Namespace, targetName)
 	if err != nil {
@@ -36,7 +36,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 	}
 
 	ctx.Log.Info("Found DestinationRule", "name", targetName)
-	mutatedDr, err := mutateDestinationRule(*dr, ctx.Name)
+	mutatedDr, err := mutateDestinationRule(*dr, ref.Target.GetNewVersion(ctx.Name))
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -66,7 +66,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 		}
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr, err := revertDestinationRule(*dr, ctx.Name)
+		mutatedDr, err := revertDestinationRule(*dr, ref.Target.GetNewVersion(ctx.Name))
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
 			break

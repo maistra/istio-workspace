@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -84,6 +85,22 @@ type LocatedResourceStatus struct {
 	ResourceStatus
 
 	Labels map[string]string
+}
+
+// GetVersion returns the existing version name
+func (l *LocatedResourceStatus) GetVersion() string {
+	return l.Labels["version"]
+}
+
+// GetNewVersion returns the new updated version name
+func (l *LocatedResourceStatus) GetNewVersion(sessionName string) string {
+	return l.GetVersion() + "-" + sessionName
+}
+
+// TODO: should discover via Services that match D/DC?
+// GetHostName returns the targets host name
+func (l *LocatedResourceStatus) GetHostName() string {
+	return strings.Split(l.Name, "-")[0]
 }
 
 // NewLocatedResource is a simple helper to create LocatedResourceStatus
