@@ -9,6 +9,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/spf13/cobra"
+
 	"github.com/spf13/pflag"
 
 	gocmd "github.com/go-cmd/cmd"
@@ -141,4 +143,11 @@ func BinaryExists(binName, hint string) bool {
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
 	slice, _ := flags.GetStringSlice(name)
 	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
+}
+
+func VisitAll(command *cobra.Command, apply func(command *cobra.Command)) {
+	for _, child := range command.Commands() {
+		VisitAll(child, apply)
+	}
+	apply(command)
 }
