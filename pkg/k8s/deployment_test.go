@@ -24,6 +24,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 	var objects []runtime.Object
 	var ctx model.SessionContext
+
+	CreateTestRef := func() model.Ref {
+		return model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", map[string]string{"version": "v1"})}
+	}
 	JustBeforeEach(func() {
 		ctx = model.SessionContext{
 			Context:   context.TODO(),
@@ -109,33 +113,33 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should add suffix to the cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+			ref := CreateTestRef()
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+			ref := CreateTestRef()
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
 		It("should remove readiness probe from cloned deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+			ref := CreateTestRef()
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
@@ -146,31 +150,31 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).To(HaveOccurred())
 		})
 
 		Context("telepresence mutations", func() {
 
 			It("should change container to telepresence", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+				ref := CreateTestRef()
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := appsv1.Deployment{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
 			It("should change add required env variables", func() {
-				ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+				ref := CreateTestRef()
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := appsv1.Deployment{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
@@ -214,19 +218,19 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should revert to original deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.NewLocatedResource(k8s.DeploymentKind, "test-ref", nil)}
+			ref := CreateTestRef()
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
 
-			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			revertorErr := k8s.DeploymentRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
-			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-" + ctx.Name}, &deployment)
+			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(revertedFetchErr).To(HaveOccurred())
 		})
 

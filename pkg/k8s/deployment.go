@@ -45,16 +45,16 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	if !ref.HasTarget(DeploymentKind) {
 		return nil
 	}
-	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
+	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Target.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	ctx.Log.Info("Found Deployment", "name", ref.Name)
+	ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy(), ctx.Name)
+	deploymentClone := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
@@ -73,7 +73,7 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 		deployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},
 		}
-		ctx.Log.Info("Found Deployment", "name", ref.Name)
+		ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 		err := ctx.Client.Delete(ctx, deployment)
 		if err != nil {
 			if errors.IsNotFound(err) {
