@@ -13,8 +13,8 @@ import (
 
 var log = logf.Log.WithName("cmd").WithValues("type", "version")
 
-// NewVersionCmd creates version cmd which prints version and Build details of the executed binary
-func NewVersionCmd() *cobra.Command {
+// NewCmd creates version cmd which prints version and Build details of the executed binary
+func NewCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",

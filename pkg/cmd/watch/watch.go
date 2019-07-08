@@ -19,10 +19,10 @@ import (
 
 var log = logf.Log.WithName("cmd").WithValues("type", "watch")
 
-// NewWatchCmd creates watch command which observes file system changes in the defined set of directories
+// NewCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.
 // It is hidden (not user facing) as it's integral part of develop command
-func NewWatchCmd() *cobra.Command {
+func NewCmd() *cobra.Command {
 	watchCmd := &cobra.Command{
 		Use:          "watch",
 		Hidden:       true,

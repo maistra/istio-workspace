@@ -16,8 +16,8 @@ import (
 
 var log = logf.Log.WithName("cmd").WithValues("type", "root")
 
-// NewRootCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
-func NewRootCmd() *cobra.Command {
+// NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
+func NewCmd() *cobra.Command {
 	var configFile string
 
 	rootCmd := &cobra.Command{

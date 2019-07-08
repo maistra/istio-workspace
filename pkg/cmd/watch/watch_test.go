@@ -5,10 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/watch"
+
 	"github.com/maistra/istio-workspace/test/shell"
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
-	. "github.com/maistra/istio-workspace/pkg/cmd/watch"
 	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
@@ -22,10 +23,10 @@ var _ = Describe("Usage of ike watch command", func() {
 	var watchCmd *cobra.Command
 
 	BeforeEach(func() {
-		watchCmd = NewWatchCmd()
+		watchCmd = watch.NewCmd()
 		watchCmd.SilenceUsage = true
 		watchCmd.SilenceErrors = true
-		NewRootCmd().AddCommand(watchCmd)
+		NewCmd().AddCommand(watchCmd)
 	})
 
 	Context("watching file changes", func() {

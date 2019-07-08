@@ -18,7 +18,7 @@ var _ = Describe("Usage of session func", func() {
 		var command *cobra.Command
 
 		BeforeEach(func() {
-			command = develop.NewDevelopCmd()
+			command = develop.NewCmd()
 		})
 
 		It("should fail if namespace is not defined", func() {
@@ -51,7 +51,7 @@ var _ = Describe("Usage of session func", func() {
 		var command *cobra.Command
 
 		BeforeEach(func() {
-			command = develop.NewDevelopCmd()
+			command = develop.NewCmd()
 		})
 
 		It("should convert namespace if set", func() {

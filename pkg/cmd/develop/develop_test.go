@@ -24,10 +24,10 @@ var _ = Describe("Usage of ike develop command", func() {
 	var developCmd *cobra.Command
 
 	BeforeEach(func() {
-		developCmd = develop.NewDevelopCmd()
+		developCmd = develop.NewCmd()
 		developCmd.SilenceUsage = true
 		developCmd.SilenceErrors = true
-		NewRootCmd().AddCommand(developCmd)
+		NewCmd().AddCommand(developCmd)
 	})
 
 	Context("checking telepresence binary existence", func() {

@@ -25,9 +25,9 @@ var (
 	metricsPort int32 = 8383
 )
 
-// NewServeCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
+// NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
 // cluster as it starts istio-workspace operator
-func NewServeCmd() *cobra.Command {
+func NewCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Starts istio-workspace operator in the cluster",

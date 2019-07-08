@@ -23,8 +23,8 @@ import (
 
 var log = logf.Log.WithName("cmd").WithValues("type", "install")
 
-// NewInstallCmd takes care of deploying server-side components of istio-workspace
-func NewInstallCmd() *cobra.Command {
+// NewCmd takes care of deploying server-side components of istio-workspace
+func NewCmd() *cobra.Command {
 	installCmd := &cobra.Command{
 		Use:          "install-operator",
 		Short:        "Takes care of deploying server-side components of istio-workspace",

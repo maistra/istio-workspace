@@ -24,8 +24,8 @@ const telepresenceBin = "telepresence"
 
 var DefaultExclusions = []string{"*.log", ".git/"}
 
-// NewDevelopCmd creates instance of "develop" Cobra Command with flags and execution logic defined
-func NewDevelopCmd() *cobra.Command {
+// NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined
+func NewCmd() *cobra.Command {
 	developCmd := &cobra.Command{
 		Use:          "develop",
 		Short:        "Starts the development flow",

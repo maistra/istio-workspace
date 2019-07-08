@@ -28,12 +28,12 @@ func main() {
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	rootCmd := cmd.NewRootCmd()
-	rootCmd.AddCommand(version.NewVersionCmd(),
-		develop.NewDevelopCmd(),
-		watch.NewWatchCmd(),
-		serve.NewServeCmd(),
-		install.NewInstallCmd(),
+	rootCmd := cmd.NewCmd()
+	rootCmd.AddCommand(version.NewCmd(),
+		develop.NewCmd(),
+		watch.NewCmd(),
+		serve.NewCmd(),
+		install.NewCmd(),
 	)
 	_ = rootCmd.Execute()
 }
