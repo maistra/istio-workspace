@@ -5,6 +5,11 @@ In this section you will learn about:
 * [x] ways to configure `ike` (through flags, files et al)
 * [x] complete list of commands and their available flags
 
+[#completion]
+== Autocomplete
+
+If you are using `zsh` or `bash` you can easily enable autocomplete for `ike` by invoking `. <(ike completion SHELL)`.
+
 [#configuration]
 == Configuration
 
