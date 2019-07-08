@@ -35,7 +35,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	}
 
 	ctx.Log.Info("Found VirtualService", "name", targetName)
-	mutatedVs, err := mutateVirtualService(ctx, *vs)
+	mutatedVs, err := mutateVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), *vs)
 	if err != nil {
 		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
 		return err
@@ -66,7 +66,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 		}
 
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
-		mutatedVs, err := revertVirtualService(ctx, *vs)
+		mutatedVs, err := revertVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), *vs)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
 			break
@@ -83,7 +83,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func mutateVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	source := vs.Spec.Http[0]
 	routeSpec := ctx.Route
@@ -94,7 +94,7 @@ func mutateVirtualService(ctx model.SessionContext, vs istionetwork.VirtualServi
 			Destination: &v1alpha3.Destination{
 				Host:   r.Destination.Host,
 				Port:   r.Destination.Port,
-				Subset: ctx.Name,
+				Subset: subsetName,
 			},
 		}
 		sourceRoutes = append(sourceRoutes, &sourceRoute)
@@ -130,10 +130,10 @@ func mutateVirtualService(ctx model.SessionContext, vs istionetwork.VirtualServi
 	return vs, nil
 }
 
-func revertVirtualService(ctx model.SessionContext, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func revertVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	for i := 0; i < len(vs.Spec.Http); i++ {
-		if strings.Contains(vs.Spec.Http[i].Route[0].Destination.Subset, ctx.Name) {
+		if strings.Contains(vs.Spec.Http[i].Route[0].Destination.Subset, subsetName) {
 			vs.Spec.Http = append(vs.Spec.Http[:i], vs.Spec.Http[i+1:]...)
 			break
 		}

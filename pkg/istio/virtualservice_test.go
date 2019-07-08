@@ -17,6 +17,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		err            error
 		virtualService istionetwork.VirtualService
 		yaml           string
+		ref            *model.Ref
 	)
 
 	Context("mutators", func() {
@@ -24,7 +25,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		JustBeforeEach(func() {
 			err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
 		})
-
+		BeforeEach(func() {
+			ref = &model.Ref{
+				Name:   "x",
+				Target: model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"}),
+			}
+		})
 		Context("existing rule", func() {
 			var (
 				mutatedVirtualService istionetwork.VirtualService
@@ -44,7 +50,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			JustBeforeEach(func() {
-				mutatedVirtualService, err = mutateVirtualService(ctx, virtualService)
+				mutatedVirtualService, err = mutateVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -57,7 +63,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			It("first route has subset", func() {
-				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("vs-test"))
+				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("v1-vs-test"))
 			})
 
 			It("first route has given header match", func() {
@@ -92,7 +98,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			JustBeforeEach(func() {
-				revertedVirtualService, err = revertVirtualService(ctx, virtualService)
+				revertedVirtualService, err = revertVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -101,7 +107,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			It("correct route removed", func() {
-				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("vs-test"))
+				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-vs-test"))
 			})
 		})
 	})
@@ -146,7 +152,7 @@ spec:
     route:
     - destination:
         host: details
-        subset: vs-test
+        subset: v1-vs-test
   - route:
     - destination:
         host: details
