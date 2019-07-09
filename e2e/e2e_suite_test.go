@@ -53,8 +53,10 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 		// create a 'real user' we can use to push to the DockerRegistry
 		fmt.Printf("\nAdd admin user\n")
-		<-testshell.Execute("oc create user admin").Done()
-		<-testshell.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
+		testshell.ExecuteAll(
+			"oc create user admin",
+			"oc adm policy add-cluster-role-to-user cluster-admin admin",
+		)
 
 		LoadIstio()
 
@@ -72,13 +74,15 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	func(data []byte) {})
 
 func createProjectsForCompletionTests() {
-	<-testshell.Execute("oc project myproject").Done()
-	<-testshell.Execute("oc login -u admin -p admin").Done()
-	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images").Done()
-	<-testshell.Execute("oc new-project otherproject").Done()
-	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name other-1-datawire-deployment --allow-missing-images").Done()
-	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images").Done()
-	<-testshell.Execute("oc project myproject").Done()
+	testshell.ExecuteAll(
+		"oc project myproject",
+		"oc login -u admin -p admin",
+		"oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images",
+		"oc new-project otherproject",
+		"oc new-app --docker-image datawire/hello-world --name other-1-datawire-deployment --allow-missing-images",
+		"oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images,"+
+			"oc project myproject",
+	)
 }
 
 var _ = SynchronizedAfterSuite(func() {},
