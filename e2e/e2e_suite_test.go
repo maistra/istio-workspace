@@ -72,6 +72,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	func(data []byte) {})
 
 func createProjectsForCompletionTests() {
+	<-testshell.Execute("oc project myproject").Done()
 	<-testshell.Execute("oc login -u admin -p admin").Done()
 	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images").Done()
 	<-testshell.Execute("oc new-project otherproject").Done()
