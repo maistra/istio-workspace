@@ -77,12 +77,16 @@ func createProjectsForCompletionTests() {
 	testshell.ExecuteAll(
 		"oc project myproject",
 		"oc login -u admin -p admin",
-		"oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images",
+		deployHelloWorldCmd("my-datawire-deployment"),
 		"oc new-project otherproject",
-		"oc new-app --docker-image datawire/hello-world --name other-1-datawire-deployment --allow-missing-images",
-		"oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images,",
+		deployHelloWorldCmd("other-1-datawire-deployment"),
+		deployHelloWorldCmd("other-2-datawire-deployment"),
 		"oc project myproject",
 	)
+}
+
+func deployHelloWorldCmd(name string) string {
+	return "oc new-app --docker-image datawire/hello-world --name "+name+" --allow-missing-images"
 }
 
 var _ = SynchronizedAfterSuite(func() {},
