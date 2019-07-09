@@ -28,8 +28,6 @@ func EnhanceHelper(command *cobra.Command) {
 			return
 		}
 
-		registerTemplateFuncs()
-
 		cmd.SetHelpTemplate(OnlyUsageString)
 		if helpFormat == "adoc" {
 			cmd.SetUsageTemplate(ADocHelpTable)
@@ -39,7 +37,7 @@ func EnhanceHelper(command *cobra.Command) {
 	})
 }
 
-func registerTemplateFuncs() {
+func RegisterTemplateFuncs() {
 	cobra.AddTemplateFunc("localFlagsSlice", func(set *pflag.FlagSet) []pflag.Flag {
 		flags := make([]pflag.Flag, 0)
 		set.VisitAll(func(flag *pflag.Flag) {

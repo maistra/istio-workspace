@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/completion"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/install"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
@@ -34,6 +36,10 @@ func main() {
 		watch.NewCmd(),
 		serve.NewCmd(),
 		install.NewCmd(),
+		completion.NewCmd(),
 	)
+
+	cmd.VisitAll(rootCmd, completion.AddFlagCompletion)
+
 	_ = rootCmd.Execute()
 }

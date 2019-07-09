@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/completion"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
@@ -21,8 +23,9 @@ func NewCmd() *cobra.Command {
 	var configFile string
 
 	rootCmd := &cobra.Command{
-		Use:   "ike",
-		Short: "ike lets you safely develop and test on prod without a sweat",
+		Use:                    "ike",
+		Short:                  "ike lets you safely develop and test on prod without a sweat",
+		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
@@ -47,6 +50,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	format.EnhanceHelper(rootCmd)
+	format.RegisterTemplateFuncs()
 
 	return rootCmd
 }

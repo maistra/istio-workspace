@@ -35,6 +35,12 @@ func CreateFile(filePath, content string) {
 	}()
 }
 
+// DeleteFile deletes file under defined path
+func DeleteFile(filePath string) {
+	err := appFs.Remove(filePath)
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
+}
+
 // GetBody calls GET on a given URL and returns its body or error in case there's one
 func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	req, err := http.NewRequest("GET", rawURL, nil)

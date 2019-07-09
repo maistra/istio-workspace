@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/develop/internal"
 
 	"github.com/spf13/pflag"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 	"github.com/maistra/istio-workspace/pkg/shell"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"

@@ -3,9 +3,10 @@ package watch
 import (
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 	"github.com/maistra/istio-workspace/pkg/shell"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"

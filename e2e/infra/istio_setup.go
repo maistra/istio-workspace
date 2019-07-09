@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/shell"
+	"github.com/maistra/istio-workspace/test/shell"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 

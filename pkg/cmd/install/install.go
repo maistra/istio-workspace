@@ -133,7 +133,6 @@ func name(object runtime.Object, fallback string) (name string) {
 	if err != nil {
 		name = fallback
 	}
-
 	return
 }
 
