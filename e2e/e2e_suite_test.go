@@ -86,7 +86,7 @@ func createProjectsForCompletionTests() {
 }
 
 func deployHelloWorldCmd(name string) string {
-	return "oc new-app --docker-image datawire/hello-world --name "+name+" --allow-missing-images"
+	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"
 }
 
 var _ = SynchronizedAfterSuite(func() {},
