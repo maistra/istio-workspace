@@ -55,7 +55,6 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	command := gocmd.NewCmdOptions(BufferAndStreamOutput, name, args...)
 	command.Dir = dir
 	done := command.Start()
-	ShutdownHook(command, done)
 	RedirectStreams(command, os.Stdout, os.Stderr, done)
 	commandString := command.Name + " " + strings.Join(command.Args, " ")
 	fmt.Printf("executing: [%s]\n", commandString)
@@ -83,6 +82,7 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 				<-cmd.Done()
 				break OutOfLoop
 			case <-done:
+				println("DONE ShutdownHook")
 				break OutOfLoop
 			}
 		}
@@ -110,6 +110,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 					log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
 			case <-done:
+				println("DONE RedirectStreams")
 				break OutOfLoop
 			}
 		}
