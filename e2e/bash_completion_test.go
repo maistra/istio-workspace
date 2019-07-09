@@ -1,4 +1,4 @@
-package completion_test
+package e2e_test
 
 import (
 	. "github.com/maistra/istio-workspace/e2e/infra"
