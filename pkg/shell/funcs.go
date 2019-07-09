@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
@@ -39,25 +38,6 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	status := <-cmd.Start()
 	<-cmd.Done()
 	done <- status
-}
-
-// Execute executes given command in the current directory
-// Adds shutdown hook and redirects streams to stdout/err
-func Execute(command string) *gocmd.Cmd {
-	cmd := strings.Split(command, " ")
-	return ExecuteInDir("", cmd[0], cmd[1:]...)
-}
-
-// ExecuteInDir executes given command in the defined directory
-// Adds shutdown hook and redirects streams to stdout/err
-func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
-	command := gocmd.NewCmdOptions(BufferAndStreamOutput, name, args...)
-	command.Dir = dir
-	done := command.Start()
-	RedirectStreams(command, os.Stdout, os.Stderr, done)
-	commandString := command.Name + " " + strings.Join(command.Args, " ")
-	fmt.Printf("executing: [%s]\n", commandString)
-	return command
 }
 
 // ShutdownHook will wait for SIGTERM signal and stop the cmd

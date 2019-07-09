@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/shell"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 // AllPodsNotInState creates a function which checks if all pods in the given namespace are in desired state

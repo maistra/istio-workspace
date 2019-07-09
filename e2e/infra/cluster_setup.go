@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"github.com/maistra/istio-workspace/pkg/shell"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to

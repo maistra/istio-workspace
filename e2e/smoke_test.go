@@ -9,6 +9,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/test"
+	testshell "github.com/maistra/istio-workspace/test/shell"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,7 +32,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 
 		AfterEach(func() {
-			<-shell.Execute("oc delete project " + appName).Done()
+			<-testshell.Execute("oc delete project " + appName).Done()
 		})
 
 		It("should watch python code changes and replace service when they occur", func() {
@@ -40,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
 			OriginalServerCodeIn(tmpDir)
-			ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
+			ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
 				"--method", "inject-tcp",
@@ -72,8 +73,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			namespace = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
-			<-shell.Execute("oc login -u developer").Done()
-			<-shell.Execute("oc new-project " + namespace).Done()
+			<-testshell.Execute("oc login -u developer").Done()
+			<-testshell.Execute("oc new-project " + namespace).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
 			BuildTestService(namespace)
@@ -81,7 +82,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 
 		AfterEach(func() {
-			<-shell.Execute("oc delete project " + namespace).Done()
+			<-testshell.Execute("oc delete project " + namespace).Done()
 		})
 
 		Context("scenario-1-basic-deployment", func() {
@@ -101,7 +102,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 				// when we start ike with watch
-				ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
+				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
 					"--deployment", "ratings-v1",
 					"--port", "9080",
 					"--watch",
@@ -155,13 +156,13 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace
-	<-shell.Execute("oc project myproject").Done()
+	<-testshell.Execute("oc project myproject").Done()
 
 	// given we have details code locally
 	CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 	// when we start ike with watch
-	ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
+	ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
 		"--deployment", "ratings-v1",
 		"-n", namespace,
 		"--port", "9080",

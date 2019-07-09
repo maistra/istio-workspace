@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/shell"
-
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
+	"github.com/maistra/istio-workspace/pkg/shell"
 	. "github.com/maistra/istio-workspace/test"
+	testshell "github.com/maistra/istio-workspace/test/shell"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,7 +38,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			<-shell.ExecuteInDir(".", "istiooc", "cluster", "up",
+			<-testshell.ExecuteInDir(".", "istiooc", "cluster", "up",
 				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
 				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
 			).Done()
@@ -46,19 +46,19 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		skipClusterShutdown = true
 	}
 	executeWithTimer(func() {
-		<-shell.Execute("oc login -u system:admin").Done()
+		<-testshell.Execute("oc login -u system:admin").Done()
 
 		fmt.Printf("\nExposing Docker Registry\n")
-		<-shell.Execute("oc expose service docker-registry -n default").Done()
+		<-testshell.Execute("oc expose service docker-registry -n default").Done()
 
 		// create a 'real user' we can use to push to the DockerRegistry
 		fmt.Printf("\nAdd admin user\n")
-		<-shell.Execute("oc create user admin").Done()
-		<-shell.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
+		<-testshell.Execute("oc create user admin").Done()
+		<-testshell.Execute("oc adm policy add-cluster-role-to-user cluster-admin admin").Done()
 
 		LoadIstio()
 
-		<-shell.Execute("oc login -u admin -p admin").Done()
+		<-testshell.Execute("oc login -u admin -p admin").Done()
 		workspaceNamespace := CreateOperatorNamespace()
 		BuildOperator()
 		DeployOperator()
@@ -75,7 +75,7 @@ var _ = SynchronizedAfterSuite(func() {},
 		if !skipClusterShutdown {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
-				shell.Execute("oc cluster down")
+				testshell.Execute("oc cluster down")
 			})
 		}
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
@@ -84,7 +84,7 @@ var _ = SynchronizedAfterSuite(func() {},
 	})
 
 func clusterNotRunning() bool {
-	clusterStatus := shell.Execute("oc cluster status")
+	clusterStatus := testshell.Execute("oc cluster status")
 	<-clusterStatus.Done()
 	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running")
 }
