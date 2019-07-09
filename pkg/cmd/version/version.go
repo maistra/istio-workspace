@@ -1,4 +1,4 @@
-package cmd
+package version
 
 import (
 	"fmt"
@@ -8,23 +8,26 @@ import (
 
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-// NewVersionCmd creates version cmd which prints version and build details of the executed binary
-func NewVersionCmd() *cobra.Command {
+var log = logf.Log.WithName("cmd").WithValues("type", "version")
+
+// NewCmd creates version cmd which prints version and Build details of the executed binary
+func NewCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			printVersion()
+			PrintVersion()
 			return nil
 		},
 	}
 }
 
-func printVersion() {
+func PrintVersion() {
 	log.Info(fmt.Sprintf("Ike Version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))

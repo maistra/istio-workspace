@@ -1,22 +1,28 @@
-package completion_test
+package watch_test
 
 import (
 	"testing"
 
-	"go.uber.org/goleak"
-
 	. "github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/shell"
+
+	"go.uber.org/goleak"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
-func TestCompletion(t *testing.T) {
+func TestWatchCommand(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Shell Completion Suite")
+	RunSpecWithJUnitReporter(t, "Watch Command Suite")
 }
 
-var _ = SynchronizedAfterSuite(func() {}, func() {
+var _ = BeforeSuite(shell.StubShellCommands)
+
+var _ = AfterSuite(func() {
+	CleanUpTmpFiles(GinkgoT())
+	gexec.CleanupBuildArtifacts()
 	goleak.VerifyNone(GinkgoT(),
 		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
 		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),

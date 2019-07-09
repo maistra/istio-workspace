@@ -1,4 +1,4 @@
-package cmd
+package completion
 
 import (
 	"bytes"
@@ -18,8 +18,8 @@ const (
 `
 )
 
-// NewCompletionCmd creates completion cmd provides autocomplete functionality for different shell environments
-func NewCompletionCmd() *cobra.Command {
+// NewCmd creates completion cmd provides autocomplete functionality for different shell environments
+func NewCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:          "completion [SHELL]",
 		Short:        "Prints shell completion scripts",

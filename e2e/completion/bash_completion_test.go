@@ -1,9 +1,10 @@
 package completion_test
 
 import (
-	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 	. "github.com/maistra/istio-workspace/e2e/infra"
+	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/test"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -17,7 +18,7 @@ var _ = Describe("Bash Completion Tests", func() {
 			completionScript := tmpDir + "/get_completion.sh"
 			CreateFile(completionScript, getCompletionBash)
 
-			completion := cmd.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source " + completionScript +  " && get_completions 'ike '")
+			completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions 'ike '")
 			<-completion.Done()
 
 			result := completion.Status().Stdout
@@ -83,4 +84,3 @@ get_completions(){
     printf '%s\n' "${COMPREPLY[@]}" | LC_ALL=C sort
 }
 `
-

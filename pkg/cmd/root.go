@@ -4,29 +4,35 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/completion"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/format"
+
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd")
+var log = logf.Log.WithName("cmd").WithValues("type", "root")
 
-// NewRootCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
-func NewRootCmd() *cobra.Command {
+// NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
+func NewCmd() *cobra.Command {
 	var configFile string
 
 	rootCmd := &cobra.Command{
 		Use:                    "ike",
 		Short:                  "ike lets you safely develop and test on prod without a sweat",
-		BashCompletionFunction: BashCompletionFunc,
+		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
 			if shouldPrintVersion {
-				printVersion()
+				version.PrintVersion()
 			} else {
 				fmt.Print(cmd.UsageString())
 			}
@@ -43,7 +49,8 @@ func NewRootCmd() *cobra.Command {
 		log.Error(err, "failed while trying to hide a flag")
 	}
 
-	EnhanceHelper(rootCmd)
+	format.EnhanceHelper(rootCmd)
+	format.RegisterTemplateFuncs()
 
 	return rootCmd
 }

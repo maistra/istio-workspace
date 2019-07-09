@@ -1,4 +1,4 @@
-package cmd
+package shell
 
 import (
 	"fmt"
@@ -9,12 +9,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/spf13/cobra"
-
-	"github.com/spf13/pflag"
-
 	gocmd "github.com/go-cmd/cmd"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "os")
 
 // StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd
 var StreamOutput = gocmd.Options{
@@ -82,7 +81,6 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 				<-cmd.Done()
 				break OutOfLoop
 			case <-done:
-				println("DONE ShutdownHook")
 				break OutOfLoop
 			}
 		}
@@ -110,7 +108,6 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 					log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
 			case <-done:
-				println("DONE RedirectStreams")
 				break OutOfLoop
 			}
 		}
@@ -139,16 +136,4 @@ func BinaryExists(binName, hint string) bool {
 	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
 	return true
-}
-
-func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
-	slice, _ := flags.GetStringSlice(name)
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
-}
-
-func VisitAll(command *cobra.Command, apply func(command *cobra.Command)) {
-	for _, child := range command.Commands() {
-		VisitAll(child, apply)
-	}
-	apply(command)
 }

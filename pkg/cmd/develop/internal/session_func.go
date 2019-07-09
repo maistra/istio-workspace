@@ -1,7 +1,7 @@
-package cmd
+package internal
 
 import (
-	"github.com/maistra/istio-workspace/cmd/ike/session"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -9,7 +9,7 @@ import (
 
 // session expects that cmd has offline, deployment and session flags defined.
 // otherwise it fails
-func sessions(cmd *cobra.Command) (session.State, func(), error) {
+func Sessions(cmd *cobra.Command) (session.State, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 
 	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {

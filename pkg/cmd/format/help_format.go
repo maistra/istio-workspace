@@ -1,10 +1,10 @@
-package cmd
+package format
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
@@ -28,8 +28,6 @@ func EnhanceHelper(command *cobra.Command) {
 			return
 		}
 
-		registerTemplateFuncs()
-
 		cmd.SetHelpTemplate(OnlyUsageString)
 		if helpFormat == "adoc" {
 			cmd.SetUsageTemplate(ADocHelpTable)
@@ -39,7 +37,7 @@ func EnhanceHelper(command *cobra.Command) {
 	})
 }
 
-func registerTemplateFuncs() {
+func RegisterTemplateFuncs() {
 	cobra.AddTemplateFunc("localFlagsSlice", func(set *pflag.FlagSet) []pflag.Flag {
 		flags := make([]pflag.Flag, 0)
 		set.VisitAll(func(flag *pflag.Flag) {

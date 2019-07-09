@@ -1,4 +1,4 @@
-package cmd
+package install
 
 import (
 	"fmt"
@@ -18,10 +18,13 @@ import (
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/errors"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-// NewInstallCmd takes care of deploying server-side components of istio-workspace
-func NewInstallCmd() *cobra.Command {
+var log = logf.Log.WithName("cmd").WithValues("type", "install")
+
+// NewCmd takes care of deploying server-side components of istio-workspace
+func NewCmd() *cobra.Command {
 	installCmd := &cobra.Command{
 		Use:          "install-operator",
 		Short:        "Takes care of deploying server-side components of istio-workspace",
