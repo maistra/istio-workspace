@@ -14,23 +14,69 @@ var _ = Describe("Bash Completion Tests", func() {
 	Context("basic completion", func() {
 
 		It("should show all visible main commands", func() {
-			tmpDir := test.TmpDir(GinkgoT(), "ike-bash-completion")
-			completionScript := tmpDir + "/get_completion.sh"
-			CreateFile(completionScript, getCompletionBash)
+			completionResults := completionFor("ike ")
+			Expect(completionResults).To(ConsistOf("completion", "develop", "install-operator", "serve", "version"))
+		})
 
-			completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions 'ike '")
-			<-completion.Done()
+		Context("develop", func() {
 
-			result := completion.Status().Stdout
+			It("should show only required flags for plain command", func() {
+				Expect(completionFor("ike develop ")).To(ConsistOf("--deployment=", "-d", "-r", "--run="))
+			})
 
-			Expect(result).To(HaveLen(5))
-			Expect(result).To(ConsistOf("completion", "develop", "install-operator", "serve", "version"))
+			It("should show all flags only after required ones are passed", func() {
+				completionResults := completionFor("ike develop -d deployment -r run.sh -")
+				Expect(completionResults).To(ContainElement("--build"))
+				Expect(completionResults).To(ContainElement("--route"))
+				Expect(completionResults).To(ContainElement("-p"))
+				Expect(completionResults).To(ContainElement("--watch"))
+			})
+		})
 
+		Context("install-operator", func() {
+
+			It("should show matching command", func() {
+				Expect(completionFor("ike install-")).To(ConsistOf("install-operator"))
+			})
+
+			It("should show all flags inherited from root", func() {
+				Expect(completionFor("ike install-operator -")).To(ConsistOf("--config", "--config=","-c", "--namespace", "--namespace=", "-n"))
+			})
 		})
 
 	})
 
+	// see setup in e2e_suite_test.go#createProjectsForCompletionTests
+	Context("kubectl related completion", func() {
+
+		It("should show available namespaces", func() {
+			nsCompletion := completionFor("ike develop -n ")
+			Expect(nsCompletion).To(ContainElement("myproject"))
+			Expect(nsCompletion).To(ContainElement("otherproject"))
+		})
+
+		It("should show available deployments for default namespace (myproject)", func() {
+			Expect(completionFor("ike develop -d ")).To(ConsistOf("my-datawire-deployment"))
+		})
+
+		It("should show available deployments for selected namespace (otherproject)", func() {
+			Expect(completionFor("ike develop -n otherproject -d ")).To(ConsistOf("other-1-datawire-deployment", "other-2-datawire-deployment"))
+		})
+	})
+
 })
+
+func completionFor(cmd string) []string {
+	tmpDir := test.TmpDir(GinkgoT(), "ike-bash-completion")
+	completionScript := tmpDir + "/get_completion.sh"
+	CreateFile(completionScript, getCompletionBash)
+	defer DeleteFile(completionScript)
+
+	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")
+	<-completion.Done()
+
+	return completion.Status().Stdout
+}
 
 const getCompletionBash = `
 #

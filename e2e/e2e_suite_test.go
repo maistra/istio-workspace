@@ -64,10 +64,21 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		DeployOperator()
 		Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
 			Should(ContainSubstring("No resources found"))
+
+		createProjectsForCompletionTests()
 	})
 	return nil
 },
 	func(data []byte) {})
+
+func createProjectsForCompletionTests() {
+	<-testshell.Execute("oc login -u admin -p admin").Done()
+	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images").Done()
+	<-testshell.Execute("oc new-project otherproject").Done()
+	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name other-1-datawire-deployment --allow-missing-images").Done()
+	<-testshell.Execute("oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images").Done()
+	<-testshell.Execute("oc project myproject").Done()
+}
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
@@ -78,6 +89,7 @@ var _ = SynchronizedAfterSuite(func() {},
 				testshell.Execute("oc cluster down")
 			})
 		}
+
 		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
