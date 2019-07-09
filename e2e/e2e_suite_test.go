@@ -80,8 +80,8 @@ func createProjectsForCompletionTests() {
 		"oc new-app --docker-image datawire/hello-world --name my-datawire-deployment --allow-missing-images",
 		"oc new-project otherproject",
 		"oc new-app --docker-image datawire/hello-world --name other-1-datawire-deployment --allow-missing-images",
-		"oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images,"+
-			"oc project myproject",
+		"oc new-app --docker-image datawire/hello-world --name other-2-datawire-deployment --allow-missing-images,",
+		"oc project myproject",
 	)
 }
 
