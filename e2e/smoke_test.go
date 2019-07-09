@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maistra/istio-workspace/cmd/ike/cmd"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
+	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
@@ -27,11 +27,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		BeforeEach(func() {
 			appName = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
-			Expect(cmd.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
+			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
 		AfterEach(func() {
-			<-cmd.Execute("oc delete project " + appName).Done()
+			<-shell.Execute("oc delete project " + appName).Done()
 		})
 
 		It("should watch python code changes and replace service when they occur", func() {
@@ -40,7 +40,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Eventually(callGetOn(appName), 1*time.Minute).Should(Equal("Hello, world!\n"))
 
 			OriginalServerCodeIn(tmpDir)
-			ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+			ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
 				"--deployment", appName,
 				"--port", "8000",
 				"--method", "inject-tcp",
@@ -72,15 +72,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			namespace = naming.RandName(16)
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
-			<-cmd.Execute("oc login -u developer").Done()
-			<-cmd.Execute("oc new-project " + namespace).Done()
+			<-shell.Execute("oc login -u developer").Done()
+			<-shell.Execute("oc new-project " + namespace).Done()
+
 			UpdateSecurityConstraintsFor(namespace)
 			BuildTestService(namespace)
 			DeployTestScenario(scenario, namespace)
 		})
 
 		AfterEach(func() {
-			<-cmd.Execute("oc delete project " + namespace).Done()
+			<-shell.Execute("oc delete project " + namespace).Done()
 		})
 
 		Context("scenario-1-basic-deployment", func() {
@@ -100,7 +101,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 				// when we start ike with watch
-				ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+				ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
 					"--deployment", "ratings-v1",
 					"--port", "9080",
 					"--watch",
@@ -154,13 +155,13 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace
-	<-cmd.Execute("oc project myproject").Done()
+	<-shell.Execute("oc project myproject").Done()
 
 	// given we have details code locally
 	CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
 
 	// when we start ike with watch
-	ikeWithWatch := cmd.ExecuteInDir(tmpDir, "ike", "develop",
+	ikeWithWatch := shell.ExecuteInDir(tmpDir, "ike", "develop",
 		"--deployment", "ratings-v1",
 		"-n", namespace,
 		"--port", "9080",

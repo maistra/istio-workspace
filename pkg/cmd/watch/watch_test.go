@@ -1,11 +1,15 @@
-package cmd_test
+package watch_test
 
 import (
 	"path"
 	"strings"
 	"time"
 
-	. "github.com/maistra/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/pkg/cmd/watch"
+
+	"github.com/maistra/istio-workspace/test/shell"
+
+	. "github.com/maistra/istio-workspace/pkg/cmd"
 	. "github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
@@ -19,17 +23,17 @@ var _ = Describe("Usage of ike watch command", func() {
 	var watchCmd *cobra.Command
 
 	BeforeEach(func() {
-		watchCmd = NewWatchCmd()
+		watchCmd = watch.NewCmd()
 		watchCmd.SilenceUsage = true
 		watchCmd.SilenceErrors = true
-		NewRootCmd().AddCommand(watchCmd)
+		NewCmd().AddCommand(watchCmd)
 	})
 
 	Context("watching file changes", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(mvnBin), path.Dir(tpSleepBin), path.Dir(javaBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin), path.Dir(shell.JavaBin))
 		})
 		AfterEach(tmpPath.Restore)
 
@@ -39,7 +43,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
 			outputChan := make(chan string)
 
-			go executeCommand(outputChan, func() (string, error) {
+			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
@@ -68,7 +72,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			logFile := TmpFile(GinkgoT(), "/tmp/watch-test/tomcat.log", "content")
 			outputChan := make(chan string)
 
-			go executeCommand(outputChan, func() (string, error) {
+			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--dir", "/tmp/watch-test",
@@ -93,7 +97,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// given
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
+			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
@@ -121,7 +125,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
+			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--dir", "/tmp/watch-test",
@@ -148,7 +152,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
-			go executeCommand(outputChan, func() (string, error) {
+			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--config", configFile.Name(),
 					"--no-build",

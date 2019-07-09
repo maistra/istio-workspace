@@ -1,4 +1,4 @@
-package cmd
+package serve
 
 import (
 	"context"
@@ -14,17 +14,20 @@ import (
 	"github.com/spf13/cobra"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "serve")
 
 var (
 	metricsHost       = "0.0.0.0"
 	metricsPort int32 = 8383
 )
 
-// NewServeCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
+// NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
 // cluster as it starts istio-workspace operator
-func NewServeCmd() *cobra.Command {
+func NewCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Starts istio-workspace operator in the cluster",

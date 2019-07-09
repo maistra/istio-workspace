@@ -1,10 +1,10 @@
-package cmd
+package format
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/cmd/ike/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"

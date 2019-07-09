@@ -1,4 +1,4 @@
-package cmd
+package shell
 
 import (
 	"fmt"
@@ -9,10 +9,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/spf13/pflag"
-
 	gocmd "github.com/go-cmd/cmd"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("cmd").WithValues("type", "os")
 
 // StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd
 var StreamOutput = gocmd.Options{
@@ -136,9 +137,4 @@ func BinaryExists(binName, hint string) bool {
 	log.Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
 	return true
-}
-
-func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
-	slice, _ := flags.GetStringSlice(name)
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

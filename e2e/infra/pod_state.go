@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/cmd/ike/cmd"
+	"github.com/maistra/istio-workspace/pkg/shell"
 )
 
 // AllPodsNotInState creates a function which checks if all pods in the given namespace are in desired state
 // Returns content of Stderr to determine if there was an error
 func AllPodsNotInState(namespace, state string) func() string {
 	return func() string {
-		ocGetAllPods := cmd.ExecuteInDir(".",
+		ocGetAllPods := shell.ExecuteInDir(".",
 			"oc", "get", "pods",
 			"-n", namespace,
 		)
@@ -21,7 +21,7 @@ func AllPodsNotInState(namespace, state string) func() string {
 			return fmt.Sprintf("no pods in any state found in %s namespace", namespace)
 		}
 
-		ocGetFilteredPods := cmd.ExecuteInDir(".",
+		ocGetFilteredPods := shell.ExecuteInDir(".",
 			"oc", "get", "pods",
 			"-n", namespace,
 			"--field-selector", "status.phase!="+state,
@@ -35,7 +35,7 @@ func AllPodsNotInState(namespace, state string) func() string {
 // Returns content of Stdout to inspect
 func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
 	return func() string {
-		ocGetPods := cmd.ExecuteInDir(".",
+		ocGetPods := shell.ExecuteInDir(".",
 			"oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
@@ -51,7 +51,7 @@ func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
 // Returns content of Stdout for further inspection
 func PodCompletedStatus(namespace, label string) func() string {
 	return func() string {
-		ocGetPods := cmd.ExecuteInDir(".",
+		ocGetPods := shell.ExecuteInDir(".",
 			"oc", "get", "pods",
 			"-n", namespace,
 			"-l", label,
