@@ -5,7 +5,7 @@ defaults:
       sudo rm -rf /usr/local/go
       sudo circleci-install golang 1.12.7
   docker:
-    - image: &golang-img circleci/1.12.7
+    - image: &golang-img circleci/golang:1.12.6
 
 version: 2.1
 jobs:
