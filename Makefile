@@ -102,17 +102,17 @@ endif
 
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
-
+GOOS?=$(shell uname -s | awk '{print tolower($$0)}')
 $(BINARY_DIR):
 	[ -d $@ ] || mkdir -p $@
 
 $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
+	GOOS=$(GOOS) CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling test service... carry on!")
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
+	GOOS=$(GOOS) CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 ##@ Setup
 
@@ -149,6 +149,7 @@ IKE_DOCKER_REGISTRY?=quay.io
 IKE_DOCKER_REPOSITORY?=maistra
 
 .PHONY: docker-build
+docker-build: GOOS=linux
 docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
