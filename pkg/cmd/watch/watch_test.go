@@ -97,14 +97,14 @@ var _ = Describe("Usage of ike watch command", func() {
 
 		It("should build and run java process only initially when changing file is excluded", func() {
 			// given
-			tmpDir := TmpDir(GinkgoT(), "build-run-java")
+			tmpDir := TmpDir(GinkgoT(), "build-run-java-excluded")
 			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					"--exclude", "*.java",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
