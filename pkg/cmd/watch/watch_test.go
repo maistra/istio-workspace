@@ -39,15 +39,16 @@ var _ = Describe("Usage of ike watch command", func() {
 
 		It("should re-build and re-run java process", func() {
 			// given
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
-			telepresenceLog := TmpFile(GinkgoT(), "/tmp/watch-test/telepresence.log", "content")
+			tmpDir := TmpDir(GinkgoT(), "re-run")
+			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
+			telepresenceLog := TmpFile(GinkgoT(), tmpDir+"/watch-test/telepresence.log", "content")
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
 				)
@@ -69,13 +70,14 @@ var _ = Describe("Usage of ike watch command", func() {
 
 		It("should start java process once if only log file is changing", func() {
 			// given
-			logFile := TmpFile(GinkgoT(), "/tmp/watch-test/tomcat.log", "content")
+			tmpDir := TmpDir(GinkgoT(), "start-java")
+			logFile := TmpFile(GinkgoT(), tmpDir+"/watch-test/tomcat.log", "content")
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"interval", "10",
 				)
@@ -95,13 +97,14 @@ var _ = Describe("Usage of ike watch command", func() {
 
 		It("should build and run java process only initially when changing file is excluded", func() {
 			// given
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
+			tmpDir := TmpDir(GinkgoT(), "build-run-java-excluded")
+			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					"--exclude", "*.java",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
@@ -122,13 +125,14 @@ var _ = Describe("Usage of ike watch command", func() {
 		})
 
 		It("should ignore build if not defined and just re-run java process on file change", func() {
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
+			tmpDir := TmpDir(GinkgoT(), "ignore-build")
+			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--run", "java -jar rating.jar",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
 				)
@@ -149,14 +153,15 @@ var _ = Describe("Usage of ike watch command", func() {
   run: "java -jar config.jar"
   build: "mvn clean install"
 `)
-			code := TmpFile(GinkgoT(), "/tmp/watch-test/rating.java", "content")
+			tmpDir := TmpDir(GinkgoT(), "re-run-no-build")
+			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(watchCmd).Passing(
 					"--config", configFile.Name(),
 					"--no-build",
-					"--dir", "/tmp/watch-test",
+					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
 				)

@@ -77,6 +77,11 @@ codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-
 # Build configuration
 # ##########################################################################
 
+OS:=$(shell uname -s)
+export OS
+GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
+GOARCH:= amd64
+
 BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
@@ -92,6 +97,7 @@ else ifneq ($(GITUNTRACKEDCHANGES),)
 	VERSION:=$(VERSION)-dirty-$(shell date +%s)
 endif
 
+GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
 
@@ -100,11 +106,11 @@ $(BINARY_DIR):
 
 $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
+	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling test service... carry on!")
-	GOOS=linux CGO_ENABLED=0 go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
+	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 ##@ Setup
 
@@ -117,11 +123,17 @@ tools: ## Installs required go tools
 	go get -u github.com/onsi/ginkgo/ginkgo
 	go get -u github.com/go-bindata/go-bindata/...
 
+OPERATOR_OS=linux-gnu
+ifeq ($(OS), Darwin)
+	OPERATOR_OS=apple-darwin
+endif
+OPERATOR_ARCH:=$(shell uname -m)
+
 $(CUR_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli tool")
 	mkdir -p $(CUR_DIR)/bin/
 	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-x86_64-linux-gnu -O $(CUR_DIR)/bin/operator-sdk
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(CUR_DIR)/bin/operator-sdk
 	chmod +x $(CUR_DIR)/bin/operator-sdk
 
 $(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
@@ -141,6 +153,7 @@ IKE_DOCKER_REGISTRY?=quay.io
 IKE_DOCKER_REPOSITORY?=maistra
 
 .PHONY: docker-build
+docker-build: GOOS=linux
 docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
