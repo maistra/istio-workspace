@@ -30,6 +30,8 @@ var appFs = afero.NewOsFs()
 func TmpDir(t TestReporter, dir string) string {
 	fullPath := dir
 	if !path.IsAbs(dir) {
+		// Removes trailing slash which is returned by MacOS https://github.com/golang/go/issues/21318
+		// Otherwise ending up with `//` vs `/` in mac vs linux resulting in failures
 		tmpDir := filepath.Clean(os.TempDir())
 		fullPath = fmt.Sprintf("%s/%s/%s", tmpDir, randomAlphaNumeric(), dir)
 	}
@@ -50,6 +52,8 @@ func TmpDir(t TestReporter, dir string) string {
 func TmpFile(t TestReporter, filePath, content string) afero.File {
 	fullPath := filePath
 	if !path.IsAbs(filePath) {
+		// Removes trailing slash which is returned by MacOS https://github.com/golang/go/issues/21318
+		// Otherwise ending up with `//` vs `/` in mac vs linux resulting in failures
 		tmpDir := filepath.Clean(os.TempDir())
 		fullPath = fmt.Sprintf("%s/%s/%s", tmpDir, randomAlphaNumeric(), filePath)
 	}
