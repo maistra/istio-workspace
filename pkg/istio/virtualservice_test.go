@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
 	"istio.io/api/networking/v1alpha3"
@@ -192,6 +193,51 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-vs-test"))
 				})
 			})
+		})
+	})
+
+	Context("required", func() {
+		BeforeEach(func() {
+			virtualService = istionetwork.VirtualService{
+				Spec: v1alpha3.VirtualService{
+					Http: []*v1alpha3.HTTPRoute{
+						{
+							Route: []*v1alpha3.HTTPRouteDestination{
+								{
+									Destination: &v1alpha3.Destination{
+										Host: "x",
+									},
+								},
+								{
+									Destination: &v1alpha3.Destination{
+										Host:   "y",
+										Subset: "v1",
+									},
+								},
+							},
+						},
+						{
+							Route: []*v1alpha3.HTTPRouteDestination{
+								{
+									Destination: &v1alpha3.Destination{
+										Host:   "z",
+										Subset: "v2",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+		It("Should require unversioned targets", func() {
+			Expect(mutationRequired(&virtualService, "x", "v1")).To(BeTrue())
+		})
+		It("Should require versioned targets", func() {
+			Expect(mutationRequired(&virtualService, "y", "v1")).To(BeTrue())
+		})
+		It("Should not require other versioned targets", func() {
+			Expect(mutationRequired(&virtualService, "z", "v1")).To(BeFalse())
 		})
 	})
 })
