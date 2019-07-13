@@ -23,6 +23,10 @@ const (
 	EnvServiceCall = "SERVICE_CALL"
 )
 
+var (
+	rootDir = "test/cmd/test-service/assets/"
+)
+
 func main() {
 	logf.SetLogger(logf.ZapLogger(false))
 

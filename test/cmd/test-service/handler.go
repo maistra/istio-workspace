@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -33,6 +34,19 @@ func NewBasic(config Config, log logr.Logger) http.HandlerFunc {
 func basic(config Config, log logr.Logger) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		logIncomingRequest(log, req)
+		if strings.Contains(req.Header.Get("accept"), "text/html") {
+			b, err := Asset("index.html")
+			if err != nil {
+				resp.WriteHeader(500)
+				resp.Write([]byte(err.Error()))
+				return
+			}
+			resp.Header().Set("content-type", "text/html")
+			resp.WriteHeader(200)
+			resp.Write(b)
+			return
+		}
+
 		start := time.Now()
 		callStack := CallStack{
 			Caller:    config.Name,

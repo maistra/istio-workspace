@@ -122,9 +122,17 @@ $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
-$(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS)
+$(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
+
+test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
+	$(call header,"Compiling test assets... carry on!")
+	go-bindata -o test/cmd/test-service/html.go -pkg main -prefix test/cmd/test-service/assets test/cmd/test-service/assets/*
+
+.PHONY: compile-test-service
+compile-test-service: test/cmd/test-service/html.go $(BINARY_DIR)/$(TEST_BINARY_NAME)
+
 
 ##@ Setup
 
