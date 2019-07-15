@@ -1,6 +1,3 @@
-FROM centos:7
-
-RUN adduser istio-workspace
-USER istio-workspace
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.0
 
 ADD dist/ike /usr/local/bin/ike
