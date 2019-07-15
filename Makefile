@@ -66,7 +66,7 @@ GROUP_VERSIONS:="istio:v1alpha1"
 .PHONY: codegen
 codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
-	$(CUR_DIR)/bin/operator-sdk generate k8s
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) $(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
 	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
