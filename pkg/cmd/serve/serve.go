@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
@@ -83,7 +86,13 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	}
 
 	// Create Service object to expose the metrics port.
-	if _, err = metrics.ExposeMetricsPort(ctx, metricsPort); err != nil {
+	servicePorts := []v1.ServicePort{
+		{Port: metricsPort,
+			Name:       metrics.OperatorPortName,
+			Protocol:   v1.ProtocolTCP,
+			TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+	}
+	if _, err = metrics.CreateMetricsService(ctx, cfg, servicePorts); err != nil {
 		log.Info(err.Error())
 	}
 
