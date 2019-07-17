@@ -34,7 +34,7 @@ jobs:
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed
   e2e_tests:
-    working_directory: $HOME/.go_workspace/src/github.com/maistra/istio-workspace
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
     environment:
@@ -92,7 +92,7 @@ jobs:
             - ./vendor
 
   release:
-    working_directory: $HOME/.go_workspace/src/github.com/maistra/istio-workspace
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
     environment:
