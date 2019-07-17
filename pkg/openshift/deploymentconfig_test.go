@@ -86,10 +86,16 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 						Labels: map[string]string{
 							"version": "0.0.1",
 						},
+						CreationTimestamp: metav1.Now(),
 					},
 					Spec: appsv1.DeploymentConfigSpec{
 						Selector: map[string]string{"A": "A"},
 						Template: &v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{
+									"version": "0.0.1",
+								},
+							},
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
@@ -205,6 +211,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 						Labels: map[string]string{
 							"version": "0.0.1",
 						},
+						CreationTimestamp: metav1.Now(),
 					},
 					Spec: appsv1.DeploymentConfigSpec{
 						Selector: map[string]string{"A": "A"},

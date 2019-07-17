@@ -76,6 +76,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 						Labels: map[string]string{
 							"version": "0.0.1",
 						},
+						CreationTimestamp: metav1.Now(),
 					},
 
 					Spec: appsv1.DeploymentSpec{
@@ -198,6 +199,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 						Labels: map[string]string{
 							"version": "0.0.1",
 						},
+						CreationTimestamp: metav1.Now(),
 					},
 
 					Spec: appsv1.DeploymentSpec{

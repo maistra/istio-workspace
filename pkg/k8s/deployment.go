@@ -1,13 +1,13 @@
 package k8s
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "k8s.io/api/apps/v1"
-
-	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,7 +54,11 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	}
 	ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	if err != nil {
+		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
+		return err
+	}
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
@@ -88,42 +92,31 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Deployment {
-	deploymentClone := deployment.DeepCopy()
-	replicasClone := int32(1)
-	labelsClone := deploymentClone.GetLabels()
-	labelsClone["telepresence"] = "test"
-	labelsClone["version-source"] = labelsClone["version"]
-	labelsClone["version"] = version
-	deploymentClone.SetName(deployment.GetName() + "-" + version)
-	deploymentClone.SetLabels(labelsClone)
-	deploymentClone.Spec.Selector.MatchLabels = labelsClone
-	deploymentClone.Spec.Template.SetLabels(labelsClone)
-	deploymentClone.SetResourceVersion("")
-	deploymentClone.Spec.Replicas = &replicasClone
-
+func cloneDeployment(deployment *appsv1.Deployment, version string) (*appsv1.Deployment, error) {
 	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !found {
 		tpVersion = "0.101"
 	}
 
-	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:" + tpVersion
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
-		ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				APIVersion: "v1",
-				FieldPath:  "metadata.namespace",
-			},
-		},
-	})
-	// remove unneeded fields
-	container.LivenessProbe = nil
-	container.ReadinessProbe = nil
+	org, err := json.Marshal(deployment)
+	if err != nil {
+		return nil, err
+	}
 
-	deploymentClone.Spec.Template.Spec.Containers[0] = container
-	return deploymentClone
+	e := template.NewDefaultEngine()
+	modified, err := e.Run("telepresence", org, version, map[string]string{
+		"TelepresenceVersion": tpVersion,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	clone := appsv1.Deployment{}
+	err = json.Unmarshal(modified, &clone)
+	if err != nil {
+		return nil, err
+	}
+	return &clone, nil
 }
 
 func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) { //nolint[:hugeParam]
