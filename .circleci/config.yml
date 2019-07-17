@@ -22,9 +22,7 @@ jobs:
             - vendor-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs the build"
-          command: |
-            make tools && \
-            make build-ci
+          command: make build-ci
       - save_cache:
           key: vendor-cache-{{ checksum "Gopkg.lock" }}
           paths:
@@ -81,7 +79,7 @@ jobs:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
-          command: TELEPRESENCE_VERSION=$(telepresence --version) make tools deps test-e2e
+          command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
       - save_cache:
           key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
@@ -107,9 +105,6 @@ jobs:
             sudo apt-get install pandoc
       - run:
           <<: *golang-install
-      - run:
-          name: "Installs Golang project prerequisites"
-          command: make tools
       - run:
           name: "Push it!"
           command: |
