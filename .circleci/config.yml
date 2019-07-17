@@ -6,6 +6,10 @@ defaults:
       sudo circleci-install golang 1.12.7
   docker:
     - image: &golang-img circleci/golang:1.12.6
+  machine-conf: &machine-conf
+    image: ubuntu-1604:201903-01
+  env-vars: &env-vars
+    GOPATH: $HOME/.go_workspace
 
 version: 2.1
 jobs:
@@ -30,9 +34,11 @@ jobs:
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed
   e2e_tests:
-    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
+    working_directory: $HOME/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
-      image: ubuntu-1604:201903-01
+      <<: *machine-conf
+    environment:
+      <<: *env-vars
     steps:
       - checkout
       - run:
@@ -86,9 +92,11 @@ jobs:
             - ./vendor
 
   release:
-    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
+    working_directory: $HOME/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
-      image: ubuntu-1604:201903-01
+      <<: *machine-conf
+    environment:
+      <<: *env-vars
     steps:
       - checkout
       - run:
