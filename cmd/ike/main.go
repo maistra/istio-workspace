@@ -17,6 +17,7 @@ import (
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 func main() {
