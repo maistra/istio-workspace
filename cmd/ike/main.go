@@ -1,22 +1,22 @@
 package main
 
 import (
-	"math/rand"
-	"time"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/install"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
+	"math/rand"
+	"time"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/watch"
 
 	"github.com/maistra/istio-workspace/pkg/cmd"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 )
 
 func main() {
