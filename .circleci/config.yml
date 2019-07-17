@@ -9,7 +9,7 @@ defaults:
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   env-vars: &env-vars
-    GOPATH: $HOME/.go_workspace
+    GOPATH: ~/.go_workspace
 
 version: 2.1
 jobs:
