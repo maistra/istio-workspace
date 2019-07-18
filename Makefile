@@ -67,12 +67,13 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 	golangci-lint run
 
 GROUP_VERSIONS:="istio:v1alpha1"
+GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: codegen
 codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 1 | rev) $(CUR_DIR)/bin/operator-sdk generate k8s
+	GOPATH=$(GOPATH_1) $(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 1 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
+	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
