@@ -6,6 +6,10 @@ defaults:
       sudo circleci-install golang 1.12.7
   docker:
     - image: &golang-img circleci/golang:1.12.6
+  machine-conf: &machine-conf
+    image: ubuntu-1604:201903-01
+  env-vars: &env-vars
+    GOPATH: /home/circleci/.go_workspace
 
 version: 2.1
 jobs:
@@ -22,9 +26,7 @@ jobs:
             - vendor-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs the build"
-          command: |
-            make tools && \
-            make build-ci
+          command: make build-ci
       - save_cache:
           key: vendor-cache-{{ checksum "Gopkg.lock" }}
           paths:
@@ -34,7 +36,9 @@ jobs:
   e2e_tests:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
-      image: ubuntu-1604:201903-01
+      <<: *machine-conf
+    environment:
+      <<: *env-vars
     steps:
       - checkout
       - run:
@@ -81,7 +85,7 @@ jobs:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
-          command: TELEPRESENCE_VERSION=$(telepresence --version) make tools deps test-e2e
+          command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
       - save_cache:
           key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
@@ -90,7 +94,9 @@ jobs:
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
-      image: ubuntu-1604:201903-01
+      <<: *machine-conf
+    environment:
+      <<: *env-vars
     steps:
       - checkout
       - run:
@@ -107,9 +113,6 @@ jobs:
             sudo apt-get install pandoc
       - run:
           <<: *golang-install
-      - run:
-          name: "Installs Golang project prerequisites"
-          command: make tools
       - run:
           name: "Push it!"
           command: |
