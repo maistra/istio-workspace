@@ -60,4 +60,4 @@ issues:
 service:
   project-path: github.com/maistra/istio-workspace
   prepare:
-    - make tools deps codegen
+    - make deps codegen

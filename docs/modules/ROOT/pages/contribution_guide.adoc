@@ -37,13 +37,17 @@ $ git clone https://github.com/maistra/istio-workspace $GOPATH/src/github.com/ma
 TIP: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
 and management of different versions of Go.
 
-then run `make tools` which will take care of installing all the tools mentioned below:
+We rely on following tools:
 
-* link:https://golang.github.io/dep/[`dep`] for dependency management
-* link:https://github.com/golangci/golangci-lint[`golang-ci`] linter
-* link:https://github.com/onsi/ginkgo[`ginkgo`] for testing
-* link:https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
-* link:https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
+* https://golang.github.io/dep/[`dep`] for dependency management
+* https://github.com/golangci/golangci-lint[`golang-ci`] linter
+* https://github.com/onsi/ginkgo[`ginkgo`] for testing
+* https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
+* https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
+
+but from now on you are ready to hack - invoking `make` will check if those binaries are available and install if there are some missing.
+
+Run `make help` to see what targets are available, but you will use `make` most often.
 
 === Coding
 

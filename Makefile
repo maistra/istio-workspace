@@ -15,6 +15,10 @@ ASSET_SRCS=$(shell find ./deploy/istio-workspace -name "*.yaml")
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
+# Determine this makefile's path.
+# Be sure to place this BEFORE `include` directives, if any.
+THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
+
 # Call this function with $(call header,"Your message") to see underscored green text
 define header =
 @echo -e "\n\e[92m\e[4m\e[1m$(1)\e[0m\n"
@@ -48,7 +52,7 @@ clean: ## Removes build artifacts
 	rm -rf $(BINARY_DIR) $(CUR_DIR)/bin/
 
 .PHONY: deps
-deps: ## Fetches all dependencies
+deps: check-tools ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
 	dep ensure -v
 
@@ -66,9 +70,9 @@ GROUP_VERSIONS:="istio:v1alpha1"
 .PHONY: codegen
 codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) $(CUR_DIR)/bin/operator-sdk generate k8s
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 1 | rev) $(CUR_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
-	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 2 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
+	GOPATH=$(shell echo ${GOPATH} | rev | cut -d':' -f 1 | rev) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
 		$(GROUP_VERSIONS)
@@ -122,6 +126,14 @@ tools: ## Installs required go tools
 	go get -u golang.org/x/tools/cmd/goimports
 	go get -u github.com/onsi/ginkgo/ginkgo
 	go get -u github.com/go-bindata/go-bindata/...
+
+EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata
+CHECK:=$(foreach exec,$(EXECUTABLES),\
+        $(if $(shell which $(exec) 2>/dev/null),,"install"))
+.PHONY: check-tools
+check-tools:
+	$(call header,"Checking required tools")
+	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) tools,echo "'$(EXECUTABLES)' are installed")
 
 OPERATOR_OS=linux-gnu
 ifeq ($(OS), Darwin)

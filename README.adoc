@@ -38,7 +38,7 @@ Assuming that you have all the https://golang.org/doc/install[Golang prerequisit
 $ git clone https://github.com/maistra/istio-workspace $GOPATH/src/github.com/maistra/istio-workspace
 ----
 
-then run `make tools` which will take care of installing all the tools mentioned below:
+We rely on following tools:
 
 * https://golang.github.io/dep/[`dep`] for dependency management
 * https://github.com/golangci/golangci-lint[`golang-ci`] linter
@@ -46,8 +46,9 @@ then run `make tools` which will take care of installing all the tools mentioned
 * https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
 * https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
 
-From now on you are ready to hack. Run `make help` to see what targets are available, but you will use
-`make build` and `make test` most often.
+but from now on you are ready to hack - invoking `make` will check if those binaries are available and install if there are some missing.
+
+Run `make help` to see what targets are available, but you will use `make` most often.
 
 NOTE: Have a look how https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
 and management of different versions of Go.
