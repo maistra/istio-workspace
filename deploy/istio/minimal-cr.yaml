@@ -1,5 +1,66 @@
-apiVersion: "istio.openshift.com/v1alpha1"
-kind: "Installation"
+apiVersion: maistra.io/v1
+kind: ServiceMeshControlPlane
 metadata:
-  name: "istio-installation"
-  namespace: istio-operator
+  name: basic-install
+spec:
+  istio:
+    global:
+      multitenant: false
+      proxy:
+        # constrain resources for use in smaller environments
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+
+    gateways:
+      istio-egressgateway:
+        # disable autoscaling for use in smaller environments
+        autoscaleEnabled: false
+      istio-ingressgateway:
+        # disable autoscaling for use in smaller environments
+        autoscaleEnabled: false
+        # set to true to enable IOR
+        ior_enabled: false
+
+    mixer:
+      policy:
+        # disable autoscaling for use in smaller environments
+        autoscaleEnabled: false
+
+      telemetry:
+        # disable autoscaling for use in smaller environments
+        autoscaleEnabled: false
+        # constrain resources for use in smaller environments
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1G
+          limits:
+            cpu: 500m
+            memory: 4G
+
+    pilot:
+      # disable autoscaling for use in smaller environments
+      autoscaleEnabled: false
+      # increase random sampling rate for development/testing
+      traceSampling: 100.0
+
+    kiali:
+      # change to false to disable kiali
+      enabled: true
+
+      # to use oauth, remove the following 'dashboard' section
+      # create a secret for accessing kiali dashboard with the following credentials
+      dashboard:
+        user: admin
+        passphrase: admin
+
+    tracing:
+      # change to false to disable tracing (i.e. jaeger)
+      enabled: true
+  threeScale:
+    enabled: false
