@@ -40,6 +40,7 @@ linters:
   disable:
     - gochecknoinits # k8s/istio generated APIs are using init()
     - gochecknoglobals # TODO discuss
+    - gofmt # We use goimports and when using them both leads to contradicting errors
 
 run:
   deadline: 10m
@@ -59,5 +60,6 @@ issues:
 
 service:
   project-path: github.com/maistra/istio-workspace
+  golangci-lint-version: 1.17.x # Locks the version to avoid newly introduces linters
   prepare:
     - make deps codegen
