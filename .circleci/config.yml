@@ -72,7 +72,7 @@ jobs:
           command: |
             cd ~
 
-            curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.10.0/istiooc_linux && \
+            curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.11.0/istiooc_linux && \
             chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
             sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
             echo "Installed istiooc\n$(istiooc version)\n"
