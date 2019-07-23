@@ -34,7 +34,7 @@ var _ = Describe("Basic model conversion", func() {
 					Labels:         map[string]string{},
 				},
 				ResourceStatuses: []model.ResourceStatus{
-					{Kind: "test", Name: "1", Action: model.ActionCreated},
+					{Kind: kind, Name: name, Action: model.ActionCreated},
 					{Kind: "test", Name: "2", Action: model.ActionModified},
 					{Kind: "test-2", Name: "2", Action: model.ActionFailed},
 				}}
