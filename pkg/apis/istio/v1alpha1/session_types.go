@@ -27,9 +27,10 @@ type SessionStatus struct {
 
 // RefStatus defines the observed state of the individual Ref
 type RefStatus struct {
-	Name      string            `json:"name,omitempty"`
-	Params    map[string]string `json:"params,omitempty"`
-	Resources []*RefResource    `json:"resources,omitempty"`
+	Name      string              `json:"name,omitempty"`
+	Params    map[string]string   `json:"params,omitempty"`
+	Target    *LabeledRefResource `json:"target,omitempty"`
+	Resources []*RefResource      `json:"resources,omitempty"`
 }
 
 // RefResource defines the observed resources mutated/created as part of the Ref
@@ -37,6 +38,12 @@ type RefResource struct {
 	Kind   *string `json:"kind,omitempty"`
 	Name   *string `json:"name,omitempty"`
 	Action *string `json:"action,omitempty"`
+}
+
+// LabeledRefResource is a RefResource with Labels
+type LabeledRefResource struct {
+	RefResource `json:"inline"`
+	Labels      map[string]string `json:"labels"`
 }
 
 // +genclient
