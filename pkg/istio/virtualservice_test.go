@@ -41,9 +41,15 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				var (
 					mutatedVirtualService istionetwork.VirtualService
 					ctx                   model.SessionContext
-					targetHost            = "details"
-					targetSubset          = "v1-vs-test"
-					locatedTarget         = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
+					targetV1              = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
+					targetV1Host          = "details"
+					targetV1Subset        = "v1-vs-test"
+					targetV4              = model.NewLocatedResource("Deployment", "details-v4", map[string]string{"version": "v4"})
+					targetV4Host          = "details"
+					targetV4Subset        = "v4-vs-test"
+					targetV5              = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
+					targetV5Host          = "details"
+					targetV5Subset        = "v5-vs-test"
 				)
 
 				BeforeEach(func() {
@@ -58,53 +64,86 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					}
 				})
 
-				JustBeforeEach(func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, locatedTarget, virtualService)
-					Expect(err).ToNot(HaveOccurred())
-				})
 				It("route added", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset)).ToNot(BeNil())
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
 				})
 
 				It("has match", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Match).ToNot(BeNil())
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Match).ToNot(BeNil())
 				})
 
 				It("has subset", func() { // covered by GetMutatedRoute
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Route[0].Destination.Subset).To(Equal(targetSubset))
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
-				It("add match headers", func() {
-					mutated := GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset)
+				It("create match when no match found", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV4, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV4Host, targetV4Subset)
 					Expect(mutated).ToNot(BeNil())
-					Expect(mutated.Match).To(HaveLen(2))
+					Expect(mutated.Match).To(HaveLen(1))
 					for _, m := range mutated.Match {
-						Expect(m.Headers).To(HaveLen(1)) // also validate we can keep other existing headers
+						Expect(m.Headers).To(HaveLen(1))
 						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
 					}
 				})
 
-				It("add match headers to existing", func() {
-					mutated := GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset)
+				It("add route headers to found match with no headers", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)
 					Expect(mutated).ToNot(BeNil())
 					Expect(mutated.Match).To(HaveLen(2))
 					for _, m := range mutated.Match {
-						Expect(m.Headers).To(HaveLen(1)) // also validate we can keep other existing headers
+						Expect(m.Headers).To(HaveLen(1))
+						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
+					}
+				})
+
+				It("add route headers to found match with found headers", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV5, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV5Host, targetV5Subset)
+					Expect(mutated).ToNot(BeNil())
+					Expect(mutated.Match).To(HaveLen(1))
+					for _, m := range mutated.Match {
+						Expect(m.Headers).To(HaveLen(2))
 						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
 					}
 				})
 
 				It("remove weighted destination", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Route[0].Weight).To(Equal(int32(0)))
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Weight).To(Equal(int32(0)))
 				})
 				It("remove other destinations", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Route).To(HaveLen(1))
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route).To(HaveLen(1))
 				})
 				It("remove mirror", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Mirror).To(BeNil())
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Mirror).To(BeNil())
 				})
 				It("remove redirect", func() {
-					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Redirect).To(BeNil())
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
 				})
 			})
 		})
@@ -180,7 +219,15 @@ spec:
   - route:
     - destination:
         host: details
-        subset: v1
+        subset: v4
+  - route:
+    - destination:
+        host: details
+        subset: v5
+    match:
+      - headers:
+          request-id:
+            exact: test
   - route:
     - destination:
         host: x

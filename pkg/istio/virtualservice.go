@@ -112,13 +112,22 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 		return http
 	}
 	addHeaderMatch := func(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
-		for _, m := range http.Match {
+		addHeader := func(m *v1alpha3.HTTPMatchRequest, route model.Route) {
 			if route.Type == "header" {
 				if m.Headers == nil {
 					m.Headers = map[string]*v1alpha3.StringMatch{}
 				}
 				m.Headers[route.Name] = &v1alpha3.StringMatch{MatchType: &v1alpha3.StringMatch_Exact{Exact: route.Value}}
 			}
+		}
+		if len(http.Match) > 0 {
+			for _, m := range http.Match {
+				addHeader(m, route)
+			}
+		} else {
+			m := &v1alpha3.HTTPMatchRequest{}
+			addHeader(m, route)
+			http.Match = append(http.Match, m)
 		}
 		return http
 	}
