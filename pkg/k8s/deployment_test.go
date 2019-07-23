@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -152,6 +153,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			deployment := appsv1.Deployment{}
 			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).To(HaveOccurred())
+			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
 		Context("telepresence mutations", func() {
@@ -232,6 +234,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(revertedFetchErr).To(HaveOccurred())
+			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
 
 	})

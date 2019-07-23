@@ -9,6 +9,7 @@ import (
 	appsv1 "github.com/openshift/api/apps/v1"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -151,6 +152,17 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
+		It("should only mutate if Target is of kind DeploymentConfig", func() {
+			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: "xxxx", Name: "test-ref", Action: model.ActionLocated}}}
+			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment := appsv1.DeploymentConfig{}
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.IsNotFound(err)).To(BeTrue())
+		})
+
 		Context("telepresence mutations", func() {
 
 			It("should change container to telepresence", func() {
@@ -226,6 +238,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(revertedFetchErr).To(HaveOccurred())
+			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
 
 	})
