@@ -13,54 +13,6 @@ import (
 
 var _ = Describe("Operations for istio VirtualService kind", func() {
 
-	/*
-		Context("discovery", func() {
-			var (
-				objects []runtime.Object
-				ctx     model.SessionContext
-				ref     *model.Ref
-				err     error
-			)
-			JustBeforeEach(func() {
-				ctx = model.SessionContext{
-					Context:   context.TODO(),
-					Name:      "test",
-					Namespace: "test",
-					Log:       logf.Log.WithName("test"),
-					Client:    fake.NewFakeClient(objects...),
-				}
-			})
-
-			Context("mutators", func() {
-				BeforeEach(func() {
-					ref = &model.Ref{Name: "test"}
-					objects = []runtime.Object{
-						&istionetwork.VirtualService{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "test",
-								Namespace: "test",
-							},
-							Spec: v1alpha3.VirtualService{
-								Hosts: []string{},
-								Http: []*v1alpha3.HTTPRoute{
-									&v1alpha3.HTTPRoute{
-										Route: []*v1alpha3.HTTPRouteDestination{
-											&v1alpha3.HTTPRouteDestination{
-												Destination: &v1alpha3.Destination{
-													Host: "test",
-												},
-												Weight: 10,
-											},
-										},
-									},
-								},
-							},
-						},
-					}
-				})
-			})
-		})
-	*/
 	Context("manipulation", func() {
 		var (
 			err            error
