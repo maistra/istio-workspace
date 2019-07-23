@@ -74,7 +74,17 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					Expect(GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset).Route[0].Destination.Subset).To(Equal(targetSubset))
 				})
 
-				It("add headers to matches", func() {
+				It("add match headers", func() {
+					mutated := GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset)
+					Expect(mutated).ToNot(BeNil())
+					Expect(mutated.Match).To(HaveLen(2))
+					for _, m := range mutated.Match {
+						Expect(m.Headers).To(HaveLen(1)) // also validate we can keep other existing headers
+						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
+					}
+				})
+
+				It("add match headers to existing", func() {
 					mutated := GetMutatedRoute(mutatedVirtualService, targetHost, targetSubset)
 					Expect(mutated).ToNot(BeNil())
 					Expect(mutated.Match).To(HaveLen(2))
@@ -167,6 +177,10 @@ spec:
       subset: v3
     redirect:
       uri: /redirected
+  - route:
+    - destination:
+        host: details
+        subset: v1
   - route:
     - destination:
         host: x

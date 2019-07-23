@@ -86,15 +86,16 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 
 func mutateVirtualService(ctx model.SessionContext, sourceResource model.LocatedResourceStatus, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
-	findRoute := func(vs *istionetwork.VirtualService, host, subset string) (v1alpha3.HTTPRoute, bool) {
+	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []v1alpha3.HTTPRoute {
+		routes := []v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
 			for _, r := range h.Route {
 				if r.Destination.Host == host && r.Destination.Subset == subset {
-					return *h, true
+					routes = append(routes, *h)
 				}
 			}
 		}
-		return v1alpha3.HTTPRoute{}, false
+		return routes
 	}
 	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host, subset string) v1alpha3.HTTPRoute {
 		for i, r := range http.Route {
@@ -131,18 +132,20 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 
-	targetHTTP, found := findRoute(clonedSource, sourceResource.GetHostName(), sourceResource.GetVersion())
-	if !found {
+	targetsHTTP := findRoutes(clonedSource, sourceResource.GetHostName(), sourceResource.GetVersion())
+	if len(targetsHTTP) == 0 {
 		return istionetwork.VirtualService{}, fmt.Errorf("route not found")
 	}
-	targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
-	targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
-	targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
-	targetHTTP = removeWeight(targetHTTP)
-	targetHTTP.Mirror = nil
-	targetHTTP.Redirect = nil
+	for _, targetHTTP := range targetsHTTP {
+		targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
+		targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
+		targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
+		targetHTTP = removeWeight(targetHTTP)
+		targetHTTP.Mirror = nil
+		targetHTTP.Redirect = nil
 
-	target.Spec.Http = append(target.Spec.Http, &targetHTTP)
+		target.Spec.Http = append(target.Spec.Http, &targetHTTP)
+	}
 	return *target, nil
 }
 
