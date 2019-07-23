@@ -153,12 +153,12 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should only mutate if Target is of kind DeploymentConfig", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: "xxxx", Name: "test-ref", Action: model.ActionLocated}}}
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			notMatchingRef := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: "Service", Name: "test-ref", Action: model.ActionLocated}}}
+			mutatorErr := openshift.DeploymentConfigMutator(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: notMatchingRef.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})

@@ -146,12 +146,12 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should only mutate if Target is of kind Deployment", func() {
-			ref := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: "xxxx", Name: "test-ref", Action: model.ActionLocated}}}
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			notMatchingRef := model.Ref{Name: "test-ref", Target: model.LocatedResourceStatus{ResourceStatus: model.ResourceStatus{Kind: "Service", Name: "test-ref", Action: model.ActionLocated}}}
+			mutatorErr := k8s.DeploymentMutator(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: notMatchingRef.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
