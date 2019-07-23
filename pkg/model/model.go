@@ -89,7 +89,10 @@ type LocatedResourceStatus struct {
 
 // GetVersion returns the existing version name
 func (l *LocatedResourceStatus) GetVersion() string {
-	return l.Labels["version"]
+	if val, ok := l.Labels["version"]; ok {
+		return val
+	}
+	return "unknown"
 }
 
 // GetNewVersion returns the new updated version name
