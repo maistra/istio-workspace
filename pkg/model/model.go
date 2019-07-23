@@ -100,7 +100,7 @@ func (l *LocatedResourceStatus) GetNewVersion(sessionName string) string {
 	return l.GetVersion() + "-" + sessionName
 }
 
-// TODO: should discover via Services that match D/DC?
+// TODO: should discover via Services that match D/DC? https://github.com/Maistra/istio-workspace/issues/197
 // GetHostName returns the targets host name
 func (l *LocatedResourceStatus) GetHostName() string {
 	return strings.Split(l.Name, "-")[0]
