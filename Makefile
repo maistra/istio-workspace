@@ -161,9 +161,9 @@ $(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_IMAGE_TAG?=$(VERSION)
-export IKE_IMAGE_TAG
 IKE_DOCKER_REGISTRY?=quay.io
 IKE_DOCKER_REPOSITORY?=maistra
+export IKE_IMAGE_TAG
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -190,16 +190,16 @@ docker-push--%:
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
 	docker build \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(CUR_DIR)
 	docker tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-push-test
 docker-push-test:
 	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(COMMIT)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 # ##########################################################################
