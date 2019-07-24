@@ -42,7 +42,7 @@ type RefResource struct {
 
 // LabeledRefResource is a RefResource with Labels
 type LabeledRefResource struct {
-	RefResource `json:"inline"`
+	RefResource `json:",inline"`
 	Labels      map[string]string `json:"labels"`
 }
 
