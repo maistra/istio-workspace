@@ -153,7 +153,7 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 		targetHTTP.Mirror = nil
 		targetHTTP.Redirect = nil
 
-		target.Spec.Http = append(target.Spec.Http, &targetHTTP)
+		target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
 	}
 	return *target, nil
 }

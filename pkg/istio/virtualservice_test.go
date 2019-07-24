@@ -70,6 +70,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
 				})
 
+				It("route added before target route", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal(targetV1Subset))
+				})
+
 				It("has match", func() {
 					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
 					Expect(err).ToNot(HaveOccurred())
