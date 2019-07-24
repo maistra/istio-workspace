@@ -86,12 +86,12 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 
 func mutateVirtualService(ctx model.SessionContext, sourceResource model.LocatedResourceStatus, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
-	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []v1alpha3.HTTPRoute {
-		routes := []v1alpha3.HTTPRoute{}
+	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []*v1alpha3.HTTPRoute {
+		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
 			for _, r := range h.Route {
 				if r.Destination.Host == host && r.Destination.Subset == subset {
-					routes = append(routes, *h)
+					routes = append(routes, h)
 				}
 			}
 		}
@@ -145,7 +145,8 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 	if len(targetsHTTP) == 0 {
 		return istionetwork.VirtualService{}, fmt.Errorf("route not found")
 	}
-	for _, targetHTTP := range targetsHTTP {
+	for _, tHTTP := range targetsHTTP {
+		targetHTTP := *tHTTP
 		targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
 		targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
 		targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
