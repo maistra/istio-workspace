@@ -37,8 +37,8 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 		return err
 	}
 
-	for _, vs := range vss.Items {
-		if !mutationRequired(&vs, targetHost, targetVersion) {
+	for _, vs := range vss.Items { //nolint[:rangeValCopy]
+		if !mutationRequired(vs, targetHost, targetVersion) {
 			continue
 		}
 		ctx.Log.Info("Found VirtualService", "name", targetHost)
@@ -189,7 +189,7 @@ func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwo
 	return &virtualServices, err
 }
 
-func mutationRequired(vs *istionetwork.VirtualService, targetHost, targetVersion string) bool {
+func mutationRequired(vs istionetwork.VirtualService, targetHost, targetVersion string) bool { //nolint[:hugeParam]
 	for _, http := range vs.Spec.Http {
 		for _, route := range http.Route {
 			if route.Destination != nil && route.Destination.Host == targetHost {

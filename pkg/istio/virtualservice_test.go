@@ -231,13 +231,13 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			}
 		})
 		It("Should require unversioned targets", func() {
-			Expect(mutationRequired(&virtualService, "x", "v1")).To(BeTrue())
+			Expect(mutationRequired(virtualService, "x", "v1")).To(BeTrue())
 		})
 		It("Should require versioned targets", func() {
-			Expect(mutationRequired(&virtualService, "y", "v1")).To(BeTrue())
+			Expect(mutationRequired(virtualService, "y", "v1")).To(BeTrue())
 		})
 		It("Should not require other versioned targets", func() {
-			Expect(mutationRequired(&virtualService, "z", "v1")).To(BeFalse())
+			Expect(mutationRequired(virtualService, "z", "v1")).To(BeFalse())
 		})
 	})
 })
