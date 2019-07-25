@@ -31,33 +31,14 @@ func AllPodsNotInState(namespace, state string) func() string {
 	}
 }
 
-// PodStatus creates a function which examines if there are pods in a given namespace with a label and status
-// Returns content of Stdout to inspect
-func PodStatus(namespace, label, state string) func() string { //nolint[:unused]
-	return func() string {
-		ocGetPods := shell.ExecuteInDir(".",
-			"oc", "get", "pods",
+func ControlPlaneInstalled(namespace string) func() bool {
+	return func() bool {
+		controlPlaneStatus := shell.ExecuteInDir(".",
+			"oc", "get", "ServiceMeshControlPlane",
 			"-n", namespace,
-			"-l", label,
-			"--field-selector", "status.phase=="+state,
+			"-o", "go-template='{{range .items}}{{range .status.conditions}}{{.reason}}{{end}}{{end}}'",
 		)
-		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stdout)
-	}
-}
-
-// PodCompletedStatus creates a func which check if there are pods in a given namespace with desired label which
-// are in the terminated state.
-// Returns content of Stdout for further inspection
-func PodCompletedStatus(namespace, label string) func() string {
-	return func() string {
-		ocGetPods := shell.ExecuteInDir(".",
-			"oc", "get", "pods",
-			"-n", namespace,
-			"-l", label,
-			"-o", "go-template='{{range .items}}{{range .status.containerStatuses}}{{.state.terminated.reason}}{{end}}{{end}}'",
-		)
-		<-ocGetPods.Done()
-		return fmt.Sprintf("%v", ocGetPods.Status().Stdout)
+		<-controlPlaneStatus.Done()
+		return strings.Contains(fmt.Sprintf("%v", controlPlaneStatus.Status().Stdout), "InstallSuccessful")
 	}
 }

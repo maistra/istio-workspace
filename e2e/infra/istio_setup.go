@@ -16,8 +16,7 @@ func LoadIstio() {
 	projectDir := os.Getenv("CUR_DIR")
 	<-shell.Execute("oc login -u system:admin").Done()
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
-	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"),
-		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
+	gomega.Eventually(ControlPlaneInstalled("istio-system"), 5*time.Minute, 5*time.Second).Should(gomega.BeTrue())
 }
 
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry
