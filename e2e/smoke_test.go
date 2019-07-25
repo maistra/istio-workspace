@@ -94,14 +94,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 					Should(ContainSubstring("No resources found"))
 
-				println("test")
-
 				Eventually(func() (string, error) {
 					return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
 				}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 				// given we have details code locally
-				CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
+				CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
 
 				// when we start ike with watch
 				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
@@ -117,7 +115,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					Should(ContainSubstring("No resources found"))
 
 				// and modify the service
-				modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
+				modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 				CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 				// then
@@ -161,7 +159,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	<-testshell.Execute("oc project myproject").Done()
 
 	// given we have details code locally
-	CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
+	CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
 
 	// when we start ike with watch
 	ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
@@ -179,7 +177,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 		Should(ContainSubstring("No resources found"))
 
 	// and modify the service
-	modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
+	modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 	// then
