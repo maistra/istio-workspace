@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
@@ -22,6 +24,8 @@ const (
 )
 
 func main() {
+	logf.SetLogger(logf.ZapLogger(false))
+
 	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {
 		c.Name = v
@@ -40,11 +44,13 @@ func main() {
 		adr = v
 	}
 
+	log := logf.Log.WithName("service").WithValues("name", c.Name)
+
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusOK)
 	})
-	http.HandleFunc("/", NewBasic(c))
+	http.HandleFunc("/", NewBasic(c, log))
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
 		fmt.Println(err)
