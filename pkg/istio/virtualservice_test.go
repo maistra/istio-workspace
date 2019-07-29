@@ -8,121 +8,198 @@ import (
 
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
+	"istio.io/api/networking/v1alpha3"
 	k8yaml "sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Operations for istio VirtualService kind", func() {
 
-	var (
-		err            error
-		virtualService istionetwork.VirtualService
-		yaml           string
-		ref            *model.Ref
-	)
+	Context("manipulation", func() {
+		var (
+			err            error
+			virtualService istionetwork.VirtualService
+			yaml           string
+		)
 
-	Context("mutators", func() {
-
-		JustBeforeEach(func() {
-			err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
-		})
-		BeforeEach(func() {
-			ref = &model.Ref{
-				Name:   "x",
-				Target: model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"}),
-			}
-		})
-		Context("existing rule", func() {
-			var (
-				mutatedVirtualService istionetwork.VirtualService
-				ctx                   model.SessionContext
-			)
-
-			BeforeEach(func() {
-				yaml = simpleVirtualService
-				ctx = model.SessionContext{
-					Name: "vs-test",
-					Route: model.Route{
-						Type:  "header",
-						Name:  "test",
-						Value: "x",
-					},
-				}
-			})
+		Context("mutators", func() {
 
 			JustBeforeEach(func() {
-				mutatedVirtualService, err = mutateVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), virtualService)
+				err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("route added", func() {
-				Expect(mutatedVirtualService.Spec.Http).To(HaveLen(2))
-			})
-
-			It("first route has match", func() {
-				Expect(mutatedVirtualService.Spec.Http[0].Match).ToNot(BeNil())
-			})
-
-			It("first route has subset", func() {
-				Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal("v1-vs-test"))
-			})
-
-			It("first route has given header match", func() {
-				Expect(mutatedVirtualService.Spec.Http[0].Match).To(HaveLen(1))
-				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers).To(HaveLen(1))
-				Expect(mutatedVirtualService.Spec.Http[0].Match[0].Headers["test"].GetExact()).To(Equal("x"))
-			})
-		})
-	})
-
-	Context("revertors", func() {
-
-		JustBeforeEach(func() {
-			err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
-		})
-
-		Context("existing rule", func() {
-			var (
-				revertedVirtualService istionetwork.VirtualService
-				ctx                    model.SessionContext
-			)
-
-			BeforeEach(func() {
-				yaml = simpleMutatedVirtualService
-				ctx = model.SessionContext{
-					Route: model.Route{
-						Type:  "header",
-						Name:  "test",
-						Value: "x",
-					},
+			Context("existing rule", func() {
+				GetMutatedRoute := func(vs istionetwork.VirtualService, host, subset string) *v1alpha3.HTTPRoute {
+					for _, h := range vs.Spec.Http {
+						for _, r := range h.Route {
+							if r.Destination.Host == host && r.Destination.Subset == subset {
+								return h
+							}
+						}
+					}
+					return nil
 				}
+				var (
+					mutatedVirtualService istionetwork.VirtualService
+					ctx                   model.SessionContext
+					targetV1              = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
+					targetV1Host          = "details"
+					targetV1Subset        = "v1-vs-test"
+					targetV4              = model.NewLocatedResource("Deployment", "details-v4", map[string]string{"version": "v4"})
+					targetV4Host          = "details"
+					targetV4Subset        = "v4-vs-test"
+					targetV5              = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
+					targetV5Host          = "details"
+					targetV5Subset        = "v5-vs-test"
+				)
+
+				BeforeEach(func() {
+					yaml = complexVirtualService
+					ctx = model.SessionContext{
+						Name: "vs-test",
+						Route: model.Route{
+							Type:  "header",
+							Name:  "test",
+							Value: "x",
+						},
+					}
+				})
+
+				It("route added", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
+				})
+
+				It("route added before target route", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal(targetV1Subset))
+				})
+
+				It("has match", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Match).ToNot(BeNil())
+				})
+
+				It("has subset", func() { // covered by GetMutatedRoute
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Destination.Subset).To(Equal(targetV1Subset))
+				})
+
+				It("create match when no match found", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV4, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV4Host, targetV4Subset)
+					Expect(mutated).ToNot(BeNil())
+					Expect(mutated.Match).To(HaveLen(1))
+					for _, m := range mutated.Match {
+						Expect(m.Headers).To(HaveLen(1))
+						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
+					}
+				})
+
+				It("add route headers to found match with no headers", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)
+					Expect(mutated).ToNot(BeNil())
+					Expect(mutated.Match).To(HaveLen(2))
+					for _, m := range mutated.Match {
+						Expect(m.Headers).To(HaveLen(1))
+						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
+					}
+				})
+
+				It("add route headers to found match with found headers", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV5, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					mutated := GetMutatedRoute(mutatedVirtualService, targetV5Host, targetV5Subset)
+					Expect(mutated).ToNot(BeNil())
+					Expect(mutated.Match).To(HaveLen(1))
+					for _, m := range mutated.Match {
+						Expect(m.Headers).To(HaveLen(2))
+						Expect(m.Headers["test"].GetExact()).To(Equal("x"))
+					}
+				})
+
+				It("remove weighted destination", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Weight).To(Equal(int32(0)))
+				})
+				It("remove other destinations", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route).To(HaveLen(1))
+				})
+				It("remove mirror", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Mirror).To(BeNil())
+				})
+				It("remove redirect", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
+				})
 			})
+		})
+
+		Context("revertors", func() {
 
 			JustBeforeEach(func() {
-				revertedVirtualService, err = revertVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), virtualService)
+				err = k8yaml.Unmarshal([]byte(yaml), &virtualService)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("route removed", func() {
-				Expect(revertedVirtualService.Spec.Http).To(HaveLen(1))
-			})
+			Context("existing rule", func() {
+				var (
+					revertedVirtualService istionetwork.VirtualService
+					ctx                    model.SessionContext
+				)
 
-			It("correct route removed", func() {
-				Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-vs-test"))
+				BeforeEach(func() {
+					yaml = simpleMutatedVirtualService
+					ctx = model.SessionContext{
+						Route: model.Route{
+							Type:  "header",
+							Name:  "test",
+							Value: "x",
+						},
+					}
+				})
+
+				JustBeforeEach(func() {
+					revertedVirtualService, err = revertVirtualService(ctx, "v1-vs-test", virtualService)
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("route removed", func() {
+					Expect(revertedVirtualService.Spec.Http).To(HaveLen(1))
+				})
+
+				It("correct route removed", func() {
+					Expect(revertedVirtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-vs-test"))
+				})
 			})
 		})
 	})
 })
 
-var simpleVirtualService = `kind: VirtualService
+var complexVirtualService = `kind: VirtualService
 metadata:
-  annotations:
-  creationTimestamp: 2019-01-16T20:58:51Z
-  generation: 1
   name: details
   namespace: bookinfo
-  resourceVersion: "4978223"
-  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/bookinfo/virtualservices/details
-  uid: 86e9c879-19d1-11e9-a489-482ae3045b54
 spec:
   hosts:
   - details
@@ -131,7 +208,38 @@ spec:
     - destination:
         host: details
         subset: v1
+      weight: 50
+    - destination:
+        host: details
+        subset: v2
+      weight: 50
+    match:
+      - uri:
+          prefix: /a
+      - uri:
+          prefix: /b
+    mirror:
+      host: details
+      subset: v3
+    redirect:
+      uri: /redirected
+  - route:
+    - destination:
+        host: details
+        subset: v4
+  - route:
+    - destination:
+        host: details
+        subset: v5
+    match:
+      - headers:
+          request-id:
+            exact: test
+  - route:
+    - destination:
+        host: x
 `
+
 var simpleMutatedVirtualService = `kind: VirtualService
 metadata:
   creationTimestamp: "2019-01-16T20:58:51Z"
