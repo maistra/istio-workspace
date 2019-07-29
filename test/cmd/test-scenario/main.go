@@ -48,7 +48,7 @@ func getTestImageName() string {
 	if s, f := os.LookupEnv(config.EnvDockerTestImage); f {
 		image = s
 	}
-	if s, f := os.LookupEnv("COMMIT"); f {
+	if s, f := os.LookupEnv("IKE_IMAGE_TAG"); f {
 		tag = s
 	}
 

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/go-logr/logr"
 )
 
 // Config describes the basic Name and who to call next for a given HandlerFunc
@@ -24,12 +26,13 @@ type CallStack struct {
 }
 
 // NewBasic constructs a new basic HandlerFunc that behaves as described by the provided Config
-func NewBasic(config Config) http.HandlerFunc {
-	return basic(config)
+func NewBasic(config Config, log logr.Logger) http.HandlerFunc {
+	return basic(config, log)
 }
 
-func basic(config Config) http.HandlerFunc {
+func basic(config Config, log logr.Logger) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
+		logIncomingRequest(log, req)
 		start := time.Now()
 		callStack := CallStack{
 			Caller:    config.Name,
@@ -53,6 +56,7 @@ func basic(config Config) http.HandlerFunc {
 
 				// custom header used by test suite
 				copyHeaders(request, req, "x-test-suite")
+				logOutgoingRequest(log, request)
 				resp, err := http.DefaultClient.Do(request)
 				if resp != nil {
 					defer resp.Body.Close()
@@ -93,4 +97,12 @@ func copyHeaders(target, source *http.Request, headers ...string) {
 			target.Header.Set(header, value)
 		}
 	}
+}
+
+func logIncomingRequest(log logr.Logger, req *http.Request) {
+	log.Info("received", "path", req.URL.Path, "headers", req.Header)
+}
+
+func logOutgoingRequest(log logr.Logger, req *http.Request) {
+	log.Info("sent", "path", req.URL.Path, "headers", req.Header)
 }
