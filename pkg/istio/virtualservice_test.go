@@ -9,7 +9,6 @@ import (
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
 
-	"istio.io/api/networking/v1alpha3"
 	k8yaml "sigs.k8s.io/yaml"
 )
 
@@ -197,6 +196,10 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 	})
 
 	Context("required", func() {
+		var (
+			virtualService istionetwork.VirtualService
+		)
+
 		BeforeEach(func() {
 			virtualService = istionetwork.VirtualService{
 				Spec: v1alpha3.VirtualService{
