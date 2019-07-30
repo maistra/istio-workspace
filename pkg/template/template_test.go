@@ -1,8 +1,6 @@
 package template_test
 
 import (
-	"fmt"
-
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	. "github.com/onsi/ginkgo"
@@ -101,23 +99,93 @@ var _ = Describe("Operations for template system", func() {
 
 	Context("engine", func() {
 
-		It("happy, happy, basic hacked", func() {
+		It("happy, happy, basic DefaultEngine", func() {
 			e := template.NewDefaultEngine()
 
-			modified, err := e.Run("telepresence", []byte(org), "1000", map[string]string{
+			o, err := e.Run("telepresence", []byte(org), "1000", map[string]string{
 				"TelepresenceVersion": "x",
 			})
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Printf("Modified document: %s\n", modified)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(o)).To(ContainSubstring("1000"))
 		})
 
-		// should fail on wrong Patch format
-		// should fail on wrong json input
-		// should use default values if missing
-		// should override with incomming is available
-		// should apply patch
+		Context("object validation", func() {
+			It("should fail on wrong Patch format", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:     "test",
+					Template: []byte("{"),
+				}})
+				_, err := e.Run("test", []byte("{}"), "x", map[string]string{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unexpected end of JSON input"))
+			})
+
+			It("should fail on wrong Patch format", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:     "test",
+					Template: []byte("[]"),
+				}})
+				_, err := e.Run("test", []byte("{"), "x", map[string]string{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("unexpected end of JSON input"))
+			})
+		})
+
+		Context("normal operations", func() {
+
+			It("should apply patch", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:      "test",
+					Template:  []byte(`[ {"op": "remove", "path": "/version"} ]`),
+					Variables: map[string]string{},
+				}})
+				o, err := e.Run("test", []byte(`{"version": "100"}`), "x", map[string]string{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(o)).ToNot(ContainSubstring("version"))
+			})
+
+			It("should fail on bad patch", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:      "test",
+					Template:  []byte(`[ {"op": "remove", "path": "/test"} ]`),
+					Variables: map[string]string{},
+				}})
+				_, err := e.Run("test", []byte(`{"version": "100"}`), "x", map[string]string{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Unable to remove nonexistent key: test"))
+			})
+		})
+
+		Context("variables", func() {
+
+			It("should use default values if non provided", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:     "test",
+					Template: []byte(`[ {"op": "replace", "path": "/version", "value": "{{.Vars.Version}}"} ]`),
+					Variables: map[string]string{
+						"Version": "DEFAULT_VERSION",
+					},
+				}})
+				o, err := e.Run("test", []byte(`{"version": "100"}`), "x", map[string]string{})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(o)).To(ContainSubstring("DEFAULT_VERSION"))
+			})
+
+			It("should override with incomming is available", func() {
+				e := template.NewEngine(template.Patchs{template.Patch{
+					Name:     "test",
+					Template: []byte(`[ {"op": "replace", "path": "/version", "value": "{{.Vars.Version}}"} ]`),
+					Variables: map[string]string{
+						"Version": "DEFAULT_VERSION",
+					},
+				}})
+				o, err := e.Run("test", []byte(`{"version": "100"}`), "x", map[string]string{
+					"Version": "PROVIDED_VERSION",
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(o)).To(ContainSubstring("PROVIDED_VERSION"))
+			})
+		})
 	})
 })
 
