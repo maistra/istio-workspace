@@ -91,43 +91,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 			It("should watch for changes in ratings service and serve it", func() {
-				Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-					Should(ContainSubstring("No resources found"))
-
-				Eventually(func() (string, error) {
-					return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-				}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
-
-				// given we have details code locally
-				CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
-
-				// when we start ike with watch
-				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
-					"--deployment", "ratings-v1",
-					"--port", "9080",
-					"--watch",
-					"--run", "ruby ratings.rb 9080",
-					"--route", "header:x-test-suite=smoke",
-				)
-
-				// ensure the new service is running
-				Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-					Should(ContainSubstring("No resources found"))
-
-				// and modify the service
-				modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
-				CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
-
-				// then
-				Eventually(func() (string, error) {
-					fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-					return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
-				}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
-
-				stopFailed := ikeWithWatch.Stop()
-				Expect(stopFailed).ToNot(HaveOccurred())
-
-				Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
@@ -148,14 +112,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 })
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
+	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
+
 	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 		Should(ContainSubstring("No resources found"))
 
-	Eventually(func() (string, error) {
-		return GetBody("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage")
-	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
-	// switch to different namespace
+	// switch to different namespace - so we also test -n parameter of $ ike
 	<-testshell.Execute("oc project myproject").Done()
 
 	// given we have details code locally
@@ -176,20 +140,30 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 		Should(ContainSubstring("No resources found"))
 
-	// and modify the service
+	// check original response
+	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+
+	// then modify the service
 	modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-	// then
-	Eventually(func() (string, error) {
-		fmt.Printf("[%s] checking...\n", time.Now().Format("2006-01-02 15:04:05.001"))
-		return GetBodyWithHeaders("http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage", map[string]string{"x-test-suite": "smoke"})
-	}, 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+	// then verify new content being served
+	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+	// but also check if prod is intact
+	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
+		ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
 
 	stopFailed := ikeWithWatch.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
 
 	Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
+}
+
+func call(routeURL string, headers map[string]string) func() (string, error) { //nolint[:unparam]
+	return func() (string, error) {
+		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
+		return GetBodyWithHeaders(routeURL, headers)
+	}
 }
 
 func callGetOn(name string) func() (string, error) {
