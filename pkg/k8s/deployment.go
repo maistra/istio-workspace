@@ -61,7 +61,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	}
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
-		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
+		ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentKind, Name: deploymentClone.Name, Action: model.ActionFailed})
 		return err
 	}
