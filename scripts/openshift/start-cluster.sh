@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IKE_CLUSTER_DIR=${IKE_CLUSTER_DIR:-"${HOME}/openshift.local.cluster"}
+IKE_CLUSTER_DIR=${IKE_CLUSTER_DIR:-"~/openshift.local.cluster"}
 
 if [ -z "$1" ]; then
     [ -d "${IKE_CLUSTER_DIR}" ] || mkdir -p "${IKE_CLUSTER_DIR}"
