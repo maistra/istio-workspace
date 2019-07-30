@@ -112,7 +112,8 @@ func NewEngine(patchs Patchs) *Engine {
 	return &Engine{patches: patchs}
 }
 
-func newJSON(data []byte) (JSON, error) {
+// NewJSON constructs a JSON object from a json string
+func NewJSON(data []byte) (JSON, error) {
 	t := JSON{}
 	err := json.Unmarshal(data, &t)
 	return t, err
@@ -220,7 +221,7 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 		patchVariables[k] = v
 	}
 
-	resourceData, err := newJSON(resource)
+	resourceData, err := NewJSON(resource)
 	if err != nil {
 		return nil, err
 	}

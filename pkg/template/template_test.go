@@ -1,47 +1,125 @@
-package template
+package template_test
 
 import (
 	"fmt"
-	"testing"
+
+	"github.com/maistra/istio-workspace/pkg/template"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestTemplateJSONValue(t *testing.T) {
-	tj, err := newJSON([]byte(org))
-	if err != nil {
-		t.Error(err)
-	}
-	if !tj.Has("/metadata/creationTimestamp") {
-		t.Error("creationTimestamp not found")
-	}
-	if v, _ := tj.Value("/spec/replicas"); v.(float64) != 1 {
-		t.Error("replicas not found")
-	}
+var _ = Describe("Operations for template system", func() {
 
-	if v, _ := tj.Value("/metadata/labels/version"); v.(string) != "v1" {
-		t.Error("version not found")
-	}
+	Context("json object", func() {
+		var (
+			err error
+			tj  template.JSON
+		)
 
-	if !tj.Equal("/metadata/labels/version", "v1") {
-		t.Error("version not equal")
-	}
+		BeforeEach(func() {
+			tj, err = template.NewJSON([]byte(org))
+			Expect(err).ToNot(HaveOccurred())
+		})
 
-	if v, _ := tj.Value("/spec/template/spec/containers/0/env/0/value"); v.(string) != "productpage-v1" {
-		t.Error("env not found")
-	}
-}
+		Context("map values", func() {
+			It("should error on missing root path", func() {
+				_, err := tj.Value("")
+				Expect(err).To(HaveOccurred())
+			})
+			It("should have nil value in missing parent", func() {
+				v, err := tj.Value("/metadata/UNKNOWN/UNKNOWN2")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(v).To(BeNil())
+			})
+			It("should be able to check value in map", func() {
+				v := tj.Has("/metadata/creationTimestamp")
+				Expect(v).To(BeTrue())
+			})
+			It("should be able to get numeric value", func() {
+				v, err := tj.Value("/spec/replicas")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(v).To(BeEquivalentTo(1))
+			})
+			It("should be able to get string value", func() {
+				v, err := tj.Value("/metadata/labels/version")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(v).To(BeEquivalentTo("v1"))
+			})
+			It("should be able to equal numberic values", func() {
+				v := tj.Equal("/spec/replicas", 1)
+				Expect(v).To(BeTrue())
+			})
+			It("should be able to equal string values", func() {
+				v := tj.Equal("/metadata/labels/version", "v1")
+				Expect(v).To(BeTrue())
+			})
 
-func TestX(t *testing.T) {
+			It("should not equal found value", func() {
+				v := tj.Equal("/metadata/labels/version", "UNKNOWN")
+				Expect(v).To(BeFalse())
+			})
+			It("should not equal missing value", func() {
+				v := tj.Equal("/metadata/labels/version-UNKNOWN", "v1")
+				Expect(v).To(BeFalse())
+			})
+			It("should not have missing value", func() {
+				v := tj.Has("/metadata/creationTimestamp-UNKNOWN")
+				Expect(v).To(BeFalse())
+			})
+		})
+		Context("slice values", func() {
+			It("should have value in slice", func() {
+				v := tj.Has("/spec/template/spec/containers/0")
+				Expect(v).To(BeTrue())
+			})
+			It("should get value in slice", func() {
+				v, err := tj.Value("/spec/template/spec/containers/0")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(v).ToNot(BeNil())
+			})
+			It("should get value in child of slice", func() {
+				v, err := tj.Value("/spec/template/spec/containers/0/env/0/value")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(v).To(BeEquivalentTo("productpage-v1"))
+			})
+			It("should equal value in child of slice", func() {
+				v := tj.Equal("/spec/template/spec/containers/0/env/0/value", "productpage-v1")
+				Expect(v).To(BeTrue())
+			})
+			It("should have value in child of slice", func() {
+				v := tj.Has("/spec/template/spec/containers/0/env/0/value")
+				Expect(v).To(BeTrue())
+			})
 
-	e := NewDefaultEngine()
-
-	modified, err := e.Run("telepresence", []byte(org), "1000", map[string]string{
-		"TelepresenceVersion": "x",
+			It("should error on non numberic slice index", func() {
+				_, err := tj.Value("/spec/template/spec/containers/X")
+				Expect(err).To(HaveOccurred())
+			})
+		})
 	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("Modified document: %s\n", modified)
-}
+
+	Context("engine", func() {
+
+		It("happy, happy, basic hacked", func() {
+			e := template.NewDefaultEngine()
+
+			modified, err := e.Run("telepresence", []byte(org), "1000", map[string]string{
+				"TelepresenceVersion": "x",
+			})
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Printf("Modified document: %s\n", modified)
+		})
+
+		// should fail on wrong Patch format
+		// should fail on wrong json input
+		// should use default values if missing
+		// should override with incomming is available
+		// should apply patch
+	})
+})
 
 var org = `
 {
