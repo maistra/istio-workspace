@@ -7,6 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"istio.io/api/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -27,28 +28,34 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 		return nil
 	}
 
-	targetName := ref.Target.GetHostName()
+	targetHost := ref.Target.GetHostName()
+	targetVersion := ref.Target.GetVersion()
 
-	vs, err := getVirtualService(ctx, ctx.Namespace, targetName)
+	vss, err := getVirtualServices(ctx, ctx.Namespace)
 	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
+		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetHost, Action: model.ActionFailed})
 		return err
 	}
 
-	ctx.Log.Info("Found VirtualService", "name", targetName)
-	mutatedVs, err := mutateVirtualService(ctx, ref.Target, *vs)
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
-		return err
-	}
+	for _, vs := range vss.Items { //nolint[:rangeValCopy]
+		if !mutationRequired(vs, targetHost, targetVersion) {
+			continue
+		}
+		ctx.Log.Info("Found VirtualService", "name", targetHost)
+		mutatedVs, err := mutateVirtualService(ctx, ref.Target, vs)
+		if err != nil {
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+			return err
+		}
 
-	err = ctx.Client.Update(ctx, &mutatedVs)
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionFailed})
-		return err
-	}
+		err = ctx.Client.Update(ctx, &mutatedVs)
+		if err != nil {
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+			return err
+		}
 
-	ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetName, Action: model.ActionModified})
+		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionModified})
+	}
 	return nil
 }
 
@@ -174,4 +181,23 @@ func getVirtualService(ctx model.SessionContext, namespace, name string) (*istio
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 	return &virtualService, err
+}
+
+func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) { //nolint[:hugeParam]
+	virtualServices := istionetwork.VirtualServiceList{}
+	err := ctx.Client.List(ctx, &client.ListOptions{Namespace: namespace}, &virtualServices)
+	return &virtualServices, err
+}
+
+func mutationRequired(vs istionetwork.VirtualService, targetHost, targetVersion string) bool { //nolint[:hugeParam]
+	for _, http := range vs.Spec.Http {
+		for _, route := range http.Route {
+			if route.Destination != nil && route.Destination.Host == targetHost {
+				if route.Destination.Subset == "" || route.Destination.Subset == targetVersion {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
