@@ -10,7 +10,7 @@ defaults:
     image: ubuntu-1604:201903-01
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
-    IKE_CLUSTER_DIR: "${HOME}/cached-openshift-cluster"
+    IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
 
 version: 2.1
 jobs:
