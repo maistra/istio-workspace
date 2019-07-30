@@ -38,10 +38,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			<-testshell.ExecuteInDir(".", "istiooc", "cluster", "up",
-				"--enable", "registry,router,persistent-volumes,istio,centos-imagestreams",
-				"--base-dir", tmpClusterDir+"/maistra.local.cluster",
-			).Done()
+			projectDir := os.Getenv("PROJECT_DIR")
+			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
+			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
 		skipClusterShutdown = true
 	}
@@ -107,12 +106,11 @@ var _ = SynchronizedAfterSuite(func() {},
 func clusterNotRunning() bool {
 	clusterStatus := testshell.Execute("oc cluster status")
 	<-clusterStatus.Done()
-	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running")
+	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running") // Error for this command is logged to stdout
 }
 
 func ensureRequiredBinaries() {
 	Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
-	Expect(shell.BinaryExists("istiooc", "check https://maistra.io/ for details")).To(BeTrue())
 	Expect(shell.BinaryExists("oc", "grab latest openshift origin client tools from here https://github.com/openshift/origin/releases")).To(BeTrue())
 	Expect(shell.BinaryExists("python3", "make sure you have python3 installed")).To(BeTrue())
 }

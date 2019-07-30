@@ -30,15 +30,3 @@ func AllPodsNotInState(namespace, state string) func() string {
 		return fmt.Sprintf("%v", ocGetFilteredPods.Status().Stderr)
 	}
 }
-
-func ControlPlaneInstalled(namespace string) func() bool {
-	return func() bool {
-		controlPlaneStatus := shell.ExecuteInDir(".",
-			"oc", "get", "ServiceMeshControlPlane",
-			"-n", namespace,
-			"-o", "go-template='{{range .items}}{{range .status.conditions}}{{.reason}}{{end}}{{end}}'",
-		)
-		<-controlPlaneStatus.Done()
-		return strings.Contains(fmt.Sprintf("%v", controlPlaneStatus.Status().Stdout), "InstallSuccessful")
-	}
-}

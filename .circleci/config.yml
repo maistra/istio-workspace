@@ -10,6 +10,7 @@ defaults:
     image: ubuntu-1604:201903-01
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
+    IKE_CLUSTER_DIR: "${HOME}/cached-openshift-cluster"
 
 version: 2.1
 jobs:
@@ -73,18 +74,20 @@ jobs:
             sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
-          name: "Installs Maistra"
+          name: "Installs Openshift and k8s"
           command: |
             cd ~
-
-            curl -LO https://github.com/Maistra/origin/releases/download/v3.11.0+maistra-0.11.0/istiooc_linux && \
-            chmod +x $PWD/istiooc_linux && mv $PWD/istiooc_linux $PWD/istiooc && sudo mv $PWD/istiooc /usr/local/bin/ && \
-            sudo cp /usr/local/bin/istiooc /usr/local/bin/oc
-            echo "Installed istiooc\n$(istiooc version)\n"
-            kube_version=$(istiooc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
+            wget "https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz" -O "oc.tar.gz"
+            tar xzfv oc.tar.gz --wildcards "**/oc" --strip 1
+            sudo mv $PWD/oc /usr/local/bin/
+            echo "Installed oc\n$(oc version)\n"
+            kube_version=$(oc version | grep kubernetes | cut -d'+' -f 1 | cut -d' ' -f 2)
             curl -LO https://storage.googleapis.com/kubernetes-release/release/${kube_version}/bin/linux/amd64/kubectl && \
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
+      - run:
+          name: "Starts up the cluster"
+          command: ./scripts/openshift/start-cluster.sh "${IKE_CLUSTER_DIR}"
       - restore_cache:
           keys:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}

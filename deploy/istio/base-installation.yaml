@@ -11,7 +11,7 @@ spec:
 
       proxy:
         proxy_init:
-          image: proxy-init-centos7
+          image: proxy-init-rhel7
         resources:
           requests:
             cpu: 100m
