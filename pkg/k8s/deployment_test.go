@@ -70,6 +70,9 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		BeforeEach(func() {
 			objects = []runtime.Object{
 				&appsv1.Deployment{
+					TypeMeta: metav1.TypeMeta{
+						Kind: "Deployment",
+					},
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-ref",
 						Namespace: "test",
@@ -144,6 +147,18 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
+		})
+
+		It("should update selector", func() {
+			ref := CreateTestRef()
+			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment := appsv1.Deployment{}
+			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo("v1-test"))
 		})
 
 		It("should only mutate if Target is of kind Deployment", func() {

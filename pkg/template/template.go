@@ -33,7 +33,7 @@ func NewDefaultEngine() *Engine {
 				{{ if not (.Data.Has "/spec/selector") }}
 				{"op": "add", "path": "/spec/selector", "value": {}},
 				{{ end }}
-				{{ if .Data.Equal "/metadata/kind" "Deployment" }}
+				{{ if .Data.Equal "/kind" "Deployment" }}
 					{{ if not (.Data.Has "/spec/selector/matchLabels") }}
 					{"op": "add", "path": "/spec/selector/matchLabels", "value": {}},
 					{{ end }}
@@ -44,7 +44,7 @@ func NewDefaultEngine() *Engine {
 					{"op": "add", "path": "/spec/selector/matchLabels/version", "value": "{{.NewVersion}}"},
 					{{ end }}
 				{{ end }}
-				{{ if .Data.Equal "/metadata/kind" "DeploymentKind" }}
+				{{ if .Data.Equal "/kind" "DeploymentConfig" }}
 					{{ if .Data.Has "/spec/selector/version" }}
 					{"op": "replace", "path": "/spec/selector/version", "value": "{{.NewVersion}}"},
 					{{ end }}
