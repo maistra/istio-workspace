@@ -142,14 +142,18 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
 		Should(ContainSubstring("No resources found"))
 
-	// and modify the service
+	// check original response
+	Eventually(verifyRoute(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+
+	// then modify the service
 	modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
 	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-	// then check modified route
+	// then verify new content being served
 	Eventually(verifyRoute(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 	// but also check if prod is intact
-	Eventually(verifyRoute(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+	Eventually(verifyRoute(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
+		ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
 
 	stopFailed := ikeWithWatch.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
@@ -157,10 +161,10 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
 }
 
-func verifyRoute(rawUrl string, headers map[string]string) func() (string, error) {
+func verifyRoute(routeURL string, headers map[string]string) func() (string, error) {
 	return func() (string, error) {
-		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), rawUrl, headers)
-		return GetBodyWithHeaders(rawUrl, headers)
+		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
+		return GetBodyWithHeaders(routeURL, headers)
 	}
 }
 
