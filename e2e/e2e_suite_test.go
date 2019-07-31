@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var _, skipClusterShutdown = os.LookupEnv("SKIP_CLUSTER_SHUTDOWN")
+var skipClusterShutdown bool
 
 var tmpClusterDir string
 
@@ -33,6 +34,11 @@ var tmpPath = NewTmpPath()
 var _ = SynchronizedBeforeSuite(func() []byte {
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
+
+	if skip, found := os.LookupEnv("SKIP_CLUSTER_SHUTDOWN"); found {
+		skipClusterShutdown, _ = strconv.ParseBool(skip)
+	}
+
 	if clusterNotRunning() {
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
@@ -42,7 +48,10 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
 			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
-		skipClusterShutdown = true
+	} else {
+		if _, found := os.LookupEnv("SKIP_CLUSTER_SHUTDOWN"); !found {
+			skipClusterShutdown = true
+		}
 	}
 	executeWithTimer(func() {
 		<-testshell.Execute("oc login -u system:admin").Done()
