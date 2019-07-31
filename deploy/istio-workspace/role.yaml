@@ -53,11 +53,6 @@ rules:
   - apiGroups:
       - networking.istio.io
     resources:
-      - destinationrules
-      - gateways
-      - serviceentries
-      - virtualservices
+      - '*'
     verbs:
-      - get
-      - list
-      - watch
+      - '*'
