@@ -74,7 +74,7 @@ var _ = Describe("Operations for template system", func() {
 			It("should get value in slice", func() {
 				v, err := tj.Value("/spec/template/spec/containers/0")
 				Expect(err).ToNot(HaveOccurred())
-				Expect(v).ToNot(BeNil())
+				Expect(v).ToNot(BeEmpty())
 			})
 			It("should get value in child of slice", func() {
 				v, err := tj.Value("/spec/template/spec/containers/0/env/0/value")
