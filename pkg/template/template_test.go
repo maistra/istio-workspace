@@ -111,7 +111,7 @@ var _ = Describe("Operations for template system", func() {
 
 		Context("object validation", func() {
 			It("should fail on wrong Patch format", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:     "test",
 					Template: []byte("{"),
 				}})
@@ -121,7 +121,7 @@ var _ = Describe("Operations for template system", func() {
 			})
 
 			It("should fail on wrong Patch format", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:     "test",
 					Template: []byte("[]"),
 				}})
@@ -134,7 +134,7 @@ var _ = Describe("Operations for template system", func() {
 		Context("normal operations", func() {
 
 			It("should apply patch", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:      "test",
 					Template:  []byte(`[ {"op": "remove", "path": "/version"} ]`),
 					Variables: map[string]string{},
@@ -145,7 +145,7 @@ var _ = Describe("Operations for template system", func() {
 			})
 
 			It("should fail on bad patch", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:      "test",
 					Template:  []byte(`[ {"op": "remove", "path": "/test"} ]`),
 					Variables: map[string]string{},
@@ -159,7 +159,7 @@ var _ = Describe("Operations for template system", func() {
 		Context("variables", func() {
 
 			It("should use default values if non provided", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:     "test",
 					Template: []byte(`[ {"op": "replace", "path": "/version", "value": "{{.Vars.Version}}"} ]`),
 					Variables: map[string]string{
@@ -172,7 +172,7 @@ var _ = Describe("Operations for template system", func() {
 			})
 
 			It("should override with incomming is available", func() {
-				e := template.NewEngine(template.Patchs{template.Patch{
+				e := template.NewEngine(template.Patches{template.Patch{
 					Name:     "test",
 					Template: []byte(`[ {"op": "replace", "path": "/version", "value": "{{.Vars.Version}}"} ]`),
 					Variables: map[string]string{

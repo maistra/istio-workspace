@@ -13,7 +13,7 @@ import (
 
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
-	patchs := []Patch{
+	patches := []Patch{
 		Patch{
 			Name: "telepresence",
 			Template: []byte(`[
@@ -104,12 +104,12 @@ func NewDefaultEngine() *Engine {
 			`),
 		},
 	}
-	return NewEngine(patchs)
+	return NewEngine(patches)
 }
 
 // NewEngine constructs a new Engine with the given templates
-func NewEngine(patchs Patchs) *Engine {
-	return &Engine{patches: patchs}
+func NewEngine(patches Patches) *Engine {
+	return &Engine{patches: patches}
 }
 
 // NewJSON constructs a JSON object from a json string
@@ -136,12 +136,12 @@ type Patch struct {
 	Variables map[string]string
 }
 
-// Patchs holds all known patch templates for a Engine
-type Patchs []Patch
+// Patches holds all known patch templates for a Engine
+type Patches []Patch
 
 // Engine is a reusable instance with a configured set of patch templates
 type Engine struct {
-	patches Patchs
+	patches Patches
 }
 
 // Value returns the object value behind a json path, e.g. /spec/metadata/name
@@ -253,7 +253,7 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	return modified, nil
 }
 
-func loadTemplate(patches Patchs) (*template.Template, error) {
+func loadTemplate(patches Patches) (*template.Template, error) {
 	var err error
 	t := template.New("workspace")
 	for _, p := range patches {
