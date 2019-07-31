@@ -124,7 +124,7 @@ func cleanupNamespace(namespace string) func() {
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
 
-	Eventually(AllPodsReady(namespace), 3*time.Minute, 2*time.Second).Should(BeTrue())
+	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
@@ -146,7 +146,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	)
 
 	// ensure the new service is running
-	Eventually(AllPodsReady(namespace), 3*time.Minute, 2*time.Second).Should(BeTrue())
+	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	// check original response
 	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
