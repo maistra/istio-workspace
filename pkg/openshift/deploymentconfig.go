@@ -1,14 +1,15 @@
 package openshift
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/apis"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -58,10 +59,14 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error { /
 	}
 	ctx.Log.Info("Found DeploymentConfig", "name", ref.Target.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	if err != nil {
+		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
+		return err
+	}
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
-		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deploymentClone.Name)
+		ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionFailed})
 		return err
 	}
@@ -92,43 +97,31 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error { 
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) *appsv1.DeploymentConfig {
-	deploymentClone := deployment.DeepCopy()
-	labelsClone := deploymentClone.Spec.Selector
-	labelsClone["telepresence"] = "test"
-	labelsClone["version-source"] = labelsClone["version"]
-	labelsClone["version"] = version
-	deploymentClone.SetName(deployment.GetName() + "-" + version)
-	deploymentClone.SetLabels(labelsClone)
-	deploymentClone.Spec.Selector = labelsClone
-	deploymentClone.Spec.Template.SetLabels(labelsClone)
-	deploymentClone.SetResourceVersion("")
-	deploymentClone.Spec.Replicas = 1
-
+func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) (*appsv1.DeploymentConfig, error) {
 	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !found {
 		tpVersion = "0.101"
 	}
 
-	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:" + tpVersion
+	originalDeployment, err := json.Marshal(deployment)
+	if err != nil {
+		return nil, err
+	}
 
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
-		ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				APIVersion: "v1",
-				FieldPath:  "metadata.namespace",
-			},
-		},
+	e := template.NewDefaultEngine()
+	modifiedDeployment, err := e.Run("telepresence", originalDeployment, version, map[string]string{
+		"TelepresenceVersion": tpVersion,
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	// remove unneeded fields
-	container.LivenessProbe = nil
-	container.ReadinessProbe = nil
-
-	deploymentClone.Spec.Template.Spec.Containers[0] = container
-	return deploymentClone
+	clone := appsv1.DeploymentConfig{}
+	err = json.Unmarshal(modifiedDeployment, &clone)
+	if err != nil {
+		return nil, err
+	}
+	return &clone, nil
 }
 
 func getDeploymentConfig(ctx model.SessionContext, namespace, name string) (*appsv1.DeploymentConfig, error) { //nolint[:hugeParam]
