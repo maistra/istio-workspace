@@ -63,8 +63,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		workspaceNamespace := CreateOperatorNamespace()
 		BuildOperator()
 		DeployOperator()
-		Eventually(AllPodsNotInState(workspaceNamespace, "Running"), 3*time.Minute, 2*time.Second).
-			Should(ContainSubstring("No resources found"))
+		Eventually(AllPodsReady(workspaceNamespace), 3*time.Minute, 2*time.Second).Should(BeTrue())
 
 		createProjectsForCompletionTests()
 	})
