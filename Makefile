@@ -102,6 +102,10 @@ else ifneq ($(GITUNTRACKEDCHANGES),)
 	VERSION:=$(VERSION)-dirty-$(shell date +%s)
 endif
 
+.PHONY: version
+version:
+	@echo $(VERSION)
+
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
