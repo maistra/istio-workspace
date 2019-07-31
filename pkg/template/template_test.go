@@ -16,7 +16,7 @@ var _ = Describe("Operations for template system", func() {
 		)
 
 		BeforeEach(func() {
-			tj, err = template.NewJSON([]byte(org))
+			tj, err = template.NewJSON([]byte(testDeployment))
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -102,7 +102,7 @@ var _ = Describe("Operations for template system", func() {
 		It("happy, happy, basic DefaultEngine", func() {
 			e := template.NewDefaultEngine()
 
-			o, err := e.Run("telepresence", []byte(org), "1000", map[string]string{
+			o, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{
 				"TelepresenceVersion": "x",
 			})
 			Expect(err).ToNot(HaveOccurred())
@@ -189,7 +189,7 @@ var _ = Describe("Operations for template system", func() {
 	})
 })
 
-var org = `
+var testDeployment = `
 {
     "apiVersion": "extensions/v1beta1",
     "kind": "Deployment",

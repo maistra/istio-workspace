@@ -103,13 +103,13 @@ func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) (*apps
 		tpVersion = "0.101"
 	}
 
-	org, err := json.Marshal(deployment)
+	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, err
 	}
 
 	e := template.NewDefaultEngine()
-	modified, err := e.Run("telepresence", org, version, map[string]string{
+	modifiedDeployment, err := e.Run("telepresence", originalDeployment, version, map[string]string{
 		"TelepresenceVersion": tpVersion,
 	})
 	if err != nil {
@@ -117,7 +117,7 @@ func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) (*apps
 	}
 
 	clone := appsv1.DeploymentConfig{}
-	err = json.Unmarshal(modified, &clone)
+	err = json.Unmarshal(modifiedDeployment, &clone)
 	if err != nil {
 		return nil, err
 	}
