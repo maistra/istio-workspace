@@ -2,6 +2,8 @@ package e2e_test
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,9 +33,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
-		AfterEach(func() {
-			<-testshell.Execute("oc delete project " + appName).Done()
-		})
+		AfterEach(cleanupNamespace(appName))
 
 		It("should watch python code changes and replace service when they occur", func() {
 
@@ -81,9 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			DeployTestScenario(scenario, namespace)
 		})
 
-		AfterEach(func() {
-			<-testshell.Execute("oc delete project " + namespace).Done()
-		})
+		AfterEach(cleanupNamespace(namespace))
 
 		Context("scenario-1-basic-deployment", func() {
 			BeforeEach(func() {
@@ -110,6 +108,18 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 	})
 })
+
+func cleanupNamespace(namespace string) func() {
+	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
+		keep, _ := strconv.ParseBool(keepStr)
+		if keep {
+			return func() {}
+		}
+	}
+	return func() {
+		<-testshell.Execute("oc delete project " + namespace).Done()
+	}
+}
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
