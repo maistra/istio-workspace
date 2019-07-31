@@ -33,7 +33,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
-		AfterEach(cleanupNamespace(appName))
+		AfterEach(func() { cleanupNamespace(appName) })
 
 		It("should watch python code changes and replace service when they occur", func() {
 
@@ -81,7 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			DeployTestScenario(scenario, namespace)
 		})
 
-		AfterEach(cleanupNamespace(namespace))
+		AfterEach(func() { cleanupNamespace(namespace) })
 
 		Context("scenario-1-basic-deployment", func() {
 			BeforeEach(func() {
@@ -109,16 +109,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	})
 })
 
-func cleanupNamespace(namespace string) func() {
+func cleanupNamespace(namespace string) {
 	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
 		keep, _ := strconv.ParseBool(keepStr)
 		if keep {
-			return func() {}
+			return
 		}
 	}
-	return func() {
-		<-testshell.Execute("oc delete project " + namespace).Done()
-	}
+	<-testshell.Execute("oc delete project " + namespace).Done()
 }
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
