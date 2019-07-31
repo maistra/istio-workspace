@@ -9,9 +9,10 @@ spec:
 
       multitenant: false
 
+      proxy_init:
+        image: proxy-init-centos7
+
       proxy:
-        proxy_init:
-          image: proxy-init-rhel7
         resources:
           requests:
             cpu: 100m
