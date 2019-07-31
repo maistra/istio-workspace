@@ -11,7 +11,7 @@ defaults:
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
-    IKE_E2E_KEEP_NS: "true"
+    IKE_E2E_KEEP_NS: "false"
 
 version: 2.1
 jobs:
