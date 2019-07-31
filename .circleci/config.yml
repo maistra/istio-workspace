@@ -52,6 +52,16 @@ jobs:
               circleci step halt
             fi
       - run:
+          <<: *golang-install
+      - run:
+          name: "Installs telepresence"
+          command: |
+            cd ~
+            pyenv global 3.5.2
+            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
+            sudo apt install --no-install-recommends telepresence
+            telepresence --version
+      - run:
           name: "Elasticsearch setup"
           command: |
             echo "vm.max_map_count = 262144" | sudo tee /etc/sysctl.d/99-elasticsearch.conf
@@ -64,16 +74,6 @@ jobs:
             sudo mv ${json} /etc/docker/daemon.json
             sudo service docker restart
             echo "Configured Docker daemon with insecure-registry"
-      - run:
-          <<: *golang-install
-      - run:
-          name: "Installs telepresence"
-          command: |
-            cd ~
-            pyenv global 3.5.2
-            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends telepresence
-            telepresence --version
       - run:
           name: "Installs Openshift and k8s"
           command: |
