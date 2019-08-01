@@ -35,7 +35,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
 
-	if skip, found := os.LookupEnv("IKE_SKIP_CLUSTER_SHUTDOWN"); found {
+	if skip, found := os.LookupEnv("IKE_E2E_SKIP_CLUSTER_SHUTDOWN"); found {
 		skipClusterShutdown, _ = strconv.ParseBool(skip)
 	}
 
@@ -49,7 +49,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
 	} else {
-		if _, found := os.LookupEnv("IKE_SKIP_CLUSTER_SHUTDOWN"); !found {
+		if _, found := os.LookupEnv("IKE_E2E_SKIP_CLUSTER_SHUTDOWN"); !found {
 			skipClusterShutdown = true
 		}
 	}
