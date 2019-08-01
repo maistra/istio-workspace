@@ -4,10 +4,10 @@ PACKAGE_NAME:=github.com/maistra/istio-workspace
 OPERATOR_NAMESPACE?=istio-workspace-operator
 TEST_NAMESPACE?=bookinfo
 
-CUR_DIR:=$(shell pwd)
-export CUR_DIR
-BUILD_DIR:=$(CUR_DIR)/build
-BINARY_DIR:=$(CUR_DIR)/dist
+PROJECT_DIR:=$(shell pwd)
+export PROJECT_DIR
+BUILD_DIR:=$(PROJECT_DIR)/build
+BINARY_DIR:=$(PROJECT_DIR)/dist
 BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 ASSETS:=pkg/assets/isto-workspace-deploy.go
@@ -49,7 +49,7 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(CUR_DIR)/bin/
+	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/
 
 .PHONY: deps
 deps: check-tools ## Fetches all dependencies
@@ -69,9 +69,9 @@ lint: deps ## Concurrently runs a whole bunch of static analysis tools
 GROUP_VERSIONS:="istio:v1alpha1"
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: codegen
-codegen: $(CUR_DIR)/bin/operator-sdk $(CUR_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
+codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
-	GOPATH=$(GOPATH_1) $(CUR_DIR)/bin/operator-sdk generate k8s
+	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
@@ -101,6 +101,10 @@ ifneq ($(GIT_TAG),0)
 else ifneq ($(GITUNTRACKEDCHANGES),)
 	VERSION:=$(VERSION)-dirty-$(shell date +%s)
 endif
+
+.PHONY: version
+version:
+	@echo $(VERSION)
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
@@ -142,14 +146,14 @@ ifeq ($(OS), Darwin)
 endif
 OPERATOR_ARCH:=$(shell uname -m)
 
-$(CUR_DIR)/bin/operator-sdk:
+$(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli tool")
-	mkdir -p $(CUR_DIR)/bin/
+	mkdir -p $(PROJECT_DIR)/bin/
 	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(CUR_DIR)/bin/operator-sdk
-	chmod +x $(CUR_DIR)/bin/operator-sdk
+	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
+	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
-$(CUR_DIR)/$(ASSETS): $(ASSET_SRCS)
+$(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
 	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
 
@@ -171,7 +175,7 @@ docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/Dockerfile $(CUR_DIR)
+		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
 	docker tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
@@ -191,7 +195,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
 	docker build \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTest $(CUR_DIR)
+		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 	docker tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
@@ -219,10 +223,13 @@ define process_template # params: template location
 		-p TELEPRESENCE_VERSION=$(TELEPRESENCE_VERSION)
 endef
 
+.PHONY: start-cluster
+start-cluster: ## Starts local OpenShift cluster configured to work with Istio (Maistra)
+	./scripts/openshift/start-cluster.sh
+
 .PHONY: load-istio
-load-istio: ## Triggers installation of minimal Istio in the cluster (see deploy/istio/minimal-cr.yaml)
-	$(call header,"Deploys minimal istio operator")
-	oc create -n istio-operator -f deploy/istio/minimal-cr.yaml
+load-istio: ## Triggers installation of basic Istio/Maistra setup in the cluster (see deploy/istio/base-install.yaml)
+	./scripts/openshift/deploy-istio.sh
 
 .PHONY: deploy-operator
 deploy-operator: ## Deploys istio-workspace operator resources to defined OPERATOR_NAMESPACE

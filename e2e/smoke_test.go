@@ -2,6 +2,8 @@ package e2e_test
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,9 +33,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
 
-		AfterEach(func() {
-			<-testshell.Execute("oc delete project " + appName).Done()
-		})
+		AfterEach(func() { cleanupNamespace(appName) })
 
 		It("should watch python code changes and replace service when they occur", func() {
 
@@ -81,9 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			DeployTestScenario(scenario, namespace)
 		})
 
-		AfterEach(func() {
-			<-testshell.Execute("oc delete project " + namespace).Done()
-		})
+		AfterEach(func() { cleanupNamespace(namespace) })
 
 		Context("scenario-1-basic-deployment", func() {
 			BeforeEach(func() {
@@ -111,11 +109,20 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	})
 })
 
+func cleanupNamespace(namespace string) {
+	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
+		keep, _ := strconv.ParseBool(keepStr)
+		if keep {
+			return
+		}
+	}
+	<-testshell.Execute("oc delete project " + namespace).Done()
+}
+
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
 
-	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-		Should(ContainSubstring("No resources found"))
+	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
@@ -123,7 +130,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	<-testshell.Execute("oc project myproject").Done()
 
 	// given we have details code locally
-	CreateFile(tmpDir+"/ratings.rb", DetailsRuby)
+	CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
 
 	// when we start ike with watch
 	ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
@@ -137,14 +144,13 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	)
 
 	// ensure the new service is running
-	Eventually(AllPodsNotInState(namespace, "Running"), 3*time.Minute, 2*time.Second).
-		Should(ContainSubstring("No resources found"))
+	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	// check original response
 	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 	// then modify the service
-	modifiedDetails := strings.Replace(DetailsRuby, "PublisherA", "Publisher Ike", 1)
+	modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 	// then verify new content being served

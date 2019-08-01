@@ -2,7 +2,6 @@ package infra
 
 import (
 	"os"
-	"time"
 
 	"github.com/maistra/istio-workspace/test/shell"
 
@@ -13,16 +12,13 @@ import (
 
 // LoadIstio calls make load-istio target and waits until operator sets up mesh
 func LoadIstio() {
-	projectDir := os.Getenv("CUR_DIR")
-	<-shell.Execute("oc login -u system:admin").Done()
+	projectDir := os.Getenv("PROJECT_DIR")
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
-	gomega.Eventually(PodCompletedStatus("istio-system", "job-name=openshift-ansible-istio-installer-job"),
-		10*time.Minute, 5*time.Second).Should(gomega.ContainSubstring("Completed"))
 }
 
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry
 func BuildTestService(namespace string) (registry string) {
-	projectDir := os.Getenv("CUR_DIR")
+	projectDir := os.Getenv("PROJECT_DIR")
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
 	<-shell.Execute("oc login -u admin -p admin").Done()
@@ -33,7 +29,7 @@ func BuildTestService(namespace string) (registry string) {
 
 // DeployTestScenario deploys a test scenario into the specified namespace
 func DeployTestScenario(scenario, namespace string) {
-	projectDir := os.Getenv("CUR_DIR")
+	projectDir := os.Getenv("PROJECT_DIR")
 	setDockerEnvForTestServiceDeploy(namespace)
 
 	<-shell.Execute("oc login -u system:admin").Done()
@@ -42,7 +38,7 @@ func DeployTestScenario(scenario, namespace string) {
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
-	projectDir := os.Getenv("CUR_DIR")
+	projectDir := os.Getenv("PROJECT_DIR")
 	_, registry = setDockerEnvForOperatorBuild()
 	<-shell.Execute("oc login -u admin -p admin").Done()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
@@ -59,7 +55,7 @@ func CreateOperatorNamespace() (namespace string) {
 
 // DeployOperator deploys istio-workspace operator into specified namespace
 func DeployOperator() (namespace string) {
-	projectDir := os.Getenv("CUR_DIR")
+	projectDir := os.Getenv("PROJECT_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
 	<-shell.Execute("oc login -u admin -p admin").Done()
 
