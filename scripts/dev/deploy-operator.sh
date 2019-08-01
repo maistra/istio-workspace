@@ -6,8 +6,6 @@ export TELEPRESENCE_VERSION=$(telepresence --version)
 export IKE_IMAGE_TAG="$(make version)"
 
 oc new-project istio-workspace-operator || true
-oc adm policy add-scc-to-user anyuid -z default -n $(oc project -q)
-oc adm policy add-scc-to-user privileged -z default -n $(oc project -q)
 
 docker login -u $(oc whoami) -p $(oc whoami -t) $(echo $IKE_DOCKER_REGISTRY)
 make docker-build docker-push
