@@ -3,7 +3,7 @@
 MAISTRA_VERSION=${MAISTRA_VERSION:-"0.12"}
 
 if [ -z "$1" ]; then
-    echo "-- Using default maistra version ${MAISTRA_VERSION}. You can override it by passing it as a second argument."
+    echo "-- Using default maistra version ${MAISTRA_VERSION}. You can override it by passing it as a first argument."
 else
     MAISTRA_VERSION=$1
 fi
