@@ -55,7 +55,7 @@ type sessions struct {
 }
 
 // newSessions returns a Sessions
-func newSessions(c *IstioV1alpha1Client, namespace string) *sessions {
+func newSessions(c *MaistraV1alpha1Client, namespace string) *sessions {
 	return &sessions{
 		client: c.RESTClient(),
 		ns:     namespace,

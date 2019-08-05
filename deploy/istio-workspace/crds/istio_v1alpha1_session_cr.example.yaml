@@ -1,4 +1,4 @@
-apiVersion: istio.openshift.com/v1alpha1
+apiVersion: maistra.io/v1alpha1
 kind: Session
 metadata:
   name: test-session
