@@ -56,3 +56,9 @@ rules:
       - '*'
     verbs:
       - '*'
+  - apiGroups:
+      - maistra.io
+    resources:
+      - '*'
+    verbs:
+      - '*'

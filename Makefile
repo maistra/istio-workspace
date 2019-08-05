@@ -174,6 +174,15 @@ docker-build: GOOS=linux
 docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
 	docker build \
+		--label "org.opencontainers.image.title=$(IKE_IMAGE_NAME)" \
+		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
+		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
+		--label "org.opencontainers.image.documentation=https://istio-workspace-docs.netlify.com/istio-workspace" \
+		--label "org.opencontainers.image.licenses=Apache-2.0" \
+		--label "org.opencontainers.image.authors=Aslak Knutsen, Bartosz Majsak" \
+		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
+		--label "org.opencontainers.image.revision=$(COMMIT)" \
+		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
 	docker tag \
