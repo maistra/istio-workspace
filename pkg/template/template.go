@@ -14,7 +14,7 @@ import (
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
 	patches := []Patch{
-		Patch{
+		{
 			Name: "telepresence",
 			Template: []byte(`[
 				{{ if not (.Data.Has "/spec/template/metadata") }}
@@ -86,7 +86,7 @@ func NewDefaultEngine() *Engine {
 				"TelepresenceVersion": "y",
 			},
 		},
-		Patch{
+		{
 			Name: "basic-remove",
 			Template: []byte(`
 				{{ if .Data.Has "/metadata/resourceVersion" }}

@@ -1,5 +1,5 @@
-# for details, see: https://dependabot.com/docs/config-file/
-# to validate: 
+# Configures dependabot dependency updates
+# For details, see: https://dependabot.com/docs/config-file/
 version: 1
 update_configs:
   - package_manager: "go:dep"
