@@ -33,6 +33,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	installCmd.Flags().StringP("namespace", "n", "istio-workspace-operator", "Target namespace to which istio-workspace operator is deployed to.")
+	installCmd.Flags().BoolP("local", "l", false, "Install as local to the namespace only")
 
 	helpTpl := installCmd.HelpTemplate() + `
 Environment variables you can override:{{range tplParams}}
@@ -44,6 +45,10 @@ Environment variables you can override:{{range tplParams}}
 
 func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	namespace, err := cmd.Flags().GetString("namespace")
+	if err != nil {
+		return err
+	}
+	local, err := cmd.Flags().GetBool("local")
 	if err != nil {
 		return err
 	}
@@ -66,11 +71,22 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err != nil {
 		return err
 	}
+	resources := []string{"crds/istio_v1alpha1_session_crd.yaml", "service_account.yaml", "role.yaml"}
+	templates := []string{"role_binding.yaml", "operator.yaml"}
 
-	if err := apply(app.applyResource, "crds/istio_v1alpha1_session_crd.yaml", "service_account.yaml", "role.yaml"); err != nil {
+	if local {
+		resources = []string{"crds/istio_v1alpha1_session_crd.yaml", "service_account.yaml", "role_local.yaml"}
+		templates = []string{"role_binding_local.yaml", "operator.yaml"}
+
+		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {
+			return envErr
+		}
+	}
+
+	if err := apply(app.applyResource, resources...); err != nil {
 		return err
 	}
-	if err := apply(app.applyTemplate, "role_binding.yaml", "operator.yaml"); err != nil {
+	if err := apply(app.applyTemplate, templates...); err != nil {
 		return err
 	}
 
