@@ -18,7 +18,7 @@ parameters:
     required: true
     value: latest
   - name: WATCH_NAMESPACE
-    description: "The tag of the image to be used"
+    description: "The namespace to watch. Leave empty for cluster wide watch."
     required: false
     value: ""
   - name: TELEPRESENCE_VERSION
