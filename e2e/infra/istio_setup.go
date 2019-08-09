@@ -65,7 +65,7 @@ func DeployLocalOperator(namespace string) {
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
-	<-shell.ExecuteInDir(".", "ike", "install-operator -l -n "+namespace).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "ike install-operator -l -n "+namespace).Done()
 }
 
 /*
