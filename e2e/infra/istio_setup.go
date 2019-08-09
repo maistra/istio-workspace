@@ -53,6 +53,25 @@ func CreateOperatorNamespace() (namespace string) {
 	return
 }
 
+// DeployLocalOperator deploys istio-workspace operator into specified namespace
+func DeployLocalOperator(namespace string) {
+	projectDir := os.Getenv("PROJECT_DIR")
+	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
+	<-shell.Execute("oc login -u admin -p admin").Done()
+
+	setDockerEnvForLocalOperatorBuild(namespace)
+
+	<-shell.ExecuteInDir(".", "bash", "-c", `
+	docker tag \
+	   $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+	   $(IKE_DOCKER_REGISTRY)/"+namespace+"/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)`).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $(IKE_DOCKER_REGISTRY)/"+namespace+"/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)").Done()
+
+	setDockerEnvForLocalOperatorDeploy(namespace)
+	<-shell.ExecuteInDir(projectDir, "ike", "install-operator -l -n "+namespace).Done()
+	return
+}
+
 // DeployOperator deploys istio-workspace operator into specified namespace
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
@@ -81,10 +100,22 @@ func setDockerEnvForOperatorBuild() (namespace, registry string) {
 	return ns, repo
 }
 
+func setDockerEnvForLocalOperatorBuild(namespace string) string {
+	setLocalOperatorNamespace(namespace)
+	repo := setDockerRegistryExternal()
+	return repo
+}
+
 func setDockerEnvForOperatorDeploy() (namespace, registry string) {
 	ns := setOperatorNamespace()
 	repo := setDockerRegistryInternal()
 	return ns, repo
+}
+
+func setDockerEnvForLocalOperatorDeploy(namespace string) string {
+	setLocalOperatorNamespace(namespace)
+	repo := setDockerRegistryInternal()
+	return repo
 }
 
 func setTestNamespace(namespace string) {
@@ -102,6 +133,13 @@ func setOperatorNamespace() (namespace string) {
 
 	setDockerRepository(operatorNS)
 	return operatorNS
+}
+
+func setLocalOperatorNamespace(namespace string) {
+	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	setDockerRepository(namespace)
 }
 
 func setDockerRepository(namespace string) {
