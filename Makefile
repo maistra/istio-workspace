@@ -275,7 +275,6 @@ undeploy-operator: ## Undeploys istio-workspace operator resources from defined 
 deploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
 deploy-operator-local: ## Deploys istio-workspace operator resources to a single Namespace defined by OPERATOR_NAMESPACE
 	$(call header,"Deploying local operator to $(OPERATOR_NAMESPACE)")
-	export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
 	oc new-project $(OPERATOR_NAMESPACE) || true
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
