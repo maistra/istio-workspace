@@ -171,7 +171,7 @@ var _ = Describe("Operations for template system", func() {
 				Expect(string(o)).To(ContainSubstring("DEFAULT_VERSION"))
 			})
 
-			It("should override with incomming is available", func() {
+			It("should override with incoming if available", func() {
 				e := template.NewEngine(template.Patches{template.Patch{
 					Name:     "test",
 					Template: []byte(`[ {"op": "replace", "path": "/version", "value": "{{.Vars.Version}}"} ]`),
