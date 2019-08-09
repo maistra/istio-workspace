@@ -2,6 +2,7 @@ PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/maistra/istio-workspace
 
 OPERATOR_NAMESPACE?=istio-workspace-operator
+OPERATOR_WATCH_NAMESPACE=""
 TEST_NAMESPACE?=bookinfo
 
 PROJECT_DIR:=$(shell pwd)
@@ -240,7 +241,8 @@ define process_template # params: template location
 		-p IKE_IMAGE_NAME=$(IKE_IMAGE_NAME) \
 		-p IKE_IMAGE_TAG=$(IKE_IMAGE_TAG) \
 		-p NAMESPACE=$(OPERATOR_NAMESPACE) \
-		-p TELEPRESENCE_VERSION=$(TELEPRESENCE_VERSION)
+		-p TELEPRESENCE_VERSION=$(TELEPRESENCE_VERSION) \
+		-p WATCH_NAMESPACE=$(OPERATOR_WATCH_NAMESPACE)
 endef
 
 .PHONY: start-cluster
@@ -263,12 +265,32 @@ deploy-operator: ## Deploys istio-workspace operator resources to defined OPERAT
 
 .PHONY: undeploy-operator
 undeploy-operator: ## Undeploys istio-workspace operator resources from defined OPERATOR_NAMESPACE
-	$(call header,"Undeploying operator to $(OPERATOR_NAMESPACE)")
+	$(call header,"Undeploying operator from $(OPERATOR_NAMESPACE)")
 	$(call process_template,deploy/istio-workspace/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+
+.PHONY: deploy-operator-local
+deploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
+deploy-operator-local: ## Deploys istio-workspace operator resources to a single Namespace defined by OPERATOR_NAMESPACE
+	$(call header,"Deploying local operator to $(OPERATOR_NAMESPACE)")
+	oc new-project $(OPERATOR_NAMESPACE) || true
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role_local.yaml
+	$(call process_template,deploy/istio-workspace/role_binding_local.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/istio-workspace/operator.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
+
+.PHONY: undeploy-operator-local
+undeploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
+undeploy-operator-local: ## Undeploys istio-workspace operator resources from a single Namespace defined by OPERATOR_NAMESPACE
+	$(call header,"Undeploying local operator from $(OPERATOR_NAMESPACE)")
+	$(call process_template,deploy/istio-workspace/operator.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/istio-workspace/role_binding_local.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role_local.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
 
 # ##########################################################################
 ##@ Istio-workspace example deployment
