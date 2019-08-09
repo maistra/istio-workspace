@@ -69,7 +69,6 @@ func DeployLocalOperator(namespace string) {
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
 	<-shell.ExecuteInDir(projectDir, "ike", "install-operator -l -n "+namespace).Done()
-	return
 }
 
 // DeployOperator deploys istio-workspace operator into specified namespace
