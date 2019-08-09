@@ -132,6 +132,10 @@ parameters:
     description: "The tag of the image to be used"
     required: true
     value: latest
+  - name: WATCH_NAMESPACE
+    description: "The namespace to watch. Leave empty for cluster wide watch."
+    required: false
+    value: ""
   - name: TELEPRESENCE_VERSION
     description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
     required: true
