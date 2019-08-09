@@ -54,15 +54,22 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	}
 
 	// Propagates NAMESPACE env var which is used by templates
-	if os.Getenv("NAMESPACE") == "" {
+	if _, found := os.LookupEnv("NAMESPACE"); !found {
 		if envErr := os.Setenv("NAMESPACE", namespace); envErr != nil {
 			return envErr
 		}
 	}
 
 	// Propagates IKE_IMAGE_TAG env var which is used by templates to be aligned with the version of the actual built binary
-	if os.Getenv("IKE_IMAGE_TAG") == "" {
+	if _, found := os.LookupEnv("IKE_IMAGE_TAG"); !found {
 		if envErr := os.Setenv("IKE_IMAGE_TAG", version.Version); envErr != nil {
+			return envErr
+		}
+	}
+
+	// Propagates IKE_VERSION env var which is used by templates to be aligned with the version of the actual built binary
+	if _, found := os.LookupEnv("IKE_VERSION"); !found {
+		if envErr := os.Setenv("IKE_VERSION", version.Version); envErr != nil {
 			return envErr
 		}
 	}
@@ -89,6 +96,13 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err := apply(app.applyTemplate, templates...); err != nil {
 		return err
 	}
+
+	log.Info("Installing operator", "namespace", os.Getenv("NAMESPACE"),
+		"image", fmt.Sprintf("%s/%s/%s:%s", os.Getenv("IKE_DOCKER_REGISTRY"),
+			os.Getenv("IKE_DOCKER_REPOSITORY"),
+			os.Getenv("IKE_IMAGE_NAME"),
+			os.Getenv("IKE_IMAGE_TAG")),
+		"version", version.Version)
 
 	return nil
 }

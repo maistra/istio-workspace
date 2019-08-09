@@ -30,15 +30,21 @@ objects:
     apiVersion: apps/v1
     metadata:
       name: istio-workspace
+      labels:
+        app: istio-workspace
+        version: ${IKE_VERSION}
     spec:
       replicas: 1
       selector:
         matchLabels:
-          name: istio-workspace
+          app: istio-workspace
+          version: ${IKE_VERSION}
       template:
         metadata:
+          name: istio-workspace
           labels:
-            name: istio-workspace
+            app: istio-workspace
+            version: ${IKE_VERSION}
         spec:
           serviceAccountName: istio-workspace
           containers:

@@ -3,6 +3,8 @@ package parser_test
 import (
 	"os"
 
+	"github.com/maistra/istio-workspace/version"
+
 	. "github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	openshiftApi "github.com/openshift/api/template/v1"
@@ -36,7 +38,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", nil)
+			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", map[string]string{"IKE_VERSION": version.Version})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -113,7 +115,7 @@ var _ = Describe("template processing", func() {
 	})
 })
 
-const processedOperatorTmplWithDefaults = `kind: Template
+var processedOperatorTmplWithDefaults = `kind: Template
 apiVersion: template.openshift.io/v1
 parameters:
   - name: IKE_DOCKER_REGISTRY
@@ -145,15 +147,21 @@ objects:
     apiVersion: apps/v1
     metadata:
       name: istio-workspace
+      labels:
+        app: istio-workspace
+        version: ` + version.Version + `
     spec:
       replicas: 1
       selector:
         matchLabels:
-          name: istio-workspace
+          app: istio-workspace
+          version: ` + version.Version + `
       template:
         metadata:
+          name: istio-workspace
           labels:
-            name: istio-workspace
+            app: istio-workspace
+            version: ` + version.Version + `
         spec:
           serviceAccountName: istio-workspace
           containers:
