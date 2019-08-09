@@ -291,7 +291,6 @@ undeploy-operator-local: ## Undeploys istio-workspace operator resources from a 
 	$(call process_template,deploy/istio-workspace/role_binding_local.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role_local.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
 
 # ##########################################################################
 ##@ Istio-workspace example deployment
