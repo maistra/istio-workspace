@@ -61,16 +61,14 @@ func DeployLocalOperator(namespace string) {
 
 	setDockerEnvForLocalOperatorBuild(namespace)
 
-	<-shell.ExecuteInDir(".", "bash", "-c", `
-	docker tag \
-	   $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-	   $(IKE_DOCKER_REGISTRY)/"+namespace+"/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)`).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) $(IKE_DOCKER_REGISTRY)/"+namespace+"/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)").Done() //nolint[:lll]
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $(IKE_DOCKER_REGISTRY)/"+namespace+"/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)").Done()
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
 	<-shell.ExecuteInDir(projectDir, "ike", "install-operator -l -n "+namespace).Done()
 }
 
+/*
 // DeployOperator deploys istio-workspace operator into specified namespace
 func DeployOperator() (namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
@@ -82,6 +80,7 @@ func DeployOperator() (namespace string) {
 	<-shell.ExecuteInDir(projectDir, "ike", "install-operator").Done()
 	return
 }
+*/
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
 	setTestNamespace(namespace)

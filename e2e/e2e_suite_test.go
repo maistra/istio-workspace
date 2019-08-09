@@ -71,7 +71,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		<-testshell.Execute("oc login -u admin -p admin").Done()
 		workspaceNamespace := CreateOperatorNamespace()
 		BuildOperator()
-		DeployOperator()
+		//DeployOperator()
 		Eventually(AllPodsReady(workspaceNamespace), 3*time.Minute, 2*time.Second).Should(BeTrue())
 
 		createProjectsForCompletionTests()
