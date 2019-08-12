@@ -67,6 +67,14 @@ func (c *client) Create(session *istiov1alpha1.Session) error {
 	return nil
 }
 
+// Update updates a session instance in a cluster
+func (c *client) Update(session *istiov1alpha1.Session) error {
+	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Update(session); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete deletes a session instance in a cluster
 func (c *client) Delete(session *istiov1alpha1.Session) error {
 	if err := c.MaistraV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{}); err != nil {
