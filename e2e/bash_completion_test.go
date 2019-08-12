@@ -40,7 +40,8 @@ var _ = Describe("Bash Completion Tests", func() {
 			})
 
 			It("should show all flags inherited from root", func() {
-				Expect(completionFor("ike install-operator -")).To(ConsistOf("--config", "--config=", "-c", "--namespace", "--namespace=", "-n"))
+				Expect(completionFor("ike install-operator -")).To(ConsistOf(
+					"--config", "--config=", "-c", "--local", "-l", "--namespace", "--namespace=", "-n"))
 			})
 		})
 

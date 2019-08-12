@@ -28,9 +28,18 @@ Before you can start using CLI we have to add few backend bits to the cluster, s
 
 The simples way is to run built-in command which should take care of all the steps.
 
+If you want to install the operator cluster wide run:
+
 [source,bash]
 ----
 ike install-operator
+----
+
+Or if you only want to install it for a single Namespace:
+
+[source,bash]
+----
+ike install-operator -l
 ----
 
 // TODO single install script
