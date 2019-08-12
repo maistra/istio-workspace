@@ -19,20 +19,48 @@ func ConnectToGateway() Modifier {
 	}
 }
 
+// GatewayOnHost modifier to set a hostname on the gateway
+func GatewayOnHost(hostname string) Modifier {
+	return func(service Entry, object runtime.Object) {
+		if obj, ok := object.(*istionetwork.Gateway); ok {
+			for _, server := range obj.Spec.Servers {
+				server.Hosts = append(server.Hosts, hostname)
+			}
+		}
+	}
+}
+
 // Call modifier to have the test service call another. Combine with ForService
 func Call(target string) Modifier {
 	return func(service Entry, object runtime.Object) {
+		appendOrAdd := func(name, value string, vars []corev1.EnvVar) []corev1.EnvVar {
+			found := false
+			for i, envvar := range vars {
+				if envvar.Name == name {
+					found = true
+					envvar.Value = envvar.Value + "," + value
+					vars[i] = envvar
+					break
+				}
+			}
+			if !found {
+				vars = append(vars, corev1.EnvVar{
+					Name:  name,
+					Value: value,
+				})
+			}
+			return vars
+		}
+
 		if obj, ok := object.(*appsv1.Deployment); ok {
-			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-				Name:  envServiceCall,
-				Value: "http://" + target + ":9080",
-			})
+			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
+				envServiceCall, "http://"+target+":9080",
+				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
-			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
-				Name:  envServiceCall,
-				Value: "http://" + target + ":9080",
-			})
+			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
+				envServiceCall, "http://"+target+":9080",
+				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 	}
 }
