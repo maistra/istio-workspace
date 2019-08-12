@@ -57,7 +57,7 @@ required = [
 
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
-  version = "=0.9.0"
+  version = "=0.10.0"
 
 [[override]]
   name = "k8s.io/kube-openapi"
