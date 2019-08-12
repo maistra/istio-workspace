@@ -47,7 +47,7 @@ spec:
       traceSampling: 100.0
 
     kiali:
-      enabled: false
+      enabled: true
 
     tracing:
-      enabled: false
+      enabled: true
