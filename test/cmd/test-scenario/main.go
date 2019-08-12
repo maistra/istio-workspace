@@ -22,6 +22,7 @@ func main() {
 	scenarios := map[string]func(){
 		"scenario-1": TestScenario1ThreeServicesInSequence,
 		"scenario-2": TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"demo":       DemoScenario,
 	}
 	scenario := os.Args[1]
 	if f, ok := scenarios[scenario]; ok {
