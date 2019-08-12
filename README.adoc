@@ -20,12 +20,21 @@ curl -sL http://git.io/get-ike | bash
 
 TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s -- --version=v0.0.1 --dir=~/bin`
 
-When logged in to the cluster simply run:
+When logged in to the cluster run the following for a cluster wide operator:
 
 [source,bash]
 ----
 ike install-operator
 ----
+
+or if you only want to install the operator for a single namespace run:
+
+[source,bash]
+----
+ike install-operator -l
+----
+
+
 
 And you are all set!
 
