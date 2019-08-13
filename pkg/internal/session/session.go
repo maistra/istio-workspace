@@ -95,7 +95,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 	}
 	// join session
 	session.Spec.Refs = append(session.Spec.Refs, h.ref)
-	err = h.c.Create(session)
+	err = h.c.Update(session)
 	if err != nil {
 		return "", err
 	}
@@ -168,7 +168,7 @@ func (h *handler) removeOrLeaveSession() {
 	if len(session.Spec.Refs) == 0 {
 		_ = h.c.Delete(session)
 	} else {
-		_ = h.c.Create(session)
+		_ = h.c.Update(session)
 	}
 }
 
