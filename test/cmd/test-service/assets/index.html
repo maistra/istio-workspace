@@ -81,12 +81,12 @@ const store = new Vuex.Store({
         */
         context.commit('updateSessions', [
           {
-            name: "test-session",
-            url: "http://test.local.cluster/",
+            name: "prod",
+            url: "http://aslak-test.com/",
           },
           {
-            name: "other-session",
-            url: "http://test.local.cluster/"
+            name: "feature-x",
+            url: "http://feature-x.aslak-test.com/"
           }
         ]);
         resolve();
@@ -107,7 +107,7 @@ Vue.component('stacks', {
 Vue.component('stack', {
   template: `
     <div class="column" v-if="frame">
-      <div class="card">
+      <div class="card" style="background-color:{{frame.color}}">
         <header class="card-header">
           <p class="card-header-title">{{frame.caller}}</p>
           <p class="card-header-title">{{executionTime}} ms</p>

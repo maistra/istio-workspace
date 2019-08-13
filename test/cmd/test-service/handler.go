@@ -21,6 +21,7 @@ type Config struct {
 type CallStack struct {
 	Caller    string      `json:"caller"`
 	Path      string      `json:"path"`
+	Color     string      `json:"color"`
 	StartTime time.Time   `json:"startTime"`
 	EndTime   time.Time   `json:"endTime"`
 	Called    []CallStack `json:"called,omitempty"`
@@ -52,6 +53,7 @@ func basic(config Config, log logr.Logger) http.HandlerFunc {
 			Caller:    config.Name,
 			Path:      req.URL.Path,
 			StartTime: start,
+			Color:     "#FFF",
 		}
 
 		for _, u := range config.Call {
