@@ -1,8 +1,9 @@
 package infra
 
 import (
-	"github.com/maistra/istio-workspace/test/shell"
 	"os"
+
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
@@ -29,10 +30,9 @@ func UpdateSecurityConstraintsFor(namespace string) {
 		"oc adm policy add-scc-to-user privileged -z default -n"+namespace)
 }
 
-
 func LoginAsAdminUser() {
-	user := "admin"
-	pwd := "admin"
+	user := "admin" //nolint[:goconst]
+	pwd := "admin"  //nolint[:goconst]
 	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_ADMIN"); found {
 		user = ikeUser
 	}
