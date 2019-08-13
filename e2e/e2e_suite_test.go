@@ -39,7 +39,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		skipClusterShutdown, _ = strconv.ParseBool(skip)
 	}
 
-	if clusterNotRunning() {
+	shouldStartCluster := clusterNotRunning()
+	if shouldStartCluster {
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
@@ -59,7 +60,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		fmt.Printf("\nExposing Docker Registry\n")
 		<-testshell.Execute("oc expose service docker-registry -n default").Done()
 
-		LoadIstio() // Not needed for running cluster
+		if shouldStartCluster {
+			LoadIstio() // Not needed for running cluster
+		}
 
 		_ = CreateOperatorNamespace()
 		BuildOperator()
