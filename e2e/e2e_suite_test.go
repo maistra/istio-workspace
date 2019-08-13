@@ -24,8 +24,6 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-var skipClusterShutdown bool
-
 var tmpClusterDir string
 
 var tmpPath = NewTmpPath()
@@ -34,11 +32,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
 
-	if skip, found := os.LookupEnv("IKE_E2E_SKIP_CLUSTER_SHUTDOWN"); found {
-		skipClusterShutdown, _ = strconv.ParseBool(skip)
-	}
-
 	shouldManageCluster := manageCluster()
+
 	if shouldManageCluster {
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
@@ -48,11 +43,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
 			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
-	} else {
-		if _, found := os.LookupEnv("IKE_E2E_SKIP_CLUSTER_SHUTDOWN"); !found {
-			skipClusterShutdown = true
-		}
 	}
+
 	executeWithTimer(func() {
 		LoginAsAdminUser()
 
@@ -68,6 +60,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 		createProjectsForCompletionTests()
 	})
+
 	return nil
 },
 	func(data []byte) {})
@@ -91,7 +84,7 @@ func deployHelloWorldCmd(name string) string {
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
 		tmpPath.Restore()
-		if !skipClusterShutdown {
+		if manageCluster() {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
 				testshell.Execute("oc cluster down")
