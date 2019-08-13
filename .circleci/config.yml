@@ -89,6 +89,9 @@ jobs:
       - run:
           name: "Starts up the cluster"
           command: ./scripts/openshift/start-cluster.sh "${IKE_CLUSTER_DIR}"
+      - run:
+          name: "Installs Istio"
+          command: ./scripts/openshift/deploy-istio.sh
       - restore_cache:
           keys:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
