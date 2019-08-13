@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -39,8 +38,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		skipClusterShutdown, _ = strconv.ParseBool(skip)
 	}
 
-	shouldStartCluster := clusterNotRunning()
-	if shouldStartCluster {
+	shouldManageCluster := manageCluster()
+	if shouldManageCluster {
 		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
@@ -60,7 +59,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		fmt.Printf("\nExposing Docker Registry\n")
 		<-testshell.Execute("oc expose service docker-registry -n default").Done()
 
-		if shouldStartCluster {
+		if shouldManageCluster {
 			LoadIstio() // Not needed for running cluster
 		}
 
@@ -104,10 +103,13 @@ var _ = SynchronizedAfterSuite(func() {},
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
-func clusterNotRunning() bool {
-	clusterStatus := testshell.Execute("oc cluster status")
-	<-clusterStatus.Done()
-	return strings.Contains(strings.Join(clusterStatus.Status().Stdout, " "), "not running") // Error for this command is logged to stdout
+func manageCluster() bool {
+	if manage, found := os.LookupEnv("IKE_E2E_MANAGE_CLUSTER"); found {
+		shouldManage, _ := strconv.ParseBool(manage)
+		return shouldManage
+	}
+
+	return true
 }
 
 func ensureRequiredBinaries() {
