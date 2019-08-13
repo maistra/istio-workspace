@@ -107,7 +107,7 @@ Vue.component('stacks', {
 Vue.component('stack', {
   template: `
     <div class="column" v-if="frame">
-      <div class="card" v-bind:style="{background-color: frame.color}">
+      <div class="card" v-bind:style="{backgroundColor: frame.color}">
         <header class="card-header">
           <p class="card-header-title">{{frame.caller}}</p>
           <p class="card-header-title">{{executionTime}} ms</p>
