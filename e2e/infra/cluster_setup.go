@@ -23,8 +23,8 @@ func CreateNewApp(name string) {
 
 // UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace
 func UpdateSecurityConstraintsFor(namespace string) {
+	LoginAsAdminUser()
 	shell.ExecuteAll(
-		"oc login -u system:admin",
 		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
 		"oc adm policy add-scc-to-user privileged -z default -n"+namespace)
 }

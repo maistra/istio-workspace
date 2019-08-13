@@ -32,7 +32,7 @@ func DeployTestScenario(scenario, namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
 	setDockerEnvForTestServiceDeploy(namespace)
 
-	<-shell.Execute("oc login -u system:admin").Done()
+	LoginAsAdminUser()
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 

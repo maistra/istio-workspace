@@ -34,3 +34,7 @@ oc create -n istio-system -f deploy/istio/base-installation.yaml
 echo "-- Waiting for ServiceMeshControlPlane to be ready ..."
 until oc get ServiceMeshControlPlane -n istio-system -o go-template='{{range .items}}{{range .status.conditions}}{{.reason}}{{end}}{{end}}' | grep -m 1 "InstallSuccessful"; do : ; done
 echo "... done"
+
+echo "-- Adds admin user"
+oc create user admin
+oc adm policy add-cluster-role-to-user cluster-admin admin

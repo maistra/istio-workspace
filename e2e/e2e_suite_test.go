@@ -54,21 +54,13 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 	}
 	executeWithTimer(func() {
-		<-testshell.Execute("oc login -u system:admin").Done()
+		LoginAsAdminUser()
 
 		fmt.Printf("\nExposing Docker Registry\n")
 		<-testshell.Execute("oc expose service docker-registry -n default").Done()
 
-		// create a 'real user' we can use to push to the DockerRegistry
-		fmt.Printf("\nAdd admin user\n")
-		testshell.ExecuteAll(
-			"oc create user admin",
-			"oc adm policy add-cluster-role-to-user cluster-admin admin",
-		)
+		LoadIstio() // Not needed for running cluster
 
-		LoadIstio()
-
-		LoginAsAdminUser()
 		_ = CreateOperatorNamespace()
 		BuildOperator()
 
