@@ -21,7 +21,7 @@ func BuildTestService(namespace string) (registry string) {
 	projectDir := os.Getenv("PROJECT_DIR")
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
-	<-shell.Execute("oc login -u admin -p admin").Done()
+	LoginAsAdminUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
@@ -40,7 +40,7 @@ func DeployTestScenario(scenario, namespace string) {
 func BuildOperator() (registry string) {
 	projectDir := os.Getenv("PROJECT_DIR")
 	_, registry = setDockerEnvForOperatorBuild()
-	<-shell.Execute("oc login -u admin -p admin").Done()
+	LoginAsAdminUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
@@ -48,7 +48,7 @@ func BuildOperator() (registry string) {
 
 func CreateOperatorNamespace() (namespace string) {
 	namespace, _ = setDockerEnvForOperatorDeploy()
-	<-shell.Execute("oc login -u admin -p admin").Done()
+	LoginAsAdminUser()
 	<-shell.Execute("oc new-project " + namespace).Done()
 	return
 }
@@ -57,7 +57,7 @@ func CreateOperatorNamespace() (namespace string) {
 func DeployLocalOperator(namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	<-shell.Execute("oc login -u admin -p admin").Done()
+	LoginAsAdminUser()
 
 	setDockerEnvForLocalOperatorBuild(namespace)
 	os.Setenv("IKE_IMAGE_NAME", "istio-workspace")

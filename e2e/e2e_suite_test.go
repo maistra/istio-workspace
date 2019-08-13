@@ -68,7 +68,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 		LoadIstio()
 
-		<-testshell.Execute("oc login -u admin -p admin").Done()
+		LoginAsAdminUser()
 		_ = CreateOperatorNamespace()
 		BuildOperator()
 
@@ -79,9 +79,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	func(data []byte) {})
 
 func createProjectsForCompletionTests() {
+	LoginAsAdminUser()
 	testshell.ExecuteAll(
 		"oc project myproject",
-		"oc login -u admin -p admin",
 		deployHelloWorldCmd("my-datawire-deployment"),
 		"oc new-project otherproject",
 		deployHelloWorldCmd("other-1-datawire-deployment"),
