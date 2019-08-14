@@ -52,7 +52,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 		fmt.Printf("\nExposing Docker Registry\n")
 		if ClientVersion() == 4 {
-			<-testshell.ExecuteInDir(".", "bash", "-c" ,`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
+			<-testshell.ExecuteInDir(".", "bash", "-c", `oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 		} else {
 			<-testshell.Execute("oc expose service docker-registry -n default").Done()
 		}

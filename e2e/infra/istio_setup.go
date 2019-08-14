@@ -5,8 +5,6 @@ import (
 
 	"github.com/maistra/istio-workspace/test/shell"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/config"
-
 	"github.com/onsi/gomega"
 )
 
@@ -14,29 +12,6 @@ import (
 func LoadIstio() {
 	projectDir := os.Getenv("PROJECT_DIR")
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
-}
-
-// BuildTestService builds istio-workspace-test service and pushes it to specified registry
-func BuildTestService(namespace string) (registry string) {
-	projectDir := os.Getenv("PROJECT_DIR")
-	registry = setDockerEnvForTestServiceBuild(namespace)
-
-	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
-	return
-}
-
-// DeployTestScenario deploys a test scenario into the specified namespace
-func DeployTestScenario(scenario, namespace string) {
-	projectDir := os.Getenv("PROJECT_DIR")
-	setDockerEnvForTestServiceDeploy(namespace)
-
-	LoginAsTestPowerUser()
-	if ClientVersion() == 4 {
-		<-shell.ExecuteInDir(".", "bash", "-c", "oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \""+namespace+"\"' | oc apply -f - -n istio-system").Done()
-	}
-	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
@@ -71,47 +46,6 @@ func DeployLocalOperator(namespace string) {
 	<-shell.ExecuteInDir(".", "bash", "-c", "ike install-operator -l -n "+namespace).Done()
 }
 
-func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
-	setTestNamespace(namespace)
-	return setDockerRegistryExternal()
-}
-
-func setDockerEnvForTestServiceDeploy(namespace string) (registry string) {
-	setTestNamespace(namespace)
-	return setDockerRegistryInternal()
-}
-
-func setDockerEnvForOperatorBuild() (namespace, registry string) {
-	ns := setOperatorNamespace()
-	repo := setDockerRegistryExternal()
-	return ns, repo
-}
-
-func setDockerEnvForLocalOperatorBuild(namespace string) string {
-	setLocalOperatorNamespace(namespace)
-	repo := setDockerRegistryExternal()
-	return repo
-}
-
-func setDockerEnvForOperatorDeploy() (namespace, registry string) {
-	ns := setOperatorNamespace()
-	repo := setDockerRegistryInternal()
-	return ns, repo
-}
-
-func setDockerEnvForLocalOperatorDeploy(namespace string) string {
-	setLocalOperatorNamespace(namespace)
-	repo := setDockerRegistryInternal()
-	return repo
-}
-
-func setTestNamespace(namespace string) {
-	err := os.Setenv("TEST_NAMESPACE", namespace)
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	setDockerRepository(namespace)
-}
-
 func setOperatorNamespace() (namespace string) {
 	operatorNS := "istio-workspace-operator"
 
@@ -129,44 +63,9 @@ func setLocalOperatorNamespace(namespace string) {
 	setDockerRepository(namespace)
 }
 
-func setDockerRepository(namespace string) {
-	err := os.Setenv(config.EnvDockerRepository, namespace)
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-}
-
-func setDockerRegistryInternal() string {
-	var registry string
-	switch ClientVersion() {
-	case 3:
-		registry = "172.30.1.1:5000"
-	case 4:
-		registry = "image-registry.openshift-image-registry.svc:5000"
-	}
-	setDockerRegistry(registry)
-	return registry
-}
-
-func setDockerRegistryExternal() string {
-	registry := getClusterHost()
-	switch ClientVersion() {
-	case 3:
-		registry = "docker-registry-default."+registry
-	case 4:
-		registry = "default-route-openshift-image-registry.apps."+registry
-	}
-
-	setDockerRegistry(registry)
-	return registry
-}
-
 func getClusterHost() string {
 	if host, found := os.LookupEnv("IKE_CLUSTER_HOST"); found {
 		return host
 	}
 	return "127.0.0.1.nip.io:80"
-}
-
-func setDockerRegistry(registry string) {
-	err := os.Setenv(config.EnvDockerRegistry, registry)
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
