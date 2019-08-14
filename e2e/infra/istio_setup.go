@@ -67,5 +67,5 @@ func getClusterHost() string {
 	if host, found := os.LookupEnv("IKE_CLUSTER_HOST"); found {
 		return host
 	}
-	return "127.0.0.1.nip.io:80"
+	return "127.0.0.1.nip.io"
 }

@@ -205,7 +205,7 @@ func template(name string) corev1.PodTemplateSpec {
 				"prometheus.io/scrape":    "true",
 				"prometheus.io/port":      "9080",
 				"prometheus.io/scheme":    "http",
-				"prometheus.io/path":      "/metrics",
+				"prometheus.io/path":      "/test-service/metrics",
 				"kiali.io/runtimes":       "go",
 			},
 			Labels: map[string]string{
@@ -236,7 +236,7 @@ func template(name string) corev1.PodTemplateSpec {
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							HTTPGet: &corev1.HTTPGetAction{
-								Path: "/healthz",
+								Path: "/test-service/healthz",
 								Port: intstr.FromInt(9080),
 							},
 						},
@@ -246,7 +246,7 @@ func template(name string) corev1.PodTemplateSpec {
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							HTTPGet: &corev1.HTTPGetAction{
-								Path: "/healthz",
+								Path: "/test-service/healthz",
 								Port: intstr.FromInt(9080),
 							},
 						},

@@ -25,13 +25,13 @@ func Call(target string) Modifier {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 				Name:  envServiceCall,
-				Value: "http://" + target + ":9080/",
+				Value: "http://" + target + ":9080/test-service",
 			})
 		}
 		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = append(obj.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
 				Name:  envServiceCall,
-				Value: "http://" + target + ":9080/",
+				Value: "http://" + target + ":9080/test-service",
 			})
 		}
 	}

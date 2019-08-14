@@ -121,14 +121,14 @@ func cleanupNamespace(namespace string) {
 }
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
-	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
+	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/test-service/productpage"
 
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace - so we also test -n parameter of $ ike
-	<-testshell.Execute("oc project myproject").Done()
+	<-testshell.Execute("oc project default").Done()
 
 	// given we have details code locally
 	CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
