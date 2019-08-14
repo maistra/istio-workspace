@@ -29,6 +29,8 @@ var tmpClusterDir string
 var tmpPath = NewTmpPath()
 
 var _ = SynchronizedBeforeSuite(func() []byte {
+	ClientVersion()
+
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
 
@@ -49,7 +51,11 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		LoginAsTestPowerUser()
 
 		fmt.Printf("\nExposing Docker Registry\n")
-		<-testshell.Execute("oc expose service docker-registry -n default").Done()
+		if ClientVersion() == 4 {
+			<-testshell.ExecuteInDir(".", "bash", "-c" ,`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
+		} else {
+			<-testshell.Execute("oc expose service docker-registry -n default").Done()
+		}
 
 		if shouldManageCluster {
 			LoadIstio() // Not needed for running cluster
@@ -67,6 +73,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
+		deleteProjectsForCompletionTests()
 		tmpPath.Restore()
 		if manageCluster() {
 			executeWithTimer(func() {
@@ -88,7 +95,14 @@ func createProjectsForCompletionTests() {
 		"oc new-project datawire-other-project",
 		deployHelloWorldCmd("other-1-datawire-deployment"),
 		deployHelloWorldCmd("other-2-datawire-deployment"),
-		"oc project myproject",
+	)
+}
+
+func deleteProjectsForCompletionTests() {
+	LoginAsTestPowerUser()
+	testshell.ExecuteAll(
+		"oc delete project datawire-project",
+		"oc delete project datawire-other-project",
 	)
 }
 

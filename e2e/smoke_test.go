@@ -61,7 +61,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 	})
 
-	Context("using ike develop with istio-bookinfo example", func() {
+	XContext("using ike develop with istio-bookinfo example", func() {
 
 		var (
 			namespace,

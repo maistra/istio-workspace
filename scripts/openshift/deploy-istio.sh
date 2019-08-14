@@ -38,3 +38,6 @@ echo "... done"
 echo "-- Adds admin user"
 oc create user admin
 oc adm policy add-cluster-role-to-user cluster-admin admin
+
+echo "-- Expose docker registry"
+oc expose service docker-registry -n default

@@ -33,7 +33,9 @@ func DeployTestScenario(scenario, namespace string) {
 	setDockerEnvForTestServiceDeploy(namespace)
 
 	LoginAsTestPowerUser()
-	//<-shell.ExecuteInDir(".", "bash", "-c", "oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \""+namespace+"\"' | oc apply -f - -n istio-system").Done()
+	if ClientVersion() == 4 {
+		<-shell.ExecuteInDir(".", "bash", "-c", "oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \""+namespace+"\"' | oc apply -f - -n istio-system").Done()
+	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
@@ -132,14 +134,27 @@ func setDockerRepository(namespace string) {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
-func setDockerRegistryInternal() (registry string) {
-	registry = "172.30.1.1:5000"
+func setDockerRegistryInternal() string {
+	var registry string
+	switch ClientVersion() {
+	case 3:
+		registry = "172.30.1.1:5000"
+	case 4:
+		registry = "image-registry.openshift-image-registry.svc:5000"
+	}
 	setDockerRegistry(registry)
 	return registry
 }
 
-func setDockerRegistryExternal() (registry string) {
-	registry = "docker-registry-default.127.0.0.1.nip.io:80"
+func setDockerRegistryExternal() string {
+	var registry string
+	switch ClientVersion() {
+	case 3:
+		registry = "docker-registry-default.127.0.0.1.nip.io:80"
+	case 4:
+		registry = "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"
+	}
+
 	setDockerRegistry(registry)
 	return registry
 }

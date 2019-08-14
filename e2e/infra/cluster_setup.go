@@ -2,6 +2,7 @@ package infra
 
 import (
 	"os"
+	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
 )
@@ -42,4 +43,14 @@ func LoginAsTestPowerUser() {
 	}
 
 	<-shell.Execute("oc login -u " + user + " -p " + pwd).Done()
+}
+
+func ClientVersion() int {
+	version := shell.Execute("oc version")
+	<-version.Done()
+	v := strings.Join(version.Status().Stdout, " ")
+	if strings.Contains(v, "GitVersion:\"v4.") {
+		return 4
+	}
+	return 3
 }
