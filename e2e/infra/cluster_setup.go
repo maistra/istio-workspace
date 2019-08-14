@@ -27,7 +27,7 @@ func UpdateSecurityConstraintsFor(namespace string) {
 	LoginAsTestPowerUser()
 	shell.ExecuteAll(
 		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
-		"oc adm policy add-scc-to-user privileged -z default -n"+namespace)
+		"oc adm policy add-scc-to-user privileged -z default -n "+namespace)
 }
 
 func LoginAsTestPowerUser() {
