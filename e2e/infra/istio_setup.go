@@ -147,16 +147,23 @@ func setDockerRegistryInternal() string {
 }
 
 func setDockerRegistryExternal() string {
-	var registry string
+	registry := getClusterHost()
 	switch ClientVersion() {
 	case 3:
-		registry = "docker-registry-default.127.0.0.1.nip.io:80"
+		registry = "docker-registry-default."+registry
 	case 4:
-		registry = "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"
+		registry = "default-route-openshift-image-registry.apps."+registry
 	}
 
 	setDockerRegistry(registry)
 	return registry
+}
+
+func getClusterHost() string {
+	if host, found := os.LookupEnv("IKE_CLUSTER_HOST"); found {
+		return host
+	}
+	return "127.0.0.1.nip.io:80"
 }
 
 func setDockerRegistry(registry string) {
