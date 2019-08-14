@@ -70,7 +70,7 @@ jobs:
           name: "Configures Docker daemon with insecure-registry"
           command: |
             json=`mktemp`
-            echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80" ] }' > ${json}
+            echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80", "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"] }' > ${json}
             sudo mv ${json} /etc/docker/daemon.json
             sudo service docker restart
             echo "Configured Docker daemon with insecure-registry"
