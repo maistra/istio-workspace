@@ -9,7 +9,7 @@ import (
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
 // it service
 func CreateNewApp(name string) {
-	shell.ExecuteAll("oc login -u developer", "oc new-project "+name)
+	shell.Execute("oc new-project " + name)
 
 	UpdateSecurityConstraintsFor(name)
 
@@ -24,13 +24,13 @@ func CreateNewApp(name string) {
 
 // UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace
 func UpdateSecurityConstraintsFor(namespace string) {
-	LoginAsAdminUser()
+	LoginAsTestPowerUser()
 	shell.ExecuteAll(
 		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
 		"oc adm policy add-scc-to-user privileged -z default -n"+namespace)
 }
 
-func LoginAsAdminUser() {
+func LoginAsTestPowerUser() {
 	user := "admin" //nolint[:goconst]
 	pwd := "admin"  //nolint[:goconst]
 	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_ADMIN"); found {

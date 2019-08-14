@@ -46,7 +46,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	}
 
 	executeWithTimer(func() {
-		LoginAsAdminUser()
+		LoginAsTestPowerUser()
 
 		fmt.Printf("\nExposing Docker Registry\n")
 		<-testshell.Execute("oc expose service docker-registry -n default").Done()
@@ -65,22 +65,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 },
 	func(data []byte) {})
 
-func createProjectsForCompletionTests() {
-	LoginAsAdminUser()
-	testshell.ExecuteAll(
-		"oc project myproject",
-		deployHelloWorldCmd("my-datawire-deployment"),
-		"oc new-project otherproject",
-		deployHelloWorldCmd("other-1-datawire-deployment"),
-		deployHelloWorldCmd("other-2-datawire-deployment"),
-		"oc project myproject",
-	)
-}
-
-func deployHelloWorldCmd(name string) string {
-	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"
-}
-
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
 		tmpPath.Restore()
@@ -95,6 +79,22 @@ var _ = SynchronizedAfterSuite(func() {},
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
+
+func createProjectsForCompletionTests() {
+	LoginAsTestPowerUser()
+	testshell.ExecuteAll(
+		"oc new-project datawire-project",
+		deployHelloWorldCmd("my-datawire-deployment"),
+		"oc new-project datawire-other-project",
+		deployHelloWorldCmd("other-1-datawire-deployment"),
+		deployHelloWorldCmd("other-2-datawire-deployment"),
+		"oc project myproject",
+	)
+}
+
+func deployHelloWorldCmd(name string) string {
+	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"
+}
 
 func manageCluster() bool {
 	if manage, found := os.LookupEnv("IKE_E2E_MANAGE_CLUSTER"); found {
