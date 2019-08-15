@@ -92,7 +92,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
-	COMMIT:=$(COMMIT)-dirty-$(shell date +%s)
+	COMMIT:=$(COMMIT)-dirty
 endif
 
 IKE_VERSION:=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
@@ -100,7 +100,7 @@ GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; 
 ifneq ($(GIT_TAG),0)
 	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
 else ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_VERSION:=$(IKE_VERSION)-dirty-$(shell date +%s)
+	IKE_VERSION:=$(IKE_VERSION)-dirty
 endif
 
 .PHONY: version
