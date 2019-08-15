@@ -121,7 +121,7 @@ func cleanupNamespace(namespace string) {
 }
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
-	productPageURL := "http://istio-ingressgateway-istio-system."+GetClusterHost()+"/test-service/productpage"
+	productPageURL := "http://istio-ingressgateway-istio-system." + GetClusterHost() + "/test-service/productpage"
 
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
