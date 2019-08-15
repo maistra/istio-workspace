@@ -31,5 +31,5 @@ func DeleteFile(filePath string) {
 }
 
 func NewProjectCmd(name string) string {
-	return fmt.Sprintf(`oc new-project %s --description="%s"`, name, "istio-workspace test project")
+	return fmt.Sprintf(`oc new-project %s --description "%s"`, name, "istio-workspace test project")
 }
