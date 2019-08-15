@@ -32,6 +32,8 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	done := command.Start()
 	shell.RedirectStreams(command, os.Stdout, os.Stderr, done)
 	commandString := command.Name + " " + strings.Join(command.Args, " ")
-	fmt.Printf("executing: [%s]\n", commandString)
+	if !strings.Contains(commandString, "oc login") {
+		fmt.Printf("executing: [%s]\n", commandString)
+	}
 	return command
 }
