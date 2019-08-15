@@ -8,11 +8,12 @@ import (
 	"github.com/maistra/istio-workspace/pkg/shell"
 
 	gocmd "github.com/go-cmd/cmd"
+	"github.com/google/shlex"
 )
 
 // Execute executes given command in the current directory
 func Execute(command string) *gocmd.Cmd {
-	cmd := strings.Fields(command)
+	cmd, _ := shlex.Split(command)
 	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
