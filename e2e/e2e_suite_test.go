@@ -90,9 +90,9 @@ var _ = SynchronizedAfterSuite(func() {},
 func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
-		"oc new-project datawire-project",
+		NewProjectCmd("datawire-project"),
 		deployHelloWorldCmd("my-datawire-deployment"),
-		"oc new-project datawire-other-project",
+		NewProjectCmd("datawire-other-project"),
 		deployHelloWorldCmd("other-1-datawire-deployment"),
 		deployHelloWorldCmd("other-2-datawire-deployment"),
 	)

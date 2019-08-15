@@ -10,7 +10,7 @@ import (
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
 // it service
 func CreateNewApp(name string) {
-	shell.Execute("oc new-project " + name)
+	<-shell.Execute(NewProjectCmd(name)).Done()
 
 	UpdateSecurityConstraintsFor(name)
 

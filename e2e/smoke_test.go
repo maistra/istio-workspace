@@ -74,7 +74,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
 			LoginAsTestPowerUser()
-			<-testshell.Execute("oc new-project " + namespace).Done()
+			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
 			DeployLocalOperator(namespace)

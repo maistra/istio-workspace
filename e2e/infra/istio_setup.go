@@ -27,7 +27,7 @@ func BuildOperator() (registry string) {
 func CreateOperatorNamespace() (namespace string) {
 	namespace, _ = setDockerEnvForOperatorDeploy()
 	LoginAsTestPowerUser()
-	<-shell.Execute("oc new-project " + namespace).Done()
+	<-shell.Execute(NewProjectCmd(namespace)).Done()
 	return
 }
 

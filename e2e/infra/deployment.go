@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/onsi/gomega"
@@ -27,4 +28,8 @@ func CreateFile(filePath, content string) {
 func DeleteFile(filePath string) {
 	err := appFs.Remove(filePath)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
+}
+
+func NewProjectCmd(name string) string {
+	return fmt.Sprintf(`oc new-project %s --description="%s"`, name, "istio-workspace test project")
 }
