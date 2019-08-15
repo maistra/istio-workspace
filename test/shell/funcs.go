@@ -12,7 +12,7 @@ import (
 
 // Execute executes given command in the current directory
 func Execute(command string) *gocmd.Cmd {
-	cmd := strings.Split(command, " ")
+	cmd := strings.Fields(command)
 	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
