@@ -29,6 +29,8 @@ var tmpClusterDir string
 var tmpPath = NewTmpPath()
 
 var _ = SynchronizedBeforeSuite(func() []byte {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	ClientVersion()
 
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
@@ -37,7 +39,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	shouldManageCluster := manageCluster()
 
 	if shouldManageCluster {
-		rand.Seed(time.Now().UTC().UnixNano())
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
