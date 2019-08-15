@@ -36,9 +36,9 @@ func setDockerRegistryExternal() string {
 	var registry string
 	switch ClientVersion() {
 	case 3:
-		registry = "docker-registry-default." + getClusterHost() + ":80"
+		registry = "docker-registry-default." + GetClusterHost() + ":80"
 	case 4:
-		registry = "default-route-openshift-image-registry.apps." + getClusterHost()
+		registry = "default-route-openshift-image-registry.apps." + GetClusterHost()
 	}
 
 	setDockerRegistry(registry)

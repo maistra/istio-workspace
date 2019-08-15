@@ -63,7 +63,7 @@ func setLocalOperatorNamespace(namespace string) {
 	setDockerRepository(namespace)
 }
 
-func getClusterHost() string {
+func GetClusterHost() string {
 	if host, found := os.LookupEnv("IKE_CLUSTER_HOST"); found {
 		return host
 	}
