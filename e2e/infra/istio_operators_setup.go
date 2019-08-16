@@ -40,7 +40,7 @@ func DeployLocalOperator(namespace string) {
 	setDockerEnvForLocalOperatorBuild(namespace)
 	os.Setenv("IKE_IMAGE_NAME", "istio-workspace")
 	<-shell.Execute("docker tag $IKE_DOCKER_REGISTRY/istio-workspace-operator/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG $IKE_DOCKER_REGISTRY/" + namespace + "/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done() //nolint[:lll]
-	<-shell.Execute("docker push $IKE_DOCKER_REGISTRY/" + namespace + "/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/" + namespace + "/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
