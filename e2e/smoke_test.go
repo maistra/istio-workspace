@@ -17,7 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
+var _ = XDescribe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
 
 	// Can't be ran without a session (not using --swap-deployment)
 	XContext("using ike develop in offline mode", func() {
