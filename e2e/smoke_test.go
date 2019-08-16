@@ -28,7 +28,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			appName = naming.RandName(16)
+			appName = GenerateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
@@ -70,7 +70,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		JustBeforeEach(func() {
-			namespace = naming.RandName(16)
+			namespace = GenerateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
 			LoginAsTestPowerUser()
@@ -109,6 +109,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 	})
 })
+
+func GenerateNamespaceName() string {
+	return "ike-tests-" + naming.RandName(16)
+}
 
 func cleanupNamespace(namespace string) {
 	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
