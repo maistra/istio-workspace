@@ -92,10 +92,10 @@ func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
 		NewProjectCmd("datawire-project"),
-		deployHelloWorldCmd("my-datawire-deployment"),
+		DeployHelloWorldCmd("my-datawire-deployment"),
 		NewProjectCmd("datawire-other-project"),
-		deployHelloWorldCmd("other-1-datawire-deployment"),
-		deployHelloWorldCmd("other-2-datawire-deployment"),
+		DeployHelloWorldCmd("other-1-datawire-deployment"),
+		DeployHelloWorldCmd("other-2-datawire-deployment"),
 	)
 }
 
@@ -105,10 +105,6 @@ func deleteProjectsForCompletionTests() {
 		"oc delete project datawire-project",
 		"oc delete project datawire-other-project",
 	)
-}
-
-func deployHelloWorldCmd(name string) string {
-	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"
 }
 
 func manageCluster() bool {

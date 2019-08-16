@@ -8,7 +8,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-// LoadIstio calls make load-istio target and waits until operator sets up mesh
+// LoadIstio calls make load-istio target and waits until operator sets up the mesh
 func LoadIstio() {
 	projectDir := os.Getenv("PROJECT_DIR")
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
