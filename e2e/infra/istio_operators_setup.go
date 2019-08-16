@@ -19,7 +19,7 @@ func BuildOperator() (registry string) {
 	projectDir := os.Getenv("PROJECT_DIR")
 	_, registry = setDockerEnvForOperatorBuild()
 	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) " + registry).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
@@ -39,8 +39,8 @@ func DeployLocalOperator(namespace string) {
 
 	setDockerEnvForLocalOperatorBuild(namespace)
 	os.Setenv("IKE_IMAGE_NAME", "istio-workspace")
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker tag $IKE_DOCKER_REGISTRY/istio-workspace-operator/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG $IKE_DOCKER_REGISTRY/" + namespace + "/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done() //nolint[:lll]
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/" + namespace + "/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker tag $IKE_DOCKER_REGISTRY/istio-workspace-operator/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG $IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done() //nolint[:lll]
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
