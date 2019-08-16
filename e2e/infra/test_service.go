@@ -24,7 +24,7 @@ func BuildTestService(namespace string) (registry string) {
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
 	LoginAsTestPowerUser()
-	<-shell.Execute("docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) " + registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
 }
@@ -36,8 +36,8 @@ func DeployTestScenario(scenario, namespace string) {
 
 	LoginAsTestPowerUser()
 	if ClientVersion() == 4 {
-		<-shell.Execute("oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \""+
-				namespace+"\"' | oc apply -f - -n istio-system").Done()
+		<-shell.Execute("oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \"" +
+			namespace + "\"' | oc apply -f - -n istio-system").Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }

@@ -2,8 +2,9 @@ package infra
 
 import (
 	"fmt"
-	"github.com/maistra/istio-workspace/test/shell"
 	"os"
+
+	"github.com/maistra/istio-workspace/test/shell"
 
 	"github.com/onsi/gomega"
 	"github.com/spf13/afero"
@@ -50,7 +51,6 @@ func CreateNewApp(name string) {
 	).Done()
 	shell.ExecuteAll("oc expose svc/"+name, "oc status")
 }
-
 
 func DeployHelloWorldCmd(name string) string {
 	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"

@@ -1,4 +1,4 @@
-package infra
+package e2e
 
 import (
 	"io/ioutil"

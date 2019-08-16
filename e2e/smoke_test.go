@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/shell"
