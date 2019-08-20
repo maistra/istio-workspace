@@ -69,3 +69,10 @@ func GetClusterHost() string {
 	}
 	return "127.0.0.1.nip.io"
 }
+
+func GetIstioNamespace() string {
+	if istioNs, found := os.LookupEnv("ISTIO_NS"); found {
+		return istioNs
+	}
+	return "istio-system"
+}

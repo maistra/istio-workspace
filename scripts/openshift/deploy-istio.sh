@@ -29,10 +29,11 @@ wait_until_pod_started "istio-operator" "istio-operator"
 sleep 5
 
 ###  Deploy service mesh
-oc new-project istio-system || true
-oc create -n istio-system -f deploy/istio/base-installation.yaml
+ISTIO_NS=${ISTIO_NS:-"istio-system"}
+oc new-project "${ISTIO_NS}" || true
+oc create -n "${ISTIO_NS}" -f deploy/istio/base-installation.yaml
 echo "-- Waiting for ServiceMeshControlPlane to be ready ..."
-until oc get ServiceMeshControlPlane -n istio-system -o go-template='{{range .items}}{{range .status.conditions}}{{.reason}}{{end}}{{end}}' | grep -m 1 "InstallSuccessful"; do : ; done
+until oc get ServiceMeshControlPlane -n "${ISTIO_NS}" -o go-template='{{range .items}}{{range .status.conditions}}{{.reason}}{{end}}{{end}}' | grep -m 1 "InstallSuccessful"; do : ; done
 echo "... done"
 
 echo "-- Adds admin user"

@@ -37,8 +37,8 @@ func DeployTestScenario(scenario, namespace string) {
 	LoginAsTestPowerUser()
 	if ClientVersion() == 4 {
 		<-shell.ExecuteInDir(".", "bash", "-c",
-			"oc get ServiceMeshMemberRoll default -n istio-system -o json | jq '.spec.members[.spec.members | length] |= \""+
-				namespace+"\"' | oc apply -f - -n istio-system").Done()
+			"oc get ServiceMeshMemberRoll default -n "+GetIstioNamespace()+" -o json | jq '.spec.members[.spec.members | length] |= \""+
+				namespace+"\"' | oc apply -f - -n "+GetIstioNamespace()).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
