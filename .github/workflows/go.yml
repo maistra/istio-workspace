@@ -29,7 +29,7 @@ jobs:
         mkdir -p $GOBIN
         mkdir -p $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | awk '{split($0,a,"/"); print a[1]}')
         ln -s `pwd` $GOPATH/src/github.com/$GITHUB_REPOSITORY
-        tree $GOPATH
+        ls -laR $GOPATH
 
     - name: Get tools
       run: | 
