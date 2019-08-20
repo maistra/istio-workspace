@@ -17,7 +17,12 @@ func AllPodsReady(ns string) func() bool {
 		<-podsCmd.Done()
 		pods := strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
 		for _, pod := range pods {
-			if !isPodReady(pod, ns) {
+			if strings.Contains(pod, "-deploy") {
+				fmt.Printf("Skipping deploy pod %s\n", pod)
+				continue
+			}
+			if !podStatus(pod, ns, "Ready") {
+				// but skip Completed
 				return false
 			}
 		}
@@ -25,12 +30,12 @@ func AllPodsReady(ns string) func() bool {
 	}
 }
 
-func isPodReady(pod, ns string) bool {
+func podStatus(pod, ns, status string) bool {
 	podStatus := shell.ExecuteInDir(".",
 		"oc", "get",
 		"pod", pod,
 		"-n", ns,
-		"-o", `jsonpath={.status.conditions[?(@.type=="Ready")].status}`,
+		"-o", `jsonpath={.status.conditions[?(@.type=="`+status+`")].status}`,
 	)
 	<-podStatus.Done()
 	return strings.Trim(fmt.Sprintf("%s", podStatus.Status().Stdout), "[]") == "True"
