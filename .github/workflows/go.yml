@@ -27,18 +27,19 @@ jobs:
         export PATH=$PATH:$GOBIN
         mkdir -p $GOPATH/pkg
         mkdir -p $GOBIN
-        mkdir -p $GOPATH/src/github.com/$GITHUB_REPOSITORY
-        mv $(pwd)/* $GOPATH/src/github.com/$GITHUB_REPOSITORY
-        cd $GOPATH/src/github.com/$GITHUB_REPOSITORY      
+        mkdir -p $GOPATH/src/github.com/`echo $GITHUB_REPOSIOTRY |  awk '{split($0,a,"/"); print a[1]}'`
+        ln -s `pwd` $GOPATH/src/github.com/$GITHUB_REPOSIOTR
+        cd $GOPATH/src/github.com/$GITHUB_REPOSITORY
         make tools
 
     - name: Get dependencies
       run: |
-        pwd
+        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
         if [ -f Gopkg.toml ]; then
             make deps
         fi
         
     - name: Build main
       run: |
+        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
         make compile 
