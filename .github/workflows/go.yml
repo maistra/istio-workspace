@@ -19,7 +19,7 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
-    - name: Get tools
+    - name: Set up Go path
       run: | 
         export GOPATH=$HOME/go
         export GOBIN=$(go env GOPATH)/bin
@@ -27,9 +27,13 @@ jobs:
         export PATH=$PATH:$GOBIN
         mkdir -p $GOPATH/pkg
         mkdir -p $GOBIN
-        mkdir -p $GOPATH/src/github.com/`echo $GITHUB_REPOSIOTRY |  awk '{split($0,a,"/"); print a[1]}'`
-        ln -s `pwd` $GOPATH/src/github.com/$GITHUB_REPOSIOTR
-        cd $GOPATH/src/github.com/$GITHUB_REPOSITORY
+        mkdir -p $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | awk '{split($0,a,"/"); print a[1]}')
+        ln -s `pwd` $GOPATH/src/github.com/$GITHUB_REPOSITORY
+
+    - name: Get tools
+      run: | 
+        export PATH=$PATH:$(go env GOPATH)/bin
+        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
         make tools
 
     - name: Get dependencies
