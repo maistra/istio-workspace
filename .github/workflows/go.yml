@@ -34,6 +34,7 @@ jobs:
 
     - name: Get dependencies
       run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
         if [ -f Gopkg.toml ]; then
             make deps
@@ -41,5 +42,6 @@ jobs:
         
     - name: Build main
       run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
         make compile 
