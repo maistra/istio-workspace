@@ -22,9 +22,13 @@ jobs:
     - name: Setup ENV
       run: |
         export PATH=$GOPATH/bin:$PATH
+        go env
 
     - name: Get tools
-      run: make tools
+      run: | 
+        make tools
+        ls -l $GOPATH/bin
+        echo $PATH
 
     - name: Get dependencies
       run: |
