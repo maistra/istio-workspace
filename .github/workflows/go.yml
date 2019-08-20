@@ -19,22 +19,19 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
-    - name: Setup ENV
-      run: |
-        export PATH=$GOPATH/bin:$PATH
-        go env
-
     - name: Get tools
       run: | 
+        export PATH=$PATH:$(go env GOPATH)/bin
         make tools
-        ls -l $GOPATH/bin
-        echo $PATH
 
     - name: Get dependencies
       run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
         if [ -f Gopkg.toml ]; then
             make deps
         fi
         
     - name: Build main
-      run: make compile 
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        make compile 
