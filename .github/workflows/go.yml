@@ -19,6 +19,9 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
+    - name: Get tools
+      run: make tools
+
     - name: Get dependencies
       run: |
         if [ -f Gopkg.toml ]; then
