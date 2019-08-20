@@ -19,6 +19,10 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
+    - name: Setup ENV
+      run: |
+        export PATH=$GOPATH/bin:$PATH
+
     - name: Get tools
       run: make tools
 
