@@ -27,20 +27,20 @@ jobs:
         export PATH=$PATH:$GOBIN
         mkdir -p $GOPATH/pkg
         mkdir -p $GOBIN
-        mkdir -p $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | awk '{split($0,a,"/"); print a[1]}')
-        ln -s `pwd` $GOPATH/src/github.com/$GITHUB_REPOSITORY
+        mkdir -p $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | awk '{split($0,a,"/"); print a[1]}' | tr [:upper:] [:lower:])
+        ln -s `pwd` $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         ls -laR $GOPATH
 
     - name: Get tools
       run: | 
         export PATH=$PATH:$(go env GOPATH)/bin
-        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
+        cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         make tools
 
     - name: Get dependencies
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
-        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
+        cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         pwd
         if [ -f Gopkg.toml ]; then
             make deps
@@ -49,5 +49,5 @@ jobs:
     - name: Build main
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
-        cd $(go env GOPATH)/src/github.com/$GITHUB_REPOSITORY
+        cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         make compile 
