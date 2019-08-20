@@ -50,4 +50,5 @@ jobs:
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
+        export GOPATH=$(go env GOPATH)
         make compile 
