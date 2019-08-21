@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
     - master
+
 jobs:
 
   build:
@@ -10,13 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.12
+    - &setupgo
+      name: Set up Go 1.12
       uses: actions/setup-go@v1
       with:
         go-version: 1.12
       id: go
 
-    - name: Check out code into the Go module directory
+    - &checkout
+      name: Check out code into the Go module directory
       uses: actions/checkout@v1
 
     - name: Set up Go path
@@ -31,13 +34,15 @@ jobs:
         ln -s `pwd` $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         ls -laR $GOPATH
 
-    - name: Get tools
+    - &gettools
+      name: Get tools
       run: | 
         export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         make tools
 
-    - name: Get dependencies
+    - &getdeps
+      name: Get dependencies
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
@@ -52,3 +57,19 @@ jobs:
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         export GOPATH=$(go env GOPATH)
         make compile 
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+
+    - *setupgo
+    - *checkout
+    - *getdeps
+    - name: Test
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
+        export GOPATH=$(go env GOPATH)
+        make test 
+    
