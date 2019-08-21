@@ -38,7 +38,9 @@ jobs:
     - name: Get tools
       run: | 
         echo $PATH
+        pwd
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
+        pwd
         make tools
 
     - name: Get dependencies
