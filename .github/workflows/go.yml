@@ -32,15 +32,17 @@ jobs:
         ln -s `pwd` $GOPATH/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         ls -laR $GOPATH
 
-    - name: Get tools
+    - name: Setup go env
       uses: aslakknutsen/actions@v1-test
+
+    - name: Get tools
       run: | 
+        echo $PATH
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         make tools
 
     - name: Get dependencies
       run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         pwd
         if [ -f Gopkg.toml ]; then
@@ -49,7 +51,6 @@ jobs:
         
     - name: Build main
       run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         export GOPATH=$(go env GOPATH)
         make compile 
