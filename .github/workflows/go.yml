@@ -33,8 +33,8 @@ jobs:
         ls -laR $GOPATH
 
     - name: Get tools
+      uses: aslakknutsen/actions@v1-test
       run: | 
-        export PATH=$PATH:$(go env GOPATH)/bin
         cd $(go env GOPATH)/src/github.com/$(echo $GITHUB_REPOSITORY | tr [:upper:] [:lower:])
         make tools
 
