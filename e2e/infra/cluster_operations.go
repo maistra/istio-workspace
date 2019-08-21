@@ -26,7 +26,12 @@ func LoginAsTestPowerUser() {
 		pwd = ikePwd
 	}
 
-	<-shell.Execute("oc login -u " + user + " -p " + pwd).Done()
+	srv := ""
+	if server, found := os.LookupEnv("IKE_CLUSTER_ADDRESS"); found {
+		srv = " --server " + server
+	}
+
+	<-shell.Execute("oc login -u " + user + " -p " + pwd + srv).Done()
 }
 
 func ClientVersion() int {
