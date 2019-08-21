@@ -147,7 +147,7 @@ jobs:
           command: |
             cd ~
             wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.1.12/openshift-client-linux-4.1.12.tar.gz" -O "oc.tar.gz"
-            tar xzfv oc.tar.gz --wildcards "**/oc" --strip 1
+            tar xzfv oc.tar.gz oc
             sudo mv $PWD/oc /usr/local/bin/
             echo "Installed oc\n$(oc version)\n"
             curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.4/bin/linux/amd64/kubectl && \
