@@ -114,6 +114,7 @@ jobs:
       IKE_CLUSTER_PWD: $QE_IKE_CLUSTER_PWD
       IKE_CLUSTER_HOST: $QE_IKE_CLUSTER_HOST
       ISTIO_NS: $QE_ISTIO_NS
+      IKE_CLUSTER_ADDRESS: $QE_CLUSTER_ADDRESS
     steps:
       - checkout
       - run:
