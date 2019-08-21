@@ -18,11 +18,11 @@ func UpdateSecurityConstraintsFor(namespace string) {
 func LoginAsTestPowerUser() {
 	user := "admin" //nolint[:goconst]
 	pwd := "admin"  //nolint[:goconst]
-	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_ADMIN"); found {
+	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_USER"); found {
 		user = ikeUser
 	}
 
-	if ikePwd, found := os.LookupEnv("IKE_CLUSTER_ADMIN_PWD"); found {
+	if ikePwd, found := os.LookupEnv("IKE_CLUSTER_PWD"); found {
 		pwd = ikePwd
 	}
 
