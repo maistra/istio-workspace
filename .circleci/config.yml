@@ -110,18 +110,11 @@ jobs:
       <<: *machine-conf
     environment:
       <<: *env-vars
-      IKE_CLUSTER_USER: $QE_IKE_CLUSTER_USER
-      IKE_CLUSTER_PWD: $QE_IKE_CLUSTER_PWD
-      IKE_CLUSTER_HOST: $QE_IKE_CLUSTER_HOST
-      ISTIO_NS: $QE_ISTIO_NS
-      IKE_CLUSTER_ADDRESS: $QE_CLUSTER_ADDRESS
     steps:
       - checkout
       - run:
           name: "Checks for [skip-e2e] directive"
           command: |
-            echo $ISTIO_NS
-            echo $QE_ISTIO_NS
             COMMIT_MSG=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
             if [[ $COMMIT_MSG == *"[skip-e2e]"* ]]; then
               echo "[skip-e2e] detected. Explictly stopping e2e tests."
@@ -161,7 +154,14 @@ jobs:
             - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
-          command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
+          command: |
+            TELEPRESENCE_VERSION=$(telepresence --version) \
+            IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
+            IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
+            IKE_CLUSTER_HOST=$QE_IKE_CLUSTER_HOST \
+            ISTIO_NS=$QE_ISTIO_NS \
+            IKE_CLUSTER_ADDRESS=$QE_CLUSTER_ADDRESS \
+            make deps test-e2e
       - save_cache:
           key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
