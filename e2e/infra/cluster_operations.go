@@ -28,10 +28,10 @@ func LoginAsTestPowerUser() {
 
 	srv := ""
 	if server, found := os.LookupEnv("IKE_CLUSTER_ADDRESS"); found {
-		srv = " --server " + server
+		srv = server
 	}
 
-	<-shell.Execute("oc login -u " + user + " -p " + pwd + srv + " --insecure-skip-tls-verify true").Done()
+	<-shell.Execute("oc login " + srv + " -u " + user + " -p " + pwd + " --insecure-skip-tls-verify true").Done()
 }
 
 func ClientVersion() int {
