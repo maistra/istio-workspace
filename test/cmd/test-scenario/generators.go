@@ -202,6 +202,7 @@ func template(name string) corev1.PodTemplateSpec {
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "true",
+				"readiness.status.sidecar.istio.io/initialDelaySeconds": "5",
 				"prometheus.io/scrape":    "true",
 				"prometheus.io/port":      "9080",
 				"prometheus.io/scheme":    "http",
