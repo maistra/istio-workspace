@@ -31,7 +31,7 @@ func LoginAsTestPowerUser() {
 		srv = server
 	}
 
-	<-shell.ExecuteInDir(".", "bash", "-c", "oc login " + srv + " -u " + user + " -p " + pwd + " --insecure-skip-tls-verify=true").Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "oc login "+srv+" -u "+user+" -p "+pwd+" --insecure-skip-tls-verify=true").Done()
 }
 
 func ClientVersion() int {
