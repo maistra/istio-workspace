@@ -205,11 +205,11 @@ func template(name string) corev1.PodTemplateSpec {
 				// introduces delay in readiness status due to pods being in crashloopbackoff
 				// state on cni-enabled maistra
 				"readiness.status.sidecar.istio.io/initialDelaySeconds": "15",
-				"prometheus.io/scrape":    "true",
-				"prometheus.io/port":      "9080",
-				"prometheus.io/scheme":    "http",
-				"prometheus.io/path":      "/test-service/metrics",
-				"kiali.io/runtimes":       "go",
+				"prometheus.io/scrape": "true",
+				"prometheus.io/port":   "9080",
+				"prometheus.io/scheme": "http",
+				"prometheus.io/path":   "/test-service/metrics",
+				"kiali.io/runtimes":    "go",
 			},
 			Labels: map[string]string{
 				"app": name,
