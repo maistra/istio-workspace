@@ -20,12 +20,6 @@ func setDockerEnvForLocalOperatorBuild(namespace string) string {
 	return repo
 }
 
-func setDockerEnvForOperatorDeploy() (namespace, registry string) {
-	ns := setOperatorNamespace()
-	repo := setDockerRegistryInternal()
-	return ns, repo
-}
-
 func setDockerEnvForLocalOperatorDeploy(namespace string) string {
 	setLocalOperatorNamespace(namespace)
 	repo := setDockerRegistryInternal()
