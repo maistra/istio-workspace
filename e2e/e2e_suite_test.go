@@ -62,6 +62,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			LoadIstio() // Not needed for running cluster
 		}
 
+		_ = CreateOperatorNamespace()
+		BuildOperator()
+
 		createProjectsForCompletionTests()
 	})
 

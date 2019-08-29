@@ -8,10 +8,22 @@ import (
 	"github.com/onsi/gomega"
 )
 
+func setDockerEnvForOperatorBuild() (namespace, registry string) {
+	ns := setOperatorNamespace()
+	repo := setDockerRegistryExternal()
+	return ns, repo
+}
+
 func setDockerEnvForLocalOperatorBuild(namespace string) string {
 	setLocalOperatorNamespace(namespace)
 	repo := setDockerRegistryExternal()
 	return repo
+}
+
+func setDockerEnvForOperatorDeploy() (namespace, registry string) {
+	ns := setOperatorNamespace()
+	repo := setDockerRegistryInternal()
+	return ns, repo
 }
 
 func setDockerEnvForLocalOperatorDeploy(namespace string) string {
