@@ -14,23 +14,6 @@ func LoadIstio() {
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
 }
 
-// BuildOperator builds istio-workspace operator and pushes it to specified registry
-func BuildOperator() (registry string) {
-	projectDir := os.Getenv("PROJECT_DIR")
-	_, registry = setDockerEnvForOperatorBuild()
-	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
-	return
-}
-
-func CreateOperatorNamespace() (namespace string) {
-	namespace, _ = setDockerEnvForOperatorDeploy()
-	LoginAsTestPowerUser()
-	<-shell.Execute(NewProjectCmd(namespace)).Done()
-	return
-}
-
 // DeployLocalOperator deploys istio-workspace operator into specified namespace
 func DeployLocalOperator(namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
@@ -44,16 +27,6 @@ func DeployLocalOperator(namespace string) {
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
-}
-
-func setOperatorNamespace() (namespace string) {
-	operatorNS := "istio-workspace-operator"
-
-	err := os.Setenv("OPERATOR_NAMESPACE", operatorNS)
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	setDockerRepository(operatorNS)
-	return operatorNS
 }
 
 func setLocalOperatorNamespace(namespace string) {
