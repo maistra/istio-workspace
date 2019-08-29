@@ -46,11 +46,11 @@ func main() {
 
 	log := logf.Log.WithName("service").WithValues("name", c.Name)
 
-	http.Handle("/test-service/metrics", promhttp.Handler())
-	http.HandleFunc("/test-service/healthz", func(resp http.ResponseWriter, req *http.Request) {
+	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusOK)
 	})
-	http.HandleFunc("/test-service/", NewBasic(c, log))
+	http.HandleFunc("/", NewBasic(c, log))
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
 		fmt.Println(err)

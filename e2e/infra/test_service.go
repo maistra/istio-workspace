@@ -131,7 +131,7 @@ server = WEBrick::HTTPServer.new :BindAddress => '0.0.0.0', :Port => port
 
 trap 'INT' do server.shutdown end
 
-server.mount_proc '/test-service' do |req, res|
+server.mount_proc '/' do |req, res|
     res.status = 200
     res.body = {'caller' => 'PublisherA'}.to_json
     res['Content-Type'] = 'application/json'
