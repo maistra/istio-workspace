@@ -1,7 +1,6 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
@@ -24,7 +23,7 @@ var _ = Describe("Session Client operations", func() {
 			Name: "sample-session",
 		},
 		Spec: istiov1alpha1.SessionSpec{
-			Refs: []v1alpha1.Ref{
+			Refs: []istiov1alpha1.Ref{
 				{Name: "test-details"},
 			},
 		},
