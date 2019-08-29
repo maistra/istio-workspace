@@ -94,7 +94,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 		return h.waitForRefToComplete()
 	}
 	// join session
-	session.Spec.Refs = append(session.Spec.Refs, istiov1alpha1.Ref{Name: h.ref})
+	session.Spec.Refs = append(session.Spec.Refs, istiov1alpha1.Ref{Name: h.ref, Strategy: "telepresence"})
 	err = h.c.Update(session)
 	if err != nil {
 		return "", err
@@ -117,7 +117,7 @@ func (h *handler) createSession() error {
 		},
 		Spec: istiov1alpha1.SessionSpec{
 			Refs: []istiov1alpha1.Ref{
-				{Name: h.ref},
+				{Name: h.ref, Strategy: "telepresence"},
 			},
 		},
 	}

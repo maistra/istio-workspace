@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -13,6 +14,11 @@ import (
 
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
+	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
+	if !found {
+		tpVersion = "0.101"
+	}
+
 	patches := []Patch{
 		{
 			Name: "telepresence",
@@ -59,7 +65,7 @@ func NewDefaultEngine() *Engine {
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 
 				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
-				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.TelepresenceVersion}}"},
+				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.Version}}"},
 				{{ if not (.Data.Has "/spec/template/spec/containers/0/env") }}
 				{"op": "add", "path": "/spec/template/spec/containers/0/env", "value": []},
 				{{ end }}
@@ -83,7 +89,7 @@ func NewDefaultEngine() *Engine {
 					{{ template "basic-remove" . }}
 				]`),
 			Variables: map[string]string{
-				"TelepresenceVersion": "y",
+				"Version": tpVersion,
 			},
 		},
 		{

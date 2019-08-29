@@ -27,7 +27,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 	var ctx model.SessionContext
 
 	CreateTestRef := func() model.Ref {
-		return model.Ref{Name: "test-ref", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", map[string]string{"version": "v1"})}
+		return model.Ref{Name: "test-ref", Strategy: "telepresence", Target: model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", map[string]string{"version": "v1"})}
 	}
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()

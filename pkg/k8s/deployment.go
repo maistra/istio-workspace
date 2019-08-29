@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
@@ -54,7 +53,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	}
 	ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 
-	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.Target.GetNewVersion(ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
 		return err
@@ -92,21 +91,14 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.Deployment, version string) (*appsv1.Deployment, error) {
-	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
-	if !found {
-		tpVersion = "0.101"
-	}
-
+func cloneDeployment(deployment *appsv1.Deployment, ref *model.Ref, version string) (*appsv1.Deployment, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, err
 	}
 
 	e := template.NewDefaultEngine()
-	modifiedDeployment, err := e.Run("telepresence", originalDeployment, version, map[string]string{
-		"TelepresenceVersion": tpVersion,
-	})
+	modifiedDeployment, err := e.Run(ref.Strategy, originalDeployment, version, ref.Args)
 	if err != nil {
 		return nil, err
 	}
