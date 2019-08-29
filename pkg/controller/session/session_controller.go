@@ -169,7 +169,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
-			if ref.Name == r {
+			if ref.Name == r.Name {
 				found = true
 				break
 			}
@@ -207,7 +207,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
 	for _, specRef := range session.Spec.Refs {
 		ctx.Log.Info("Add ref", "name", specRef)
-		ref := model.Ref{Name: specRef}
+		ref := model.Ref{Name: specRef.Name, Strategy: specRef.Strategy, Args: specRef.Args}
 		err := r.sync(ctx, session, &ref)
 		if err != nil {
 			return err
