@@ -202,9 +202,6 @@ func template(name string) corev1.PodTemplateSpec {
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "true",
-				// introduces delay in readiness status due to pods being in crashloopbackoff
-				// state on cni-enabled maistra
-				"readiness.status.sidecar.istio.io/initialDelaySeconds": "15",
 				"prometheus.io/scrape": "true",
 				"prometheus.io/port":   "9080",
 				"prometheus.io/scheme": "http",
