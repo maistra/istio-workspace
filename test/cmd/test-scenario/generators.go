@@ -202,11 +202,11 @@ func template(name string) corev1.PodTemplateSpec {
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "true",
-				"prometheus.io/scrape": "true",
-				"prometheus.io/port":   "9080",
-				"prometheus.io/scheme": "http",
-				"prometheus.io/path":   "/test-service/metrics",
-				"kiali.io/runtimes":    "go",
+				"prometheus.io/scrape":    "true",
+				"prometheus.io/port":      "9080",
+				"prometheus.io/scheme":    "http",
+				"prometheus.io/path":      "/test-service/metrics",
+				"kiali.io/runtimes":       "go",
 			},
 			Labels: map[string]string{
 				"app": name,
