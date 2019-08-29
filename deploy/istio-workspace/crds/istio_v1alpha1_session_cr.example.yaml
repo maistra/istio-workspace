@@ -8,4 +8,4 @@ spec:
     name: end-user
     value: jason
   ref:
-    - ratings-v1
+    - name: ratings-v1
