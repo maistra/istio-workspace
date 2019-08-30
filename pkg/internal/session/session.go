@@ -94,7 +94,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 		return h.waitForRefToComplete()
 	}
 	// join session
-	session.Spec.Refs = append(session.Spec.Refs, h.ref)
+	session.Spec.Refs = append(session.Spec.Refs, istiov1alpha1.Ref{Name: h.ref, Strategy: "telepresence"})
 	err = h.c.Update(session)
 	if err != nil {
 		return "", err
@@ -116,8 +116,8 @@ func (h *handler) createSession() error {
 			Name: h.sessionName,
 		},
 		Spec: istiov1alpha1.SessionSpec{
-			Refs: []string{
-				h.ref,
+			Refs: []istiov1alpha1.Ref{
+				{Name: h.ref, Strategy: "telepresence"},
 			},
 		},
 	}
@@ -161,7 +161,7 @@ func (h *handler) removeOrLeaveSession() {
 	}
 	// more than one participant, update session
 	for i, r := range session.Spec.Refs {
-		if r == h.ref {
+		if r.Name == h.ref {
 			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
 		}
 	}

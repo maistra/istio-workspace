@@ -29,6 +29,8 @@ type Route struct {
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
 type Ref struct {
 	Name             string
+	Strategy         string
+	Args             map[string]string
 	Target           LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
 }

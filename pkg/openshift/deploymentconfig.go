@@ -2,7 +2,6 @@ package openshift
 
 import (
 	"encoding/json"
-	"os"
 
 	"github.com/maistra/istio-workspace/pkg/apis"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -59,7 +58,7 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error { /
 	}
 	ctx.Log.Info("Found DeploymentConfig", "name", ref.Target.Name)
 
-	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref.Target.GetNewVersion(ctx.Name))
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.Target.GetNewVersion(ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
 		return err
@@ -97,21 +96,14 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error { 
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.DeploymentConfig, version string) (*appsv1.DeploymentConfig, error) {
-	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
-	if !found {
-		tpVersion = "0.101"
-	}
-
+func cloneDeployment(deployment *appsv1.DeploymentConfig, ref *model.Ref, version string) (*appsv1.DeploymentConfig, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, err
 	}
 
 	e := template.NewDefaultEngine()
-	modifiedDeployment, err := e.Run("telepresence", originalDeployment, version, map[string]string{
-		"TelepresenceVersion": tpVersion,
-	})
+	modifiedDeployment, err := e.Run(ref.Strategy, originalDeployment, version, ref.Args)
 	if err != nil {
 		return nil, err
 	}
