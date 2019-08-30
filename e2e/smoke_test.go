@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/shell"
@@ -28,7 +29,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			appName = naming.RandName(16)
+			appName = GenerateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
@@ -70,11 +71,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		JustBeforeEach(func() {
-			namespace = naming.RandName(16)
+			namespace = GenerateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
-			<-testshell.Execute("oc login -u developer").Done()
-			<-testshell.Execute("oc new-project " + namespace).Done()
+			LoginAsTestPowerUser()
+			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
 			DeployLocalOperator(namespace)
@@ -110,6 +111,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	})
 })
 
+func GenerateNamespaceName() string {
+	return "ike-tests-" + naming.RandName(16)
+}
+
 func cleanupNamespace(namespace string) {
 	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
 		keep, _ := strconv.ParseBool(keepStr)
@@ -121,14 +126,14 @@ func cleanupNamespace(namespace string) {
 }
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
-	productPageURL := "http://istio-ingressgateway-istio-system.127.0.0.1.nip.io/productpage"
+	productPageURL := "http://istio-ingressgateway-" + GetIstioNamespace() + "." + GetClusterHost() + "/test-service/productpage"
 
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace - so we also test -n parameter of $ ike
-	<-testshell.Execute("oc project myproject").Done()
+	<-testshell.Execute("oc project default").Done()
 
 	// given we have details code locally
 	CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
@@ -175,6 +180,6 @@ func call(routeURL string, headers map[string]string) func() (string, error) { /
 
 func callGetOn(name string) func() (string, error) {
 	return func() (string, error) {
-		return GetBody(fmt.Sprintf("http://%[1]s-%[1]s.127.0.0.1.nip.io", name))
+		return GetBody(fmt.Sprintf("http://%[1]s-%[1]s."+GetClusterHost(), name))
 	}
 }

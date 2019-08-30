@@ -165,6 +165,29 @@ func VirtualService(service Entry) runtime.Object {
 		},
 		Spec: istiov1alpha3.VirtualService{
 			Hosts: []string{service.Name},
+			Http: []*istiov1alpha3.HTTPRoute{
+				{
+					Match: []*istiov1alpha3.HTTPMatchRequest{
+						{
+							Uri: &istiov1alpha3.StringMatch{
+								MatchType: &istiov1alpha3.StringMatch_Prefix{
+									Prefix: "/test-service",
+								},
+							},
+						},
+					},
+					Rewrite: &istiov1alpha3.HTTPRewrite{
+						Uri: "/",
+					},
+					Route: []*istiov1alpha3.HTTPRouteDestination{
+						{
+							Destination: &istiov1alpha3.Destination{
+								Host: service.Name,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -240,7 +263,7 @@ func template(name string) corev1.PodTemplateSpec {
 								Port: intstr.FromInt(9080),
 							},
 						},
-						InitialDelaySeconds: 1,
+						InitialDelaySeconds: 5,
 						PeriodSeconds:       3,
 					},
 					ReadinessProbe: &corev1.Probe{
@@ -250,7 +273,7 @@ func template(name string) corev1.PodTemplateSpec {
 								Port: intstr.FromInt(9080),
 							},
 						},
-						InitialDelaySeconds: 1,
+						InitialDelaySeconds: 5,
 						PeriodSeconds:       3,
 					},
 				},

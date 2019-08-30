@@ -92,7 +92,7 @@ BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
 COMMIT:=$(shell git rev-parse --short HEAD)
 ifneq ($(GITUNTRACKEDCHANGES),)
-	COMMIT:=$(COMMIT)-dirty-$(shell date +%s)
+	COMMIT:=$(COMMIT)-dirty
 endif
 
 IKE_VERSION:=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
@@ -100,7 +100,7 @@ GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; 
 ifneq ($(GIT_TAG),0)
 	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
 else ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_VERSION:=$(IKE_VERSION)-dirty-$(shell date +%s)
+	IKE_VERSION:=$(IKE_VERSION)-dirty
 endif
 
 .PHONY: version
@@ -184,7 +184,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.authors=Aslak Knutsen, Bartosz Majsak" \
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
-		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
+		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
 	docker tag \
@@ -213,7 +213,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.authors=Aslak Knutsen, Bartosz Majsak" \
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
-		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
+		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
