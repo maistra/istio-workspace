@@ -87,12 +87,15 @@ var _ = SynchronizedAfterSuite(func() {},
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
+var completionProject1 = "datawire-project" + naming.RandName(16)
+var completionProject2 = "datawire-other-project" + naming.RandName(16)
+
 func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
-		NewProjectCmd("datawire-project"),
+		NewProjectCmd(completionProject1),
 		DeployHelloWorldCmd("my-datawire-deployment"),
-		NewProjectCmd("datawire-other-project"),
+		NewProjectCmd(completionProject2),
 		DeployHelloWorldCmd("other-1-datawire-deployment"),
 		DeployHelloWorldCmd("other-2-datawire-deployment"),
 	)
@@ -101,8 +104,8 @@ func createProjectsForCompletionTests() {
 func deleteProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
-		"oc delete project datawire-project",
-		"oc delete project datawire-other-project",
+		"oc delete project " + completionProject1,
+		"oc delete project " + completionProject2,
 	)
 }
 
