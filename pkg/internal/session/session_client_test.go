@@ -23,8 +23,8 @@ var _ = Describe("Session Client operations", func() {
 			Name: "sample-session",
 		},
 		Spec: istiov1alpha1.SessionSpec{
-			Refs: []string{
-				"test-details",
+			Refs: []istiov1alpha1.Ref{
+				{Name: "test-details"},
 			},
 		},
 	}

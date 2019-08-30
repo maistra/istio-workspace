@@ -81,7 +81,7 @@ var _ = Describe("Basic session manipulation", func() {
 							Namespace: "test",
 						},
 						Spec: v1alpha1.SessionSpec{
-							Refs: []string{"details"},
+							Refs: []v1alpha1.Ref{{Name: "details"}},
 						},
 					},
 				}
@@ -145,7 +145,7 @@ var _ = Describe("Basic session manipulation", func() {
 							Finalizers: []string{session.Finalizer},
 						},
 						Spec: v1alpha1.SessionSpec{
-							Refs: []string{"details", "details2"},
+							Refs: []v1alpha1.Ref{{Name: "details"}, {Name: "details2"}},
 						},
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
@@ -195,7 +195,7 @@ var _ = Describe("Basic session manipulation", func() {
 							Finalizers: []string{session.Finalizer},
 						},
 						Spec: v1alpha1.SessionSpec{
-							Refs: []string{},
+							Refs: []v1alpha1.Ref{},
 						},
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
@@ -244,7 +244,7 @@ var _ = Describe("Basic session manipulation", func() {
 						Finalizers:        []string{session.Finalizer},
 					},
 					Spec: v1alpha1.SessionSpec{
-						Refs: []string{"details"},
+						Refs: []v1alpha1.Ref{{Name: "details"}},
 					},
 					Status: v1alpha1.SessionStatus{
 						Refs: []*v1alpha1.RefStatus{

@@ -8,8 +8,15 @@ import (
 
 // SessionSpec defines the desired state of Session
 type SessionSpec struct {
-	Route Route    `json:"route,omitempty"`
-	Refs  []string `json:"ref,omitempty"`
+	Route Route `json:"route,omitempty"`
+	Refs  []Ref `json:"ref,omitempty"`
+}
+
+// Ref defines the desired state for a single reference within the Session
+type Ref struct {
+	Name     string            `json:"name,omitempty"`
+	Strategy string            `json:"strategy,omitempty"`
+	Args     map[string]string `json:"args,omitempty"`
 }
 
 // Route defines the strategy for how the traffic is routed to the Ref
