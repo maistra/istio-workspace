@@ -104,10 +104,11 @@ var _ = Describe("Operations for template system", func() {
 				e := template.NewDefaultEngine()
 
 				o, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{
-					"Version": "x",
+					"version": "x-x-v",
 				})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(o)).To(ContainSubstring("1000"))
+				Expect(string(o)).To(ContainSubstring("x-x-v"))
 			})
 		})
 
@@ -115,7 +116,7 @@ var _ = Describe("Operations for template system", func() {
 			It("happy, happy, basic DefaultEngine", func() {
 				e := template.NewDefaultEngine()
 
-				o, err := e.Run("preparedimage", []byte(testDeployment), "1000", map[string]string{
+				o, err := e.Run("prepared-image", []byte(testDeployment), "1000", map[string]string{
 					"image": "maistra.org/test-image:test",
 				})
 				Expect(err).ToNot(HaveOccurred())

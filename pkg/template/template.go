@@ -21,14 +21,14 @@ func NewDefaultEngine() *Engine {
 
 	patches := []Patch{
 		{
-			Name: "preparedimage",
+			Name: "prepared-image",
 			Template: []byte(`[
-					{{ template "basic-version" . }}
+					{{ template "_basic-version" . }}
 
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "{{.Vars.image}}"},
 
-					{{ template "basic-remove" . }}
+					{{ template "_basic-remove" . }}
 				]`),
 			Variables: map[string]string{
 				"image": "",
@@ -37,12 +37,12 @@ func NewDefaultEngine() *Engine {
 		{
 			Name: "telepresence",
 			Template: []byte(`[
-					{{ template "basic-version" . }}
+					{{ template "_basic-version" . }}
 
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 
 				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
-				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.Version}}"},
+				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.version}}"},
 				{{ if not (.Data.Has "/spec/template/spec/containers/0/env") }}
 				{"op": "add", "path": "/spec/template/spec/containers/0/env", "value": []},
 				{{ end }}
@@ -56,14 +56,14 @@ func NewDefaultEngine() *Engine {
 					}
 				}
 				},
-					{{ template "basic-remove" . }}
+					{{ template "_basic-remove" . }}
 				]`),
 			Variables: map[string]string{
-				"Version": tpVersion,
+				"version": tpVersion,
 			},
 		},
 		{
-			Name: "basic-version",
+			Name: "_basic-version",
 			Template: []byte(`
 				{{ if not (.Data.Has "/spec/template/metadata") }}
 				{"op": "add", "path": "/spec/template/metadata", "value": {}},
@@ -107,7 +107,7 @@ func NewDefaultEngine() *Engine {
 			`),
 		},
 		{
-			Name: "basic-remove",
+			Name: "_basic-remove",
 			Template: []byte(`
 				{{ if .Data.Has "/spec/template/spec/containers/0/livenessProbe" }}
 				{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"},
