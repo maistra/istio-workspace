@@ -18,14 +18,6 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
-  digest = "1:680b63a131506e668818d630d3ca36123ff290afa0afc9f4be21940adca3f27d"
-  name = "github.com/appscode/jsonpatch"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "7c0e3b262f30165a8ec3d0b4c6059fd92703bfb2"
-  version = "1.0.0"
-
-[[projects]]
   digest = "1:c819830f4f5ef85874a90ac3cbcc96cd322c715f5c96fbe4722eacd3dafbaa07"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -742,6 +734,14 @@
   revision = "42f498d34c4d67145e3950193a8f23db9328e7f3"
 
 [[projects]]
+  digest = "1:8392b5c29adedc5f85c66b48bb53b6c49dd91d8540f3cad5d43ef7277946718f"
+  name = "gomodules.xyz/jsonpatch"
+  packages = ["v2"]
+  pruneopts = "NT"
+  revision = "e8422f09d27ee2c8cfb2c7f8089eb9eeb0764849"
+  version = "v2.0.1"
+
+[[projects]]
   digest = "1:8fce3e8b14f9730b47a13c70a1dc76057e8e4829975f66848625788141036694"
   name = "google.golang.org/appengine"
   packages = [
@@ -1048,7 +1048,7 @@
   revision = "0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803"
 
 [[projects]]
-  digest = "1:21c23272171c749230b32cf3d797db213414dc4bed6abcd457946230d002418f"
+  digest = "1:cc7d4dda9f8c970af917d6767e64db45a9826698a0bb24fb10f564903f0634ba"
   name = "sigs.k8s.io/controller-runtime"
   packages = [
     "pkg/cache",
@@ -1062,12 +1062,15 @@
     "pkg/handler",
     "pkg/internal/controller",
     "pkg/internal/controller/metrics",
+    "pkg/internal/log",
     "pkg/internal/objectutil",
     "pkg/internal/recorder",
     "pkg/leaderelection",
+    "pkg/log",
+    "pkg/log/zap",
     "pkg/manager",
+    "pkg/manager/signals",
     "pkg/metrics",
-    "pkg/patch",
     "pkg/predicate",
     "pkg/reconcile",
     "pkg/recorder",
@@ -1075,16 +1078,17 @@
     "pkg/runtime/log",
     "pkg/runtime/scheme",
     "pkg/runtime/signals",
+    "pkg/scheme",
     "pkg/source",
     "pkg/source/internal",
+    "pkg/webhook",
     "pkg/webhook/admission",
-    "pkg/webhook/admission/types",
+    "pkg/webhook/internal/certwatcher",
     "pkg/webhook/internal/metrics",
-    "pkg/webhook/types",
   ]
   pruneopts = "NT"
-  revision = "f1eaba5087d69cebb154c6a48193e6667f5b512c"
-  version = "v0.1.12"
+  revision = "e1159d6655b260c4812fd0792cd1344ecc96a57e"
+  version = "v0.2.0"
 
 [[projects]]
   digest = "1:8730e0150dfb2b7e173890c8b9868e7a273082ef8e39f4940e3506a481cf895c"
