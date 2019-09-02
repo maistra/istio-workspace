@@ -99,14 +99,29 @@ var _ = Describe("Operations for template system", func() {
 
 	Context("engine", func() {
 
-		It("happy, happy, basic DefaultEngine", func() {
-			e := template.NewDefaultEngine()
+		Context("telepresence", func() {
+			It("happy, happy, basic DefaultEngine", func() {
+				e := template.NewDefaultEngine()
 
-			o, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{
-				"TelepresenceVersion": "x",
+				o, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{
+					"Version": "x",
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(o)).To(ContainSubstring("1000"))
 			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(string(o)).To(ContainSubstring("1000"))
+		})
+
+		Context("preparedimage", func() {
+			It("happy, happy, basic DefaultEngine", func() {
+				e := template.NewDefaultEngine()
+
+				o, err := e.Run("preparedimage", []byte(testDeployment), "1000", map[string]string{
+					"image": "maistra.org/test-image:test",
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(o)).To(ContainSubstring("1000"))
+				Expect(string(o)).To(ContainSubstring("maistra.org/test-image:test"))
+			})
 		})
 
 		Context("object validation", func() {
