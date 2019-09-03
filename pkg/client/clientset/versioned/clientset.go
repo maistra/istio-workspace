@@ -28,8 +28,6 @@ import (
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface
-	// Deprecated: please explicitly pick a version if possible.
-	Maistra() maistrav1alpha1.MaistraV1alpha1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
@@ -41,12 +39,6 @@ type Clientset struct {
 
 // MaistraV1alpha1 retrieves the MaistraV1alpha1Client
 func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
-	return c.maistraV1alpha1
-}
-
-// Deprecated: Maistra retrieves the default version of MaistraClient.
-// Please explicitly pick a version.
-func (c *Clientset) Maistra() maistrav1alpha1.MaistraV1alpha1Interface {
 	return c.maistraV1alpha1
 }
 
