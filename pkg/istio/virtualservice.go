@@ -185,7 +185,7 @@ func getVirtualService(ctx model.SessionContext, namespace, name string) (*istio
 
 func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) { //nolint[:hugeParam]
 	virtualServices := istionetwork.VirtualServiceList{}
-	err := ctx.Client.List(ctx, &client.ListOptions{Namespace: namespace}, &virtualServices)
+	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
 	return &virtualServices, err
 }
 
