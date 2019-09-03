@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,7 +29,15 @@ type Route struct {
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
 type Ref struct {
 	Name             string
+	Strategy         string
+	Args             map[string]string
+	Target           LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
+}
+
+// HasTarget checks if current Target is of a given Kind
+func (r *Ref) HasTarget(kind string) bool {
+	return r.Target.Kind == kind
 }
 
 // AddResourceStatus adds the status of an involved Resource to this ref
@@ -73,6 +82,43 @@ type ResourceStatus struct {
 	Action ResourceAction
 }
 
+// LocatedResourceStatus is a ResourceStatus with labels
+type LocatedResourceStatus struct {
+	ResourceStatus
+
+	Labels map[string]string
+}
+
+// GetVersion returns the existing version name
+func (l *LocatedResourceStatus) GetVersion() string {
+	if val, ok := l.Labels["version"]; ok {
+		return val
+	}
+	return "unknown"
+}
+
+// GetNewVersion returns the new updated version name
+func (l *LocatedResourceStatus) GetNewVersion(sessionName string) string {
+	return l.GetVersion() + "-" + sessionName
+}
+
+// GetHostName returns the targets host name
+func (l *LocatedResourceStatus) GetHostName() string {
+	return strings.Split(l.Name, "-")[0]
+}
+
+// NewLocatedResource is a simple helper to create LocatedResourceStatus
+func NewLocatedResource(kind, name string, labels map[string]string) LocatedResourceStatus {
+	return LocatedResourceStatus{
+		ResourceStatus: ResourceStatus{
+			Kind:   kind,
+			Name:   name,
+			Action: ActionLocated,
+		},
+		Labels: labels,
+	}
+}
+
 // ResourceAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.
 type ResourceAction string
 
@@ -83,6 +129,8 @@ const (
 	ActionModified ResourceAction = "modified"
 	// ActionFailed imply what ever was attempted failed. Assume current state is ok in clean up?
 	ActionFailed ResourceAction = "failed"
+	// ActionLocated imply the resource was found, but nothing was changed.
+	ActionLocated ResourceAction = "located"
 )
 
 // Locator should attempt to resolve a Ref.Name to a target Named kind, e.g. Deployment, DeploymentConfig.

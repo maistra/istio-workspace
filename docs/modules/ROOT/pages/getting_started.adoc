@@ -1,2 +1,77 @@
-== Getting Started
+= Getting Started
+
+In this section we walk you through necessary steps to start using `ike`. It will take you just a few minutes to start coding!
+
+== What do you need
+
+* [x] `oc` or `kubectl`
+* [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
+* [x] Ike binary
+* [x] Kubernetes cluster with Istio (i.e. Maistra)
+
+== Installing `ike` CLI
+
+Run:
+
+[source,bash]
+----
+curl -sL http://git.io/get-ike | bash
+----
+
+to get latest `ike` binary.
+
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s -- --version=v0.0.1 --dir=~/bin`
+
+== Installing cluster component
+
+Before you can start using CLI we have to add few backend bits to the cluster, so that we can safely swap services you will work on.
+
+The simples way is to run built-in command which should take care of all the steps.
+
+If you want to install the operator cluster wide run:
+
+[source,bash]
+----
+ike install-operator
+----
+
+Or if you only want to install it for a single Namespace:
+
+[source,bash]
+----
+ike install-operator -l
+----
+
+// TODO single install script
+
+== Using `ike` CLI
+
+[source,bash]
+----
+
+ike develop  \
+  --deployment details-v1 \ <1>
+  --port 9080 \ <2>
+  --watch \ <3>
+  --run 'ruby details.rb 9080' \ <4>
+  --route header:end-user=alien-ike \ <5>
+----
+
+Now you have process based on your local code base which proxies connections from/to your Kubernetes cluster! Have fun hacking!
+
+Let's break it down to see what is going on under the hood:
+
+<1> Name of the `Deployment` or `DeploymentConfig` you want to work with
+<2> exposed port of the service
+<3> whether to watch changes in the file system and re-run the process when they occur
+<4> command to run 
+<5> route differentiation based on which the traffic will be directed to your forked service
+
+// TIP: All command line flags can also be persisted in the configuration file and shared in the project. For more details jump to configuration section.
+
+
+// TODO add screencast showing the basic flow
+
+// TODO add sources to our binary once released
+
 

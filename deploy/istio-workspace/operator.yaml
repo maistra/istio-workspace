@@ -1,35 +1,50 @@
 kind: Template
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 parameters:
   - name: IKE_DOCKER_REGISTRY
+    description: "Docker registry where deployed image is available"
     required: true
-    value: docker.io
+    value: quay.io
   - name: IKE_DOCKER_REPOSITORY
+    description: "Repository in which the image can be found"
     required: true
-    value: aslakknusten
+    value: maistra
   - name: IKE_IMAGE_NAME
+    description: "The name of the image with ike binary"
     required: true
     value: istio-workspace
   - name: IKE_IMAGE_TAG
+    description: "The tag of the image to be used"
     required: true
     value: latest
+  - name: WATCH_NAMESPACE
+    description: "The namespace to watch. Leave empty for cluster wide watch."
+    required: false
+    value: ""
   - name: TELEPRESENCE_VERSION
+    description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
     required: true
-    value: "0.99"
+    value: "0.101"
 objects:
   - kind: Deployment
     apiVersion: apps/v1
     metadata:
       name: istio-workspace
+      labels:
+        app: istio-workspace
+        version: ${IKE_VERSION}
     spec:
       replicas: 1
       selector:
         matchLabels:
-          name: istio-workspace
+          app: istio-workspace
+          version: ${IKE_VERSION}
       template:
         metadata:
+          name: istio-workspace
           labels:
-            name: istio-workspace
+            app: istio-workspace
+            version: ${IKE_VERSION}
         spec:
           serviceAccountName: istio-workspace
           containers:
@@ -42,7 +57,7 @@ objects:
               imagePullPolicy: Always
               env:
                 - name: WATCH_NAMESPACE
-                  value: ""
+                  value: "${WATCH_NAMESPACE}"
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
@@ -50,4 +65,4 @@ objects:
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
                 - name: TELEPRESENCE_VERSION
-                  value: ${TELEPRESENCE_VERSION}
+                  value: "${TELEPRESENCE_VERSION}"

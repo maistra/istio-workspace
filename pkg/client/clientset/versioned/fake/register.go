@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,7 +31,7 @@ var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 var parameterCodec = runtime.NewParameterCodec(scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
-	istiov1alpha1.AddToScheme,
+	maistrav1alpha1.AddToScheme,
 }
 
 // AddToScheme adds all types of this clientset into the given scheme. This allows composition

@@ -1,6 +1,10 @@
 ---
 name: Feature request
-about: Use this issue type to share your ideas about improving user experience and functionalities.
+about: Use this issue type to share your ideas about improving user experience and
+  functionalities.
+title: ''
+labels: enhancement
+assignees: ''
 
 ---
 

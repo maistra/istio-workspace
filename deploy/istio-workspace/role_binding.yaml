@@ -1,18 +1,19 @@
 kind: Template
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 parameters:
   - name: NAMESPACE
+    description: "Target namespace for which role binding should be defined"
     required: true
-    value: istio-system
+    value: istio-workspace-operator
 objects:
   - kind: ClusterRoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
       name: istio-workspace
     subjects:
-    - kind: ServiceAccount
-      name: istio-workspace
-      namespace: ${NAMESPACE}
+      - kind: ServiceAccount
+        name: istio-workspace
+        namespace: ${NAMESPACE}
     roleRef:
       kind: ClusterRole
       name: istio-workspace

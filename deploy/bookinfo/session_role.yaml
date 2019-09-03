@@ -4,7 +4,7 @@ metadata:
   name: sessions
 rules:
   - apiGroups:
-      - istio.openshift.com
+      - maistra.io
     resources:
       - sessions
     verbs:

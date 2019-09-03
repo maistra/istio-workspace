@@ -3,11 +3,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
 )
-import "fmt"
 
 // SleepMs indicates for how the program should sleep before he gets terminated
 // The value is in milliseconds or "infinite" which will result in endless loop

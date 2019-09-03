@@ -20,8 +20,8 @@ package fake
 
 import (
 	clientset "github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
-	fakeistiov1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1/fake"
+	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
+	fakemaistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -71,12 +71,7 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// IstioV1alpha1 retrieves the IstioV1alpha1Client
-func (c *Clientset) IstioV1alpha1() istiov1alpha1.IstioV1alpha1Interface {
-	return &fakeistiov1alpha1.FakeIstioV1alpha1{Fake: &c.Fake}
-}
-
-// Istio retrieves the IstioV1alpha1Client
-func (c *Clientset) Istio() istiov1alpha1.IstioV1alpha1Interface {
-	return &fakeistiov1alpha1.FakeIstioV1alpha1{Fake: &c.Fake}
+// MaistraV1alpha1 retrieves the MaistraV1alpha1Client
+func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
+	return &fakemaistrav1alpha1.FakeMaistraV1alpha1{Fake: &c.Fake}
 }

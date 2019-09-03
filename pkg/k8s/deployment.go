@@ -1,13 +1,12 @@
 package k8s
 
 import (
-	"os"
+	"encoding/json"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "k8s.io/api/apps/v1"
-
-	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,9 +29,10 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
 			return false
 		}
-		ctx.Log.Error(nil, "Could not get Deployment", "name", deployment.Name)
+		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 		return false
 	}
+	ref.Target = model.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels)
 	return true
 }
 
@@ -41,17 +41,26 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
 	}
-
-	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
+	if !ref.HasTarget(DeploymentKind) {
+		return nil
+	}
+	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Target.Name)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
-	ctx.Log.Info("Found Deployment", "name", ref.Name)
+	ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 
-	deploymentClone := cloneDeployment(deployment.DeepCopy(), ctx.Name)
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.Target.GetNewVersion(ctx.Name))
+	if err != nil {
+		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
+		return err
+	}
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
-		ctx.Log.Info("Failed to clone Deployment", "name", deploymentClone.Name)
+		ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentKind, Name: deploymentClone.Name, Action: model.ActionFailed})
 		return err
 	}
@@ -67,7 +76,7 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 		deployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},
 		}
-		ctx.Log.Info("Found Deployment", "name", ref.Name)
+		ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
 		err := ctx.Client.Delete(ctx, deployment)
 		if err != nil {
 			if errors.IsNotFound(err) {
@@ -82,39 +91,24 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.Deployment, version string) *appsv1.Deployment {
-	deploymentClone := deployment.DeepCopy()
-	replicasClone := int32(1)
-	labelsClone := deploymentClone.GetLabels()
-	labelsClone["telepresence"] = "test"
-	labelsClone["version-source"] = labelsClone["version"]
-	labelsClone["version"] = version
-	deploymentClone.SetName(deployment.GetName() + "-" + version)
-	deploymentClone.SetLabels(labelsClone)
-	deploymentClone.Spec.Selector.MatchLabels = labelsClone
-	deploymentClone.Spec.Template.SetLabels(labelsClone)
-	deploymentClone.SetResourceVersion("")
-	deploymentClone.Spec.Replicas = &replicasClone
-
-	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
-	if !found {
-		tpVersion = "0.99"
+func cloneDeployment(deployment *appsv1.Deployment, ref *model.Ref, version string) (*appsv1.Deployment, error) {
+	originalDeployment, err := json.Marshal(deployment)
+	if err != nil {
+		return nil, err
 	}
 
-	container := deploymentClone.Spec.Template.Spec.Containers[0]
-	container.Image = "datawire/telepresence-k8s:" + tpVersion
-	container.Env = append(container.Env, corev1.EnvVar{
-		Name: "TELEPRESENCE_CONTAINER_NAMESPACE",
-		ValueFrom: &corev1.EnvVarSource{
-			FieldRef: &corev1.ObjectFieldSelector{
-				APIVersion: "v1",
-				FieldPath:  "metadata.namespace",
-			},
-		},
-	})
+	e := template.NewDefaultEngine()
+	modifiedDeployment, err := e.Run(ref.Strategy, originalDeployment, version, ref.Args)
+	if err != nil {
+		return nil, err
+	}
 
-	deploymentClone.Spec.Template.Spec.Containers[0] = container
-	return deploymentClone
+	clone := appsv1.Deployment{}
+	err = json.Unmarshal(modifiedDeployment, &clone)
+	if err != nil {
+		return nil, err
+	}
+	return &clone, nil
 }
 
 func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) { //nolint[:hugeParam]

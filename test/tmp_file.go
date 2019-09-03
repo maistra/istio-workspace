@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/spf13/afero"
 )
@@ -29,7 +30,10 @@ var appFs = afero.NewOsFs()
 func TmpDir(t TestReporter, dir string) string {
 	fullPath := dir
 	if !path.IsAbs(dir) {
-		fullPath = fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), dir)
+		// Removes trailing slash which is returned by MacOS https://github.com/golang/go/issues/21318
+		// Otherwise ending up with `//` vs `/` in mac vs linux resulting in failures
+		tmpDir := filepath.Clean(os.TempDir())
+		fullPath = fmt.Sprintf("%s/%s/%s", tmpDir, randomAlphaNumeric(), dir)
 	}
 
 	if err := appFs.MkdirAll(fullPath, os.ModePerm); err != nil {
@@ -48,7 +52,10 @@ func TmpDir(t TestReporter, dir string) string {
 func TmpFile(t TestReporter, filePath, content string) afero.File {
 	fullPath := filePath
 	if !path.IsAbs(filePath) {
-		fullPath = fmt.Sprintf("%s/%s/%s", os.TempDir(), randomAlphaNumeric(), filePath)
+		// Removes trailing slash which is returned by MacOS https://github.com/golang/go/issues/21318
+		// Otherwise ending up with `//` vs `/` in mac vs linux resulting in failures
+		tmpDir := filepath.Clean(os.TempDir())
+		fullPath = fmt.Sprintf("%s/%s/%s", tmpDir, randomAlphaNumeric(), filePath)
 	}
 
 	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {

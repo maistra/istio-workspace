@@ -2,6 +2,10 @@
 
 * xref:getting_started.adoc[Getting Started]
 
+* xref:cli_reference.adoc[CLI Reference]
+
 * xref:contribution_guide.adoc[Contribution Guide]
 
-* xref:ideas.adoc[Ideas]
+* xref:dev_guide.adoc[Development Guide]
+
+* xref:release_notes.adoc[Releases]

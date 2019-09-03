@@ -19,28 +19,28 @@ required = [
 
 [[override]]
   name = "k8s.io/code-generator"
-  # revision for tag "kubernetes-1.13.3"
-  revision = "c2090bec4d9b1fb25de3812f868accc2bc9ecbae"
+  # revision for tag "kubernetes-1.14.6"
+  revision = "50b561225d70b3eb79a1faafd3dfe7b1a62cbe73"
 
 [[override]]
   name = "k8s.io/api"
-  # revision for tag "kubernetes-1.13.3"
-  revision = "74b699b93c15473932b89e3d1818ba8282f3b5ab"
+  # revision for tag "kubernetes-1.14.6"
+  revision = "e3a6b8045b0b303430f6d0c261fd9e35be50800e"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  # revision for tag "kubernetes-1.13.3"
-  revision = "d4288ab6494571219e781fa423db363247635942"
+  # revision for tag "kubernetes-1.14.6"
+  revision = "e49a3471dba57c6a6b7437fae6897655eb3d6982"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  # revision for tag "kubernetes-1.13.3"
-  revision = "572dfc7bdfcb4531361a17d27b92851f59acf0dc"
+  # revision for tag "kubernetes-1.14.6"
+  revision = "a9f1d8a9c10182d101acf19b5145c3d4e9299adb"
 
 [[override]]
   name = "k8s.io/client-go"
-  # revision for tag "kubernetes-1.13.3"
-  revision = "6e4752048fde21176ab35eb54ec1117359830d8a"
+  # revision for tag "kubernetes-1.14.6"
+  revision = "7e43eff7c80aab1d14728f84248931b9db28bdc0"
 
 [[override]]
   name = "github.com/coreos/prometheus-operator"
@@ -48,7 +48,7 @@ required = [
 
 [[override]]
   name = "sigs.k8s.io/controller-runtime"
-  version = "=v0.1.10"
+  version = "=v0.2.0"
 
 [[override]]
   name = "istio.io/api"
@@ -57,7 +57,7 @@ required = [
 
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
-  version = ">= 0.8.0, < 1.0.0"
+  version = "=0.10.0"
 
 [[override]]
   name = "k8s.io/kube-openapi"
@@ -70,8 +70,12 @@ required = [
   source = "https://github.com/fsnotify/fsnotify.git"
 
 [[constraint]]
+  name = "github.com/openshift/api"
+  version = "=v3.9.0"
+
+[[constraint]]
   name = "github.com/go-cmd/cmd"
-  version = "=1.0.4"
+  version = "=1.0.5"
 
 [[constraint]]
   name = "github.com/hashicorp/go-multierror"
@@ -79,11 +83,11 @@ required = [
 
 [[constraint]]
   name = "github.com/onsi/gomega"
-  version = "=1.5.0"
+  version = "=1.6.0"
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
-  version = "=1.8.0"
+  version = "=1.10.1"
 
 [[constraint]]
   name = "go.uber.org/goleak"
@@ -91,4 +95,16 @@ required = [
 
 [[constraint]]
   name = "github.com/sabhiram/go-gitignore"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  version = "=v1.4.0"
+
+[[constraint]]
+  name = "github.com/spf13/cobra"
+  version = "=v0.0.5"
+
+[[constraint]]
+  name = "github.com/google/shlex"
   branch = "master"

@@ -1,0 +1,25 @@
+= Development Guide
+
+== Automation
+
+=== Release Process
+
+Release automation is based on a tagged commit (i.e. named `release: v0.0.1` with associated annotated tag `v0.0.1`)
+Such a commit should have the following content:
+
+. The version in `docs/antora.yml` changed to a matching `tag`
+. Release notes named after tag `tag.adoc` in `docs/modules/ROOT/pages/release_notes/`
+. New release included in `docs/modules/ROOT/pages/release_notes.adoc`
+
+NOTE: Above steps are provided by `scripts/release.sh`
+
+Such tagged commit triggers a job in CircleCI which will:
+
+. Build and push tagged docker image to `quay.io` registry
+. Push cross-compiled binaries and release notes
+
+Diagram below describes the entire process and its artifacts.
+
+.Release automation
+image::diagrams/automation-release.svg[Release automation]
+// Source: https://drive.google.com/file/d/1m0r9AH3LntqgZ5K_IuF6KVcz5QGF2XhX/view?usp=sharing through draw.io

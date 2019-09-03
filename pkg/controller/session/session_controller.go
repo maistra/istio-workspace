@@ -7,6 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -34,17 +35,17 @@ func defaultManipulators() Manipulators {
 	return Manipulators{
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
-			//openshift.DeploymentConfigLocator,
+			openshift.DeploymentConfigLocator,
 		},
 		Mutators: []model.Mutator{
 			k8s.DeploymentMutator,
-			//openshift.DeploymentConfigMutator,
+			openshift.DeploymentConfigMutator,
 			istio.DestinationRuleMutator,
 			istio.VirtualServiceMutator,
 		},
 		Revertors: []model.Revertor{
 			k8s.DeploymentRevertor,
-			//openshift.DeploymentConfigRevertor,
+			openshift.DeploymentConfigRevertor,
 			istio.DestinationRuleRevertor,
 			istio.VirtualServiceRevertor,
 		},
@@ -168,7 +169,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
-			if ref.Name == r {
+			if ref.Name == r.Name {
 				found = true
 				break
 			}
@@ -206,7 +207,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
 	for _, specRef := range session.Spec.Refs {
 		ctx.Log.Info("Add ref", "name", specRef)
-		ref := model.Ref{Name: specRef}
+		ref := model.Ref{Name: specRef.Name, Strategy: specRef.Strategy, Args: specRef.Args}
 		err := r.sync(ctx, session, &ref)
 		if err != nil {
 			return err
@@ -217,15 +218,19 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 
 func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
 	StatusToRef(*session, ref)
+	located := false
 	for _, locator := range r.manipulators.Locators {
 		if locator(ctx, ref) {
+			located = true
 			break // only use first locator
 		}
 	}
-	for _, mutator := range r.manipulators.Mutators {
-		err := mutator(ctx, ref)
-		if err != nil {
-			ctx.Log.Error(err, "Mutate", "name", ref.Name)
+	if located {
+		for _, mutator := range r.manipulators.Mutators {
+			err := mutator(ctx, ref)
+			if err != nil {
+				ctx.Log.Error(err, "Mutate", "name", ref.Name)
+			}
 		}
 	}
 

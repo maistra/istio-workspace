@@ -1,0 +1,13 @@
+# Configures dependabot dependency updates
+# For details, see: https://dependabot.com/docs/config-file/
+version: 1
+update_configs:
+  - package_manager: "go:dep"
+    directory: "/"
+    update_schedule: "weekly"
+    version_requirement_updates: "increase_versions"
+    default_reviewers: [ bartoszmajsak ]
+  - package_manager: "docker"
+    directory: "/build"
+    update_schedule: "weekly"
+    default_reviewers: [ bartoszmajsak ]

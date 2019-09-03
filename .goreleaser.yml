@@ -1,0 +1,30 @@
+before:
+  hooks:
+    - make deps codegen
+builds:
+- env:
+  - CGO_ENABLED=0
+  ## Overlaps with what is defined in Makefile - we should find a away of having it defined only once
+  - PACKAGE_NAME=github.com/maistra/istio-workspace
+  main: ./cmd/ike
+  binary: ike
+  goos:
+    - linux
+    - darwin
+  goarch:
+    - 386
+    - amd64
+  ldflags:
+    ## FIXME Overlaps with what is defined in Makefile - we should find a away of having it defined only once
+    - -s -w -X {{.Env.PACKAGE_NAME}}/version.Version=v{{.Version}} -X {{.Env.PACKAGE_NAME}}/version.Commit={{.ShortCommit}} -X {{.Env.PACKAGE_NAME}}/version.BuildTime={{.Date}}
+archives:
+  - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"

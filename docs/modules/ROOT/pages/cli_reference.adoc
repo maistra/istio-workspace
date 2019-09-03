@@ -1,0 +1,101 @@
+= CLI Reference
+
+In this section you will learn about:
+
+* [x] ways to configure `ike` (through flags, files et al)
+* [x] complete list of commands and their available flags
+
+[#completion]
+== Autocomplete
+
+If you are using `zsh` or `bash` you can easily enable autocomplete for `ike` by invoking `. <(ike completion SHELL)`.
+
+[#configuration]
+== Configuration
+
+There are several ways to configure `ike` commands:
+
+. Flags
+. Environment variables
+. Configuration file
+
+Each item takes precedence over the item below it.
+
+Environment variables are prefixed with `IKE` and have fully qualified names, for example
+in case of `develop` command and its `port` flag corresponding environment variable is
+`IKE_DEVELOP_PORT`.
+
+Each of the commands can be persisted in the configuration file with all their flags respectively.
+
+In case of `develop` command `yaml` file could look like:
+
+[source,yml]
+----
+develop:
+  deployment: test
+  run: "java -jar config.jar"
+  port: 9876
+----
+
+See <<ike,ike root command>> to learn about the global config flag and available formats.
+
+Below you can find a documented list of all commands and their available flags.
+
+== Available commands
+
+[#ike]
+=== `ike`
+
+Main command, which holds global flags and prints the overall usage of the tool.
+
+include::cmd:ike[flags='--help --help-format=adoc']
+
+[#ike-install-operator]
+=== `ike install-operator`
+
+Simple installation process of the operator in the cluster. 
+
+IMPORTANT: Connection configuration is taken from `KUBECONFIG` context. 
+It's important to have user with sufficient privileges. 
+In case of OpenShift you can add `cluster-user` role for your user by executing 
+`oc adm policy add-cluster-role-to-user cluster-admin USER`. 
+
+include::cmd:ike[flags='install-operator --help --help-format=adoc']
+
+[#ike-serve]
+=== `ike serve`
+
+Starts the operator in the cluster.
+// TODO brief mention about operator and how it works + link to the dedicated docs
+
+include::cmd:ike[flags='serve --help --help-format=adoc']
+
+[#ike-develop]
+=== `ike develop`
+
+Creates or joins existing development session in the cluster. Allows to re-route cluster network traffic to your local process.
+
+include::cmd:ike[flags='develop --help --help-format=adoc']
+
+==== Watching for changes
+
+`ike develop` provides `--watch` functionality to trigger build and relaunch the process whenever you modify something
+in your project. This way you can immediately introduce your changes in your cluster.
+
+By default all log files (`*.log`) and `.git` folder are not monitored.
+
+TIP: For details on how define what should be watched see <<ike-develop,ike develop>> reference.
+
+If you have `.gitignore` in the root directory, from where `ike` has been started, rules defined in this file
+are also respected.
+
+TIP: Have a look at https://git-scm.com/docs/gitignore[official Git documentation] to learn more about the `.gitignore` format.
+
+WARNING: Only root `.gitignore` is handled. If you happen to have additional `.gitignore` files in subdirectories
+those won't be respected.
+
+[#ike-version]
+=== `ike version`
+
+Prints version of the binary and build metadata.
+include::cmd:ike[flags='version',block=true,print=true]

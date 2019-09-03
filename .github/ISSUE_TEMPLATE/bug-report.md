@@ -1,13 +1,16 @@
 ---
 name: Bug report
 about: Use this issue type to report anything unusual observed while using istio-workspace.
+title: ''
+labels: bug
+assignees: ''
 
 ---
 
 <!--
-Thanks for interest in istio-workspace and apologies for making your experience not yet as awesome as we strive for.  
+Thanks for your interest in istio-workspace and apologies for making your experience not yet as awesome as we strive for.  
 
-Please follow template provided below to report a bug you have encountered and we will make sure to improve it.
+Please follow the template provided below to report a bug you have encountered and we will make sure to improve it.
 
 YOU CAN DELETE THIS TEXT BEFORE SUBMITTING THE ISSUE
 -->
@@ -27,7 +30,7 @@ Tell us briefly what the problem is about.
 
 ##### Additional Information
 
-Anything relevant to help us resolving the problem. For example:
+Anything relevant to help us resolve the problem. For example:
 
   * which version of k8s/openshift you are using
     * output from `kubectl version` or `oc version` accordingly
@@ -35,7 +38,7 @@ Anything relevant to help us resolving the problem. For example:
   * console log or any other relevant information from additional tools such as browser developer tools
   * operator logs (from the cluster)
 
-For long outputs such as stacktraces please use HTML5 `<details>`
+For long outputs such as stack traces please use HTML5 `<details>`
 
 ```
 <details>
