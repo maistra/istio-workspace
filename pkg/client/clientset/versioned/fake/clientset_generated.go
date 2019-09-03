@@ -75,8 +75,3 @@ var _ clientset.Interface = &Clientset{}
 func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
 	return &fakemaistrav1alpha1.FakeMaistraV1alpha1{Fake: &c.Fake}
 }
-
-// Maistra retrieves the MaistraV1alpha1Client
-func (c *Clientset) Maistra() maistrav1alpha1.MaistraV1alpha1Interface {
-	return &fakemaistrav1alpha1.FakeMaistraV1alpha1{Fake: &c.Fake}
-}
