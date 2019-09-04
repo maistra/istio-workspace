@@ -89,7 +89,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				for _, pod := range pods {
 					printBanner()
 					fmt.Println("Logs of " + pod)
-					LogsOf(namespace, pod)
+					fmt.Println(LogsOf(namespace, pod))
 					printBanner()
 					StateOf(namespace, pod)
 					printBanner()
