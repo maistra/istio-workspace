@@ -83,7 +83,22 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			DeployTestScenario(scenario, namespace)
 		})
 
-		AfterEach(func() { cleanupNamespace(namespace) })
+		AfterEach(func() {
+			if CurrentGinkgoTestDescription().Failed {
+				pods := GetAllPods(namespace)
+				for _, pod := range pods {
+					printBanner()
+					fmt.Println("Logs of " + pod)
+					LogsOf(namespace, pod)
+					printBanner()
+					StateOf(namespace, pod)
+					printBanner()
+				}
+				Events(namespace)
+			} else {
+				cleanupNamespace(namespace)
+			}
+		})
 
 		Context("scenario-1-basic-deployment", func() {
 			BeforeEach(func() {
@@ -110,6 +125,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		})
 	})
 })
+
+func printBanner() {
+	fmt.Println("---------------------------------------------------------------------")
+}
 
 func GenerateNamespaceName() string {
 	return "ike-tests-" + naming.RandName(16)
