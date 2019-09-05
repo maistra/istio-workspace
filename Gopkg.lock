@@ -167,6 +167,22 @@
   version = "v1.3.2"
 
 [[projects]]
+  digest = "1:d82ba0877411cc944e25fd8276c0312568c407b3ef1721ba795fb891b8bd1a4c"
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  pruneopts = "NT"
+  revision = "2e90302801c870f17b6152327d9b9a03c8eca0e2"
+  version = "v28.0.1"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "NT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:52c5834e2bebac9030c97cc0798ac11c3aa8a39f098aeb419f142533da6cd3cc"
   name = "github.com/google/gofuzz"
   packages = ["."]
@@ -201,6 +217,14 @@
   pruneopts = "NT"
   revision = "ab0dd09aa10e2952b28e12ecd35681b20463ebab"
   version = "v0.3.1"
+
+[[projects]]
+  digest = "1:7313d6b9095eb86581402557bbf3871620cf82adf41853c5b9bee04b894290c7"
+  name = "github.com/h2non/parth"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "b4df798d65426f8c8ab5ca5f9987aec5575d26c9"
+  version = "v2.0.1"
 
 [[projects]]
   digest = "1:f0d9d74edbd40fdeada436d5ac9cb5197407899af3fef85ff0137077ffe8ae19"
@@ -587,7 +611,16 @@
   branch = "master"
   digest = "1:f82ba53ff318249f82e7efa709f68e93bfcbf899c252bd66739b66f4b0fce202"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "cast5",
+    "openpgp",
+    "openpgp/armor",
+    "openpgp/elgamal",
+    "openpgp/errors",
+    "openpgp/packet",
+    "openpgp/s2k",
+    "ssh/terminal",
+  ]
   pruneopts = "NT"
   revision = "9756ffdc24725223350eb3266ffb92590d28f278"
 
@@ -730,6 +763,14 @@
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   source = "https://github.com/fsnotify/fsnotify.git"
   version = "v1.4.7"
+
+[[projects]]
+  digest = "1:721323966f12bfa5186e02ad807424f78a28b04606970105dbf6a5e9b62205e7"
+  name = "gopkg.in/h2non/gock.v1"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "3ffff9b1aa8200275a5eb219c5f9c62bd27acb31"
+  version = "v1.0.15"
 
 [[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
@@ -1092,6 +1133,7 @@
     "github.com/fsnotify/fsnotify",
     "github.com/go-cmd/cmd",
     "github.com/go-logr/logr",
+    "github.com/google/go-github/github",
     "github.com/google/shlex",
     "github.com/hashicorp/go-multierror",
     "github.com/onsi/ginkgo",
@@ -1114,6 +1156,8 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "go.uber.org/goleak",
+    "golang.org/x/net/context",
+    "gopkg.in/h2non/gock.v1",
     "gopkg.in/yaml.v2",
     "istio.io/api/networking/v1alpha3",
     "istio.io/api/pkg/kube/apis/networking/v1alpha3",
