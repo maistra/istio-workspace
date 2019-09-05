@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
-	"github.com/maistra/istio-workspace/pkg/cmd/develop/internal"
+	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

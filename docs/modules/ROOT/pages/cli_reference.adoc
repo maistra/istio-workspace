@@ -70,6 +70,25 @@ Starts the operator in the cluster.
 
 include::cmd:ike[flags='serve --help --help-format=adoc']
 
+[#ike-create]
+=== `ike create`
+
+Creates or joins existing development session in the cluster. Allows to re-route cluster network traffic to your local process.
+
+The `create` command requires an image-reference to a repository which is reachable from within the cluster. It will prepare a session with the given image.
+
+IMPORTANT: The `create` command will exit and leave the `Session` alive in the cluster as soon as it's created.
+
+include::cmd:ike[flags='create --help --help-format=adoc']
+
+
+[#ike-delete]
+=== `ike delete`
+
+Deletes or leaves existing development session in the cluster.
+
+include::cmd:ike[flags='delete --help --help-format=adoc']
+
 [#ike-develop]
 === `ike develop`
 

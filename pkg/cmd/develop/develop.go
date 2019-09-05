@@ -6,7 +6,7 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/develop/internal"
+	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 
 	"github.com/spf13/pflag"
 

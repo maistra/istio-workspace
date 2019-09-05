@@ -8,6 +8,8 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
+	"github.com/maistra/istio-workspace/pkg/cmd/create"
+	"github.com/maistra/istio-workspace/pkg/cmd/delete"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/install"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
@@ -33,6 +35,8 @@ func main() {
 
 	rootCmd := cmd.NewCmd()
 	rootCmd.AddCommand(version.NewCmd(),
+		create.NewCmd(),
+		delete.NewCmd(),
 		develop.NewCmd(),
 		watch.NewCmd(),
 		serve.NewCmd(),
