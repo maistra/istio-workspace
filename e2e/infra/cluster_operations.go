@@ -43,3 +43,9 @@ func ClientVersion() int {
 	}
 	return 3
 }
+
+// Events returns all events which occurred for a given namespace
+func Events(ns string) {
+	state := shell.Execute("oc get events -n " + ns)
+	<-state.Done()
+}
