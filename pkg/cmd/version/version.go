@@ -29,6 +29,9 @@ func NewCmd() *cobra.Command {
 
 func PrintVersion() {
 	log.Info(fmt.Sprintf("Ike Version: %s", version.Version))
+	if version.Released() {
+		log.Info("Official release")
+	}
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
