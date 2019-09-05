@@ -14,10 +14,10 @@ func LatestRelease() (string, error) {
 	defer httpClient.CloseIdleConnections()
 
 	client := github.NewClient(&httpClient)
-	latestRelease, _, e := client.Repositories.
+	latestRelease, _, err := client.Repositories.
 		GetLatestRelease(context.Background(), "maistra", "istio-workspace")
-	if e != nil {
-		return "", e
+	if err != nil {
+		return "", err
 	}
 	return *latestRelease.Name, nil
 }

@@ -12,6 +12,8 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
+	v "github.com/maistra/istio-workspace/version"
+
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -27,6 +29,11 @@ func NewCmd() *cobra.Command {
 		Short:                  "ike lets you safely develop and test on prod without a sweat",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			if v.Released() && !version.IsLatestRelease() {
+				latestRelease, _ := version.LatestRelease()
+				fmt.Printf("WARN: you are using %s which is not latest release (newest is %s). "+
+					"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
+			}
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
