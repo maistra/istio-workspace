@@ -3,6 +3,8 @@ package version
 import (
 	"net/http"
 
+	"github.com/maistra/istio-workspace/version"
+
 	"github.com/google/go-github/github"
 	"golang.org/x/net/context"
 )
@@ -18,4 +20,13 @@ func LatestRelease() (string, error) {
 		return "", e
 	}
 	return *latestRelease.Name, nil
+}
+
+func IsLatestRelease() bool {
+	latestRelease, err := LatestRelease()
+	if err != nil {
+		log.Error(err, "unable to determine latest released version")
+		return false
+	}
+	return latestRelease == version.Version
 }
