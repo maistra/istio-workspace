@@ -29,10 +29,12 @@ func NewCmd() *cobra.Command {
 		Short:                  "ike lets you safely develop and test on prod without a sweat",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			if v.Released() && !version.IsLatestRelease() {
+			if v.Released() {
 				latestRelease, _ := version.LatestRelease()
-				fmt.Printf("WARN: you are using %s which is not the latest release (newest is %s). "+
-					"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
+				if !version.IsLatestRelease(latestRelease) {
+					fmt.Printf("WARN: you are using %s which is not the latest release (newest is %s). "+
+						"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
+				}
 			}
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},

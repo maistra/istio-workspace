@@ -33,8 +33,12 @@ var _ = Describe("Usage of ike develop command", func() {
 	})
 
 	It("should determine that v0.0.0 is not latest release", func() {
+		// given
+		latestRelease, err := version.LatestRelease()
+		Expect(err).ToNot(HaveOccurred())
+
 		// when
-		latest := version.IsLatestRelease()
+		latest := version.IsLatestRelease(latestRelease)
 
 		// then
 		Expect(latest).To(BeFalse())
@@ -43,9 +47,11 @@ var _ = Describe("Usage of ike develop command", func() {
 	It("should determine that v0.0.2 is latest release", func() {
 		// given
 		v.Version = "v0.0.2"
+		latestRelease, err := version.LatestRelease()
+		Expect(err).ToNot(HaveOccurred())
 
 		// when
-		latest := version.IsLatestRelease()
+		latest := version.IsLatestRelease(latestRelease)
 
 		// then
 		Expect(latest).To(BeTrue())

@@ -17,16 +17,12 @@ func LatestRelease() (string, error) {
 	latestRelease, _, err := client.Repositories.
 		GetLatestRelease(context.Background(), "maistra", "istio-workspace")
 	if err != nil {
+		log.Error(err, "unable to determine latest released version")
 		return "", err
 	}
 	return *latestRelease.Name, nil
 }
 
-func IsLatestRelease() bool {
-	latestRelease, err := LatestRelease()
-	if err != nil {
-		log.Error(err, "unable to determine latest released version")
-		return false
-	}
+func IsLatestRelease(latestRelease string) bool {
 	return latestRelease == version.Version
 }
