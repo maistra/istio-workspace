@@ -94,10 +94,10 @@ func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
 		NewProjectCmd(CompletionProject1),
-		DeployHelloWorldCmd("my-datawire-deployment"),
+		DeployHelloWorldCmd("my-datawire-deployment", CompletionProject1),
 		NewProjectCmd(CompletionProject2),
-		DeployHelloWorldCmd("other-1-datawire-deployment"),
-		DeployHelloWorldCmd("other-2-datawire-deployment"),
+		DeployHelloWorldCmd("other-1-datawire-deployment", CompletionProject2),
+		DeployHelloWorldCmd("other-2-datawire-deployment", CompletionProject1),
 	)
 }
 
