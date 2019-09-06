@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 
@@ -23,6 +24,8 @@ var log = logf.Log.WithName("cmd").WithValues("type", "root")
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
 	var configFile string
+	releaseInfo := make(chan string, 1)
+	timeout := make(chan bool, 1)
 
 	rootCmd := &cobra.Command{
 		Use:                    "ike",
@@ -30,11 +33,19 @@ func NewCmd() *cobra.Command {
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if v.Released() {
-				latestRelease, _ := version.LatestRelease()
-				if !version.IsLatestRelease(latestRelease) {
-					fmt.Printf("WARN: you are using %s which is not the latest release (newest is %s). "+
-						"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
-				}
+				go func() {
+					time.Sleep(2 * time.Second)
+					timeout <- true
+				}()
+				go func() {
+					latestRelease, _ := version.LatestRelease()
+					if !version.IsLatestRelease(latestRelease) {
+						releaseInfo <- fmt.Sprintf("WARN: you are using %s which is not the latest release (newest is %s). "+
+							"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
+					} else {
+						releaseInfo <- ""
+					}
+				}()
 			}
 			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
 		},
@@ -45,6 +56,19 @@ func NewCmd() *cobra.Command {
 			} else {
 				fmt.Print(cmd.UsageString())
 			}
+			return nil
+		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			if v.Released() {
+				select {
+				case release := <-releaseInfo:
+					log.Info(release)
+				case <-timeout:
+					// do nothing, just timeout
+				}
+			}
+			close(releaseInfo)
+			close(timeout)
 			return nil
 		},
 	}
