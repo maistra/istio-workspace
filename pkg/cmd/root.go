@@ -40,8 +40,8 @@ func NewCmd() *cobra.Command {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
 					if !version.IsLatestRelease(latestRelease) {
-						releaseInfo <- fmt.Sprintf("WARN: you are using %s which is not the latest release (newest is %s). "+
-							"You can update it using:\n$ curl -sL http://git.io/get-ike | bash\n", v.Version, latestRelease)
+						releaseInfo <- fmt.Sprintf("WARN: you are using %s which is not the latest release (newest is %s).\n"+
+							"Follow release notes for update info https://github.com/Maistra/istio-workspace/releases/latest", v.Version, latestRelease)
 					} else {
 						releaseInfo <- ""
 					}
