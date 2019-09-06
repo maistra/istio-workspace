@@ -20,8 +20,10 @@ func main() {
 	// The logger instantiated here can be changed to any logger
 	// implementing the logr.Logger interface. This logger will
 	// be propagated through the whole operator, generating
-	// uniform and structured logs.
+	// uniformed and structured logs.
 	// Logs to os.Stderr, where all structured logging should go
+	// When running outside of k8s cluster it will use development
+	// mode so the log is not in JSON, but plain text format
 	logf.SetLogger(logf.ZapLogger(!isRunningInK8sCluster()))
 
 	// Setting random seed e.g. for session name generator
