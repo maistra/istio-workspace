@@ -25,7 +25,6 @@ var log = logf.Log.WithName("cmd").WithValues("type", "root")
 func NewCmd() *cobra.Command {
 	var configFile string
 	releaseInfo := make(chan string, 1)
-	timeout := make(chan bool, 1)
 
 	rootCmd := &cobra.Command{
 		Use:                    "ike",
@@ -33,10 +32,6 @@ func NewCmd() *cobra.Command {
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			if v.Released() {
-				go func() {
-					time.Sleep(2 * time.Second)
-					timeout <- true
-				}()
 				go func() {
 					latestRelease, _ := version.LatestRelease()
 					if !version.IsLatestRelease(latestRelease) {
@@ -60,15 +55,15 @@ func NewCmd() *cobra.Command {
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			if v.Released() {
+				timer := time.NewTimer(2 * time.Second)
 				select {
 				case release := <-releaseInfo:
 					log.Info(release)
-				case <-timeout:
+				case <-timer.C:
 					// do nothing, just timeout
 				}
 			}
 			close(releaseInfo)
-			close(timeout)
 			return nil
 		},
 	}
