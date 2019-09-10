@@ -47,11 +47,15 @@ func CreateNewApp(name string) {
 		"oc", "new-app",
 		"--docker-image", "datawire/hello-world",
 		"--name", name,
+		"--namespace", name,
 		"--allow-missing-images",
 	).Done()
 	shell.ExecuteAll("oc expose svc/"+name, "oc status")
 }
 
-func DeployHelloWorldCmd(name string) string {
-	return "oc new-app --docker-image datawire/hello-world --name " + name + " --allow-missing-images"
+func DeployHelloWorldCmd(name, ns string) string {
+	return "oc new-app --docker-image datawire/hello-world " +
+		"--name " + name + " " +
+		"--namespace " + ns + " " +
+		"--allow-missing-images"
 }

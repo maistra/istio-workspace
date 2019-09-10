@@ -95,7 +95,7 @@ ifneq ($(GITUNTRACKEDCHANGES),)
 	COMMIT:=$(COMMIT)-dirty
 endif
 
-IKE_VERSION:=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
 	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
@@ -108,7 +108,8 @@ version:
 	@echo $(IKE_VERSION)
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
-LDFLAGS="-w -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
+RELEASE?=false
+LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go")
 
 $(BINARY_DIR):

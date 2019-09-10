@@ -108,3 +108,11 @@ required = [
 [[constraint]]
   name = "github.com/google/shlex"
   branch = "master"
+
+[[constraint]]
+  name = "gopkg.in/h2non/gock.v1"
+  version = "=v1.0.15"
+
+[[constraint]]
+  name = "github.com/google/go-github"
+  version = "=v28.0.1"
