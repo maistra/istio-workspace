@@ -2,8 +2,9 @@ package main
 
 import (
 	"math/rand"
-	"os"
 	"time"
+
+	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
@@ -13,7 +14,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/cmd/watch"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	// Logs to os.Stderr, where all structured logging should go
 	// When running outside of k8s cluster it will use development
 	// mode so the log is not in JSON, but plain text format
-	logf.SetLogger(logf.ZapLogger(!isRunningInK8sCluster()))
+	logf.SetLogger(log.CreateClusterAwareLogger())
 
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -41,9 +42,4 @@ func main() {
 	cmd.VisitAll(rootCmd, completion.AddFlagCompletion)
 
 	_ = rootCmd.Execute()
-}
-
-func isRunningInK8sCluster() bool {
-	_, runningInCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST")
-	return runningInCluster
 }
