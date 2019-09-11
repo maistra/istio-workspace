@@ -19,7 +19,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "develop")
+var log = logf.Log.WithName("develop")
 
 const telepresenceBin = "telepresence"
 

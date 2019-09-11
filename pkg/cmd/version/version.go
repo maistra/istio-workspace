@@ -11,7 +11,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "version")
+var log = logf.Log.WithName("version")
 
 // NewCmd creates version cmd which prints version and Build details of the executed binary
 func NewCmd() *cobra.Command {

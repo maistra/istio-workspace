@@ -19,7 +19,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "root")
+var log = logf.Log.WithName("root")
 
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
