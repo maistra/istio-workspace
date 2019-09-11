@@ -26,7 +26,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:6ccf687c52dcec6dde2bbe88c2042024d53b42261289814f47860ef993cd7004"
+  digest = "1:667b93b38b17c903ba1697f87b535d6918979926c9455549602af7d3865e4232"
   name = "github.com/coreos/prometheus-operator"
   packages = [
     "pkg/apis/monitoring",
@@ -35,8 +35,8 @@
     "pkg/client/versioned/typed/monitoring/v1",
   ]
   pruneopts = "NT"
-  revision = "1b202471cb9847282198ec008b58bd7c34d9d2ff"
-  version = "v0.30.0"
+  revision = "d6ba399c064c47fea536f08d438a572588b256da"
+  version = "v0.32.0"
 
 [[projects]]
   digest = "1:4b8b5811da6970495e04d1f4e98bb89518cc3cfc3b3f456bdb876ed7b6c74049"
