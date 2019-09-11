@@ -21,7 +21,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "install")
+var log = logf.Log.WithName("install")
 
 // NewCmd takes care of deploying server-side components of istio-workspace
 func NewCmd() *cobra.Command {

@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/log"
+
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
@@ -12,16 +14,18 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/cmd/watch"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
 	// The logger instantiated here can be changed to any logger
 	// implementing the logr.Logger interface. This logger will
 	// be propagated through the whole operator, generating
-	// uniform and structured logs.
+	// uniformed and structured logs.
 	// Logs to os.Stderr, where all structured logging should go
-	logf.SetLogger(logf.ZapLogger(false))
+	// When running outside of k8s cluster it will use development
+	// mode so the log is not in JSON, but plain text format
+	logf.SetLogger(log.CreateClusterAwareLogger())
 
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())

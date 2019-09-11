@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "serve")
+var log = logf.Log.WithName("serve")
 
 var (
 	metricsHost       = "0.0.0.0"

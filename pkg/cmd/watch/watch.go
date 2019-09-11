@@ -18,7 +18,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "watch")
+var log = logf.Log.WithName("watch")
 
 // NewCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.

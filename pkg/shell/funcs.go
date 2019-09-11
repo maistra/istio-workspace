@@ -12,7 +12,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "os")
+var log = logf.Log.WithName("shell")
 
 // StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd
 var StreamOutput = gocmd.Options{
