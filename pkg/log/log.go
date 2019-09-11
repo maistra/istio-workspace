@@ -14,12 +14,13 @@ import (
 )
 
 func CreateClusterAwareLogger() logr.Logger {
-
-	notInCluster := !isRunningInK8sCluster()
-	sink := zapcore.AddSync(os.Stderr)
 	var opts []zap.Option
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
+
+	notInCluster := !isRunningInK8sCluster()
+	sink := zapcore.AddSync(os.Stderr)
+
 	if notInCluster {
 		encCfg := newCliEncoderConfig()
 		enc = zapcore.NewConsoleEncoder(encCfg)
@@ -34,12 +35,13 @@ func CreateClusterAwareLogger() logr.Logger {
 				return zapcore.NewSampler(core, time.Second, 100, 100)
 			}))
 	}
+
 	opts = append(opts, zap.AddCallerSkip(1), zap.ErrorOutput(sink))
 
 	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: notInCluster}
-
 	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
 	log = log.WithOptions(opts...)
+
 	return zapr2.NewLogger(log)
 }
 
