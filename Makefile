@@ -62,8 +62,11 @@ format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
 	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
+.PHONY: lint-prepare
+lint-prepare: deps codegen
+
 .PHONY: lint
-lint: deps ## Concurrently runs a whole bunch of static analysis tools
+lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
