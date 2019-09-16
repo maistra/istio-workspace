@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -68,4 +69,18 @@ func GetIstioNamespace() string {
 		return istioNs
 	}
 	return "istio-system"
+}
+
+func GetIstioIngressHostname() string {
+	cmd := shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get svc istio-ingressgateway -n %v -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'", GetIstioNamespace()))
+	<-cmd.Done()
+	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
+		return "http://" + cmd.Status().Stdout[0]
+	}
+	cmd = shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get svc istio-ingressgateway -n %v -o jsonpath='{.spec.clusterIP}'", GetIstioNamespace()))
+	<-cmd.Done()
+	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
+		return "http://" + cmd.Status().Stdout[0]
+	}
+	return "http://istio-ingressgateway-" + GetIstioNamespace() + "." + GetClusterHost()
 }

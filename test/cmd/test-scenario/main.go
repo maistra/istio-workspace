@@ -9,6 +9,7 @@ import (
 
 var (
 	testImageName = ""
+	gatewayHost   = "*"
 )
 
 func main() {
@@ -18,6 +19,9 @@ func main() {
 	}
 
 	testImageName = getTestImageName()
+	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
+		gatewayHost = h
+	}
 
 	scenarios := map[string]func(){
 		"scenario-1": TestScenario1ThreeServicesInSequence,

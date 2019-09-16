@@ -9,7 +9,7 @@ func TestScenario1ThreeServicesInSequence() {
 		WithVersion("v1"),
 		ForService("productpage", Call("reviews"), ConnectToGateway()),
 		ForService("reviews", Call("ratings")),
-		GatewayOnHost("*"),
+		GatewayOnHost(gatewayHost),
 	)
 }
 
@@ -23,7 +23,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig() {
 		WithVersion("v1"),
 		ForService("productpage", Call("reviews"), ConnectToGateway()),
 		ForService("reviews", Call("ratings")),
-		GatewayOnHost("*"),
+		GatewayOnHost(gatewayHost),
 	)
 }
 
