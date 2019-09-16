@@ -62,4 +62,4 @@ service:
   project-path: github.com/maistra/istio-workspace
   golangci-lint-version: 1.17.x # Locks the version to avoid newly introduces linters
   prepare:
-    - make deps codegen
+    - make lint-prepare
