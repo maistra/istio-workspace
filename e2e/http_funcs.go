@@ -29,6 +29,9 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	if err != nil {
 		return "", err
 	}
+	if v, f := headers["Host"]; f {
+		req.Host = v
+	}
 	for k, v := range headers {
 		req.Header[k] = []string{v}
 	}
