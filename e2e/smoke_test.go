@@ -145,11 +145,13 @@ func cleanupNamespace(namespace string) {
 }
 
 func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
-	productPageURL := "http://istio-ingressgateway-" + GetIstioNamespace() + "." + GetClusterHost() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
-	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+	Eventually(call(productPageURL, map[string]string{
+		"Host": GetGatewayHost(namespace)}),
+		3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace - so we also test -n parameter of $ ike
 	<-testshell.Execute("oc project default").Done()
@@ -172,17 +174,25 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 	// check original response
-	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+	Eventually(call(productPageURL, map[string]string{
+		"Host":         GetGatewayHost(namespace),
+		"x-test-suite": "smoke"}),
+		3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 	// then modify the service
 	modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 	CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
 	// then verify new content being served
-	Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+	Eventually(call(productPageURL, map[string]string{
+		"Host":         GetGatewayHost(namespace),
+		"x-test-suite": "smoke"}),
+		3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+
 	// but also check if prod is intact
-	Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
-		ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
+	Eventually(call(productPageURL, map[string]string{
+		"Host": GetGatewayHost(namespace)}),
+		3*time.Minute, 1*time.Second).ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
 
 	stopFailed := ikeWithWatch.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
