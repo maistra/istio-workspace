@@ -213,7 +213,7 @@ func Gateway() runtime.Object {
 						Name:     "http",
 						Number:   80,
 					},
-					Hosts: []string{"*"},
+					Hosts: []string{},
 				},
 			},
 		},
