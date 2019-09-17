@@ -35,6 +35,8 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	commandString := command.Name + " " + strings.Join(command.Args, " ")
 	if !strings.Contains(commandString, "oc login") {
 		fmt.Printf("executing: [%s]\n", commandString)
+	} else {
+		fmt.Println("executing [oc login .....]")
 	}
 	return command
 }
