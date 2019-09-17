@@ -50,6 +50,9 @@ func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
 
 func setDockerEnvForTestServiceDeploy(namespace string) (registry string) {
 	setTestNamespace(namespace)
+	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
 	return setDockerRegistryInternal()
 }
 
@@ -58,6 +61,11 @@ func setTestNamespace(namespace string) {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 
 	setDockerRepository(namespace)
+}
+
+// GetGatewayHost returns the host the Gateway in the scenario is bound to (http header Host)
+func GetGatewayHost(namespace string) string {
+	return namespace + "-test.com"
 }
 
 // origServerPy contains original server code used in `ike develop` tests
