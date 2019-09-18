@@ -33,7 +33,6 @@ type Modifier func(service Entry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout
 func Generate(services []Entry, modifiers ...Modifier) {
-
 	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 	modify := func(service Entry, object runtime.Object) {
 		for _, modifier := range modifiers {
