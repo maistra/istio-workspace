@@ -139,7 +139,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--deployment", "ratings-v1",
 					"-n", namespace,
 					"--route", "header:x-test-suite=smoke",
-					"--image", registry+"/maistra/istio-workspace-test-prepared:latest",
+					"--image", registry+"/"+namespace+"/istio-workspace-test-prepared:latest",
 					"-s", "test-session",
 				)
 				Eventually(ikeWithCreate.Done(), 1*time.Minute).Should(BeClosed())
