@@ -129,7 +129,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 				Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
-				Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+				Eventually(call(productPageURL, map[string]string{
+					"Host": GetGatewayHost(namespace)}),
+					3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 				// switch to different namespace - so we also test -n parameter of $ ike
 				<-testshell.Execute("oc project default").Done()
@@ -148,7 +150,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 				// check original response
-				Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).Should(ContainSubstring("prepared-image"))
+				Eventually(call(productPageURL, map[string]string{
+					"Host":         GetGatewayHost(namespace),
+					"x-test-suite": "smoke"}),
+					3*time.Minute, 1*time.Second).Should(ContainSubstring("prepared-image"))
 
 				// but also check if prod is intact
 				Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
@@ -163,12 +168,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Eventually(ikeWithDelete.Done(), 1*time.Minute).Should(BeClosed())
 
 				// check original response
-				Eventually(call(productPageURL, map[string]string{"x-test-suite": "smoke"}), 3*time.Minute, 1*time.Second).
+				Eventually(call(productPageURL, map[string]string{
+					"Host":         GetGatewayHost(namespace),
+					"x-test-suite": "smoke"}),
+					3*time.Minute, 1*time.Second).
 					ShouldNot(ContainSubstring("prepared-image"))
 
 				// but also check if prod is intact
-				Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
-					ShouldNot(ContainSubstring("prepared-image"))
+				Eventually(call(productPageURL, map[string]string{
+					"Host": GetGatewayHost(namespace)}),
+					3*time.Minute, 1*time.Second).ShouldNot(ContainSubstring("prepared-image"))
 			})
 
 		})
