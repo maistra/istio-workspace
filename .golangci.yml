@@ -7,6 +7,9 @@ linters-settings:
     min-complexity: 12
   dupl:
     threshold: 128
+  funlen:
+    lines: 128
+    statements: 64
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -57,6 +60,17 @@ issues:
     - path: pkg/k8s/
       linters:
         - dupl
+    - path: pkg/apis/
+      linters:
+        - stylecheck
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - unused
 
 service:
   project-path: github.com/maistra/istio-workspace

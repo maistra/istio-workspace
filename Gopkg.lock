@@ -483,7 +483,7 @@
   revision = "14fe0d1b01d4d5fc031dd4bec1823bd3ebbe8016"
 
 [[projects]]
-  digest = "1:7b648586b69c7d73698ee422681975eb23e8b7468dbd457872c559fc95177861"
+  digest = "1:b1945ace19342a6519ba481285c65a4a3f5c8aff0d940dec53c62206dc68264e"
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
@@ -491,11 +491,11 @@
     "model",
   ]
   pruneopts = "NT"
-  revision = "31bed53e4047fd6c510e43a941f90cb31be0972a"
-  version = "v0.6.0"
+  revision = "287d3e634a1e550c9e463dd7e5a75a422c614505"
+  version = "v0.7.0"
 
 [[projects]]
-  digest = "1:9fe6833a1717d8c4f78a977c5e39bebff3b204d98474075b5b279b62ce36e703"
+  digest = "1:b211368aa39cabd94f594cdbe7330ce6f7df495e68b9c3d4fecb457772616240"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -503,8 +503,8 @@
     "internal/util",
   ]
   pruneopts = "NT"
-  revision = "00ec24a6a2d86e7074629c8384715dbb05adccd8"
-  version = "v0.0.4"
+  revision = "499c85531f756d1129edd26485a5f73871eeb308"
+  version = "v0.0.5"
 
 [[projects]]
   branch = "master"
@@ -550,12 +550,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:9d8420bbf131d1618bde6530af37c3799340d3762cc47210c1d9532a4c3a2779"
+  digest = "1:d115708a27806831d1babbc6f28a7478ddf8e32a7095507c816e2515fb03a810"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "NT"
-  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
-  version = "v1.0.3"
+  revision = "e8f29969b682c41a730f8f08b76033b120498464"
+  version = "v1.0.4"
 
 [[projects]]
   digest = "1:8a2c8828a6fc03841448c29c80eeb6c6f2e2b22c2ddcb93d125bf7dac56c136b"
@@ -626,7 +626,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:56fff8568bf7b339064e82f62bb910896274a8c86a5f1ef6edb4fb27c3010839"
+  digest = "1:d52ab007568fe1a0a2721dd27e7784eec0e16cd6f60b1d073d0d6b2bccef7bfd"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -640,7 +640,7 @@
     "idna",
   ]
   pruneopts = "NT"
-  revision = "a7b16738d86b947dd0fadb08ca2c2342b51958b6"
+  revision = "c8589233b77dde5edd2205ba8a4fb5c9c2472556"
 
 [[projects]]
   branch = "master"
@@ -655,14 +655,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9bc2f13aa9664a5d949cbf5d12b9efa8654695cdb499bdefe719e9a68108b493"
+  digest = "1:065383af557cfde310c8238cb546f3fccd0bfe28b7a41f0f92d41f279fcd5257"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
-  revision = "bc967efca4b87fb45e946a3ea4cb891883404fd0"
+  revision = "b4ddaad3f8a36719f2b8bc6486c14cc468ca2bb5"
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -712,7 +712,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:48df021f91ddba944975b3200417f9c9cfc067a504b8a982ff1bd91a60e05dc4"
+  digest = "1:240dab0dbfcc33032da33cdb90a068ada56b70424308042c60ee4e4e9ba1f3b4"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -729,7 +729,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "44811c0174895e13ada67eafee7eeeaa2be78022"
+  revision = "905c8ffbfa41b8a66dda0ba8e5d90908c3447522"
 
 [[projects]]
   digest = "1:8392b5c29adedc5f85c66b48bb53b6c49dd91d8540f3cad5d43ef7277946718f"
