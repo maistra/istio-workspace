@@ -31,13 +31,10 @@ type Watch struct {
 // Start observes on file change events and dispatches them to defined handler in batches every
 // given interval
 func (w *Watch) Start() {
-
 	// Dispatch fsnotify events
 	go func() {
-
 		tick := time.NewTicker(w.interval)
 		events := make(map[string]fsnotify.Event)
-
 	OutOfFor:
 		for {
 			select {

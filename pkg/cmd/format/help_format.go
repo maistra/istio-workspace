@@ -58,7 +58,6 @@ func RegisterTemplateFuncs() {
 	cobra.AddTemplateFunc("tplParams", func() []openshiftApi.Parameter {
 		return config.Parameters
 	})
-
 }
 
 const (

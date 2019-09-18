@@ -84,7 +84,6 @@ func CreateOrJoinHandler(opts Options) (State, func(), error) {
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
 func (h *handler) createOrJoinSession() (string, error) {
-
 	session, err := h.c.Get(h.sessionName)
 	if err != nil {
 		err = h.createSession()

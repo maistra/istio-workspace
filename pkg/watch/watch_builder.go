@@ -38,7 +38,6 @@ func (wb *Builder) Excluding(exclusions ...string) *Builder {
 // If path is a directory it will recursively watch all files and subdirectories.
 // If path is a file only this path is watched
 func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
-
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Error(err, "failed creating fs watch")
