@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDevelopCmd(t *testing.T) {
+func TestDeleteCmd(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "Delete Command Suite")
 }
