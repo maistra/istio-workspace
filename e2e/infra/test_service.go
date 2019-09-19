@@ -3,7 +3,6 @@ package infra
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -65,7 +64,7 @@ func DeployTestScenario(scenario, namespace string) {
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
-	return strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "map[]")
+	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
