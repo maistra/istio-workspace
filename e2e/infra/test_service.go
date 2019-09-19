@@ -1,7 +1,10 @@
 package infra
 
 import (
+	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/onsi/gomega"
 
@@ -50,8 +53,18 @@ func DeployTestScenario(scenario, namespace string) {
 		<-shell.ExecuteInDir(".", "bash", "-c",
 			"oc get ServiceMeshMemberRoll default -n "+GetIstioNamespace()+" -o json | jq '.spec.members[.spec.members | length] |= \""+
 				namespace+"\"' | oc apply -f - -n "+GetIstioNamespace()).Done()
+
+		gomega.Eventually(
+			GetProjectLabels(namespace), 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
+}
+
+// GetProjectLabels returns labels for a given namespace as a string
+func GetProjectLabels(namespace string) string {
+	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
+	<-cmd.Done()
+	return strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "[]")
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
