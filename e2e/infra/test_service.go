@@ -65,7 +65,7 @@ func DeployTestScenario(scenario, namespace string) {
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
-	return strings.Trim(strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "map["), "]]")
+	return strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "map[]")
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
