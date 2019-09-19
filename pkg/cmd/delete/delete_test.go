@@ -1,10 +1,6 @@
 package delete_test
 
 import (
-	"path"
-
-	"github.com/maistra/istio-workspace/test/shell"
-
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/delete"
 	. "github.com/maistra/istio-workspace/test"
@@ -15,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _ = Describe("Usage of ike create command", func() {
+var _ = Describe("Usage of ike delete command", func() {
 
 	var createCmd *cobra.Command
 
@@ -27,12 +23,6 @@ var _ = Describe("Usage of ike create command", func() {
 	})
 
 	Describe("input validation", func() {
-
-		tmpPath := NewTmpPath()
-		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
-		})
-		AfterEach(tmpPath.Restore)
 
 		Context("with flags only", func() {
 
