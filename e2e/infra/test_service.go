@@ -54,8 +54,9 @@ func DeployTestScenario(scenario, namespace string) {
 			"oc get ServiceMeshMemberRoll default -n "+GetIstioNamespace()+" -o json | jq '.spec.members[.spec.members | length] |= \""+
 				namespace+"\"' | oc apply -f - -n "+GetIstioNamespace()).Done()
 
-		gomega.Eventually(
-			GetProjectLabels(namespace), 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
+		gomega.Eventually(func() string {
+			return GetProjectLabels(namespace)
+		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
@@ -64,7 +65,7 @@ func DeployTestScenario(scenario, namespace string) {
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
-	return strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "[]")
+	return strings.Trim(strings.Trim(fmt.Sprintf("%s", cmd.Status().Stdout), "map["), "]]")
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
