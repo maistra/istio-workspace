@@ -95,9 +95,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					printBanner()
 				}
 				Events(namespace)
-			} else {
-				cleanupNamespace(namespace)
 			}
+			cleanupNamespace(namespace)
 		})
 
 		Context("scenario-1-basic-deployment", func() {

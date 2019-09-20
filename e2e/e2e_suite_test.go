@@ -63,7 +63,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 
 		BuildOperator()
-
 		createProjectsForCompletionTests()
 	})
 
