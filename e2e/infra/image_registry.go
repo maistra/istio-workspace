@@ -50,6 +50,13 @@ func setDockerRepository(namespace string) {
 }
 
 func setDockerRegistryInternal() string {
+	registry := GetDockerRegistryInternal()
+	setDockerRegistry(registry)
+	return registry
+}
+
+// GetDockerRegistryInternal returns the internal address for the docker registry
+func GetDockerRegistryInternal() string {
 	var registry string
 	switch ClientVersion() {
 	case 3:
@@ -57,6 +64,5 @@ func setDockerRegistryInternal() string {
 	case 4:
 		registry = "image-registry.openshift-image-registry.svc:5000"
 	}
-	setDockerRegistry(registry)
 	return registry
 }
