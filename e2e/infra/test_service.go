@@ -1,7 +1,9 @@
 package infra
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/onsi/gomega"
 
@@ -29,6 +31,17 @@ func BuildTestService(namespace string) (registry string) {
 	return
 }
 
+// BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
+func BuildTestServicePreparedImage(namespace string) (registry string) {
+	projectDir := os.Getenv("PROJECT_DIR")
+	registry = setDockerEnvForTestServiceBuild(namespace)
+
+	LoginAsTestPowerUser()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
+	return
+}
+
 // DeployTestScenario deploys a test scenario into the specified namespace
 func DeployTestScenario(scenario, namespace string) {
 	projectDir := os.Getenv("PROJECT_DIR")
@@ -39,8 +52,19 @@ func DeployTestScenario(scenario, namespace string) {
 		<-shell.ExecuteInDir(".", "bash", "-c",
 			"oc get ServiceMeshMemberRoll default -n "+GetIstioNamespace()+" -o json | jq '.spec.members[.spec.members | length] |= \""+
 				namespace+"\"' | oc apply -f - -n "+GetIstioNamespace()).Done()
+
+		gomega.Eventually(func() string {
+			return GetProjectLabels(namespace)
+		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
+}
+
+// GetProjectLabels returns labels for a given namespace as a string
+func GetProjectLabels(namespace string) string {
+	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
+	<-cmd.Done()
+	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
 func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
