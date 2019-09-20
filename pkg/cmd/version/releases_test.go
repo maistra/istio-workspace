@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Usage of ike develop command", func() {
+var _ = Describe("Fetching latest release", func() {
 
 	BeforeEach(func() {
 		gock.New("https://api.github.com").

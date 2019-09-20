@@ -160,7 +160,6 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		if err := r.client.Update(ctx, session); err != nil {
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
 		}
-
 	}
 	return reconcile.Result{}, nil
 }

@@ -8,6 +8,8 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
+	"github.com/maistra/istio-workspace/pkg/cmd/create"
+	"github.com/maistra/istio-workspace/pkg/cmd/delete"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/install"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
@@ -25,13 +27,16 @@ func main() {
 	// Logs to os.Stderr, where all structured logging should go
 	// When running outside of k8s cluster it will use development
 	// mode so the log is not in JSON, but plain text format
-	logf.SetLogger(log.CreateClusterAwareLogger())
+	logger := log.CreateClusterAwareLogger()
+	logf.SetLogger(logger)
 
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	rootCmd := cmd.NewCmd()
 	rootCmd.AddCommand(version.NewCmd(),
+		create.NewCmd(),
+		delete.NewCmd(),
 		develop.NewCmd(),
 		watch.NewCmd(),
 		serve.NewCmd(),
@@ -41,5 +46,7 @@ func main() {
 
 	cmd.VisitAll(rootCmd, completion.AddFlagCompletion)
 
-	_ = rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		logger.Error(err, "failed executing command")
+	}
 }
