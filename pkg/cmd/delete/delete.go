@@ -16,6 +16,9 @@ func NewCmd() *cobra.Command {
 		Use:          "delete",
 		Short:        "Deletes an existing Session",
 		SilenceUsage: true,
+		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			return config.SyncFlags(cmd)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			_, remove, err := internal.RemoveSessions(cmd)
 			if err == nil {
