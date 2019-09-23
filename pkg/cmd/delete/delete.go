@@ -12,7 +12,7 @@ var log = logf.Log.WithName("cmd").WithValues("type", "delete")
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
-	developCmd := &cobra.Command{
+	deleteCmd := &cobra.Command{
 		Use:          "delete",
 		Short:        "Deletes an existing Session",
 		SilenceUsage: true,
@@ -28,19 +28,19 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
-	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
-	developCmd.Flags().StringP("namespace", "n", "", "target namespace to develop against "+
+	deleteCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
+	deleteCmd.Flags().StringP("session", "s", "", "create or join an existing session")
+	deleteCmd.Flags().StringP("namespace", "n", "", "target namespace to develop against "+
 		"(defaults to default for the current context)")
-	developCmd.Flags().Bool("offline", false, "avoid calling external sources")
-	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
+	deleteCmd.Flags().Bool("offline", false, "avoid calling external sources")
+	if err := deleteCmd.Flags().MarkHidden("offline"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
 	}
 
-	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
+	deleteCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(deleteCmd))
 
-	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired("session")
+	_ = deleteCmd.MarkFlagRequired("deployment")
+	_ = deleteCmd.MarkFlagRequired("session")
 
-	return developCmd
+	return deleteCmd
 }
