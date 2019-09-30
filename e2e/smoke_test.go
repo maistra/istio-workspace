@@ -99,92 +99,94 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			cleanupNamespace(namespace)
 		})
 
-		Context("scenario-1-basic-deployment", func() {
+		Describe("k8s deployment", func() {
+
 			BeforeEach(func() {
 				scenario = "scenario-1"
 			})
 
-			It("should watch for changes in ratings service and serve it", func() {
-				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
+			Context("basic deployment modifications", func() {
+				It("should watch for changes in ratings service and serve it", func() {
+					verifyThatResponseMatchesModifiedService(tmpDir, namespace)
+				})
+
+				It("should watch for changes in ratings service in specified namespace and serve it", func() {
+					verifyThatResponseMatchesModifiedService(tmpDir, namespace)
+				})
 			})
 
-			It("should watch for changes in ratings service in specified namespace and serve it", func() {
-				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
+			Context("deployment create/delete operations", func() {
+				var registry string
+
+				JustBeforeEach(func() {
+					BuildTestServicePreparedImage(namespace)
+					registry = GetDockerRegistryInternal()
+				})
+
+				It("should watch for changes in ratings service and serve it", func() {
+					productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+
+					Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+
+					Eventually(call(productPageURL, map[string]string{
+						"Host": GetGatewayHost(namespace)}),
+						3*time.Minute, 1*time.Second).
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+
+					// switch to different namespace - so we also test -n parameter of $ ike
+					<-testshell.Execute("oc project default").Done()
+
+					// when we start ike to create
+					ikeWithCreate := testshell.ExecuteInDir(tmpDir, "ike", "create",
+						"--deployment", "ratings-v1",
+						"-n", namespace,
+						"--route", "header:x-test-suite=smoke",
+						"--image", registry+"/"+namespace+"/istio-workspace-test-prepared:latest",
+						"-s", "test-session",
+					)
+					Eventually(ikeWithCreate.Done(), 1*time.Minute).Should(BeClosed())
+
+					// ensure the new service is running
+					Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+
+					// check original response
+					Eventually(call(productPageURL, map[string]string{
+						"Host":         GetGatewayHost(namespace),
+						"x-test-suite": "smoke"}),
+						3*time.Minute, 1*time.Second).
+						Should(And(ContainSubstring("prepared-image"), Not(ContainSubstring("ratings-v1"))))
+
+					// but also check if prod is intact
+					Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
+						ShouldNot(ContainSubstring("prepared-image"))
+
+					// when we start ike to delete
+					ikeWithDelete := testshell.ExecuteInDir(tmpDir, "ike", "delete",
+						"--deployment", "ratings-v1",
+						"-n", namespace,
+						"-s", "test-session",
+					)
+					Eventually(ikeWithDelete.Done(), 1*time.Minute).Should(BeClosed())
+
+					// check original response
+					Eventually(call(productPageURL, map[string]string{
+						"Host":         GetGatewayHost(namespace),
+						"x-test-suite": "smoke"}),
+						3*time.Minute, 1*time.Second).
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+
+					// but also check if prod is intact
+					Eventually(call(productPageURL, map[string]string{
+						"Host": GetGatewayHost(namespace)}),
+						3*time.Minute, 1*time.Second).
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+				})
+
 			})
+
 		})
 
-		Context("scenario-1-basic-deployment create/delete", func() {
-			var registry string
-			BeforeEach(func() {
-				scenario = "scenario-1"
-			})
-			JustBeforeEach(func() {
-				BuildTestServicePreparedImage(namespace)
-				registry = GetDockerRegistryInternal()
-			})
-
-			It("should watch for changes in ratings service and serve it", func() {
-				productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
-
-				Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
-
-				Eventually(call(productPageURL, map[string]string{
-					"Host": GetGatewayHost(namespace)}),
-					3*time.Minute, 1*time.Second).
-					Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
-
-				// switch to different namespace - so we also test -n parameter of $ ike
-				<-testshell.Execute("oc project default").Done()
-
-				// when we start ike to create
-				ikeWithCreate := testshell.ExecuteInDir(tmpDir, "ike", "create",
-					"--deployment", "ratings-v1",
-					"-n", namespace,
-					"--route", "header:x-test-suite=smoke",
-					"--image", registry+"/"+namespace+"/istio-workspace-test-prepared:latest",
-					"-s", "test-session",
-				)
-				Eventually(ikeWithCreate.Done(), 1*time.Minute).Should(BeClosed())
-
-				// ensure the new service is running
-				Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
-
-				// check original response
-				Eventually(call(productPageURL, map[string]string{
-					"Host":         GetGatewayHost(namespace),
-					"x-test-suite": "smoke"}),
-					3*time.Minute, 1*time.Second).
-					Should(And(ContainSubstring("prepared-image"), Not(ContainSubstring("ratings-v1"))))
-
-				// but also check if prod is intact
-				Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
-					ShouldNot(ContainSubstring("prepared-image"))
-
-				// when we start ike to delete
-				ikeWithDelete := testshell.ExecuteInDir(tmpDir, "ike", "delete",
-					"--deployment", "ratings-v1",
-					"-n", namespace,
-					"-s", "test-session",
-				)
-				Eventually(ikeWithDelete.Done(), 1*time.Minute).Should(BeClosed())
-
-				// check original response
-				Eventually(call(productPageURL, map[string]string{
-					"Host":         GetGatewayHost(namespace),
-					"x-test-suite": "smoke"}),
-					3*time.Minute, 1*time.Second).
-					Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
-
-				// but also check if prod is intact
-				Eventually(call(productPageURL, map[string]string{
-					"Host": GetGatewayHost(namespace)}),
-					3*time.Minute, 1*time.Second).
-					Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
-			})
-
-		})
-
-		Context("scenario-2-basic-deploymentconfig", func() {
+		Context("openshift deploymentconfig modifications", func() {
 			BeforeEach(func() {
 				scenario = "scenario-2"
 			})
