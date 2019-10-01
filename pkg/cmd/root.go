@@ -44,17 +44,7 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
-			configFlag := cmd.Flag("config")
-			configFileName := viper.GetString("config")
-			if configFileName == "" {
-				if configFlag.Changed {
-					configFileName = configFlag.Value.String()
-				} else {
-					configFileName = configFlag.DefValue
-				}
-			}
-			defaultConfigSource := configFlag.DefValue == configFileName
-			return config.SetupConfigSources(configFileName, defaultConfigSource)
+			return config.SetupConfigSources(loadConfigFileName(cmd))
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -83,9 +73,6 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
-	if err := viper.BindPFlag("config", rootCmd.Flags().Lookup("config")); err != nil {
-		log.Error(err, "failed while trying to bind global config flag")
-	}
 	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
 	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
 	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
@@ -97,4 +84,18 @@ func NewCmd() *cobra.Command {
 	format.RegisterTemplateFuncs()
 
 	return rootCmd
+}
+
+func loadConfigFileName(cmd *cobra.Command) (configFileName string, defaultConfigSource bool) {
+	configFlag := cmd.Flag("config")
+	configFileName = viper.GetString("config")
+	if configFileName == "" {
+		if configFlag.Changed {
+			configFileName = configFlag.Value.String()
+		} else {
+			configFileName = configFlag.DefValue
+		}
+	}
+	defaultConfigSource = configFlag.DefValue == configFileName
+	return
 }
