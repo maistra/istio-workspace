@@ -37,8 +37,6 @@ func SetupConfig() {
 // in case of `develop` command and its `port` flag corresponding environment variable is
 // `IKE_DEVELOP_PORT`.
 func SetupConfigSources(configFile string, defaultConfigFile bool) error {
-	println(configFile)
-	println(defaultConfigFile)
 	ext := path.Ext(configFile)
 	viper.SetConfigName(strings.TrimSuffix(path.Base(configFile), ext))
 	if !contains(SupportedExtensions(), strings.TrimPrefix(path.Ext(ext), ".")) {
