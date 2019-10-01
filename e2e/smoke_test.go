@@ -249,7 +249,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		3*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
+		5*time.Minute, 1*time.Second).Should(ContainSubstring("PublisherA"))
 
 	// then modify the service
 	modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
@@ -259,12 +259,12 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		3*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
+		5*time.Minute, 1*time.Second).Should(ContainSubstring("Publisher Ike"))
 
 	// but also check if prod is intact
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
-		3*time.Minute, 1*time.Second).ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
+		5*time.Minute, 1*time.Second).ShouldNot(And(ContainSubstring("PublisherA"), ContainSubstring("Publisher Ike")))
 
 	stopFailed := ikeWithWatch.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
