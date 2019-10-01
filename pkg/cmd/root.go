@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
@@ -42,7 +44,17 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
-			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
+			configFlag := cmd.Flag("config")
+			configFileName := viper.GetString("config")
+			if configFileName == "" {
+				if configFlag.Changed {
+					configFileName = configFlag.Value.String()
+				} else {
+					configFileName = configFlag.DefValue
+				}
+			}
+			defaultConfigSource := configFlag.DefValue == configFileName
+			return config.SetupConfigSources(configFileName, defaultConfigSource)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -71,12 +83,16 @@ func NewCmd() *cobra.Command {
 	rootCmd.PersistentFlags().
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
+	if err := viper.BindPFlag("config", rootCmd.Flags().Lookup("config")); err != nil {
+		log.Error(err, "failed while trying to bind global config flag")
+	}
 	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
 	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
 	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
 	}
 
+	config.SetupConfig()
 	format.EnhanceHelper(rootCmd)
 	format.RegisterTemplateFuncs()
 
