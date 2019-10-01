@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -48,5 +49,6 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Error(err, "failed executing command")
+		os.Exit(23)
 	}
 }
