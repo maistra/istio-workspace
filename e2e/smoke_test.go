@@ -223,7 +223,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
-		3*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
+		5*time.Minute, 1*time.Second).Should(ContainSubstring("ratings-v1"))
 
 	// switch to different namespace - so we also test -n parameter of $ ike
 	<-testshell.Execute("oc project default").Done()
