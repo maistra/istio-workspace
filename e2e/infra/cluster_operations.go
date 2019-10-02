@@ -38,7 +38,7 @@ func ClientVersion() int {
 	version := shell.Execute("oc version")
 	<-version.Done()
 	v := strings.Join(version.Status().Stdout, " ")
-	if strings.Contains(v, "GitVersion:\"v4.") {
+	if strings.Contains(v, "Server Version: 4.") {
 		return 4
 	}
 	return 3
