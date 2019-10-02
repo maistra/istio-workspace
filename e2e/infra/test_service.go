@@ -22,7 +22,7 @@ func OriginalServerCodeIn(tmpDir string) {
 
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry
 func BuildTestService(namespace string) (registry string) {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
 	LoginAsTestPowerUser()
@@ -33,7 +33,7 @@ func BuildTestService(namespace string) (registry string) {
 
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
 func BuildTestServicePreparedImage(namespace string) (registry string) {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
 	LoginAsTestPowerUser()
@@ -44,7 +44,7 @@ func BuildTestServicePreparedImage(namespace string) (registry string) {
 
 // DeployTestScenario deploys a test scenario into the specified namespace
 func DeployTestScenario(scenario, namespace string) {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	setDockerEnvForTestServiceDeploy(namespace)
 
 	LoginAsTestPowerUser()
