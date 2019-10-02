@@ -42,7 +42,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			projectDir := os.Getenv("PROJECT_DIR")
+			projectDir := testshell.GetProjectDir()
 			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
 			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
