@@ -2,6 +2,7 @@ package infra
 
 import (
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -35,10 +36,14 @@ func LoginAsTestPowerUser() {
 }
 
 func ClientVersion() int {
+	if version, found := os.LookupEnv("IKE_CLUSTER_VERSION"); found {
+		result, _ := strconv.ParseInt(version, 0, 0)
+		return int(result)
+	}
 	version := shell.Execute("oc version")
 	<-version.Done()
 	v := strings.Join(version.Status().Stdout, " ")
-	if strings.Contains(v, "GitVersion:\"v4.") {
+	if strings.Contains(v, "Server Version: 4.") {
 		return 4
 	}
 	return 3

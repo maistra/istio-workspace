@@ -110,6 +110,7 @@ jobs:
       <<: *machine-conf
     environment:
       <<: *env-vars
+      IKE_CLUSTER_VERSION: 4
     steps:
       - checkout
       - run:
