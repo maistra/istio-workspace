@@ -81,13 +81,13 @@ var _ = SynchronizedAfterSuite(func() {},
 			})
 		}
 
-		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
+		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
-var CompletionProject1 = "datawire-project-" + naming.RandName(16)
-var CompletionProject2 = "datawire-other-project-" + naming.RandName(16)
+var CompletionProject1 = "ike-autocompletion-test-" + naming.RandName(16)
+var CompletionProject2 = "ike-autocompletion-test-" + naming.RandName(16)
 
 func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
