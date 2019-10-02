@@ -191,7 +191,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				scenario = "scenario-2"
 			})
 
-			FIt("should watch for changes in ratings service in specified namespace and serve it", func() {
+			It("should watch for changes in ratings service in specified namespace and serve it", func() {
 				verifyThatResponseMatchesModifiedService(tmpDir, namespace)
 			})
 		})
