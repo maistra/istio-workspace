@@ -143,10 +143,9 @@ jobs:
           command: |
             cd ~
             wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/4.2.0-0.nightly-2019-09-24-025718/openshift-client-linux-4.2.0-0.nightly-2019-09-24-025718.tar.gz" -O "oc.tar.gz"
-            tar xzfv oc.tar.gz oc
+            tar xzfv oc.tar.gz
             sudo mv $PWD/oc /usr/local/bin/
             echo "Installed oc\n$(oc version)\n"
-            tar xzfv oc.tar.gz kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - restore_cache:
