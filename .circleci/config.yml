@@ -26,14 +26,15 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-cache-{{ checksum "Gopkg.lock" }}
+            - golang-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs the build"
           command: make build-ci
       - save_cache:
-          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+            - $GOPATH/bin
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed (local)
   e2e_tests_local:
@@ -95,14 +96,15 @@ jobs:
           command: ./scripts/openshift/deploy-istio.sh
       - restore_cache:
           keys:
-            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+            - golang-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
       - save_cache:
-          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+            - $GOPATH/bin
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
