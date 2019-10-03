@@ -76,6 +76,6 @@ issues:
 
 service:
   project-path: github.com/maistra/istio-workspace
-  golangci-lint-version: 1.19.x # Locks the version to avoid newly introduces linters
+  golangci-lint-version: 1.19.1 # Locks the version to avoid newly introduces linters
   prepare:
     - make lint-prepare
