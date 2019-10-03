@@ -26,15 +26,15 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - golang-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs the build"
           command: make build-ci
       - save_cache:
-          key: golang-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
-            - ${{ .Environment.GOPATH }}/bin
+            - {{ .Environment.GOPATH }}/bin
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed (local)
   e2e_tests_local:
@@ -96,15 +96,15 @@ jobs:
           command: ./scripts/openshift/deploy-istio.sh
       - restore_cache:
           keys:
-            - golang-e2e-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
       - save_cache:
-          key: golang-e2e-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
-            - ${{ .Environment.GOPATH }}/bin
+            - {{ .Environment.GOPATH }}/bin
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -153,7 +153,7 @@ jobs:
             echo "Installed kubectl\n$(kubectl version)\n"
       - restore_cache:
           keys:
-            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: |
@@ -165,9 +165,10 @@ jobs:
             IKE_CLUSTER_ADDRESS=$QE_CLUSTER_ADDRESS \
             make deps test-e2e
       - save_cache:
-          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+            - {{ .Environment.GOPATH }}/bin
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
