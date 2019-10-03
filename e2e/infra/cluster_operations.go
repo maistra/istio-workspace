@@ -1,6 +1,8 @@
 package infra
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -49,8 +51,22 @@ func ClientVersion() int {
 	return 3
 }
 
-// Events returns all events which occurred for a given namespace
-func Events(ns string) {
+// GetEvents returns all events which occurred for a given namespace
+func GetEvents(ns string) {
 	state := shell.Execute("oc get events -n " + ns)
 	<-state.Done()
+}
+
+// DumpTelepresenceLog dumps telepresence log if exists
+func DumpTelepresenceLog(dir string) {
+	fh, err := os.Open(dir + string(os.PathSeparator)+ "telepresence.log")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	_, err = io.Copy(os.Stdout, fh)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

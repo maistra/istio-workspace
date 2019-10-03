@@ -94,7 +94,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					StateOf(namespace, pod)
 					printBanner()
 				}
-				Events(namespace)
+				GetEvents(namespace)
+				DumpTelepresenceLog(tmpDir)
 			}
 			cleanupNamespace(namespace)
 		})
