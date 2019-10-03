@@ -33,8 +33,8 @@ jobs:
       - save_cache:
           key: golang-deps-cache-{{ checksum "Gopkg.lock" }}
           paths:
-            - ./vendor
-            - {{ .Environment.GOPATH }}/bin
+            - "./vendor"
+            - "{{ .Environment.GOPATH }}/bin"
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) installed (local)
   e2e_tests_local:
@@ -103,8 +103,8 @@ jobs:
       - save_cache:
           key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
-            - ./vendor
-            - {{ .Environment.GOPATH }}/bin
+            - "./vendor"
+            - "{{ .Environment.GOPATH }}/bin"
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -167,8 +167,8 @@ jobs:
       - save_cache:
           key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
-            - ./vendor
-            - {{ .Environment.GOPATH }}/bin
+            - "./vendor"
+            - "{{ .Environment.GOPATH }}/bin"
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
