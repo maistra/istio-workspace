@@ -37,6 +37,8 @@ linters-settings:
       - commentFormatting # https://github.com/go-critic/go-critic/issues/755
   unused:
     check-exported: true
+  gocognit:
+    min-complexity: 16
 
 linters:
   enable-all: true
@@ -74,6 +76,6 @@ issues:
 
 service:
   project-path: github.com/maistra/istio-workspace
-  golangci-lint-version: 1.17.x # Locks the version to avoid newly introduces linters
+  golangci-lint-version: 1.19.1 # Locks the version to avoid newly introduces linters
   prepare:
     - make lint-prepare

@@ -17,7 +17,7 @@ func NewCmd() *cobra.Command {
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			return config.SyncFlags(cmd)
+			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			_, _, err := internal.Sessions(cmd)

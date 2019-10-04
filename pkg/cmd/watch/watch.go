@@ -29,7 +29,7 @@ func NewCmd() *cobra.Command {
 		Hidden:       true,
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.SyncFlags(cmd)
+			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: watchForChanges,
 	}
