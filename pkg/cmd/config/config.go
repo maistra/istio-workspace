@@ -12,7 +12,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-// SetupConfigSources sets up Viper configuration.
+// SetupConfig defines Viper env var prefixes and type handling when inferring key value
+func SetupConfig() {
+	viper.Reset()
+	viper.SetEnvPrefix("IKE")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.SetTypeByDefaultValue(true)
+}
+
+// SetupConfigSources sets up Viper configuration sources.
 //
 // If specific file path is provided but fails when loading it will return an error.
 //
@@ -27,13 +36,7 @@ import (
 // Environment variables are prefixed with `IKE` and have fully qualified names, for example
 // in case of `develop` command and its `port` flag corresponding environment variable is
 // `IKE_DEVELOP_PORT`.
-func SetupConfigSources(configFile string, notDefault bool) error {
-	viper.Reset()
-	viper.SetEnvPrefix("IKE")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.SetTypeByDefaultValue(true)
-
+func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 	ext := path.Ext(configFile)
 	viper.SetConfigName(strings.TrimSuffix(path.Base(configFile), ext))
 	if !contains(SupportedExtensions(), strings.TrimPrefix(path.Ext(ext), ".")) {
@@ -43,7 +46,7 @@ func SetupConfigSources(configFile string, notDefault bool) error {
 	viper.AddConfigPath(path.Dir(configFile))
 
 	if err := viper.ReadInConfig(); err != nil {
-		if notDefault {
+		if !defaultConfigFile {
 			return err
 		}
 
@@ -68,11 +71,11 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-// SyncFlag ensures that if configuration provides a value for a given cmd.flag it will be set back to the flag itself,
+// SyncFullyQualifiedFlag ensures that if configuration provides a value for a given cmd.flag it will be set back to the flag itself,
 // but only if the flag was not set through CLI.
 //
 // This way we can make flags required but still have their values provided by the configuration source
-func SyncFlag(cmd *cobra.Command, flagName string) error {
+func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	value := viper.GetString(cmd.Name() + "." + flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
 		return cmd.Flags().Set(flagName, value)
@@ -80,15 +83,15 @@ func SyncFlag(cmd *cobra.Command, flagName string) error {
 	return nil
 }
 
-// SyncFlags ensures that if configuration provide a value for any of defined flags it will be set
+// SyncFullyQualifiedFlags ensures that if configuration provide a value for any of defined flags it will be set
 // back to the flag itself.
 //
 // This function iterates over all flags defined for cobra.Command and accumulates errors if they occur while
-// calling SyncFlag for every flag.
-func SyncFlags(cmd *cobra.Command) error {
+// calling SyncFullyQualifiedFlag for every flag.
+func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 	var accErrors *multierror.Error
 	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
-		syncFlagErr := SyncFlag(cmd, flag.Name)
+		syncFlagErr := SyncFullyQualifiedFlag(cmd, flag.Name)
 		accErrors = multierror.Append(accErrors, syncFlagErr)
 	})
 	return accErrors.ErrorOrNil()

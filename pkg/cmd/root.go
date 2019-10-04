@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
@@ -42,7 +44,7 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
-			return config.SetupConfigSources(configFile, cmd.Flag("config").Changed)
+			return config.SetupConfigSources(loadConfigFileName(cmd))
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -77,8 +79,23 @@ func NewCmd() *cobra.Command {
 		log.Error(err, "failed while trying to hide a flag")
 	}
 
+	config.SetupConfig()
 	format.EnhanceHelper(rootCmd)
 	format.RegisterTemplateFuncs()
 
 	return rootCmd
+}
+
+func loadConfigFileName(cmd *cobra.Command) (configFileName string, defaultConfigSource bool) {
+	configFlag := cmd.Flag("config")
+	configFileName = viper.GetString("config")
+	if configFileName == "" {
+		if configFlag.Changed {
+			configFileName = configFlag.Value.String()
+		} else {
+			configFileName = configFlag.DefValue
+		}
+	}
+	defaultConfigSource = configFlag.DefValue == configFileName
+	return
 }

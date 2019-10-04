@@ -134,6 +134,32 @@ var _ = Describe("Usage of ike develop command", func() {
 				Expect(developCmd.Flag("run").Value.String()).To(Equal(`'./test.sh'`))
 			})
 
+			Context("with config file source overwritten by ENV", func() {
+				const envConfig = `develop:
+  deployment: env-test
+  run: "java -jar config.jar"
+  port: 9876
+`
+				var envConfigFile afero.File
+
+				BeforeEach(func() {
+					envConfigFile = TmpFile(GinkgoT(), "env_config.yaml", envConfig)
+					_ = os.Setenv("IKE_CONFIG", envConfigFile.Name())
+				})
+
+				AfterEach(func() {
+					_ = os.Unsetenv("IKE_CONFIG")
+				})
+
+				It("should load config from file defined by IKE_CONFIG", func() {
+					_, err := ValidateArgumentsOf(developCmd).Passing("--port", "12324")
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(developCmd.Flag("deployment").Value.String()).To(Equal("env-test"))
+					Expect(developCmd.Flag("port").Value.String()).To(Equal("12324"))
+				})
+			})
+
 			Context("with ENV port variable", func() {
 
 				var oldEnv string

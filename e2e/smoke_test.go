@@ -191,6 +191,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		// Thus it treats cluster as vanilla k8s and expects Deployment, not DeploymentConfig to appear
 		// Enable when https://github.com/telepresenceio/telepresence/issues/1139 is fixed
 		XContext("openshift deploymentconfig", func() {
+
 			BeforeEach(func() {
 				scenario = "scenario-2"
 			})
