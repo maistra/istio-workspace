@@ -39,15 +39,20 @@ func LoginAsTestPowerUser() {
 
 func ClientVersion() int {
 	if version, found := os.LookupEnv("IKE_CLUSTER_VERSION"); found {
-		result, _ := strconv.ParseInt(version, 0, 0)
-		return int(result)
+		result, err := strconv.Atoi(version)
+		if err != nil {
+			fmt.Printf("failed parsing int value of IKE_CLUSTER_VERSION='%s'. reason: %s", version, err.Error())
+		} else {
+			return result
+		}
 	}
 	version := shell.Execute("oc version")
 	<-version.Done()
 	v := strings.Join(version.Status().Stdout, " ")
-	if strings.Contains(v, "Server Version: 4.") {
+	if strings.Contains(v, "Server Version: 4.") || strings.Contains(v, "GitVersion:\"v4.") {
 		return 4
 	}
+	// Fallback to 3.x version (default local test setup right now)
 	return 3
 }
 
