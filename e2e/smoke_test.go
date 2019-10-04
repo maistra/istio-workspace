@@ -192,7 +192,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		// Enable when https://github.com/telepresenceio/telepresence/issues/1139 is fixed
 		XContext("openshift deploymentconfig", func() {
 
-      BeforeEach(func() {
+			BeforeEach(func() {
 				scenario = "scenario-2"
 			})
 
