@@ -40,3 +40,11 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	}
 	return command
 }
+
+func GetProjectDir() string {
+	projectDir, found := os.LookupEnv("PROJECT_DIR")
+	if !found {
+		return "."
+	}
+	return projectDir
+}

@@ -11,13 +11,13 @@ import (
 
 // LoadIstio calls make load-istio target and waits until operator sets up the mesh
 func LoadIstio() {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
 }
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	_, registry = setDockerEnvForOperatorBuild()
 	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
@@ -27,7 +27,7 @@ func BuildOperator() (registry string) {
 
 // DeployLocalOperator deploys istio-workspace operator into specified namespace
 func DeployLocalOperator(namespace string) {
-	projectDir := os.Getenv("PROJECT_DIR")
+	projectDir := shell.GetProjectDir()
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
 	LoginAsTestPowerUser()
 

@@ -1,7 +1,10 @@
 package infra
 
 import (
+	"fmt"
+	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -35,17 +38,40 @@ func LoginAsTestPowerUser() {
 }
 
 func ClientVersion() int {
+	if version, found := os.LookupEnv("IKE_CLUSTER_VERSION"); found {
+		result, err := strconv.Atoi(version)
+		if err != nil {
+			fmt.Printf("failed parsing int value of IKE_CLUSTER_VERSION='%s'. reason: %s", version, err.Error())
+		} else {
+			return result
+		}
+	}
 	version := shell.Execute("oc version")
 	<-version.Done()
 	v := strings.Join(version.Status().Stdout, " ")
-	if strings.Contains(v, "GitVersion:\"v4.") {
+	if strings.Contains(v, "Server Version: 4.") || strings.Contains(v, "GitVersion:\"v4.") {
 		return 4
 	}
+	// Fallback to 3.x version (default local test setup right now)
 	return 3
 }
 
-// Events returns all events which occurred for a given namespace
-func Events(ns string) {
+// GetEvents returns all events which occurred for a given namespace
+func GetEvents(ns string) {
 	state := shell.Execute("oc get events -n " + ns)
 	<-state.Done()
+}
+
+// DumpTelepresenceLog dumps telepresence log if exists
+func DumpTelepresenceLog(dir string) {
+	fh, err := os.Open(dir + string(os.PathSeparator) + "telepresence.log")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	_, err = io.Copy(os.Stdout, fh)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

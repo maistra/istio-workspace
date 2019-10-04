@@ -42,7 +42,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
 		executeWithTimer(func() {
 			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			projectDir := os.Getenv("PROJECT_DIR")
+			projectDir := testshell.GetProjectDir()
 			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
 			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
 		})
@@ -81,13 +81,13 @@ var _ = SynchronizedAfterSuite(func() {},
 			})
 		}
 
-		fmt.Printf("Don't forget to wipe out %s where test cluster sits\n", tmpClusterDir)
+		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
-var CompletionProject1 = "datawire-project-" + naming.RandName(16)
-var CompletionProject2 = "datawire-other-project-" + naming.RandName(16)
+var CompletionProject1 = "ike-autocompletion-test-" + naming.RandName(16)
+var CompletionProject2 = "ike-autocompletion-test-" + naming.RandName(16)
 
 func createProjectsForCompletionTests() {
 	LoginAsTestPowerUser()

@@ -3,9 +3,9 @@ defaults:
     name: "Installs latest Golang"
     command: |
       sudo rm -rf /usr/local/go
-      sudo circleci-install golang 1.12.9
+      sudo circleci-install golang 1.13.1
   docker:
-    - image: &golang-img circleci/golang:1.12.9
+    - image: &golang-img circleci/golang:1.13.1
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   env-vars: &env-vars
@@ -26,12 +26,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs the build"
           command: make build-ci
       - save_cache:
-          key: vendor-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
 
@@ -95,12 +95,12 @@ jobs:
           command: ./scripts/openshift/deploy-istio.sh
       - restore_cache:
           keys:
-            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: TELEPRESENCE_VERSION=$(telepresence --version) make deps test-e2e
       - save_cache:
-          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
@@ -110,6 +110,7 @@ jobs:
       <<: *machine-conf
     environment:
       <<: *env-vars
+      IKE_CLUSTER_VERSION: 4
     steps:
       - checkout
       - run:
@@ -142,16 +143,15 @@ jobs:
           name: "Installs Openshift and k8s client tools"
           command: |
             cd ~
-            wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.1.16/openshift-client-linux-4.1.16.tar.gz" -O "oc.tar.gz"
-            tar xzfv oc.tar.gz oc
+            wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/4.2.0-0.nightly-2019-09-24-025718/openshift-client-linux-4.2.0-0.nightly-2019-09-24-025718.tar.gz" -O "oc.tar.gz"
+            tar xzfv oc.tar.gz
             sudo mv $PWD/oc /usr/local/bin/
             echo "Installed oc\n$(oc version)\n"
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.4/bin/linux/amd64/kubectl && \
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - restore_cache:
           keys:
-            - vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+            - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
           name: "Runs end-to-end tests"
           command: |
@@ -163,7 +163,7 @@ jobs:
             IKE_CLUSTER_ADDRESS=$QE_CLUSTER_ADDRESS \
             make deps test-e2e
       - save_cache:
-          key: vendor-e2e-cache-{{ checksum "Gopkg.lock" }}
+          key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
 
