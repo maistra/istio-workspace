@@ -53,8 +53,9 @@ func main() {
 	http.HandleFunc("/", NewBasic(c, log))
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err, "failed initializing")
 	}
+	log.Info("Started serving basic test service")
 }
 
 func parseURL(value string) ([]*url.URL, error) {

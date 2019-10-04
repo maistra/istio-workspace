@@ -94,7 +94,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					StateOf(namespace, pod)
 					printBanner()
 				}
-				Events(namespace)
+				GetEvents(namespace)
+				DumpTelepresenceLog(tmpDir)
 			}
 			cleanupNamespace(namespace)
 		})
@@ -186,8 +187,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		})
 
-		Context("openshift deploymentconfig modifications", func() {
-			BeforeEach(func() {
+		// Telepresence fails on picking up oc/openshift cluster due to /apis being secured.
+		// Thus it treats cluster as vanilla k8s and expects Deployment, not DeploymentConfig to appear
+		// Enable when https://github.com/telepresenceio/telepresence/issues/1139 is fixed
+		XContext("openshift deploymentconfig", func() {
+
+      BeforeEach(func() {
 				scenario = "scenario-2"
 			})
 
