@@ -28,7 +28,9 @@ var _ = Describe("Basic model conversion", func() {
 		})
 		BeforeEach(func() {
 			ref = model.Ref{
-				Name: "ref-name",
+				Name:     "ref-name",
+				Strategy: "prepared-image",
+				Args:     map[string]string{"image": "x"},
 				Target: model.LocatedResourceStatus{
 					ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
 					Labels:         map[string]string{},
@@ -43,6 +45,16 @@ var _ = Describe("Basic model conversion", func() {
 		It("name mapped", func() {
 			Expect(sess.Status.Refs).To(HaveLen(1))
 			Expect(sess.Status.Refs[0].Name).To(Equal(ref.Name))
+		})
+
+		It("strategy mapped", func() {
+			Expect(sess.Status.Refs).To(HaveLen(1))
+			Expect(sess.Status.Refs[0].Strategy).To(Equal(ref.Strategy))
+		})
+
+		It("args mapped", func() {
+			Expect(sess.Status.Refs).To(HaveLen(1))
+			Expect(sess.Status.Refs[0].Args).To(Equal(ref.Args))
 		})
 
 		It("target mapped", func() {
@@ -74,7 +86,7 @@ var _ = Describe("Basic model conversion", func() {
 					Status: v1alpha1.SessionStatus{
 						Refs: []*v1alpha1.RefStatus{
 							{
-								Name: ref.Name,
+								Ref: v1alpha1.Ref{Name: ref.Name},
 								Resources: []*v1alpha1.RefResource{
 									{
 										Kind: &kind, Name: &name, Action: &aFailed,
@@ -98,7 +110,7 @@ var _ = Describe("Basic model conversion", func() {
 					Status: v1alpha1.SessionStatus{
 						Refs: []*v1alpha1.RefStatus{
 							{
-								Name: ref.Name + "xxxx",
+								Ref: v1alpha1.Ref{Name: ref.Name + "xxxx"},
 								Resources: []*v1alpha1.RefResource{
 									{
 										Kind: &kind, Name: &name, Action: &aFailed,
@@ -132,7 +144,11 @@ var _ = Describe("Basic model conversion", func() {
 				Status: v1alpha1.SessionStatus{
 					Refs: []*v1alpha1.RefStatus{
 						{
-							Name: name,
+							Ref: v1alpha1.Ref{
+								Name:     name + "xxxx",
+								Strategy: "prepared-image",
+								Args:     map[string]string{"image": "x"},
+							},
 							Target: &v1alpha1.LabeledRefResource{
 								RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
 								Labels:      map[string]string{},
@@ -144,7 +160,7 @@ var _ = Describe("Basic model conversion", func() {
 							},
 						},
 						{
-							Name: name + "xx",
+							Ref: v1alpha1.Ref{Name: name + "xx"},
 							Resources: []*v1alpha1.RefResource{
 								{
 									Kind: &kind, Name: &name, Action: &aFailed,
@@ -160,6 +176,8 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs).To(HaveLen(2))
 
 			Expect(refs[0].Name).To(Equal(sess.Status.Refs[0].Name))
+			Expect(refs[0].Strategy).To(Equal(sess.Status.Refs[0].Strategy))
+			Expect(refs[0].Args).To(Equal(sess.Status.Refs[0].Args))
 			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
 			Expect(refs[0].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[0].Resources[0].Name))
 			Expect(refs[0].ResourceStatuses[0].Action).To(Equal(model.ActionCreated))

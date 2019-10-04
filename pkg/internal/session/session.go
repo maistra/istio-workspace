@@ -108,8 +108,20 @@ func (h *handler) createOrJoinSession() (string, error) {
 		}
 		return h.waitForRefToComplete()
 	}
+	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
+	// update ref in session
+	for i, r := range session.Spec.Refs {
+		if r.Name == h.opts.DeploymentName {
+			session.Spec.Refs[i] = ref
+			err = h.c.Update(session)
+			if err != nil {
+				return "", err
+			}
+			return h.waitForRefToComplete()
+		}
+	}
 	// join session
-	session.Spec.Refs = append(session.Spec.Refs, istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs})
+	session.Spec.Refs = append(session.Spec.Refs, ref)
 	err = h.c.Update(session)
 	if err != nil {
 		return "", err

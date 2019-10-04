@@ -25,12 +25,14 @@ var (
 
 var _ = Describe("Basic session manipulation", func() {
 	var (
-		objects                    []runtime.Object
-		controller                 reconcile.Reconciler
-		req                        reconcile.Request
-		schema                     *runtime.Scheme
-		c                          client.Client
-		locator, mutator, revertor = &trackedLocator{Action: notFoundTestLocator}, &trackedMutator{Action: emptyTestMutator}, &trackedRevertor{Action: emptyTestRevertor}
+		objects    []runtime.Object
+		controller reconcile.Reconciler
+		req        reconcile.Request
+		schema     *runtime.Scheme
+		c          client.Client
+		locator    *trackedLocator
+		mutator    *trackedMutator
+		revertor   *trackedRevertor
 	)
 	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
@@ -40,8 +42,19 @@ var _ = Describe("Basic session manipulation", func() {
 			return s
 		}
 	}(&c)
+	GetStatusRef := func(name string, session v1alpha1.Session) v1alpha1.RefStatus {
+		for _, ref := range session.Status.Refs {
+			if ref.Name == name {
+				return *ref
+			}
+		}
+		return v1alpha1.RefStatus{}
+	}
 
 	JustBeforeEach(func() {
+		locator = &trackedLocator{Action: notFoundTestLocator}
+		mutator = &trackedMutator{Action: emptyTestMutator}
+		revertor = &trackedRevertor{Action: emptyTestRevertor}
 		manipulators := session.Manipulators{
 			Locators:  []model.Locator{locator.Do},
 			Mutators:  []model.Mutator{mutator.Do},
@@ -150,7 +163,7 @@ var _ = Describe("Basic session manipulation", func() {
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
 								{
-									Name:      "details",
+									Ref:       v1alpha1.Ref{Name: "details"},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 								},
 							},
@@ -200,7 +213,7 @@ var _ = Describe("Basic session manipulation", func() {
 						Status: v1alpha1.SessionStatus{
 							Refs: []*v1alpha1.RefStatus{
 								{
-									Name:      "details",
+									Ref:       v1alpha1.Ref{Name: "details"},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 								},
 							},
@@ -215,8 +228,8 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				Expect(locator.WasCalled).To(BeTrue())
-				Expect(mutator.WasCalled).To(BeTrue())
+				Expect(locator.WasCalled).To(BeFalse())
+				Expect(mutator.WasCalled).To(BeFalse())
 				Expect(revertor.WasCalled).To(BeTrue())
 			})
 
@@ -230,6 +243,114 @@ var _ = Describe("Basic session manipulation", func() {
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Refs).To(HaveLen(0))
+			})
+		})
+		Context("updated reference", func() {
+			BeforeEach(func() {
+				objects = []runtime.Object{
+					&v1alpha1.Session{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:       "test-session",
+							Namespace:  "test",
+							Finalizers: []string{session.Finalizer},
+						},
+						Spec: v1alpha1.SessionSpec{
+							Refs: []v1alpha1.Ref{
+								{
+									Name:     "details",
+									Strategy: "telepresence",
+								},
+								{
+									Name:     "ratings",
+									Strategy: "prepared-image",
+									Args: map[string]string{
+										"image": "x",
+									},
+								},
+								{
+									Name:     "locations",
+									Strategy: "prepared-image",
+									Args: map[string]string{
+										"image": "y",
+									},
+								}},
+						},
+						Status: v1alpha1.SessionStatus{
+							Refs: []*v1alpha1.RefStatus{
+								{
+									Ref: v1alpha1.Ref{
+										Name:     "details",
+										Strategy: "prepared-image",
+										Args: map[string]string{
+											"image": "x",
+										}},
+									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
+								},
+								{
+									Ref: v1alpha1.Ref{
+										Name:     "ratings",
+										Strategy: "telepresence",
+									},
+									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
+								},
+								{
+									Ref: v1alpha1.Ref{
+										Name:     "locations",
+										Strategy: "prepared-image",
+										Args: map[string]string{
+											"image": "x",
+										}},
+									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
+								},
+							},
+						},
+					},
+				}
+			})
+			It("updated strategy", func() {
+				locator.Action = foundTestLocator
+				revertor.Action = basicTestRevertor("test", "details")
+				res, err := controller.Reconcile(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
+
+				Expect(locator.WasCalled).To(BeTrue())
+				Expect(mutator.WasCalled).To(BeTrue())
+				Expect(revertor.WasCalled).To(BeTrue())
+
+				modified := GetSession("test", "test-session")
+				Expect(modified.Status).ToNot(BeNil())
+				Expect(modified.Status.Refs).To(HaveLen(3))
+			})
+			It("updated strategy without args", func() {
+				locator.Action = foundTestLocator
+				revertor.Action = basicTestRevertor("test", "details")
+				controller.Reconcile(req)
+
+				modified := GetStatusRef("details", GetSession("test", "test-session"))
+				Expect(modified.Strategy).To(Equal("telepresence"))
+				Expect(modified.Args).To(BeNil())
+				Expect(modified.Resources).To(HaveLen(0))
+			})
+			It("updated strategy with args", func() {
+				locator.Action = foundTestLocator
+				revertor.Action = basicTestRevertor("test", "details")
+				controller.Reconcile(req)
+
+				modified := GetStatusRef("ratings", GetSession("test", "test-session"))
+				Expect(modified.Strategy).To(Equal("prepared-image"))
+				Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
+				Expect(modified.Resources).To(HaveLen(0))
+			})
+			It("updated strategy with updated args", func() {
+				locator.Action = foundTestLocator
+				revertor.Action = basicTestRevertor("test", "details")
+				controller.Reconcile(req)
+
+				modified := GetStatusRef("locations", GetSession("test", "test-session"))
+				Expect(modified.Strategy).To(Equal("prepared-image"))
+				Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
+				Expect(modified.Resources).To(HaveLen(0))
 			})
 		})
 	})
@@ -249,7 +370,7 @@ var _ = Describe("Basic session manipulation", func() {
 					Status: v1alpha1.SessionStatus{
 						Refs: []*v1alpha1.RefStatus{
 							{
-								Name:      "details",
+								Ref:       v1alpha1.Ref{Name: "details"},
 								Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 							},
 						},
@@ -264,8 +385,8 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
-			Expect(locator.WasCalled).To(BeTrue())
-			Expect(mutator.WasCalled).To(BeTrue())
+			Expect(locator.WasCalled).To(BeFalse())
+			Expect(mutator.WasCalled).To(BeFalse())
 			Expect(revertor.WasCalled).To(BeTrue())
 		})
 		It("status removed when session removed", func() {

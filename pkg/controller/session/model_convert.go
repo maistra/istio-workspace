@@ -1,6 +1,8 @@
 package session
 
 import (
+	"reflect"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
 )
@@ -15,7 +17,7 @@ const (
 
 // RefToStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:hugeParam]
-	statusRef := &istiov1alpha1.RefStatus{Name: ref.Name}
+	statusRef := &istiov1alpha1.RefStatus{Ref: istiov1alpha1.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}}
 	if ref.Target.Name != "" {
 		action := string(ref.Target.Action)
 		statusRef.Target = &istiov1alpha1.LabeledRefResource{
@@ -49,7 +51,7 @@ func RefToStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:huge
 func StatusesToRef(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeParam]
 	refs := []*model.Ref{}
 	for _, statusRef := range session.Status.Refs {
-		r := &model.Ref{Name: statusRef.Name}
+		r := &model.Ref{Name: statusRef.Name, Strategy: statusRef.Strategy, Args: statusRef.Args}
 		StatusToRef(session, r)
 		refs = append(refs, r)
 	}
@@ -74,6 +76,11 @@ func StatusToRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:huge
 	}
 }
 
+// RefToRef converts a Session.Spec.Ref to a model.Ref
+func RefToRef(ref istiov1alpha1.Ref) model.Ref {
+	return model.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}
+}
+
 // RouteToRoute returns the defined route from the session or the Default
 func RouteToRoute(session *istiov1alpha1.Session) model.Route {
 	if session.Spec.Route.Type == "" {
@@ -88,4 +95,16 @@ func RouteToRoute(session *istiov1alpha1.Session) model.Route {
 		Name:  session.Spec.Route.Name,
 		Value: session.Spec.Route.Value,
 	}
+}
+
+// RefUpdated check if a Ref has been updated compared to current status
+func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool { //nolint[:hugeParam]
+	for _, statusRef := range session.Status.Refs {
+		if statusRef.Name == ref.Name {
+			if statusRef.Strategy != ref.Strategy || !reflect.DeepEqual(statusRef.Args, ref.Args) {
+				return true
+			}
+		}
+	}
+	return false
 }
