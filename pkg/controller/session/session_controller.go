@@ -218,7 +218,10 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
 	// if ref has changed, delete first
 	if RefUpdated(*session, *ref) {
-		r.delete(ctx, session, ref)
+		err := r.delete(ctx, session, ref)
+		if err != nil {
+			return err
+		}
 	}
 
 	StatusToRef(*session, ref)
