@@ -22,7 +22,7 @@ var _ = Describe("Basic model conversion", func() {
 			ref model.Ref
 		)
 		JustBeforeEach(func() {
-			session.RefToStatus(ref, &sess)
+			session.ConvertModelRefToAPIStatus(ref, &sess)
 
 			Expect(sess.Status).ToNot(BeNil())
 		})
@@ -137,7 +137,7 @@ var _ = Describe("Basic model conversion", func() {
 			refs []*model.Ref
 		)
 		JustBeforeEach(func() {
-			refs = session.StatusesToRef(sess)
+			refs = session.ConvertAPIStatusesToModelRef(sess)
 		})
 		BeforeEach(func() {
 			sess = v1alpha1.Session{
@@ -202,7 +202,7 @@ var _ = Describe("Basic model conversion", func() {
 			route model.Route
 		)
 		JustBeforeEach(func() {
-			route = session.RouteToRoute(&sess)
+			route = session.ConvertAPIRouteToModelRoute(&sess)
 		})
 		Context("missing", func() {
 			BeforeEach(func() {
