@@ -307,7 +307,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("updated strategy", func() {
+			It("call revert when a status.ref.strategy differ from spec.ref.strategy", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = basicTestRevertor("test", "details")
 				res, err := controller.Reconcile(req)
@@ -322,35 +322,37 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Refs).To(HaveLen(3))
 			})
-			It("updated strategy without args", func() {
-				locator.Action = foundTestLocator
-				revertor.Action = basicTestRevertor("test", "details")
-				controller.Reconcile(req)
+			Context("ensure updated spec.ref is reflected in status.ref", func() {
+				It("when the strategy differ", func() {
+					locator.Action = foundTestLocator
+					revertor.Action = basicTestRevertor("test", "details")
+					controller.Reconcile(req)
 
-				modified := GetStatusRef("details", GetSession("test", "test-session"))
-				Expect(modified.Strategy).To(Equal("telepresence"))
-				Expect(modified.Args).To(BeNil())
-				Expect(modified.Resources).To(HaveLen(0))
-			})
-			It("updated strategy with args", func() {
-				locator.Action = foundTestLocator
-				revertor.Action = basicTestRevertor("test", "details")
-				controller.Reconcile(req)
+					modified := GetStatusRef("details", GetSession("test", "test-session"))
+					Expect(modified.Strategy).To(Equal("telepresence"))
+					Expect(modified.Args).To(BeNil())
+					Expect(modified.Resources).To(HaveLen(0))
+				})
+				It("when the args differ", func() {
+					locator.Action = foundTestLocator
+					revertor.Action = basicTestRevertor("test", "details")
+					controller.Reconcile(req)
 
-				modified := GetStatusRef("ratings", GetSession("test", "test-session"))
-				Expect(modified.Strategy).To(Equal("prepared-image"))
-				Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
-				Expect(modified.Resources).To(HaveLen(0))
-			})
-			It("updated strategy with updated args", func() {
-				locator.Action = foundTestLocator
-				revertor.Action = basicTestRevertor("test", "details")
-				controller.Reconcile(req)
+					modified := GetStatusRef("ratings", GetSession("test", "test-session"))
+					Expect(modified.Strategy).To(Equal("prepared-image"))
+					Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
+					Expect(modified.Resources).To(HaveLen(0))
+				})
+				It("when the same args differ", func() {
+					locator.Action = foundTestLocator
+					revertor.Action = basicTestRevertor("test", "details")
+					controller.Reconcile(req)
 
-				modified := GetStatusRef("locations", GetSession("test", "test-session"))
-				Expect(modified.Strategy).To(Equal("prepared-image"))
-				Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
-				Expect(modified.Resources).To(HaveLen(0))
+					modified := GetStatusRef("locations", GetSession("test", "test-session"))
+					Expect(modified.Strategy).To(Equal("prepared-image"))
+					Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
+					Expect(modified.Resources).To(HaveLen(0))
+				})
 			})
 		})
 	})

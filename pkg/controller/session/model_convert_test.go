@@ -137,7 +137,7 @@ var _ = Describe("Basic model conversion", func() {
 			refs []*model.Ref
 		)
 		JustBeforeEach(func() {
-			refs = session.ConvertAPIStatusesToModelRef(sess)
+			refs = session.ConvertAPIStatusesToModelRefs(sess)
 		})
 		BeforeEach(func() {
 			sess = v1alpha1.Session{
