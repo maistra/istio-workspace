@@ -42,13 +42,13 @@ var _ = Describe("Basic session manipulation", func() {
 			return s
 		}
 	}(&c)
-	GetStatusRef := func(name string, session v1alpha1.Session) v1alpha1.RefStatus {
+	GetStatusRef := func(name string, session v1alpha1.Session) *v1alpha1.RefStatus {
 		for _, ref := range session.Status.Refs {
 			if ref.Name == name {
-				return *ref
+				return ref
 			}
 		}
-		return v1alpha1.RefStatus{}
+		return nil
 	}
 
 	JustBeforeEach(func() {
@@ -329,6 +329,7 @@ var _ = Describe("Basic session manipulation", func() {
 					controller.Reconcile(req)
 
 					modified := GetStatusRef("details", GetSession("test", "test-session"))
+					Expect(modified).ToNot(BeNil())
 					Expect(modified.Strategy).To(Equal("telepresence"))
 					Expect(modified.Args).To(BeNil())
 					Expect(modified.Resources).To(HaveLen(0))
@@ -339,6 +340,7 @@ var _ = Describe("Basic session manipulation", func() {
 					controller.Reconcile(req)
 
 					modified := GetStatusRef("ratings", GetSession("test", "test-session"))
+					Expect(modified).ToNot(BeNil())
 					Expect(modified.Strategy).To(Equal("prepared-image"))
 					Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
 					Expect(modified.Resources).To(HaveLen(0))
@@ -349,6 +351,7 @@ var _ = Describe("Basic session manipulation", func() {
 					controller.Reconcile(req)
 
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
+					Expect(modified).ToNot(BeNil())
 					Expect(modified.Strategy).To(Equal("prepared-image"))
 					Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
 					Expect(modified.Resources).To(HaveLen(0))
