@@ -124,7 +124,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		Context:   context.TODO(),
 		Name:      request.Name,
 		Namespace: request.Namespace,
-		Route:     RouteToRoute(session),
+		Route:     ConvertAPIRouteToModelRoute(session),
 		Log:       reqLogger,
 		Client:    r.client,
 	}
@@ -145,7 +145,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
-	refs := StatusesToRef(*session)
+	refs := ConvertAPIStatusesToModelRefs(*session)
 	if deleted {
 		r.deleteAllRefs(ctx, session, refs)
 	} else {
@@ -192,21 +192,21 @@ func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *isti
 func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
 	ctx.Log.Info("Remove ref", "name", ref.Name)
 
-	StatusToRef(*session, ref)
+	ConvertAPIStatusToModelRef(*session, ref)
 	for _, revertor := range r.manipulators.Revertors {
 		err := revertor(ctx, ref)
 		if err != nil {
 			ctx.Log.Error(err, "Revert", "name", ref.Name)
 		}
 	}
-	RefToStatus(*ref, session)
+	ConvertModelRefToAPIStatus(*ref, session)
 	return ctx.Client.Status().Update(ctx, session)
 }
 
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
 	for _, specRef := range session.Spec.Refs {
 		ctx.Log.Info("Add ref", "name", specRef)
-		ref := model.Ref{Name: specRef.Name, Strategy: specRef.Strategy, Args: specRef.Args}
+		ref := ConvertAPIRefToModelRef(specRef)
 		err := r.sync(ctx, session, &ref)
 		if err != nil {
 			return err
@@ -216,7 +216,15 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 }
 
 func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
-	StatusToRef(*session, ref)
+	// if ref has changed, delete first
+	if RefUpdated(*session, *ref) {
+		err := r.delete(ctx, session, ref)
+		if err != nil {
+			return err
+		}
+	}
+
+	ConvertAPIStatusToModelRef(*session, ref)
 	located := false
 	for _, locator := range r.manipulators.Locators {
 		if locator(ctx, ref) {
@@ -233,6 +241,6 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 		}
 	}
 
-	RefToStatus(*ref, session)
+	ConvertModelRefToAPIStatus(*ref, session)
 	return ctx.Client.Status().Update(ctx, session)
 }
