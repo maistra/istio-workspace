@@ -32,9 +32,11 @@ func BuildTestService(namespace string) (registry string) {
 }
 
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
-func BuildTestServicePreparedImage(namespace string) (registry string) {
+func BuildTestServicePreparedImage(callerName, namespace string) (registry string) {
 	projectDir := shell.GetProjectDir()
 	registry = setDockerEnvForTestServiceBuild(namespace)
+
+	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 
 	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
