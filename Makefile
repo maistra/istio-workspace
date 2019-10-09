@@ -50,7 +50,7 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ Gopkg.lock
+	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ .vendor-new/ Gopkg.lock
 
 .PHONY: deps
 deps: check-tools ## Fetches all dependencies
