@@ -32,9 +32,11 @@ func BuildTestService(namespace string) (registry string) {
 }
 
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
-func BuildTestServicePreparedImage(namespace string) (registry string) {
+func BuildTestServicePreparedImage(callerName, namespace string) (registry string) {
 	projectDir := shell.GetProjectDir()
 	registry = setDockerEnvForTestServiceBuild(namespace)
+
+	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 
 	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
@@ -58,6 +60,15 @@ func DeployTestScenario(scenario, namespace string) {
 		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
+}
+
+func CleanupTestScenario(namespace string) {
+	if ClientVersion() == 4 {
+		LoginAsTestPowerUser()
+		removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
+		patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
+		<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
+	}
 }
 
 // GetProjectLabels returns labels for a given namespace as a string

@@ -174,6 +174,7 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
+IKE_TEST_PREPARED_NAME?=prepared-image
 IKE_IMAGE_TAG?=$(IKE_VERSION)
 IKE_DOCKER_REGISTRY?=quay.io
 IKE_DOCKER_REPOSITORY?=maistra
@@ -249,18 +250,19 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		--build-arg name=$(IKE_TEST_PREPARED_NAME) \
+		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
 
 	docker tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME):latest
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
+		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 .PHONY: docker-push-test-prepared
 docker-push-test-prepared:
 	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME):latest
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 # ##########################################################################
 ##@ Istio-workspace operator deployment

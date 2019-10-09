@@ -29,7 +29,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			appName = GenerateNamespaceName()
+			appName = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
@@ -71,7 +71,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		JustBeforeEach(func() {
-			namespace = GenerateNamespaceName()
+			namespace = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
 			LoginAsTestPowerUser()
@@ -118,9 +118,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			Context("deployment create/delete operations", func() {
 				var registry string
+				preparedImageV1 := "prepared-image"
+				preparedImageV2 := "image-prepared"
 
 				JustBeforeEach(func() {
-					BuildTestServicePreparedImage(namespace)
+					BuildTestServicePreparedImage(preparedImageV1, namespace)
+					BuildTestServicePreparedImage(preparedImageV2, namespace)
 					registry = GetDockerRegistryInternal()
 				})
 
@@ -132,20 +135,20 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					Eventually(call(productPageURL, map[string]string{
 						"Host": GetGatewayHost(namespace)}),
 						3*time.Minute, 1*time.Second).
-						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV1))))
 
 					// switch to different namespace - so we also test -n parameter of $ ike
 					<-testshell.Execute("oc project default").Done()
 
 					// when we start ike to create
-					ikeWithCreate := testshell.ExecuteInDir(tmpDir, "ike", "create",
+					ikeWithCreateV1 := testshell.ExecuteInDir(tmpDir, "ike", "create",
 						"--deployment", "ratings-v1",
 						"-n", namespace,
 						"--route", "header:x-test-suite=smoke",
-						"--image", registry+"/"+namespace+"/istio-workspace-test-prepared:latest",
+						"--image", registry+"/"+namespace+"/istio-workspace-test-prepared-"+preparedImageV1+":latest",
 						"-s", "test-session",
 					)
-					Eventually(ikeWithCreate.Done(), 1*time.Minute).Should(BeClosed())
+					Eventually(ikeWithCreateV1.Done(), 1*time.Minute).Should(BeClosed())
 
 					// ensure the new service is running
 					Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
@@ -155,11 +158,32 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						"Host":         GetGatewayHost(namespace),
 						"x-test-suite": "smoke"}),
 						3*time.Minute, 1*time.Second).
-						Should(And(ContainSubstring("prepared-image"), Not(ContainSubstring("ratings-v1"))))
+						Should(And(ContainSubstring(preparedImageV1), Not(ContainSubstring("ratings-v1"))))
 
 					// but also check if prod is intact
 					Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
-						ShouldNot(ContainSubstring("prepared-image"))
+						ShouldNot(ContainSubstring(preparedImageV1))
+
+					// when we start ike to create with a updated v
+					ikeWithCreateV2 := testshell.ExecuteInDir(tmpDir, "ike", "create",
+						"--deployment", "ratings-v1",
+						"-n", namespace,
+						"--route", "header:x-test-suite=smoke",
+						"--image", registry+"/"+namespace+"/istio-workspace-test-prepared-"+preparedImageV2+":latest",
+						"-s", "test-session",
+					)
+					Eventually(ikeWithCreateV2.Done(), 1*time.Minute).Should(BeClosed())
+
+					// check original response
+					Eventually(call(productPageURL, map[string]string{
+						"Host":         GetGatewayHost(namespace),
+						"x-test-suite": "smoke"}),
+						3*time.Minute, 1*time.Second).
+						Should(And(ContainSubstring(preparedImageV2), Not(ContainSubstring("ratings-v1"))))
+
+					// but also check if prod is intact
+					Eventually(call(productPageURL, map[string]string{}), 3*time.Minute, 1*time.Second).
+						ShouldNot(ContainSubstring(preparedImageV2))
 
 					// when we start ike to delete
 					ikeWithDelete := testshell.ExecuteInDir(tmpDir, "ike", "delete",
@@ -174,13 +198,13 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						"Host":         GetGatewayHost(namespace),
 						"x-test-suite": "smoke"}),
 						3*time.Minute, 1*time.Second).
-						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV2))))
 
 					// but also check if prod is intact
 					Eventually(call(productPageURL, map[string]string{
 						"Host": GetGatewayHost(namespace)}),
 						3*time.Minute, 1*time.Second).
-						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring("prepared-image"))))
+						Should(And(ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV2))))
 				})
 
 			})
@@ -207,7 +231,7 @@ func printBanner() {
 	fmt.Println("---------------------------------------------------------------------")
 }
 
-func GenerateNamespaceName() string {
+func generateNamespaceName() string {
 	return "ike-tests-" + naming.RandName(16)
 }
 
@@ -218,6 +242,7 @@ func cleanupNamespace(namespace string) {
 			return
 		}
 	}
+	CleanupTestScenario(namespace)
 	<-testshell.Execute("oc delete project " + namespace).Done()
 }
 
