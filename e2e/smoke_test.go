@@ -29,7 +29,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		BeforeEach(func() {
-			appName = GenerateNamespaceName()
+			appName = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "app-"+appName)
 			Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())
 		})
@@ -71,7 +71,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		)
 
 		JustBeforeEach(func() {
-			namespace = GenerateNamespaceName()
+			namespace = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
 			LoginAsTestPowerUser()
@@ -231,7 +231,7 @@ func printBanner() {
 	fmt.Println("---------------------------------------------------------------------")
 }
 
-func GenerateNamespaceName() string {
+func generateNamespaceName() string {
 	return "ike-tests-" + naming.RandName(16)
 }
 
@@ -242,6 +242,7 @@ func cleanupNamespace(namespace string) {
 			return
 		}
 	}
+	CleanupTestScenario(namespace)
 	<-testshell.Execute("oc delete project " + namespace).Done()
 }
 

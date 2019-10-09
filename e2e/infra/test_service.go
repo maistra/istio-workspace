@@ -62,6 +62,15 @@ func DeployTestScenario(scenario, namespace string) {
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
+func CleanupTestScenario(namespace string) {
+	if ClientVersion() == 4 {
+		LoginAsTestPowerUser()
+		removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
+		patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
+		<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
+	}
+}
+
 // GetProjectLabels returns labels for a given namespace as a string
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
