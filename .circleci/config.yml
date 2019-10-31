@@ -155,7 +155,6 @@ jobs:
       - run:
           name: "Runs end-to-end tests"
           command: |
-            TELEPRESENCE_VERSION=$(telepresence --version) \
             IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
             IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
             IKE_CLUSTER_HOST=$QE_IKE_CLUSTER_HOST \
