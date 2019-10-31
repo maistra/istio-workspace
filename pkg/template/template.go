@@ -4,20 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/maistra/istio-workspace/pkg/telepresence"
 
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
-	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
-	if !found {
-		tpVersion = "0.101"
-	}
+	tpVersion := telepresence.GetVersion()
 
 	patches := []Patch{
 		{
