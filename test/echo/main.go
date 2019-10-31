@@ -22,6 +22,7 @@ func main() {
 	} else {
 		fmt.Println(os.Args)
 	}
+
 	if SleepMs != "" {
 		if SleepMs == "infinite" {
 			infiniteLoop()

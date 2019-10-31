@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/telepresence"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
@@ -21,8 +23,6 @@ import (
 
 var log = logf.Log.WithName("develop")
 
-const telepresenceBin = "telepresence"
-
 var DefaultExclusions = []string{"*.log", ".git/"}
 
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined
@@ -32,8 +32,8 @@ func NewCmd() *cobra.Command {
 		Short:        "Starts the development flow",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			if !shell.BinaryExists(telepresenceBin, "Head over to https://www.telepresence.io/reference/install for installation instructions.\n") {
-				return fmt.Errorf("unable to find %s on your $PATH", telepresenceBin)
+			if !telepresence.BinaryAvailable() {
+				return fmt.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 			}
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
@@ -59,7 +59,7 @@ func NewCmd() *cobra.Command {
 			arguments := parseArguments(cmd)
 
 			go func() {
-				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresenceBin, arguments...)
+				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
 				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
 				shell.ShutdownHook(tp, done)
 				shell.Start(tp, done)
