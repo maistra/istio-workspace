@@ -2,6 +2,7 @@ package internal
 
 import (
 	"github.com/maistra/istio-workspace/pkg/internal/session"
+	"github.com/maistra/istio-workspace/pkg/telepresence"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -35,9 +36,11 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	return session.RemoveHandler(options)
 }
 
+const telepresenceStrategy = "telepresence"
+
 // ToOptions converts between FlagSet to a Handler Options
 func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
-	strategy := "telepresence"
+	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
 
 	n, err := flags.GetString("namespace")
@@ -64,6 +67,10 @@ func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 	if i != "" {
 		strategy = "prepared-image"
 		strategyArgs["image"] = i
+	}
+
+	if strategy == telepresenceStrategy {
+		strategyArgs["version"] = telepresence.GetVersion()
 	}
 
 	return session.Options{

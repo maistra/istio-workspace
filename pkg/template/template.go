@@ -8,15 +8,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/maistra/istio-workspace/pkg/telepresence"
-
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
-	tpVersion := telepresence.GetVersion()
-
 	patches := []Patch{
 		{
 			Name: "prepared-image",
@@ -57,7 +53,7 @@ func NewDefaultEngine() *Engine {
 					{{ template "_basic-remove" . }}
 				]`),
 			Variables: map[string]string{
-				"version": tpVersion,
+				"version": "",
 			},
 		},
 		{
