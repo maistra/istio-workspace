@@ -39,10 +39,10 @@ var _ = Describe("Usage of ike develop command", func() {
 		AfterEach(tmpPath.Restore)
 
 		It("should fail invoking develop cmd when telepresence binary is not on $PATH", func() {
-			oldPath := os.Getenv("PATH")
-			_ = os.Setenv("PATH", "")
+			envVars := TemporaryEnvVars()
+			envVars.Set("PATH", "")
 			defer func() {
-				_ = os.Setenv("PATH", oldPath)
+				envVars.Restore()
 			}()
 
 			_, err := ValidateArgumentsOf(developCmd).Passing("-r", "./test.sh", "-d", "hello-world")
@@ -162,16 +162,13 @@ var _ = Describe("Usage of ike develop command", func() {
 
 			Context("with ENV port variable", func() {
 
-				var oldEnv string
+				envVars := TemporaryEnvVars()
 
 				BeforeEach(func() {
-					oldEnv = os.Getenv("IKE_DEVELOP_PORT")
-					_ = os.Setenv("IKE_DEVELOP_PORT", "4321")
+					envVars.Set("IKE_DEVELOP_PORT", "4321")
 				})
 
-				AfterEach(func() {
-					_ = os.Setenv("IKE_DEVELOP_PORT", oldEnv)
-				})
+				AfterEach(envVars.Restore)
 
 				It("should use environment variable over config file", func() {
 					_, err := ValidateArgumentsOf(developCmd).Passing("--config", configFile.Name())

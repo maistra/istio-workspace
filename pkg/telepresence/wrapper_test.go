@@ -1,7 +1,6 @@
 package telepresence_test
 
 import (
-	"os"
 	"path"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -39,15 +38,11 @@ var _ = Describe("telepresence commands wrapper", func() {
 
 		It("should retrieve version from TELEPRESENCE_VERSION env variable when defined", func() {
 			// given
-			currentTpVersion := os.Getenv("TELEPRESENCE_VERSION")
+			envVars := TemporaryEnvVars()
+			envVars.Set("TELEPRESENCE_VERSION", "0.123")
 			defer func() {
-				if currentTpVersion != "" {
-					_ = os.Setenv("TELEPRESENCE_VERSION", currentTpVersion)
-				} else {
-					_ = os.Unsetenv("TELEPRESENCE_VERSION")
-				}
+				envVars.Restore()
 			}()
-			_ = os.Setenv("TELEPRESENCE_VERSION", "0.123")
 
 			// when
 			version, err := telepresence.GetVersion()
