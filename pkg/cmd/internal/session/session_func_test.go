@@ -1,6 +1,8 @@
 package internal_test
 
 import (
+	"os"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 
@@ -12,6 +14,20 @@ import (
 )
 
 var _ = Describe("Usage of session func", func() {
+
+	currentTpVersion := os.Getenv("TELEPRESENCE_VERSION")
+
+	BeforeEach(func() {
+		_ = os.Setenv("TELEPRESENCE_VERSION", "0.123")
+	})
+
+	AfterEach(func() {
+		if currentTpVersion != "" {
+			_ = os.Setenv("TELEPRESENCE_VERSION", currentTpVersion)
+		} else {
+			_ = os.Unsetenv("TELEPRESENCE_VERSION")
+		}
+	})
 
 	Context("checking required command arguments", func() {
 
