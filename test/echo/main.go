@@ -9,12 +9,20 @@ import (
 	"time"
 )
 
-// SleepMs indicates for how the program should sleep before he gets terminated
+// SleepMs indicates for how long the program should sleep before he gets terminated
 // The value is in milliseconds or "infinite" which will result in endless loop
 var SleepMs string
 
+// Echo if specified as build flag will be the output of the command
+var Echo string
+
 func main() {
-	fmt.Println(os.Args)
+	if Echo != "" {
+		fmt.Println(Echo)
+	} else {
+		fmt.Println(os.Args)
+	}
+
 	if SleepMs != "" {
 		if SleepMs == "infinite" {
 			infiniteLoop()

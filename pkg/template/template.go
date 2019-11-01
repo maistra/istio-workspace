@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -14,11 +13,6 @@ import (
 
 // NewDefaultEngine returns a new Engine with a predefined templates
 func NewDefaultEngine() *Engine {
-	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
-	if !found {
-		tpVersion = "0.101"
-	}
-
 	patches := []Patch{
 		{
 			Name: "prepared-image",
@@ -59,7 +53,7 @@ func NewDefaultEngine() *Engine {
 					{{ template "_basic-remove" . }}
 				]`),
 			Variables: map[string]string{
-				"version": tpVersion,
+				"version": "",
 			},
 		},
 		{
