@@ -27,9 +27,10 @@ var _ = Describe("telepresence commands wrapper", func() {
 			Expect(telepresence.BinaryAvailable()).To(BeFalse())
 		})
 
-		It("should return default version when no env nor telepresence binary available", func() {
-			version := telepresence.GetVersion()
-			Expect(version).To(Equal(telepresence.DefaultTelepresenceVersion))
+		It("should fail determining version when no env var nor telepresence binary available", func() {
+			_, err := telepresence.GetVersion()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("couldn't find 'telepresence'"))
 		})
 
 	})
@@ -49,9 +50,10 @@ var _ = Describe("telepresence commands wrapper", func() {
 			_ = os.Setenv("TELEPRESENCE_VERSION", "0.123")
 
 			// when
-			version := telepresence.GetVersion()
+			version, err := telepresence.GetVersion()
 
 			// then
+			Expect(err).ToNot(HaveOccurred())
 			Expect(version).To(Equal("0.123"))
 		})
 
@@ -61,9 +63,10 @@ var _ = Describe("telepresence commands wrapper", func() {
 			defer tmpPath.Restore()
 
 			// when
-			version := telepresence.GetVersion()
+			version, err := telepresence.GetVersion()
 
 			// then
+			Expect(err).ToNot(HaveOccurred())
 			Expect(version).To(Equal("0.234"))
 		})
 

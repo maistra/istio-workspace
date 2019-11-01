@@ -70,7 +70,9 @@ func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 	}
 
 	if strategy == telepresenceStrategy {
-		strategyArgs["version"] = telepresence.GetVersion()
+		if strategyArgs["version"], err = telepresence.GetVersion(); err != nil {
+			return session.Options{}, err
+		}
 	}
 
 	return session.Options{
