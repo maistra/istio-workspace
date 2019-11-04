@@ -65,16 +65,11 @@ var _ = Describe("template processing", func() {
 
 			It("should process operator template", func() {
 				// given
-				envVars := test.TemporaryEnvVars()
-				envVars.SetAll(map[string]string{
-					"IKE_DOCKER_REGISTRY":   "quay.io",
-					"IKE_DOCKER_REPOSITORY": "istio-workspace",
-					"IKE_IMAGE_NAME":        "ike-cli",
-					"IKE_IMAGE_TAG":         "latest",
-				})
-				defer func() {
-					envVars.Restore()
-				}()
+				restoreEnvVars := test.TemporaryEnvVars("IKE_DOCKER_REGISTRY", "quay.io",
+					"IKE_DOCKER_REPOSITORY", "istio-workspace",
+					"IKE_IMAGE_NAME", "ike-cli",
+					"IKE_IMAGE_TAG", "latest")
+				defer restoreEnvVars()
 
 				var yaml []byte
 

@@ -38,11 +38,8 @@ var _ = Describe("telepresence commands wrapper", func() {
 
 		It("should retrieve version from TELEPRESENCE_VERSION env variable when defined", func() {
 			// given
-			envVars := TemporaryEnvVars()
-			envVars.Set("TELEPRESENCE_VERSION", "0.123")
-			defer func() {
-				envVars.Restore()
-			}()
+			restoreEnvVars := TemporaryEnvVars("TELEPRESENCE_VERSION", "0.123")
+			defer restoreEnvVars()
 
 			// when
 			version, err := telepresence.GetVersion()

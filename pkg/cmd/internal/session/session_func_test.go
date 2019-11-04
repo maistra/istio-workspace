@@ -14,13 +14,13 @@ import (
 
 var _ = Describe("Usage of session func", func() {
 
-	envVars := test.TemporaryEnvVars()
-
+	var restoreEnvVars func()
 	BeforeEach(func() {
-		envVars.Set("TELEPRESENCE_VERSION", "0.123")
+		restoreEnvVars = test.TemporaryEnvVars("TELEPRESENCE_VERSION", "0.123")
 	})
-
-	AfterEach(envVars.Restore)
+	AfterEach(func() {
+		restoreEnvVars()
+	})
 
 	Context("checking required command arguments", func() {
 
