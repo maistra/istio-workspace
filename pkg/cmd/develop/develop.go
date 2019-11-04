@@ -2,6 +2,7 @@ package develop
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/telepresence"
@@ -38,6 +39,10 @@ func NewCmd() *cobra.Command {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+			dir, err := os.Getwd()
+			if err != nil {
+				return err
+			}
 			sessionState, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
 				return err
@@ -60,6 +65,7 @@ func NewCmd() *cobra.Command {
 
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
+				tp.Dir = dir
 				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
 				shell.ShutdownHook(tp, done)
 				shell.Start(tp, done)
