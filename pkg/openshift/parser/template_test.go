@@ -1,8 +1,7 @@
 package parser_test
 
 import (
-	"os"
-
+	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/version"
 
 	. "github.com/maistra/istio-workspace/pkg/openshift/parser"
@@ -66,23 +65,11 @@ var _ = Describe("template processing", func() {
 
 			It("should process operator template", func() {
 				// given
-				newEnvs := map[string]string{
-					"IKE_DOCKER_REGISTRY":   "quay.io",
-					"IKE_DOCKER_REPOSITORY": "istio-workspace",
-					"IKE_IMAGE_NAME":        "ike-cli",
-					"IKE_IMAGE_TAG":         "latest",
-				}
-
-				oldEnvs := map[string]string{}
-				for k, v := range newEnvs {
-					oldEnvs[os.Getenv(k)] = v
-					_ = os.Setenv(k, v)
-				}
-				defer func() {
-					for k, v := range oldEnvs {
-						_ = os.Setenv(k, v)
-					}
-				}()
+				restoreEnvVars := test.TemporaryEnvVars("IKE_DOCKER_REGISTRY", "quay.io",
+					"IKE_DOCKER_REPOSITORY", "istio-workspace",
+					"IKE_IMAGE_NAME", "ike-cli",
+					"IKE_IMAGE_TAG", "latest")
+				defer restoreEnvVars()
 
 				var yaml []byte
 
