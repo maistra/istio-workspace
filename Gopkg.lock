@@ -566,12 +566,20 @@
   version = "v1.0.5"
 
 [[projects]]
-  digest = "1:8a2c8828a6fc03841448c29c80eeb6c6f2e2b22c2ddcb93d125bf7dac56c136b"
+  digest = "1:560e5bf3bb606684b7368ca532228fad4ceb1982e79f790483557db31d666e02"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "NT"
-  revision = "b5bf975e5823809fb22c7644d008757f78a4259e"
-  version = "v1.4.0"
+  revision = "72b022eb357a56469725dcd03918449e2278d02e"
+  version = "v1.5.0"
+
+[[projects]]
+  digest = "1:f60e4a8af6b6f3940cbdd28b1262221d28b4eb4d31b87bdb7b219f5fc0f278bf"
+  name = "github.com/subosito/gotenv"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "2ef7124db659d49edac6aa459693a15ae36c671a"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:0e70a2bca7289a57e94d6452e05667d49319bba2a7457a2d1b3323bb1cd1d7d9"
