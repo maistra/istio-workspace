@@ -1,10 +1,9 @@
 package internal_test
 
 import (
-	"os"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,18 +14,12 @@ import (
 
 var _ = Describe("Usage of session func", func() {
 
-	currentTpVersion := os.Getenv("TELEPRESENCE_VERSION")
-
+	var restoreEnvVars func()
 	BeforeEach(func() {
-		_ = os.Setenv("TELEPRESENCE_VERSION", "0.123")
+		restoreEnvVars = test.TemporaryEnvVars("TELEPRESENCE_VERSION", "0.123")
 	})
-
 	AfterEach(func() {
-		if currentTpVersion != "" {
-			_ = os.Setenv("TELEPRESENCE_VERSION", currentTpVersion)
-		} else {
-			_ = os.Unsetenv("TELEPRESENCE_VERSION")
-		}
+		restoreEnvVars()
 	})
 
 	Context("checking required command arguments", func() {
