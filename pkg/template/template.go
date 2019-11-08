@@ -55,6 +55,12 @@ func NewDefaultEngine() *Engine {
 			Variables: map[string]string{
 				"version": "",
 			},
+			Validate: func(vars map[string]string) error {
+				if vars["version"] == "" {
+					return fmt.Errorf("expected version variable to be set")
+				}
+				return nil
+			},
 		},
 		{
 			Name: "_basic-version",
@@ -154,6 +160,7 @@ type Patch struct {
 	Name      string
 	Template  []byte
 	Variables map[string]string
+	Validate  func(vars map[string]string) error
 }
 
 // Patches holds all known patch templates for a Engine
@@ -226,14 +233,14 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 		return nil, err
 	}
 
-	patchVariables := map[string]string{}
-	// Load default variables
-	defaultVariables := map[string]string{}
-	for _, p := range e.patches {
-		if p.Name == name {
-			defaultVariables = p.Variables
-		}
+	patch := e.findPatch(name)
+	if patch == nil {
+		return nil, fmt.Errorf("unable to find patch %s", name)
 	}
+
+	patchVariables := map[string]string{}
+	defaultVariables := patch.Variables
+
 	for k, v := range defaultVariables {
 		patchVariables[k] = v
 	}
@@ -252,6 +259,13 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 		Vars:       patchVariables,
 	}
 
+	// Validate patch variables
+	if patch.Validate != nil {
+		if validationErr := patch.Validate(c.Vars); validationErr != nil {
+			return nil, validationErr
+		}
+	}
+
 	// Run Template
 	rawPatch := new(bytes.Buffer)
 	err = t.ExecuteTemplate(rawPatch, name, c)
@@ -260,17 +274,28 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	}
 
 	// Apply patch
-	patch, err := jsonpatch.DecodePatch(rawPatch.Bytes())
+	jsonPatch, err := jsonpatch.DecodePatch(rawPatch.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	modified, err := patch.ApplyIndent(resource, "  ")
+	modified, err := jsonPatch.ApplyIndent(resource, "  ")
 	if err != nil {
 		return nil, err
 	}
 
 	return modified, nil
+}
+
+func (e Engine) findPatch(name string) *Patch {
+	var patch *Patch
+	for i, p := range e.patches {
+		if p.Name == name {
+			patch = &e.patches[i]
+			break
+		}
+	}
+	return patch
 }
 
 func loadTemplate(patches Patches) (*template.Template, error) {

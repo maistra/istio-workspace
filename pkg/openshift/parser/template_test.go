@@ -125,10 +125,6 @@ parameters:
     description: "The namespace to watch. Leave empty for cluster wide watch."
     required: false
     value: ""
-  - name: TELEPRESENCE_VERSION
-    description: "Underlying Telepresence version used to deploy its images when swapping deployments in the cluster"
-    required: true
-    value: "0.101"
 objects:
   - kind: Deployment
     apiVersion: apps/v1
@@ -168,6 +164,4 @@ objects:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
-                - name: TELEPRESENCE_VERSION
-                  value: "0.101"
 `
