@@ -601,12 +601,12 @@
   revision = "227bd74c34825787d52452ecf0916929863b787c"
 
 [[projects]]
-  digest = "1:548ced2e218c93adff27b98358e2af602401e869465a0d470689caa717299bee"
+  digest = "1:a1440ebbcb42dca581a6d557749cb72770e17b3bf7751f953ae2b0606cd65013"
   name = "go.uber.org/multierr"
   packages = ["."]
   pruneopts = "NT"
-  revision = "c3fc3d02ec864719d8e25be2d7dde1e35a36aa27"
-  version = "v1.3.0"
+  revision = "824d08f79702fe5f54aca8400aa0d754318786e7"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -633,7 +633,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c738f1b729bce8a532d4f4e75cf3f31d506e81f07426f2c325a8b33e9d1823b8"
+  digest = "1:feabd6a6cb540862a4eae09503f2644a95551b79f09b71737435200c13f68e81"
   name = "golang.org/x/crypto"
   packages = [
     "cast5",
@@ -646,7 +646,7 @@
     "ssh/terminal",
   ]
   pruneopts = "NT"
-  revision = "8986dd9e96cf0a6f74da406c005ba3df38527c04"
+  revision = "f4817d981bb690635456c5c1c6aa0585e5d45891"
 
 [[projects]]
   branch = "master"
@@ -661,7 +661,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a5aa7e94a5fc4fc8d5ce53162b578483e4b4d4fee65c2fc1391785b6378288a9"
+  digest = "1:5900b87a85f433186b4f2fe1c35d253107cf5d4b32ec7207760c617c9156512a"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -675,7 +675,7 @@
     "idna",
   ]
   pruneopts = "NT"
-  revision = "fe3aa8a4527195a6057b3fad46619d7d090e99b5"
+  revision = "7e6e90b9ea8824b29cbeee76d03ef838c9187418"
 
 [[projects]]
   branch = "master"
@@ -690,14 +690,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8cea35c55e5b02256cd36c52e194d5425bb222835597ccf3ed70fce44a0e548f"
+  digest = "1:2605bae4a1fb1e81c749214b81a8a5b1671926048ab15ec8971344196a24d64e"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "NT"
-  revision = "f43be2a4598cf3a47be9f94f0c28197ed9eae611"
+  revision = "c1f44814a5cd81a6d1cb589ef1e528bc5d305e07"
 
 [[projects]]
   digest = "1:348fa8283a7c60b5b71ce04d27b37f7c0fce552d4d0b463b5b3ebbd1840d3f1a"
@@ -747,7 +747,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:76405bc507b8782a2b386016b4c497914dd11d6a0b72d6495a74da3fb126dc20"
+  digest = "1:ac00b406369e7015db3fd80ab2e40ec083740b5f010f884835d39bfe3687743b"
   name = "golang.org/x/tools"
   packages = [
     "go/analysis",
@@ -770,7 +770,7 @@
     "internal/span",
   ]
   pruneopts = "NT"
-  revision = "6d8f1af9ccc0737695ff54584220e9967e9e661b"
+  revision = "f7ea15e60b12ba031eaab7e3247e845e5c7eba73"
 
 [[projects]]
   branch = "master"
@@ -841,12 +841,12 @@
   revision = "dd632973f1e7218eb1089048e0798ec9ae7dceb8"
 
 [[projects]]
-  digest = "1:accc3bfe4e404aa53ac3621470e7cf9fce1efe48f0fabcfe6d12a72579d9d91f"
+  digest = "1:5ad10df0893403ae9fdbd17c6f14814394a635339dd79595600bae52432befcf"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NT"
-  revision = "f221b8435cfb71e54062f6c6e99e9ade30b124d5"
-  version = "v2.2.4"
+  revision = "f90ceb4f409096b60e2e9076b38b304b8246e5fa"
+  version = "v2.2.5"
 
 [[projects]]
   digest = "1:5e299823796b9c3d7da126bef904b0c882c5b4e1e7f61465f5935b75aa7f2029"
@@ -1115,7 +1115,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:47f6eeee493d9c836b1585d4251ebad7396d42c204d27bfd3efdfd3951d8cbb1"
+  digest = "1:2f41eab9596e66f604ae792e64f9ec2b7b3bfe52eb9f8d5bdab6718e5f0b692b"
   name = "k8s.io/gengo"
   packages = [
     "args",
@@ -1128,7 +1128,7 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "7fa3014cb28f99ce2d9e803bcd3efa7edd4effa9"
+  revision = "e500ee069b5c8469a9e278b53cb41bd65404bfd9"
 
 [[projects]]
   digest = "1:2c76089e62b6a1c8a48e87f47f7ac3069962a520e553db28d458d3e75d5fed3f"
