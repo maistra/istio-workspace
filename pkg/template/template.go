@@ -31,7 +31,7 @@ func NewDefaultEngine() *Engine {
 		{
 			Name: "telepresence",
 			Template: []byte(`
-{{ if variableExists .Vars "version" -}}
+{{ failIfVariableDoesNotExist .Vars "version" -}}
 [	
 					{{ template "_basic-version" . }}
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
@@ -53,9 +53,6 @@ func NewDefaultEngine() *Engine {
 				},
 					{{ template "_basic-remove" . }}
 				]
-{{ else -}}
-{{ fail "expected %s variable to be set" "version" -}}
-{{end}}
 `),
 			Variables: map[string]string{
 				"version": "",
@@ -292,11 +289,11 @@ func (e Engine) findPatch(name string) *Patch {
 func loadTemplate(patches Patches) (*template.Template, error) {
 	var err error
 	t := template.New("workspace").Funcs(template.FuncMap{
-		"variableExists": func(vars map[string]string, name string) bool {
-			return vars != nil && vars[name] != ""
-		},
-		"fail": func(format string, args ...string) (interface{}, error) {
-			return nil, fmt.Errorf(format, args)
+		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
+			if vars == nil || vars[name] == "" {
+				return "", fmt.Errorf("expected %s variable to be set", name)
+			}
+			return "", nil
 		},
 	})
 	for _, p := range patches {
