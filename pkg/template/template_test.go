@@ -110,6 +110,14 @@ var _ = Describe("Operations for template system", func() {
 				Expect(string(o)).To(ContainSubstring("1000"))
 				Expect(string(o)).To(ContainSubstring("x-x-v"))
 			})
+
+			It("should fail when no version is provided", func() {
+				e := template.NewDefaultEngine()
+
+				_, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{})
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("expected version variable to be set"))
+			})
 		})
 
 		Context("preparedimage", func() {

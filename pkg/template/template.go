@@ -30,9 +30,10 @@ func NewDefaultEngine() *Engine {
 		},
 		{
 			Name: "telepresence",
-			Template: []byte(`[
+			Template: []byte(`
+{{ failIfVariableDoesNotExist .Vars "version" -}}
+[	
 					{{ template "_basic-version" . }}
-
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 
 				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
@@ -51,7 +52,8 @@ func NewDefaultEngine() *Engine {
 				}
 				},
 					{{ template "_basic-remove" . }}
-				]`),
+				]
+`),
 			Variables: map[string]string{
 				"version": "",
 			},
@@ -226,14 +228,14 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 		return nil, err
 	}
 
-	patchVariables := map[string]string{}
-	// Load default variables
-	defaultVariables := map[string]string{}
-	for _, p := range e.patches {
-		if p.Name == name {
-			defaultVariables = p.Variables
-		}
+	patch := e.findPatch(name)
+	if patch == nil {
+		return nil, fmt.Errorf("unable to find patch %s", name)
 	}
+
+	patchVariables := map[string]string{}
+	defaultVariables := patch.Variables
+
 	for k, v := range defaultVariables {
 		patchVariables[k] = v
 	}
@@ -260,12 +262,12 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	}
 
 	// Apply patch
-	patch, err := jsonpatch.DecodePatch(rawPatch.Bytes())
+	jsonPatch, err := jsonpatch.DecodePatch(rawPatch.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	modified, err := patch.ApplyIndent(resource, "  ")
+	modified, err := jsonPatch.ApplyIndent(resource, "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -273,9 +275,27 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	return modified, nil
 }
 
+func (e Engine) findPatch(name string) *Patch {
+	var patch *Patch
+	for i, p := range e.patches {
+		if p.Name == name {
+			patch = &e.patches[i]
+			break
+		}
+	}
+	return patch
+}
+
 func loadTemplate(patches Patches) (*template.Template, error) {
 	var err error
-	t := template.New("workspace")
+	t := template.New("workspace").Funcs(template.FuncMap{
+		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
+			if vars == nil || vars[name] == "" {
+				return "", fmt.Errorf("expected %s variable to be set", name)
+			}
+			return "", nil
+		},
+	})
 	for _, p := range patches {
 		t, err = t.New(p.Name).Parse(string(p.Template))
 		if err != nil {
