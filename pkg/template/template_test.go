@@ -116,7 +116,7 @@ var _ = Describe("Operations for template system", func() {
 
 				_, err := e.Run("telepresence", []byte(testDeployment), "1000", map[string]string{})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("expected version variable to be set"))
+				Expect(err.Error()).To(ContainSubstring("expected [version] variable to be set"))
 			})
 		})
 

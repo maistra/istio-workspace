@@ -30,9 +30,10 @@ func NewDefaultEngine() *Engine {
 		},
 		{
 			Name: "telepresence",
-			Template: []byte(`[
+			Template: []byte(`
+{{ if variableExists .Vars "version" -}}
+[	
 					{{ template "_basic-version" . }}
-
 				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 
 				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
@@ -51,15 +52,13 @@ func NewDefaultEngine() *Engine {
 				}
 				},
 					{{ template "_basic-remove" . }}
-				]`),
+				]
+{{ else -}}
+{{ fail "expected %s variable to be set" "version" -}}
+{{end}}
+`),
 			Variables: map[string]string{
 				"version": "",
-			},
-			Validate: func(vars map[string]string) error {
-				if vars["version"] == "" {
-					return fmt.Errorf("expected version variable to be set")
-				}
-				return nil
 			},
 		},
 		{
@@ -160,7 +159,6 @@ type Patch struct {
 	Name      string
 	Template  []byte
 	Variables map[string]string
-	Validate  func(vars map[string]string) error
 }
 
 // Patches holds all known patch templates for a Engine
@@ -259,13 +257,6 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 		Vars:       patchVariables,
 	}
 
-	// Validate patch variables
-	if patch.Validate != nil {
-		if validationErr := patch.Validate(c.Vars); validationErr != nil {
-			return nil, validationErr
-		}
-	}
-
 	// Run Template
 	rawPatch := new(bytes.Buffer)
 	err = t.ExecuteTemplate(rawPatch, name, c)
@@ -300,7 +291,14 @@ func (e Engine) findPatch(name string) *Patch {
 
 func loadTemplate(patches Patches) (*template.Template, error) {
 	var err error
-	t := template.New("workspace")
+	t := template.New("workspace").Funcs(template.FuncMap{
+		"variableExists": func(vars map[string]string, name string) bool {
+			return vars != nil && vars[name] != ""
+		},
+		"fail": func(format string, args ...string) (interface{}, error) {
+			return nil, fmt.Errorf(format, args)
+		},
+	})
 	for _, p := range patches {
 		t, err = t.New(p.Name).Parse(string(p.Template))
 		if err != nil {
