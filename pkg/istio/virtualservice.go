@@ -97,8 +97,10 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
 			for _, r := range h.Route {
-				if r.Destination.Host == host && r.Destination.Subset == subset {
-					routes = append(routes, h)
+				if r.Destination != nil && r.Destination.Host == host {
+					if r.Destination.Subset == "" || r.Destination.Subset == subset {
+						routes = append(routes, h)
+					}
 				}
 			}
 		}
@@ -106,7 +108,8 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 	}
 	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host, subset string) v1alpha3.HTTPRoute {
 		for i, r := range http.Route {
-			if !(r.Destination.Host == host && r.Destination.Subset == subset) {
+			if !((r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == subset) ||
+				(r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == "")) {
 				http.Route = append(http.Route[:i], http.Route[i+1:]...)
 			}
 		}

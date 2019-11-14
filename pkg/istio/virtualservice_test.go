@@ -51,6 +51,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					targetV5              = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
 					targetV5Host          = "details"
 					targetV5Subset        = "v5-vs-test"
+					targetV6              = model.NewLocatedResource("Deployment", "x-v5", map[string]string{"version": "v5"})
+					targetV6Host          = "x"
+					targetV6Subset        = "v5-vs-test"
 				)
 
 				BeforeEach(func() {
@@ -151,6 +154,29 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
+				})
+				It("include destinations with no subset", func() {
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV6, virtualService)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(GetMutatedRoute(mutatedVirtualService, targetV6Host, targetV6Subset).Redirect).To(BeNil())
+				})
+
+				It("route missing", func() {
+					_, err = mutateVirtualService(
+						ctx,
+						model.NewLocatedResource("Deployment", "miss-v5", map[string]string{"version": "v5"}),
+						virtualService)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("route not found"))
+				})
+				It("route missing version", func() {
+					_, err = mutateVirtualService(
+						ctx,
+						model.NewLocatedResource("Deployment", "details-v10", map[string]string{"version": "v10"}),
+						virtualService)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
 			})
 		})
