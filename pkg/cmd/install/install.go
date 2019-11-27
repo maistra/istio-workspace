@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/maistra/istio-workspace/version"
 
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
@@ -48,9 +50,22 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 	if err != nil {
 		return err
 	}
+
 	local, err := cmd.Flags().GetBool("local")
 	if err != nil {
 		return err
+	}
+
+	if local && !cmd.Flags().Changed("namespace") {
+		kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			clientcmd.NewDefaultClientConfigLoadingRules(),
+			&clientcmd.ConfigOverrides{},
+		)
+
+		if namespace, _, err = kubeCfg.Namespace(); err != nil {
+			log.Error(err, "failed to read k8s config")
+			return err
+		}
 	}
 
 	// Propagates NAMESPACE env var which is used by templates
