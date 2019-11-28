@@ -73,6 +73,10 @@ var _ = Describe("Usage of ike command configuration", func() {
 
 	Context("override order", func() {
 
+		AfterEach(func() {
+			CleanUpTmpFiles(GinkgoT())
+		})
+
 		It("should use command name context over env global", func() {
 			defer TemporaryEnvVars("IKE_ARG", otherValue)()
 			defer TemporaryEnvVars("IKE_TEST_ARG", expectedValue)()
