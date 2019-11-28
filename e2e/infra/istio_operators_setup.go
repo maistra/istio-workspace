@@ -25,8 +25,8 @@ func BuildOperator() (registry string) {
 	return
 }
 
-// DeployLocalOperator deploys istio-workspace operator into specified namespace
-func DeployLocalOperator(namespace string) {
+// PushOperatorImage deploys istio-workspace operator into specified namespace
+func PushOperatorImage(namespace string) {
 	projectDir := shell.GetProjectDir()
 	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
 	LoginAsTestPowerUser()
@@ -37,6 +37,9 @@ func DeployLocalOperator(namespace string) {
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
 
 	setDockerEnvForLocalOperatorDeploy(namespace)
+}
+
+func InstallLocalOperator(namespace string) {
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
 }
 
