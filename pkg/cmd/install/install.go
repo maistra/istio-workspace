@@ -15,7 +15,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 
-	"github.com/maistra/istio-workspace/pkg/openshift/dynclient"
+	"github.com/maistra/istio-workspace/pkg/client/dynclient"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
