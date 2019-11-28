@@ -12,7 +12,7 @@ var log = logf.Log.WithName("cmd").WithValues("type", "create")
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
-	developCmd := &cobra.Command{
+	createCmd := &cobra.Command{
 		Use:          "create",
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
@@ -25,22 +25,22 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
-	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
-	developCmd.Flags().StringP("image", "i", "", "create a prepared session with the given image")
-	developCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. "+
+	createCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
+	createCmd.Flags().StringP("session", "s", "", "create or join an existing session")
+	createCmd.Flags().StringP("image", "i", "", "create a prepared session with the given image")
+	createCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. "+
 		"Defaults to X-Workspace-Route header with current session name value")
-	developCmd.Flags().StringP("namespace", "n", "", "target namespace to develop against "+
+	createCmd.Flags().StringP("namespace", "n", "", "target namespace to develop against "+
 		"(defaults to default for the current context)")
-	developCmd.Flags().Bool("offline", false, "avoid calling external sources")
-	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
+	createCmd.Flags().Bool("offline", false, "avoid calling external sources")
+	if err := createCmd.Flags().MarkHidden("offline"); err != nil {
 		log.Error(err, "failed while trying to hide a flag")
 	}
 
-	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
+	createCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(createCmd))
 
-	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired("image")
+	_ = createCmd.MarkFlagRequired("deployment")
+	_ = createCmd.MarkFlagRequired("image")
 
-	return developCmd
+	return createCmd
 }
