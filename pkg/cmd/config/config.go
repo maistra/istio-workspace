@@ -80,6 +80,10 @@ func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	if value != "" && !cmd.Flag(flagName).Changed {
 		return cmd.Flags().Set(flagName, value)
 	}
+	value = viper.GetString(flagName)
+	if value != "" && !cmd.Flag(flagName).Changed {
+		return cmd.Flags().Set(flagName, value)
+	}
 	return nil
 }
 
@@ -109,5 +113,6 @@ func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 func BindFullyQualifiedFlag(cmd *cobra.Command) func(flag *pflag.Flag) {
 	return func(flag *pflag.Flag) {
 		_ = viper.BindPFlag(cmd.Name()+"."+flag.Name, flag)
+		_ = viper.BindPFlag(flag.Name, flag)
 	}
 }
