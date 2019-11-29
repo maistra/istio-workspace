@@ -37,7 +37,7 @@ var _ = Describe("Operator Installation Tests", func() {
 
 		It("install ike operator into current namespace", func() {
 			// given
-			projectName := "ike-local-installation-defined-namespace-" + naming.RandName(16)
+			projectName := "ike-local-installation-current-namespace-" + naming.RandName(16)
 			<-testshell.Execute(NewProjectCmd(projectName)).Done()
 			defer func() {
 				<-testshell.Execute(DeleteProjectCmd(projectName)).Done()
@@ -45,7 +45,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			PushOperatorImage(projectName)
 
 			// when
-			<-testshell.Execute("ike install-operator -l").Done()
+			<-testshell.Execute("ike install-operator --local").Done()
 
 			// then
 			operatorPodName := GetAllPods(projectName)[0]
