@@ -4,7 +4,6 @@ import (
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apixv1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +19,6 @@ import (
 type Client struct {
 	Namespace string
 	dynClient dynamic.Interface
-	crdClient apixv1beta1client.ApiextensionsV1beta1Client
 	clientset *kubernetes.Clientset
 	mapper    meta.RESTMapper
 }
@@ -51,16 +49,10 @@ func NewDefaultDynamicClient(namespace string) (*Client, error) {
 		return nil, err
 	}
 
-	crdClient, err := apixv1beta1client.NewForConfig(restCfg)
-	if err != nil {
-		return nil, err
-	}
-
 	rm := restmapper.NewDiscoveryRESTMapper(groupResources)
 
 	return &Client{dynClient: dynClient,
 			clientset: clientset,
-			crdClient: *crdClient,
 			mapper:    rm,
 			Namespace: namespace},
 		nil

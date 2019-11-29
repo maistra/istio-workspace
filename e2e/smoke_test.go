@@ -78,7 +78,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
-			DeployLocalOperator(namespace)
+			PushOperatorImage(namespace)
+			InstallLocalOperator(namespace)
 			BuildTestService(namespace)
 			DeployTestScenario(scenario, namespace)
 		})

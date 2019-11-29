@@ -77,7 +77,7 @@ var _ = SynchronizedAfterSuite(func() {},
 		if manageCluster() {
 			executeWithTimer(func() {
 				fmt.Println("\nStopping Openshift/Istio cluster")
-				testshell.Execute("oc cluster down")
+				<-testshell.Execute("oc cluster down").Done()
 			})
 		}
 
@@ -103,8 +103,8 @@ func createProjectsForCompletionTests() {
 func deleteProjectsForCompletionTests() {
 	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
-		"oc delete project "+CompletionProject1,
-		"oc delete project "+CompletionProject2,
+		DeleteProjectCmd(CompletionProject1),
+		DeleteProjectCmd(CompletionProject2),
 	)
 }
 
