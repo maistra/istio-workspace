@@ -63,7 +63,8 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint[:unpara
 		)
 
 		if namespace, _, err = kubeCfg.Namespace(); err != nil {
-			log.Error(err, "failed to read k8s config")
+			log.Error(err, fmt.Sprintf("failed to read k8s config file [%s]. "+
+				"use --namespace to define existing target namespace", kubeCfg.ConfigAccess().GetExplicitFile()))
 			return err
 		}
 	}
