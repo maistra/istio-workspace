@@ -39,12 +39,12 @@ func basic(config Config, log logr.Logger) http.HandlerFunc {
 			b, err := Asset("index.html")
 			if err != nil {
 				resp.WriteHeader(500)
-				resp.Write([]byte(err.Error()))
+				_, _ = resp.Write([]byte(err.Error()))
 				return
 			}
 			resp.Header().Set("content-type", "text/html")
 			resp.WriteHeader(200)
-			resp.Write(b)
+			_, _ = resp.Write(b)
 			return
 		}
 
