@@ -16,29 +16,15 @@
   </head>
   <body>
     <div id="app">
-        <nav class="navbar">
-            <div class="navbar-brand">
-              <a class="navbar-item" href="https://github.com/maistra/istio-workspace">
-                istio-workspace - test service
-              </a>
-            </div>
-<!--
-            <div class="navbar-menu">
-              <div class="navbar-end">
-                <div class="navbar-item">
-                  <div class="select">
-                    <select v-model="session">
-                      <option disabled>Select session</option>
-                      <option v-for="session in sessions" v-bind:value="session.url">{{session.name}}</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
--->
-            </div>
-          </nav>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="https://github.com/maistra/istio-workspace">
+            istio-workspace - test service
+          </a>
+        </div>
+      </nav>
 
-        <stack v-bind:frame="stacks"></stack>
+      <stack v-bind:frame="stacks"></stack>
     </div>
   </body>
 </html>
@@ -67,27 +53,6 @@ const store = new Vuex.Store({
         });
       });
     },
-    refreshSessions(context) {
-      return new Promise((resolve) => {
-        /*
-        axios.get(window.location + "/_sessions").then((response) => {
-          context.commit('updateSessions', response.data);
-          resolve();
-        });
-        */
-        context.commit('updateSessions', [
-          {
-            name: "prod",
-            url: "http://aslak-test.com/",
-          },
-          {
-            name: "feature-x",
-            url: "http://feature-x.aslak-test.com/"
-          }
-        ]);
-        resolve();
-      });
-    }
   }
 })
 
@@ -140,7 +105,6 @@ var app = new Vue({
   },
   created: function() {
     store.dispatch('refreshStack')
-    store.dispatch('refreshSessions')
   },
   computed: {
     stacks: function() {
@@ -152,8 +116,8 @@ var app = new Vue({
   }
 })
 
-function getStack() {
-  return {
+/* data example
+{
     "caller": "productpage-v1",
     "path": "/",
     "startTime": "2019-07-10T16:33:08.427415206Z",
@@ -213,4 +177,5 @@ function getStack() {
     ]
   }
 }
+*/
 </script>
