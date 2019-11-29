@@ -36,6 +36,10 @@ func NewProjectCmd(name string) string {
 	return fmt.Sprintf(`oc new-project %s --description "%s"`, name, "istio-workspace test project")
 }
 
+func DeleteProjectCmd(name string) string {
+	return fmt.Sprintf(`oc delete project %s`, name)
+}
+
 // CreateNewApp creates new project with a given name, deploys simple datawire/hello-world app and exposes route to
 // it service
 func CreateNewApp(name string) {
