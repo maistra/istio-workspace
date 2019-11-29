@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"fmt"
+
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	testshell "github.com/maistra/istio-workspace/test/shell"
