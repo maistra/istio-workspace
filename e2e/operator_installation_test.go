@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	testshell "github.com/maistra/istio-workspace/test/shell"
@@ -12,19 +13,36 @@ import (
 	"time"
 )
 
-var _ = Describe("Operator Installation Tests", func() {
+var _ = FDescribe("Operator Installation Tests", func() {
 
-	Context("local installation", func() {
+	Context("local ike operator installation", func() {
 
-		It("install ike operator into specified namespace", func() {
-			// given
-			projectName := "ike-local-installation-defined-namespace-" + naming.RandName(16)
+		var projectName string
+
+		BeforeEach(func() {
+			projectName = strings.ReplaceAll(CurrentGinkgoTestDescription().TestText, " ", "-") + "-" + naming.RandName(16)
+			projectName = strings.ReplaceAll(projectName, "should", "ike")
 			<-testshell.Execute(NewProjectCmd(projectName)).Done()
-			defer func() {
-				<-testshell.Execute(DeleteProjectCmd(projectName)).Done()
-			}()
 			PushOperatorImage(projectName)
+		})
 
+		AfterEach(func() {
+			if CurrentGinkgoTestDescription().Failed {
+				pods := GetAllPods(projectName)
+				for _, pod := range pods {
+					printBanner()
+					fmt.Println("Logs of " + pod)
+					fmt.Println(LogsOf(projectName, pod))
+					printBanner()
+					StateOf(projectName, pod)
+					printBanner()
+				}
+				GetEvents(projectName)
+			}
+			<-testshell.Execute(DeleteProjectCmd(projectName)).Done()
+		})
+
+		It("should install into specified namespace", func() {
 			// when
 			<-testshell.Execute("ike install-operator -l -n " + projectName).Done()
 
@@ -35,15 +53,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			ensureOperatorPodIsRunning(operatorPodName, projectName)
 		})
 
-		It("install ike operator into current namespace", func() {
-			// given
-			projectName := "ike-local-installation-current-namespace-" + naming.RandName(16)
-			<-testshell.Execute(NewProjectCmd(projectName)).Done()
-			defer func() {
-				<-testshell.Execute(DeleteProjectCmd(projectName)).Done()
-			}()
-			PushOperatorImage(projectName)
-
+		It("should install into current namespace", func() {
 			// when
 			<-testshell.Execute("ike install-operator --local").Done()
 
