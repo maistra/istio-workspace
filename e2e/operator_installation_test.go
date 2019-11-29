@@ -49,7 +49,7 @@ var _ = FDescribe("Operator Installation Tests", func() {
 
 			// then
 			operatorPodName := GetAllPods(projectName)[0]
-			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllPodsReady(projectName), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, projectName)
 		})
@@ -60,7 +60,8 @@ var _ = FDescribe("Operator Installation Tests", func() {
 
 			// then
 			operatorPodName := GetAllPods(projectName)[0]
-			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			fmt.Printf("%v\n", GetAllPods(projectName))
+			Eventually(AllPodsReady(projectName), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, projectName)
 		})
