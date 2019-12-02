@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="istio-workspace Test Service simple UI">
+
+  <title>istio-workspace: Test Service</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.css" integrity="sha256-ujE/ZUB6CMZmyJSgQjXGCF4sRRneOimQplBVLu8OU5w=" crossorigin="anonymous" />
+  <script src="https://vuejs.org/js/vue.js"></script>
+  <script src="https://unpkg.com/vuex@2.0.0"></script>
+  <script src="https://unpkg.com/axios@0.19.0/dist/axios.min.js"></script>
+
+  </head>
+  <body>
+    <div id="app">
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a class="navbar-item" href="https://github.com/maistra/istio-workspace">
+            istio-workspace - test service
+          </a>
+        </div>
+      </nav>
+
+      <stack v-bind:frame="stacks"></stack>
+    </div>
+  </body>
+</html>
+
+<script lang="text/javascript">
+
+const store = new Vuex.Store({
+  state: {
+    sessions: [],
+    stack: null,
+  },
+  mutations: {
+    updateStack(state, payload) {
+      state.stack = payload
+    },
+    updateSessions(state, payload) {
+      state.sessions = payload
+    }
+  },
+  actions: {
+    refreshStack(context) {
+      return new Promise((resolve) => {
+        axios.get(window.location, {}).then((response) => {
+          context.commit('updateStack', response.data);
+          resolve();
+        });
+      });
+    },
+  }
+})
+
+Vue.component('stacks', {
+  template: `
+    <div class="columns">
+      <stack v-for="frame in frames" v-bind:frame="frame" v-bind:key="frame.caller"></stack>
+    </div>
+  `,
+  props: ['frames'],
+})
+
+Vue.component('stack', {
+  template: `
+    <div class="column" v-if="frame">
+      <div class="card" v-bind:style="{backgroundColor: frame.color}">
+        <header class="card-header">
+          <p class="card-header-title">{{frame.caller}}</p>
+          <p class="card-header-title">{{executionTime}} ms</p>
+        </header>
+        <div class="card-content" v-if="hasCalled">
+          <stacks v-bind:frames="frame.called"></stacks>
+        </div>
+        <footer class="card-footer">
+          <p class="card-footer-item">{{frame.path}}</p>
+        </footer>
+      </div>
+    </div>
+  `,
+  props: ['frame'],
+  computed: {
+    executionTime: function() {
+      return new Date(this.frame.endTime) - new Date(this.frame.startTime);
+    },
+    hasCalled: function() {
+      return this.frame.called != null && this.frame.called.length > 0;
+    },
+  },
+})
+
+var app = new Vue({
+  el: "#app",
+  data: {
+    session: window.location,
+  },
+  watch: {
+    session: function(val) {
+      window.location = val;
+    },
+  },
+  created: function() {
+    store.dispatch('refreshStack')
+  },
+  computed: {
+    stacks: function() {
+      return store.state.stack;
+    },
+    sessions: function() {
+      return store.state.sessions;
+    }
+  }
+})
+
+/* data example
+{
+    "caller": "productpage-v1",
+    "path": "/",
+    "startTime": "2019-07-10T16:33:08.427415206Z",
+    "endTime": "2019-07-10T16:33:08.434293412Z",
+    "called": [
+        {
+            "caller": "reviews-v1",
+            "path": "/",
+            "startTime": "2019-07-10T16:33:08.428916977Z",
+            "endTime": "2019-07-10T16:33:08.432430511Z",
+            "called": [],
+        },
+        {
+            "caller": "reviews-v2",
+            "path": "/",
+            "startTime": "2019-07-10T16:33:08.428916977Z",
+            "endTime": "2019-07-10T16:33:08.432430511Z",
+            "called": [
+                {
+                    "caller": "ratings-v1",
+                    "path": "/",
+                    "startTime": "2019-07-10T16:33:08.430651057Z",
+                    "endTime": "2019-07-10T16:33:08.430651321Z",
+                    "called": [],
+                },
+                {
+                    "caller": "details-v1",
+                    "path": "/",
+                    "startTime": "2019-07-10T16:33:08.430651057Z",
+                    "endTime": "2019-07-10T16:33:08.430651321Z",
+                    "called": [],
+                },
+                {
+                    "caller": "test-v1",
+                    "path": "/",
+                    "startTime": "2019-07-10T16:33:08.430651057Z",
+                    "endTime": "2019-07-10T16:33:08.430651321Z",
+                    "called": [],
+                }
+            ],
+        },
+        {
+            "caller": "reviews-v3",
+            "path": "/",
+            "startTime": "2019-07-10T16:33:08.428916977Z",
+            "endTime": "2019-07-10T16:33:08.432430511Z",
+            "called": [
+                {
+                    "caller": "ratings-v2",
+                    "path": "/",
+                    "startTime": "2019-07-10T16:33:08.430651057Z",
+                    "endTime": "2019-07-10T16:33:08.430651321Z",
+                    "called": [],
+                }
+            ],
+        },
+    ]
+  }
+}
+*/
+</script>
