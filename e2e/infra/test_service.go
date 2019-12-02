@@ -52,9 +52,7 @@ func DeployTestScenario(scenario, namespace string) {
 	LoginAsTestPowerUser()
 	if ClientVersion() == 4 {
 		<-shell.ExecuteInDir(".", "bash", "-c",
-			"oc get ServiceMeshMemberRoll default -n "+GetIstioNamespace()+" -o json | jq '.spec.members[.spec.members | length] |= \""+
-				namespace+"\"' | oc apply -f - -n "+GetIstioNamespace()).Done()
-
+			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members", "value":["'"`+namespace+`"'"]}]'`).Done()
 		gomega.Eventually(func() string {
 			return GetProjectLabels(namespace)
 		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
