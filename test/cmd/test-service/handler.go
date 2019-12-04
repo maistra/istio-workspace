@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -20,6 +21,7 @@ type Config struct {
 type CallStack struct {
 	Caller    string      `json:"caller"`
 	Path      string      `json:"path"`
+	Color     string      `json:"color"`
 	StartTime time.Time   `json:"startTime"`
 	EndTime   time.Time   `json:"endTime"`
 	Called    []CallStack `json:"called,omitempty"`
@@ -33,11 +35,25 @@ func NewBasic(config Config, log logr.Logger) http.HandlerFunc {
 func basic(config Config, log logr.Logger) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		logIncomingRequest(log, req)
+		if strings.Contains(req.Header.Get("accept"), "text/html") {
+			b, err := Asset("index.html")
+			if err != nil {
+				resp.WriteHeader(500)
+				_, _ = resp.Write([]byte(err.Error()))
+				return
+			}
+			resp.Header().Set("content-type", "text/html")
+			resp.WriteHeader(200)
+			_, _ = resp.Write(b)
+			return
+		}
+
 		start := time.Now()
 		callStack := CallStack{
 			Caller:    config.Name,
 			Path:      req.URL.Path,
 			StartTime: start,
+			Color:     "#FFF",
 		}
 
 		for _, u := range config.Call {
