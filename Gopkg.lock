@@ -566,12 +566,12 @@
   version = "v1.0.5"
 
 [[projects]]
-  digest = "1:560e5bf3bb606684b7368ca532228fad4ceb1982e79f790483557db31d666e02"
+  digest = "1:b169047fe9685cc2af2e5d07017c7dad14e551989304b84f4ffa3fe714d07022"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "NT"
-  revision = "72b022eb357a56469725dcd03918449e2278d02e"
-  version = "v1.5.0"
+  revision = "eabbc68a3ecd5cf8c11a2f84dbda5e7a38493b2f"
+  version = "v1.6.1"
 
 [[projects]]
   digest = "1:f60e4a8af6b6f3940cbdd28b1262221d28b4eb4d31b87bdb7b219f5fc0f278bf"
@@ -831,6 +831,14 @@
   pruneopts = "NT"
   revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
   version = "v0.9.1"
+
+[[projects]]
+  digest = "1:8494bcc9076fa2b75859eb26dd1d26735812a5a4f9d5364b817a5c0a4f634e1b"
+  name = "gopkg.in/ini.v1"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "87e589f4917038ae250cff2446db7573f47e97ca"
+  version = "v1.51.0"
 
 [[projects]]
   branch = "v1"
