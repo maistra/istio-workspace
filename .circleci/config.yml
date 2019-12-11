@@ -175,13 +175,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Sets up Quay.io"
-          command: |
-            mkdir -p ~/.docker && chmod 0700 ~/.docker
-            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
-            echo $QUAY_AUTH_JSON > ~/.docker/config.json
-            docker login quay.io
-      - run:
           name: "Installs release tools prerequisites"
           command: |
             gem install asciidoctor
@@ -189,12 +182,25 @@ jobs:
       - run:
           <<: *golang-install
       - run:
+          name: "Installs GitHub Changelog Generator"
+          command: |
+            ghc_dir=$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)
+            sudo mv $ghc_dir/ghc /usr/local/bin/
+      - run:
+          name: "Sets up Quay.io"
+          command: |
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
+      - run:
           name: "Push it!"
           command: |
             make deps docker-build docker-push-versioned
       - run:
           name: "Release it!"
           command: |
+            ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc
             asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> converted-release-notes.md
             curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=converted-release-notes.md
 
