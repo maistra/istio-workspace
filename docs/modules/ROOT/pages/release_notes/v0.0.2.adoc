@@ -1,0 +1,20 @@
+== Highlights of v0.0.2 release
+
+Below you will find an exhaustive list of all the improvements since last release, but those are
+
+=== Support for multiple development strategies
+
+In v 0.0.1 we only supported to prepare a telepresence session. In this release we've expanded this to allow
+specifying a strategy per Ref in the Session object. Currenty, we support two strategies: telepresence and prepared-image.
+The new prepared-image strategy allow you to setup a route for an pre-built image and is a perfect fit for usage in a CI system.
+When using ike cli, the `develop` command will use the telepresence strategy while `create` will use the prepared-image strategy. The `create` command is non blocking compared to `develop`. `create` comes with a companion command `delete` to clean up
+
+=== Installing operator locally
+
+Now you also can deploy operator to your local namespace, so where your project lives. This way only your namespace is watched.
+
+Simply invoke `ike install-operator -l`
+
+To learn more head over to the https://istio-workspace-docs.netlify.com/istio-workspace/v0.0.2/index.html[official docs].
+
+== All changes since v0.0.1
