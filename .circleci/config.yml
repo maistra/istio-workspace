@@ -178,7 +178,7 @@ jobs:
       - run:
           name: "Validate release"
           command: |
-            ./scritps/validate.sh "${CIRCLE_TAG}"
+            ./scripts/validate.sh "${CIRCLE_TAG}"
       - run:
           name: "Installs release tools prerequisites"
           command: |
