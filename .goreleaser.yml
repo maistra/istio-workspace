@@ -5,7 +5,7 @@ builds:
 - env:
   - CGO_ENABLED=0
   ## Overlaps with what is defined in Makefile - we should find a away of having it defined only once
-  - PACKAGE_NAME=github.com/maistra/istio-workspace
+  - PACKAGE_NAME={{ .Env.PACKAGE_NAME }}
   - RELEASE=true
   main: ./cmd/ike
   binary: ike
