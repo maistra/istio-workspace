@@ -1,13 +1,18 @@
 == Highlights of v0.0.2 release
 
-Below you will find an exhaustive list of all the improvements since last release, but those are
+Below you will find an exhaustive list of all the improvements since last release, but those are the most important changes:
 
 === Support for multiple development strategies
 
-In v 0.0.1 we only supported to prepare a telepresence session. In this release we've expanded this to allow
-specifying a strategy per Ref in the Session object. Currenty, we support two strategies: telepresence and prepared-image.
-The new prepared-image strategy allow you to setup a route for an pre-built image and is a perfect fit for usage in a CI system.
-When using ike cli, the `develop` command will use the telepresence strategy while `create` will use the prepared-image strategy. The `create` command is non blocking compared to `develop`. `create` comes with a companion command `delete` to clean up
+In `v0.0.1` we only supported preparation of a telepresence session. In this release we've expanded this to allow specifying a strategy per Ref in the Session object. 
+
+Currently, we support two strategies: `telepresence` for local development and `prepared-image`.
+
+The new `prepared-image` strategy allow you to setup a route for a pre-built image. It is a perfect fit for a CI system.
+
+When using ike cli, the `develop` command will use the `telepresence` strategy while `create` will use the 
+`prepared-image` strategy. The `create` command is non blocking compared to `develop`. The `create` command comes with 
+a companion command `delete` to clean up when e.g. PR is merged.
 
 === Installing operator locally
 
