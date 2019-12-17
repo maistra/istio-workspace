@@ -58,7 +58,7 @@ var _ = Describe("Bash Completion Tests", func() {
 
 		It("should show available deployments for current namespace (datawire-project)", func() {
 			<-shell.Execute("oc project " + CompletionProject1).Done()
-			Expect(completionFor("ike develop -d ")).To(ConsistOf("my-datawire-deployment"))
+			Expect(completionFor("ike develop -d ")).To(ConsistOf(CompletionProject1))
 		})
 
 		It("should show available deployments for selected namespace (datawire-other-project)", func() {
