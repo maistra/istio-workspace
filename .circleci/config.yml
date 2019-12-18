@@ -13,7 +13,6 @@ defaults:
     IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
     IKE_E2E_KEEP_NS: "false"
     IKE_E2E_MANAGE_CLUSTER: "false"
-
 version: 2.1
 jobs:
 
@@ -175,17 +174,19 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Validate release"
+          command: |
+            ./scripts/validate.sh "${CIRCLE_TAG}"
+      - run:
           name: "Installs release tools prerequisites"
           command: |
+            cd ~
             gem install asciidoctor
-            sudo apt-get install pandoc
+            wget "https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-linux-amd64.tar.gz" -O "pandoc.tar.gz"
+            tar xzfv pandoc.tar.gz
+            sudo mv $PWD/pandoc-2.9/bin/pandoc /usr/local/bin/
       - run:
           <<: *golang-install
-      - run:
-          name: "Installs GitHub Changelog Generator"
-          command: |
-            ghc_dir=$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)
-            sudo mv $ghc_dir/ghc /usr/local/bin/
       - run:
           name: "Sets up Quay.io"
           command: |
@@ -200,7 +201,6 @@ jobs:
       - run:
           name: "Release it!"
           command: |
-            ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc
             asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> converted-release-notes.md
             curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=converted-release-notes.md
 
