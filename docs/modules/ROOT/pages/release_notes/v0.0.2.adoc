@@ -22,4 +22,4 @@ Simply invoke `ike install-operator -l`
 
 To learn more head over to the https://istio-workspace-docs.netlify.com/istio-workspace/v0.0.2/index.html[official docs].
 
-== All changes since v0.0.1
+== All changes in this release
