@@ -23,3 +23,88 @@ Simply invoke `ike install-operator -l`
 To learn more head over to the https://istio-workspace-docs.netlify.com/istio-workspace/v0.0.2/index.html[official docs].
 
 == All changes in this release
+
+=== New features
+
+ * chore: improves error msg when namespace is not retrievable (https://github.com/Maistra/istio-workspace/pull/314[#314]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: supports global envs for config (https://github.com/Maistra/istio-workspace/pull/272[#272]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: adds ability to validate engine Patches (https://github.com/Maistra/istio-workspace/pull/302[#302]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore: sets current dir while running telepresence (https://github.com/Maistra/istio-workspace/pull/296[#296]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore: removes hardcoded tp version (https://github.com/Maistra/istio-workspace/pull/293[#293]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: aligns telepresence version used by client and cluster (https://github.com/Maistra/istio-workspace/pull/292[#292]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(operator): allow to update the configuration of a ref in a session (https://github.com/Maistra/istio-workspace/pull/279[#279]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(cli): support creation and deletion of session without keeping cli alive (https://github.com/Maistra/istio-workspace/pull/252[#252]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(scenario): add a demo scenario and gateway host support (https://github.com/Maistra/istio-workspace/pull/256[#256]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: logs in plain-text when running as CLI (https://github.com/Maistra/istio-workspace/pull/253[#253]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(cli): prints version hint when outdated (https://github.com/Maistra/istio-workspace/pull/251[#251]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(strategy): support setting up a route for a prepared image (https://github.com/Maistra/istio-workspace/pull/248[#248]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: introduces cloning strategies (https://github.com/Maistra/istio-workspace/pull/235[#235]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: installs operator locally to selected namespace (https://github.com/Maistra/istio-workspace/pull/217[#217]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: adds labels to operator deployment (https://github.com/Maistra/istio-workspace/pull/216[#216]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(dev): deploy operator to single namespace (https://github.com/Maistra/istio-workspace/pull/215[#215]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * chore: aligns API group with maistra.io (https://github.com/Maistra/istio-workspace/pull/209[#209]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: adds opencontainers labels to operator image (https://github.com/Maistra/istio-workspace/pull/211[#211]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(template): externalize cloning of target resource (https://github.com/Maistra/istio-workspace/pull/206[#206]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(scan): scan for more virtual services to mutate (https://github.com/Maistra/istio-workspace/pull/200[#200]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(vs): do a better job at setting up the correct route (https://github.com/Maistra/istio-workspace/pull/154[#154]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(api): add API between Locators and Mutation (https://github.com/Maistra/istio-workspace/pull/98[#98]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat: ike bash and zsh autocomplete (https://github.com/Maistra/istio-workspace/pull/181[#181]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore: moves cmd logic to pkg/ (https://github.com/Maistra/istio-workspace/pull/180[#180]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+=== Bug fixes
+
+ * fix(cmd): installs operator to current namespace when --local mode used and no ns defined (https://github.com/Maistra/istio-workspace/pull/312[#312]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(operator): mutate route if subset is missing (https://github.com/Maistra/istio-workspace/pull/308[#308]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * feat(cli): return non 0 exit code on failure (https://github.com/Maistra/istio-workspace/pull/276[#276]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * fix: enables use of IKE_CONFIG env var to pass config file (https://github.com/Maistra/istio-workspace/pull/275[#275]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(cli): add sync flags to create/delete to allow ENV variables (https://github.com/Maistra/istio-workspace/pull/269[#269]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * fix: handles error coming from root cmd (https://github.com/Maistra/istio-workspace/pull/265[#265]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(develop): allow to join / leave session (https://github.com/Maistra/istio-workspace/pull/220[#220]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * fix(api): apply correct json tag to inline resource (https://github.com/Maistra/istio-workspace/pull/198[#198]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+=== Latest dependencies update
+
+ * github.com/coreos/prometheus-operator to 0.30.0 (https://github.com/Maistra/istio-workspace/pull/114[#114])
+ * github.com/go-cmd/cmd to 1.1.0 (https://github.com/Maistra/istio-workspace/pull/311[#311])
+ * github.com/google/go-github to 28.1.1 (https://github.com/Maistra/istio-workspace/pull/262[#262])
+ * github.com/google/shlex to `e7afc7f` (https://github.com/Maistra/istio-workspace/pull/316[#316])
+ * github.com/onsi/ginkgo to 1.10.3 (https://github.com/Maistra/istio-workspace/pull/297[#297])
+ * github.com/onsi/gomega to 1.7.1 (https://github.com/Maistra/istio-workspace/pull/299[#299])
+ * github.com/operator-framework/operator-sdk to 0.13.0 (https://github.com/Maistra/istio-workspace/pull/320[#320])
+ * github.com/spf13/viper to 1.6.1 (https://github.com/Maistra/istio-workspace/pull/317[#317])
+ * go.uber.org/goleak to `7380c5a` (https://github.com/Maistra/istio-workspace/pull/310[#310])
+ * sigs.k8s.io/controller-runtime to 0.3.0 (https://github.com/Maistra/istio-workspace/pull/287[#287])
+ * ubi8/ubi-minimal to 8.1 (https://github.com/Maistra/istio-workspace/pull/303[#303])
+
+=== Project infrastructure
+
+ * fix: tunes options for linters (https://github.com/Maistra/istio-workspace/pull/266[#266]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(circleci): bumps ocp client to 4.1.16 (https://github.com/Maistra/istio-workspace/pull/264[#264]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore: introduces lint-prepare target (https://github.com/Maistra/istio-workspace/pull/258[#258]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(deps): locks down prometheus-operator (https://github.com/Maistra/istio-workspace/pull/249[#249]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * fix(circleci): aligns golang version between jobs (https://github.com/Maistra/istio-workspace/pull/195[#195]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(linter): disables gofmt (https://github.com/Maistra/istio-workspace/pull/191[#191]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(make): takes first segment of GOPATH for operator-sdk (https://github.com/Maistra/istio-workspace/pull/194[#194]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(make): gopath fix + self-install (https://github.com/Maistra/istio-workspace/pull/192[#192]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(docker): update to rh ubi8 minimal base image (https://github.com/Maistra/istio-workspace/pull/187[#187]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * fix(macos): ensures istio-workspace builds on MacOS (https://github.com/Maistra/istio-workspace/pull/185[#185]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * chore(circleci): bumps golang to latest and introduces yaml anchors (https://github.com/Maistra/istio-workspace/pull/183[#183]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+=== Testing
+
+ * chore(tests): registers a project into smmr without using jq (https://github.com/Maistra/istio-workspace/pull/315[#315]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(test): test service html ui (https://github.com/Maistra/istio-workspace/pull/268[#268]), by https://github.com/aslakknutsen[@aslakknutsen]
+ * chore: enables deployment config e2e tests (https://github.com/Maistra/istio-workspace/pull/295[#295]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: introduces env var handling for tests (https://github.com/Maistra/istio-workspace/pull/294[#294]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: cleans up ServiceMeshMemberRoll spec after test execution (https://github.com/Maistra/istio-workspace/pull/283[#283]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: test infra enhancements (https://github.com/Maistra/istio-workspace/pull/278[#278]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(tests): deletes namespace on failure (https://github.com/Maistra/istio-workspace/pull/267[#267]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * fix(test): proper namespaces in cli completion test (https://github.com/Maistra/istio-workspace/pull/254[#254]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: dumps logs for failing e2e tests (https://github.com/Maistra/istio-workspace/pull/250[#250]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(tests): adjusts e2e tests to be ran against 4.1 clusters (https://github.com/Maistra/istio-workspace/pull/227[#227]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: adds opencontainers labels to test image (https://github.com/Maistra/istio-workspace/pull/213[#213]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: updates project to be used against Maistra 0.12 (https://github.com/Maistra/istio-workspace/pull/207[#207]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * test(e2e): verifies production route (https://github.com/Maistra/istio-workspace/pull/205[#205]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat: aligns test scenario image creation variables & Add logging to test service (https://github.com/Maistra/istio-workspace/pull/199[#199]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
