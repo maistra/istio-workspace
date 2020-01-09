@@ -18,9 +18,10 @@ func NewDefaultEngine() *Engine {
 			Name: "prepared-image",
 			Template: []byte(`[
 					{{ template "_basic-version" . }}
-				{{ if .Data.Has "/spec/template/spec/replicas" }}
-				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
+				{{ if not (.Data.Has "/spec/template/spec/replicas") }}
+				{"op": "add", "path": "/spec/template/spec/replicas", "value": {}},
 				{{ end }}
+				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "{{.Vars.image}}"},
 
 					{{ template "_basic-remove" . }}
@@ -35,9 +36,10 @@ func NewDefaultEngine() *Engine {
 {{ failIfVariableDoesNotExist .Vars "version" -}}
 [
 					{{ template "_basic-version" . }}
-				{{ if .Data.Has "/spec/template/spec/replicas" }}
-				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
+				{{ if not (.Data.Has "/spec/template/spec/replicas") }}
+				{"op": "add", "path": "/spec/template/spec/replicas", "value": {}},
 				{{ end }}
+				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
 				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
 				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.version}}"},
 				{{ if not (.Data.Has "/spec/template/spec/containers/0/env") }}
