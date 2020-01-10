@@ -49,7 +49,7 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
 			if shouldPrintVersion {
-				version.PrintVersion()
+				version.LogVersion()
 			} else {
 				fmt.Print(cmd.UsageString())
 			}
