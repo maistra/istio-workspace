@@ -176,7 +176,7 @@ var _ = Describe("Operations for template system", func() {
 				}})
 				_, err := e.Run("test", []byte(`{"version": "100"}`), "x", map[string]string{})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Unable to remove nonexistent key: test"))
+				Expect(err.Error()).To(ContainSubstring("nonexistent key: test"))
 			})
 		})
 
