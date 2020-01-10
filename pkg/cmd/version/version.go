@@ -21,13 +21,13 @@ func NewCmd() *cobra.Command {
 		Long:         "All software has versions. This is Ike's",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
-			PrintVersion()
+			LogVersion()
 			return nil
 		},
 	}
 }
 
-func PrintVersion() {
+func LogVersion() {
 	log.Info(fmt.Sprintf("Ike Version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))

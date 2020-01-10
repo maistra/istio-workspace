@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -97,6 +99,7 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 	}
 
 	log.Info("Starting the operator.")
+	version.LogVersion()
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
