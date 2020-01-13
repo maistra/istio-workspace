@@ -83,7 +83,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 				Eventually(sessions.Done(), 1*time.Minute).Should(BeClosed())
 
 				// then
-				stdErr := strings.Join(sessions.Status().Stdout, " ")
+				stdErr := strings.Join(sessions.Status().Stderr, " ")
 				Expect(stdErr).To(ContainSubstring("No resources found"))
 			})
 

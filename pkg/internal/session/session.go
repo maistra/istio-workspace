@@ -1,18 +1,17 @@
 package session
 
 import (
-	"errors"
-
 	"fmt"
 	"os/user"
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/naming"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -106,7 +105,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return h.waitForRefToComplete()
+		return h.removeSessionIfDeploymentNotFound()
 	}
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
 	// update ref in session
@@ -117,7 +116,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 			if err != nil {
 				return "", err
 			}
-			return h.waitForRefToComplete()
+			return h.removeSessionIfDeploymentNotFound()
 		}
 	}
 	// join session
@@ -126,7 +125,15 @@ func (h *handler) createOrJoinSession() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return h.waitForRefToComplete()
+	return h.removeSessionIfDeploymentNotFound()
+}
+
+func (h *handler) removeSessionIfDeploymentNotFound() (string, error) {
+	result, err := h.waitForRefToComplete()
+	if _, notDNFEType := err.(DeploymentNotFoundError); !notDNFEType {
+		h.removeOrLeaveSession()
+	}
+	return result, err
 }
 
 func (h *handler) createSession() error {
@@ -160,7 +167,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
 		sessionStatus, err := h.c.Get(h.opts.SessionName)
 		if err != nil {
-			return false, nil
+			return false, err
 		}
 		for _, refs := range sessionStatus.Status.Refs {
 			if refs.Name == h.opts.DeploymentName {
@@ -176,7 +183,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 		return false, nil
 	})
 	if err != nil {
-		return "", errors.New("no Deployment or DeploymentConfig found for target")
+		return "", &DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 	return name, nil
 }
