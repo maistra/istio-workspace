@@ -175,12 +175,12 @@
   version = "v1.3.2"
 
 [[projects]]
-  digest = "1:6e9d2128f23114e87a0ac87ce6fd3f51556adfc1a6247c0632fbf44a4c34f846"
+  digest = "1:f82d9d89dc4d2619285bbe98d974818e99c6949f194cba94d07dcfc134801174"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "NT"
-  revision = "9686ff0746200cf521ce225525b421e13b4eac1a"
-  version = "v28.1.1"
+  revision = "ab35a4779b48b6089e8d3a80cc99c544695853eb"
+  version = "v29.0.2"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -432,7 +432,7 @@
   revision = "0d921e363e951d89f583292c60d013c318df64dc"
 
 [[projects]]
-  digest = "1:42a9d327041273e75095ccb97f33faf748b532127ea53cc9afc8432a3ac22759"
+  digest = "1:faefb69119a74def5b9500971afc4c6c8a95b5d7b28a2bdd4fc1d8b040447d7a"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -442,8 +442,8 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "1af9c95bb51420c55a7f7f2b7fabebda24451276"
-  version = "v0.13.0"
+  revision = "4fb185b9d45682473b4951c9788f845ba2fa5b12"
+  version = "v0.14.0"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
