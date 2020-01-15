@@ -77,10 +77,7 @@ func (c *client) Update(session *istiov1alpha1.Session) error {
 
 // Delete deletes a session instance in a cluster
 func (c *client) Delete(session *istiov1alpha1.Session) error {
-	if err := c.MaistraV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{}); err != nil {
-		return err
-	}
-	return nil
+	return c.MaistraV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{})
 }
 
 // Get retrieves details of the Session instance matching passed name

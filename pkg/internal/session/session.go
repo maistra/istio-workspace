@@ -130,7 +130,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 
 func (h *handler) removeSessionIfDeploymentNotFound() (string, error) {
 	result, err := h.waitForRefToComplete()
-	if _, notDNFEType := err.(DeploymentNotFoundError); !notDNFEType {
+	if _, deploymentNotFound := err.(DeploymentNotFoundError); deploymentNotFound {
 		h.removeOrLeaveSession()
 	}
 	return result, err
@@ -183,7 +183,8 @@ func (h *handler) waitForRefToComplete() (string, error) {
 		return false, nil
 	})
 	if err != nil {
-		return "", &DeploymentNotFoundError{name: h.opts.DeploymentName}
+		log.Error(err, "failed waiting for deployment to create")
+		return name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 	return name, nil
 }
@@ -191,6 +192,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 func (h *handler) removeOrLeaveSession() {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
+		log.Error(err, "failed removing or leaving session")
 		return // assume missing, nothing to clean?
 	}
 	// more than one participant, update session
