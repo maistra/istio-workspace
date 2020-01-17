@@ -172,9 +172,13 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 func revertVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	for i := 0; i < len(vs.Spec.Http); i++ {
-		if strings.Contains(vs.Spec.Http[i].Route[0].Destination.Subset, subsetName) {
-			vs.Spec.Http = append(vs.Spec.Http[:i], vs.Spec.Http[i+1:]...)
-			break
+		http := vs.Spec.Http[i]
+		for n := 0; n < len(http.Route); n++ {
+			if strings.Contains(http.Route[n].Destination.Subset, subsetName) {
+				vs.Spec.Http = append(vs.Spec.Http[:i], vs.Spec.Http[i+1:]...)
+				i--
+				break
+			}
 		}
 	}
 	return vs, nil
