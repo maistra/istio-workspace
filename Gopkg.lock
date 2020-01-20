@@ -565,12 +565,12 @@
   version = "v1.0.5"
 
 [[projects]]
-  digest = "1:b169047fe9685cc2af2e5d07017c7dad14e551989304b84f4ffa3fe714d07022"
+  digest = "1:62aaa76517b15941c21466ddd1162437f5b1d0417df13e622f55bee70a85230f"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "NT"
-  revision = "eabbc68a3ecd5cf8c11a2f84dbda5e7a38493b2f"
-  version = "v1.6.1"
+  revision = "4525543ce4fe90f7970f5e2cdc300b8ffc8c0582"
+  version = "v1.6.2"
 
 [[projects]]
   digest = "1:f60e4a8af6b6f3940cbdd28b1262221d28b4eb4d31b87bdb7b219f5fc0f278bf"
