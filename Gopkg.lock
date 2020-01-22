@@ -597,7 +597,7 @@
     "internal/stack",
   ]
   pruneopts = "NT"
-  revision = "16be2abb5bbf96c9dd6a759592a32e5aa04cb15e"
+  revision = "8d7a168d1359d245f8a18731395595d49ac29242"
 
 [[projects]]
   digest = "1:a1440ebbcb42dca581a6d557749cb72770e17b3bf7751f953ae2b0606cd65013"
