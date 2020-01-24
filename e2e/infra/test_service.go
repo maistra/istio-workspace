@@ -26,7 +26,7 @@ func BuildTestService(namespace string) (registry string) {
 	registry = setDockerEnvForTestServiceBuild(namespace)
 
 	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u " + user + " -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
 }
