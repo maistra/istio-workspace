@@ -311,6 +311,14 @@
   version = "v1.0"
 
 [[projects]]
+  digest = "1:f5b9328966ccea0970b1d15075698eff0ddb3e75889560aad2e9f76b289b536a"
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
   digest = "1:5e349fd839ecbd417975da64c8b69764d78859c5cf9817460b4fb763852eb44e"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -1227,6 +1235,7 @@
     "github.com/google/go-github/github",
     "github.com/google/shlex",
     "github.com/hashicorp/go-multierror",
+    "github.com/joho/godotenv",
     "github.com/onsi/ginkgo",
     "github.com/onsi/ginkgo/reporters",
     "github.com/onsi/gomega",

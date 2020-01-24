@@ -15,6 +15,7 @@ import (
 	. "github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 
+	"github.com/joho/godotenv"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -30,6 +31,12 @@ var tmpPath = NewTmpPath()
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	if envFile, found := os.LookupEnv("ENV_FILE"); found {
+		if err := godotenv.Load( testshell.GetProjectDir() + string(os.PathSeparator) + envFile); err != nil {
+			Fail(err.Error())
+		}
+	}
 
 	ClientVersion()
 

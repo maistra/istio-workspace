@@ -133,7 +133,6 @@ test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
 .PHONY: compile-test-service
 compile-test-service: test/cmd/test-service/html.go $(BINARY_DIR)/$(TEST_BINARY_NAME)
 
-
 ##@ Setup
 
 .PHONY: install-dep
