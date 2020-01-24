@@ -20,7 +20,7 @@ func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
 	_, registry = setDockerEnvForOperatorBuild()
 	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u $(oc whoami) -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u " + user + " -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build").Done()
 	return
 }
