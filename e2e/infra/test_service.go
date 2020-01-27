@@ -39,7 +39,7 @@ func BuildTestServicePreparedImage(callerName, namespace string) (registry strin
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 
 	LoginAsTestPowerUser()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u " + user + " -p $(oc whoami -t) "+registry).Done()
+	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
 	return
 }
