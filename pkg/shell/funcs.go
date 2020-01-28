@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -40,35 +38,8 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	done <- status
 }
 
-// ShutdownHook will wait for SIGTERM signal and stop the cmd
-// unless done receiving channel passed to it receives status or is closed
-func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
-	go func() {
-		hookChan := make(chan os.Signal, 1)
-		signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
-		defer func() {
-			signal.Stop(hookChan)
-			close(hookChan)
-		}()
-	OutOfLoop:
-		for {
-			select {
-			case _, ok := <-hookChan:
-				if !ok {
-					break OutOfLoop
-				}
-				_ = cmd.Stop()
-				<-cmd.Done()
-				break OutOfLoop
-			case <-done:
-				break OutOfLoop
-			}
-		}
-	}()
-}
-
 // RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers
-func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-chan gocmd.Status) {
+func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer) {
 	go func() {
 	OutOfLoop:
 		for {
@@ -87,8 +58,6 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 				if _, err := fmt.Fprintln(stderrDest, line); err != nil {
 					log.Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
-			case <-done:
-				break OutOfLoop
 			}
 		}
 	}()

@@ -54,7 +54,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
-			if err := build.Build(cmd); err != nil {
+			if err := build.ExecuteBuild(cmd); err != nil {
 				return err
 			}
 
@@ -66,8 +66,7 @@ func NewCmd() *cobra.Command {
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
 				tp.Dir = dir
-				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
-				shell.ShutdownHook(tp, done)
+				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr())
 				shell.Start(tp, done)
 			}()
 

@@ -16,9 +16,9 @@ const (
 	RunFlagName     = "run"
 )
 
-// Build expects that cmd has Build and no-Build flags defined.
+// ExecuteBuild expects that cmd has ExecuteBuild and no-ExecuteBuild flags defined.
 // otherwise it fails
-func Build(cmd *cobra.Command) error {
+func ExecuteBuild(cmd *cobra.Command) error {
 	buildFlag := cmd.Flag(BuildFlagName)
 	if buildFlag == nil {
 		return fmt.Errorf("expecting '%s' command to have '%s' flag defined", cmd.Name(), BuildFlagName)
@@ -37,7 +37,7 @@ func Build(cmd *cobra.Command) error {
 		done := make(chan gocmd.Status, 1)
 		defer close(done)
 
-		shell.RedirectStreams(build, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
+		shell.RedirectStreams(build, cmd.OutOrStdout(), cmd.OutOrStderr())
 
 		buildStatusChan := build.Start()
 		buildStatus := <-buildStatusChan

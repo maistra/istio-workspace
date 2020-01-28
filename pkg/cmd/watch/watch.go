@@ -3,9 +3,8 @@ package watch
 import (
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 
 	"github.com/maistra/istio-workspace/pkg/shell"
 
@@ -48,15 +47,18 @@ func NewCmd() *cobra.Command {
 }
 
 func watchForChanges(command *cobra.Command, args []string) error {
-	if err := build.Build(command); err != nil {
+	if err := build.ExecuteBuild(command); err != nil {
 		return err
 	}
 
-	run := strings.Split(command.Flag(build.RunFlagName).Value.String(), " ")
-	done := make(chan gocmd.Status)
+	done := make(chan gocmd.Status, 1)
 	restart := make(chan struct{})
+	defer func() {
+		close(restart)
+		close(done)
+	}()
 
-	slice, _ := command.Flags().GetStringSlice("dir")
+	dirs, _ := command.Flags().GetStringSlice("dir")
 	excluded, e := command.Flags().GetStringSlice("exclude")
 	if e != nil {
 		return e
@@ -70,7 +72,7 @@ func watchForChanges(command *cobra.Command, args []string) error {
 				_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 			}
 
-			if err := build.Build(command); err != nil {
+			if err := build.ExecuteBuild(command); err != nil {
 				done <- gocmd.Status{
 					Error:    err,
 					Complete: false,
@@ -81,7 +83,7 @@ func watchForChanges(command *cobra.Command, args []string) error {
 			return nil
 		}).
 		Excluding(excluded...).
-		OnPaths(slice...)
+		OnPaths(dirs...)
 
 	if err != nil {
 		return err
@@ -90,30 +92,29 @@ func watchForChanges(command *cobra.Command, args []string) error {
 	w.Start()
 	defer w.Close()
 
-	runDone := make(chan gocmd.Status)
+	runDone := make(chan gocmd.Status, 1)
 	defer close(runDone)
 
 	go func() {
 		var runCmd *gocmd.Cmd
+		var restartedPID int
+		run := strings.Split(command.Flag(build.RunFlagName).Value.String(), " ")
 	OutOfLoop:
 		for {
 			select {
 			case <-restart:
 				if runCmd != nil {
-					err = runCmd.Stop()
-					<-runCmd.Done()
-					runDone <- gocmd.Status{
-						Error:    err,
-						Complete: true,
-					}
+					restartedPID = runCmd.Status().PID
+					_ = runCmd.Stop()
 				}
 				runCmd = gocmd.NewCmdOptions(shell.StreamOutput, run[0], run[1:]...)
-				shell.RedirectStreams(runCmd, command.OutOrStdout(), command.OutOrStderr(), runDone)
-				shell.ShutdownHook(runCmd, runDone)
+				shell.RedirectStreams(runCmd, command.OutOrStdout(), command.OutOrStderr())
 				go shell.Start(runCmd, runDone)
 			case status := <-runDone:
-				done <- status
-				break OutOfLoop
+				if restartedPID != status.PID { // This way we know process ended through other means than restarted by us
+					done <- status
+					break OutOfLoop
+				}
 			}
 		}
 	}()
