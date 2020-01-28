@@ -22,7 +22,6 @@ var user = "admin" //nolint[:goconst]
 var pwd = "admin"  //nolint[:goconst]
 
 func LoginAsTestPowerUser() {
-
 	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_USER"); found {
 		user = ikeUser
 	}
