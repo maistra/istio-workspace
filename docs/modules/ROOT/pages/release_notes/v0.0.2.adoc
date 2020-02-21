@@ -22,9 +22,11 @@ Simply invoke `ike install-operator -l`
 
 To learn more head over to the https://istio-workspace-docs.netlify.com/istio-workspace/v0.0.2/index.html[official docs].
 
-== All changes in this release
-
-=== New features
+== {nbsp}
+.*All changes in this release*
+[%collapsible]
+====
+*New features*
 
  * chore: improves error msg when namespace is not retrievable (https://github.com/Maistra/istio-workspace/pull/314[#314]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * feat: supports global envs for config (https://github.com/Maistra/istio-workspace/pull/272[#272]), by https://github.com/aslakknutsen[@aslakknutsen]
@@ -51,7 +53,7 @@ To learn more head over to the https://istio-workspace-docs.netlify.com/istio-wo
  * feat: ike bash and zsh autocomplete (https://github.com/Maistra/istio-workspace/pull/181[#181]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * chore: moves cmd logic to pkg/ (https://github.com/Maistra/istio-workspace/pull/180[#180]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Bug fixes
+*Bug fixes*
 
  * fix(cmd): installs operator to current namespace when --local mode used and no ns defined (https://github.com/Maistra/istio-workspace/pull/312[#312]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * fix(operator): mutate route if subset is missing (https://github.com/Maistra/istio-workspace/pull/308[#308]), by https://github.com/aslakknutsen[@aslakknutsen]
@@ -62,7 +64,7 @@ To learn more head over to the https://istio-workspace-docs.netlify.com/istio-wo
  * fix(develop): allow to join / leave session (https://github.com/Maistra/istio-workspace/pull/220[#220]), by https://github.com/aslakknutsen[@aslakknutsen]
  * fix(api): apply correct json tag to inline resource (https://github.com/Maistra/istio-workspace/pull/198[#198]), by https://github.com/aslakknutsen[@aslakknutsen]
 
-=== Latest dependencies update
+*Latest dependencies update*
 
  * github.com/coreos/prometheus-operator to 0.30.0 (https://github.com/Maistra/istio-workspace/pull/114[#114])
  * github.com/go-cmd/cmd to 1.1.0 (https://github.com/Maistra/istio-workspace/pull/311[#311])
@@ -76,7 +78,7 @@ To learn more head over to the https://istio-workspace-docs.netlify.com/istio-wo
  * sigs.k8s.io/controller-runtime to 0.3.0 (https://github.com/Maistra/istio-workspace/pull/287[#287])
  * ubi8/ubi-minimal to 8.1 (https://github.com/Maistra/istio-workspace/pull/303[#303])
 
-=== Project infrastructure
+*Project infrastructure*
 
  * fix: tunes options for linters (https://github.com/Maistra/istio-workspace/pull/266[#266]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * chore(circleci): bumps ocp client to 4.1.16 (https://github.com/Maistra/istio-workspace/pull/264[#264]), by https://github.com/bartoszmajsak[@bartoszmajsak]
@@ -90,7 +92,7 @@ To learn more head over to the https://istio-workspace-docs.netlify.com/istio-wo
  * fix(macos): ensures istio-workspace builds on MacOS (https://github.com/Maistra/istio-workspace/pull/185[#185]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * chore(circleci): bumps golang to latest and introduces yaml anchors (https://github.com/Maistra/istio-workspace/pull/183[#183]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Testing
+*Testing*
 
  * chore(tests): registers a project into smmr without using jq (https://github.com/Maistra/istio-workspace/pull/315[#315]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * feat(test): test service html ui (https://github.com/Maistra/istio-workspace/pull/268[#268]), by https://github.com/aslakknutsen[@aslakknutsen]
@@ -106,5 +108,4 @@ To learn more head over to the https://istio-workspace-docs.netlify.com/istio-wo
  * feat: updates project to be used against Maistra 0.12 (https://github.com/Maistra/istio-workspace/pull/207[#207]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * test(e2e): verifies production route (https://github.com/Maistra/istio-workspace/pull/205[#205]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * feat: aligns test scenario image creation variables & Add logging to test service (https://github.com/Maistra/istio-workspace/pull/199[#199]), by https://github.com/aslakknutsen[@aslakknutsen]
-
-
+====

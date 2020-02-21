@@ -1,0 +1,7 @@
+== Highlights of vX.Y.Z release
+
+Summary
+
+=== Feature A
+
+== {nbsp} 
