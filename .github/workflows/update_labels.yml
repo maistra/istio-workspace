@@ -1,0 +1,19 @@
+name: Update Labels
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/labels.yml'
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: micnncim/action-label-syncer@v1
+        with:
+          manifest: .github/labels.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
