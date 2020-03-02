@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	testImageName = ""
-	gatewayHost   = "*"
+	testImageName   = ""
+	gatewayHost     = "*"
+	targetNamespace = ""
 )
 
 func main() {
@@ -21,6 +22,10 @@ func main() {
 	testImageName = getTestImageName()
 	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
 		gatewayHost = h
+	}
+
+	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
+		targetNamespace = h
 	}
 
 	scenarios := map[string]func(){

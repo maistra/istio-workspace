@@ -20,9 +20,19 @@ const (
 	envServiceCall = "SERVICE_CALL"
 )
 
+// Entry is a simple value object
 type Entry struct {
 	Name           string
 	DeploymentType string
+	Namespace      string
+}
+
+// HostName return the full cluster host name if Namespace is set or the local if not
+func (e *Entry) HostName() string {
+	if e.Namespace != "" {
+		return e.Name + "." + e.Namespace + ".svc.cluster.local"
+	}
+	return e.Name
 }
 
 // SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification
@@ -152,7 +162,7 @@ func DestinationRule(service Entry) runtime.Object {
 			Name: service.Name,
 		},
 		Spec: istiov1alpha3.DestinationRule{
-			Host: service.Name,
+			Host: service.HostName(),
 		},
 	}
 }
@@ -168,7 +178,7 @@ func VirtualService(service Entry) runtime.Object {
 			Name: service.Name,
 		},
 		Spec: istiov1alpha3.VirtualService{
-			Hosts: []string{service.Name},
+			Hosts: []string{service.HostName()},
 			Http: []*istiov1alpha3.HTTPRoute{
 				{
 					Match: []*istiov1alpha3.HTTPMatchRequest{
@@ -186,7 +196,7 @@ func VirtualService(service Entry) runtime.Object {
 					Route: []*istiov1alpha3.HTTPRouteDestination{
 						{
 							Destination: &istiov1alpha3.Destination{
-								Host: service.Name,
+								Host: service.HostName(),
 							},
 						},
 					},
