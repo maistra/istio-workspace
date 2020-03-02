@@ -69,31 +69,31 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("route added", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
 				})
 
 				It("route added before target route", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("has match", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Match).ToNot(BeNil())
 				})
 
 				It("has subset", func() { // covered by GetMutatedRoute
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("create match when no match found", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV4, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV4Host, targetV4.Labels["version"], targetV4Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV4Host, targetV4Subset)
@@ -106,7 +106,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with no headers", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)
@@ -119,7 +119,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with found headers", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV5, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV5Host, targetV5.Labels["version"], targetV5Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV5Host, targetV5Subset)
@@ -132,49 +132,43 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("remove weighted destination", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Weight).To(Equal(int32(0)))
 				})
 				It("remove other destinations", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route).To(HaveLen(1))
 				})
 				It("remove mirror", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Mirror).To(BeNil())
 				})
 				It("remove redirect", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
 				})
 				It("include destinations with no subset", func() {
-					mutatedVirtualService, err = mutateVirtualService(ctx, targetV6, virtualService)
+					mutatedVirtualService, err = mutateVirtualService(ctx, targetV6Host, targetV6.Labels["version"], targetV6Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV6Host, targetV6Subset).Redirect).To(BeNil())
 				})
 
 				It("route missing", func() {
-					_, err = mutateVirtualService(
-						ctx,
-						model.NewLocatedResource("Deployment", "miss-v5", map[string]string{"version": "v5"}),
-						virtualService)
+					_, err = mutateVirtualService(ctx, "miss-v5", "v5", "v5-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
 				It("route missing version", func() {
-					_, err = mutateVirtualService(
-						ctx,
-						model.NewLocatedResource("Deployment", "details-v10", map[string]string{"version": "v10"}),
-						virtualService)
+					_, err = mutateVirtualService(ctx, "details-v10", "v10", "v10-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})

@@ -31,10 +31,11 @@ var _ = Describe("Basic model conversion", func() {
 				Name:     "ref-name",
 				Strategy: "prepared-image",
 				Args:     map[string]string{"image": "x"},
-				Target: model.LocatedResourceStatus{
-					ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
-					Labels:         map[string]string{},
-				},
+				Targets: []model.LocatedResourceStatus{
+					model.LocatedResourceStatus{
+						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
+						Labels:         map[string]string{},
+					}},
 				ResourceStatuses: []model.ResourceStatus{
 					{Kind: kind, Name: name, Action: model.ActionCreated},
 					{Kind: "test", Name: "2", Action: model.ActionModified},
@@ -59,10 +60,10 @@ var _ = Describe("Basic model conversion", func() {
 
 		It("target mapped", func() {
 			Expect(sess.Status.Refs).To(HaveLen(1))
-			Expect(sess.Status.Refs[0].Target).ToNot(BeNil())
-			Expect(*sess.Status.Refs[0].Target.Kind).To(Equal(ref.Target.Kind))
-			Expect(*sess.Status.Refs[0].Target.Name).To(Equal(ref.Target.Name))
-			Expect(*sess.Status.Refs[0].Target.Action).To(Equal("located"))
+			Expect(sess.Status.Refs[0].Targets[0]).ToNot(BeNil())
+			Expect(*sess.Status.Refs[0].Targets[0].Kind).To(Equal(ref.Targets[0].Kind))
+			Expect(*sess.Status.Refs[0].Targets[0].Name).To(Equal(ref.Targets[0].Name))
+			Expect(*sess.Status.Refs[0].Targets[0].Action).To(Equal("located"))
 		})
 
 		It("action mapped", func() {
@@ -149,9 +150,11 @@ var _ = Describe("Basic model conversion", func() {
 								Strategy: "prepared-image",
 								Args:     map[string]string{"image": "x"},
 							},
-							Target: &v1alpha1.LabeledRefResource{
-								RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
-								Labels:      map[string]string{},
+							Targets: []*v1alpha1.LabeledRefResource{
+								&v1alpha1.LabeledRefResource{
+									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
+									Labels:      map[string]string{},
+								},
 							},
 							Resources: []*v1alpha1.RefResource{
 								{
@@ -192,9 +195,9 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs).To(HaveLen(2))
 
 			Expect(refs[0].Name).To(Equal(sess.Status.Refs[0].Name))
-			Expect(refs[0].Target.Kind).To(Equal(*sess.Status.Refs[0].Target.Kind))
-			Expect(refs[0].Target.Name).To(Equal(*sess.Status.Refs[0].Target.Name))
-			Expect(refs[0].Target.Action).To(Equal(model.ActionLocated))
+			Expect(refs[0].Targets[0].Kind).To(Equal(*sess.Status.Refs[0].Targets[0].Kind))
+			Expect(refs[0].Targets[0].Name).To(Equal(*sess.Status.Refs[0].Targets[0].Name))
+			Expect(refs[0].Targets[0].Action).To(Equal(model.ActionLocated))
 		})
 	})
 	Context("route to route", func() {

@@ -35,8 +35,8 @@ type SessionStatus struct {
 // RefStatus defines the observed state of the individual Ref
 type RefStatus struct {
 	Ref       `json:",inline"`
-	Target    *LabeledRefResource `json:"target,omitempty"`
-	Resources []*RefResource      `json:"resources,omitempty"`
+	Targets   []*LabeledRefResource `json:"targets,omitempty"`
+	Resources []*RefResource        `json:"resources,omitempty"`
 }
 
 // RefResource defines the observed resources mutated/created as part of the Ref

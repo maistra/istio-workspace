@@ -18,12 +18,12 @@ const (
 // ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:hugeParam]
 	statusRef := &istiov1alpha1.RefStatus{Ref: istiov1alpha1.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}}
-	if ref.Target.Name != "" {
-		action := string(ref.Target.Action)
-		statusRef.Target = &istiov1alpha1.LabeledRefResource{
-			RefResource: istiov1alpha1.RefResource{Kind: &ref.Target.Kind, Name: &ref.Target.Name, Action: &action},
-			Labels:      ref.Target.Labels,
-		}
+	for _, target := range ref.Targets {
+		action := string(target.Action)
+		statusRef.Targets = append(statusRef.Targets, &istiov1alpha1.LabeledRefResource{
+			RefResource: istiov1alpha1.RefResource{Kind: &target.Kind, Name: &target.Name, Action: &action},
+			Labels:      target.Labels,
+		})
 	}
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
@@ -62,11 +62,11 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
-			if statusRef.Target != nil {
-				ref.Target = model.LocatedResourceStatus{
-					ResourceStatus: model.ResourceStatus{Kind: *statusRef.Target.Kind, Name: *statusRef.Target.Name, Action: model.ResourceAction(*statusRef.Target.Action)},
-					Labels:         statusRef.Target.Labels,
-				}
+			for _, statusTarget := range statusRef.Targets {
+				ref.Targets = append(ref.Targets, model.LocatedResourceStatus{
+					ResourceStatus: model.ResourceStatus{Kind: *statusTarget.Kind, Name: *statusTarget.Name, Action: model.ResourceAction(*statusTarget.Action)},
+					Labels:         statusTarget.Labels,
+				})
 			}
 			for _, resource := range statusRef.Resources {
 				r := resource

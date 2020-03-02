@@ -36,6 +36,7 @@ func defaultManipulators() Manipulators {
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
+			k8s.ServiceLocator,
 		},
 		Mutators: []model.Mutator{
 			k8s.DeploymentMutator,
@@ -229,7 +230,7 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 	for _, locator := range r.manipulators.Locators {
 		if locator(ctx, ref) {
 			located = true
-			break // only use first locator
+			//break // only use first locator // TODO: How to deal with Deployment and DeploymentConfig with same name
 		}
 	}
 	if located {
