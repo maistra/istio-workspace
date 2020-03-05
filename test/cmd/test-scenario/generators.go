@@ -96,7 +96,7 @@ func Deployment(service Entry) runtime.Object {
 	replica := int32(1)
 	return &appsv1.Deployment{
 		TypeMeta: v1.TypeMeta{
-			APIVersion: "extensions/v1beta1",
+			APIVersion: "apps/v1",
 			Kind:       "Deployment",
 		},
 		ObjectMeta: v1.ObjectMeta{
@@ -104,6 +104,11 @@ func Deployment(service Entry) runtime.Object {
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replica,
+			Selector: &v1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": service.Name,
+				},
+			},
 			Template: template(service.Name),
 		},
 	}
