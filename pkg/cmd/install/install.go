@@ -20,7 +20,7 @@ import (
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/errors"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("install")

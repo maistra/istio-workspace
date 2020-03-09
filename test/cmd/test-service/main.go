@@ -7,9 +7,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/log"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
@@ -28,7 +30,7 @@ var (
 )
 
 func main() {
-	logf.SetLogger(logf.ZapLogger(false))
+	logf.SetLogger(log.CreateClusterAwareLogger())
 
 	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {
@@ -48,18 +50,18 @@ func main() {
 		adr = v
 	}
 
-	log := logf.Log.WithName("service").WithValues("name", c.Name)
+	logger := logf.Log.WithName("service").WithValues("name", c.Name)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusOK)
 	})
-	http.HandleFunc("/", NewBasic(c, log))
+	http.HandleFunc("/", NewBasic(c, logger))
 	err := http.ListenAndServe(adr, nil)
 	if err != nil {
-		log.Error(err, "failed initializing")
+		logger.Error(err, "failed initializing")
 	}
-	log.Info("Started serving basic test service")
+	logger.Info("Started serving basic test service")
 }
 
 func parseURL(value string) ([]*url.URL, error) {
