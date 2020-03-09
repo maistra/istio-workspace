@@ -5,7 +5,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	openshiftApi "github.com/openshift/api/template/v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // These consts are used across the project to load corresponding env variables

@@ -12,7 +12,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/naming"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var (

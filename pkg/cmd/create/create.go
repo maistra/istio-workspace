@@ -5,7 +5,7 @@ import (
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 
 	"github.com/spf13/cobra"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("cmd").WithValues("type", "create")

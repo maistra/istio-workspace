@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("shell")

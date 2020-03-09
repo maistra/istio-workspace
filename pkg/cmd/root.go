@@ -18,7 +18,7 @@ import (
 	v "github.com/maistra/istio-workspace/version"
 
 	"github.com/spf13/cobra"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("root")
