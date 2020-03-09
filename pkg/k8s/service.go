@@ -2,7 +2,9 @@ package k8s
 
 import (
 	"github.com/maistra/istio-workspace/pkg/model"
+
 	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -25,7 +27,7 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:h
 	}
 	found := false
 	for _, deployment := range deployments {
-		for _, service := range services.Items {
+		for _, service := range services.Items { //nolint[:rangeValCopy]
 			selector := labels.SelectorFromSet(service.Spec.Selector)
 			if selector.Matches(labels.Set(deployment.Labels)) {
 				found = true

@@ -34,14 +34,6 @@ type Ref struct {
 	ResourceStatuses []ResourceStatus
 }
 
-// HasTarget checks if current Target is of a given Kind
-func (r *Ref) HasTarget(kind string) bool {
-	for _, target := range r.Targets {
-		return target.Kind == kind
-	}
-	return false
-}
-
 // GetTargetsByKind returns the targets of the given kind
 func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
 	targets := []LocatedResourceStatus{}

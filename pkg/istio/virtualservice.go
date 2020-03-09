@@ -31,7 +31,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	targetVersion := ref.GetVersion()
 
 	for _, hostName := range ref.GetTargetHostNames() {
-
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName, Action: model.ActionFailed})
@@ -57,7 +56,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionModified})
 		}
-
 	}
 
 	return nil

@@ -230,7 +230,6 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 	for _, locator := range r.manipulators.Locators {
 		if locator(ctx, ref) {
 			located = true
-			//break // only use first locator // TODO: How to deal with Deployment and DeploymentConfig with same name
 		}
 	}
 	if located {

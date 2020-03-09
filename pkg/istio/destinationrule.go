@@ -34,8 +34,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 			return err
 		}
 		for _, dr := range drs {
-
-			ctx.Log.Info("Found DestinationRule", "name", dr)
+			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			mutatedDr, err := mutateDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -116,9 +115,10 @@ func getDestinationRulesByHost(ctx model.SessionContext, namespace, hostName str
 
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
-	for _, dr := range destinationRules.Items {
+	for _, dr := range destinationRules.Items { //nolint[:rangeValCopy]
 		if dr.Spec.Host == hostName {
-			matches = append(matches, &dr)
+			match := dr
+			matches = append(matches, &match)
 		}
 	}
 
