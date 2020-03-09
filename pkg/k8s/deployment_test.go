@@ -36,7 +36,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 	}
 	JustBeforeEach(func() {
 		ctx = model.SessionContext{
-			Context:   context.TODO(),
+			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       logf.Log.WithName("test"),

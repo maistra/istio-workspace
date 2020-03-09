@@ -39,7 +39,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		err := appsv1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
-			Context:   context.TODO(),
+			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       logf.Log.WithName("test"),
