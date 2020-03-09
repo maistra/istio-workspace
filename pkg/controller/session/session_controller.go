@@ -111,7 +111,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, session)
+	err := r.client.Get(context.Background(), request.NamespacedName, session)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -121,7 +121,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	ctx := model.SessionContext{
-		Context:   context.TODO(),
+		Context:   context.Background(),
 		Name:      request.Name,
 		Namespace: request.Namespace,
 		Route:     ConvertAPIRouteToModelRoute(session),

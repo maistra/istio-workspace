@@ -55,7 +55,7 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint[:unparam]
 		return err
 	}
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Become the leader before proceeding
 	if e := leader.Become(ctx, "istio-workspace-lock"); e != nil {
