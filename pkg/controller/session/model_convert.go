@@ -18,7 +18,8 @@ const (
 // ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:hugeParam]
 	statusRef := &istiov1alpha1.RefStatus{Ref: istiov1alpha1.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}}
-	for _, target := range ref.Targets {
+	for _, t := range ref.Targets {
+		target := t
 		action := string(target.Action)
 		statusRef.Targets = append(statusRef.Targets, &istiov1alpha1.LabeledRefResource{
 			RefResource: istiov1alpha1.RefResource{Kind: &target.Kind, Name: &target.Name, Action: &action},
