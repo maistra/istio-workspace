@@ -2,7 +2,7 @@
   color: 3E4B9E
 - name: component/ci
   color: e575b2
-  description: "Component: CI Integraton"
+  description: "Component: CI Integration"
 - name: component/cli
   color: e575b2
   description: "Component: CLI tooling"
@@ -38,7 +38,7 @@
   description: "Kind: Not working as expected"
 - name: kind/enhancement
   color: "008672"
-  description: "Kind: New feature or request"
+  description: "Kind: New feature or improvement"
 - name: reason/breaking-changes
   color: 8e0b30
   description: "Reason: dependency update with compatibility issues"
@@ -47,6 +47,7 @@
   description: "Command: used by changelog generator"
 - name: spike
   color: 9d09bf
-  description: "related to discovery of stuff"
+  description: "Research activity"
 - name: upstream
   color: 1fddb7
+  description: "Requires changes in the upstream dependency"
