@@ -15,9 +15,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -111,7 +111,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, session)
+	err := r.client.Get(context.Background(), request.NamespacedName, session)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -121,7 +121,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	ctx := model.SessionContext{
-		Context:   context.TODO(),
+		Context:   context.Background(),
 		Name:      request.Name,
 		Namespace: request.Namespace,
 		Route:     ConvertAPIRouteToModelRoute(session),

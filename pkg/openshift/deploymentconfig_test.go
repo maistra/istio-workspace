@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,7 +39,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		err := appsv1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
-			Context:   context.TODO(),
+			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       logf.Log.WithName("test"),

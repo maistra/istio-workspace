@@ -37,7 +37,7 @@ var _ = Describe("Basic session manipulation", func() {
 	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
 			s := v1alpha1.Session{}
-			err := (*c).Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+			err := (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 			Expect(err).ToNot(HaveOccurred())
 			return s
 		}
