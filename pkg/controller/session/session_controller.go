@@ -30,8 +30,8 @@ var (
 	log = logf.Log.WithName("controller_session")
 )
 
-// defaultManipulators contains the default config for the reconciler
-func defaultManipulators() Manipulators {
+// DefaultManipulators contains the default config for the reconciler
+func DefaultManipulators() Manipulators {
 	return Manipulators{
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
@@ -61,7 +61,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: defaultManipulators()}
+	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
 }
 
 // NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager

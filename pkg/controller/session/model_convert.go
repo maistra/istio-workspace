@@ -64,7 +64,7 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			for _, statusTarget := range statusRef.Targets {
-				ref.Targets = append(ref.Targets, model.LocatedResourceStatus{
+				ref.AddTargetResource(model.LocatedResourceStatus{
 					ResourceStatus: model.ResourceStatus{Kind: *statusTarget.Kind, Name: *statusTarget.Name, Action: model.ResourceAction(*statusTarget.Action)},
 					Labels:         statusTarget.Labels,
 				})

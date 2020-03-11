@@ -74,6 +74,20 @@ func (r *Ref) GetNewVersion(sessionName string) string {
 	return r.GetVersion() + "-" + sessionName
 }
 
+// AddTargetResource adds the status of an involved Resource to this ref
+func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
+	replaced := false
+	for i, status := range r.Targets {
+		if ref.Name == status.Name && ref.Kind == status.Kind {
+			r.Targets[i] = ref
+			replaced = true
+		}
+	}
+	if !replaced {
+		r.Targets = append(r.Targets, ref)
+	}
+}
+
 // AddResourceStatus adds the status of an involved Resource to this ref
 func (r *Ref) AddResourceStatus(ref ResourceStatus) {
 	replaced := false

@@ -31,7 +31,7 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:h
 			selector := labels.SelectorFromSet(service.Spec.Selector)
 			if selector.Matches(labels.Set(deployment.Labels)) {
 				found = true
-				ref.Targets = append(ref.Targets, model.NewLocatedResource(ServiceKind, service.Name, service.Labels))
+				ref.AddTargetResource(model.NewLocatedResource(ServiceKind, service.Name, service.Labels))
 			}
 		}
 	}
