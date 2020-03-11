@@ -42,16 +42,6 @@ var _ = Describe("Complete session manipulation", func() {
 			return s
 		}
 	}(&c)
-	/*
-		GetStatusRef := func(name string, session v1alpha1.Session) *v1alpha1.RefStatus {
-			for _, ref := range session.Status.Refs {
-				if ref.Name == name {
-					return ref
-				}
-			}
-			return nil
-		}
-	*/
 	JustBeforeEach(func() {
 		logf.SetLogger(log.CreateClusterAwareLogger())
 		schema, _ = v1alpha1.SchemeBuilder.Build()
