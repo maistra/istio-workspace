@@ -7,7 +7,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"istio.io/api/networking/v1alpha3"
 
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
@@ -15,9 +14,9 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -142,12 +141,12 @@ var _ = Describe("Complete session manipulation", func() {
 						Name:      "test-vs",
 						Namespace: "test",
 					},
-					Spec: v1alpha3.VirtualService{
-						Http: []*v1alpha3.HTTPRoute{
+					Spec: istiov1alpha3.VirtualService{
+						Http: []*istiov1alpha3.HTTPRoute{
 							{
-								Route: []*v1alpha3.HTTPRouteDestination{
+								Route: []*istiov1alpha3.HTTPRouteDestination{
 									{
-										Destination: &v1alpha3.Destination{
+										Destination: &istiov1alpha3.Destination{
 											Host:   "test-service",
 											Subset: "v1",
 										},
