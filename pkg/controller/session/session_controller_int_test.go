@@ -180,11 +180,6 @@ var _ = Describe("Complete session manipulation", func() {
 
 			sess := GetSession("test", "test-session")
 
-			/*
-				b, _ := yaml.Marshal(sess)
-				fmt.Println(string(b))
-			*/
-
 			Expect(sess.Status.Refs).To(HaveLen(1))
 			Expect(sess.Status.Refs[0].Resources).To(HaveLen(3))
 			Expect(sess.Status.Refs[0].Targets).To(HaveLen(2))
