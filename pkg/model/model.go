@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"strings"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,13 +30,62 @@ type Ref struct {
 	Name             string
 	Strategy         string
 	Args             map[string]string
-	Target           LocatedResourceStatus
+	Targets          []LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
 }
 
-// HasTarget checks if current Target is of a given Kind
-func (r *Ref) HasTarget(kind string) bool {
-	return r.Target.Kind == kind
+// GetTargetsByKind returns the targets of the given kind
+func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
+	targets := []LocatedResourceStatus{}
+	for _, target := range r.Targets {
+		for _, kind := range kinds {
+			if target.Kind == kind {
+				targets = append(targets, target)
+				break
+			}
+		}
+	}
+	return targets
+}
+
+// GetTargetHostNames returns a list of Host names that the target Deployment can be reached under
+func (r *Ref) GetTargetHostNames() []string {
+	hosts := []string{}
+	for _, service := range r.GetTargetsByKind("Service") {
+		hosts = append(hosts, service.Name)
+	}
+
+	return hosts
+}
+
+// GetVersion returns the existing version name
+func (r *Ref) GetVersion() string {
+	target := r.GetTargetsByKind("Deployment", "DeploymentConfig")
+	if len(target) == 1 {
+		if val, ok := target[0].Labels["version"]; ok {
+			return val
+		}
+	}
+	return "unknown"
+}
+
+// GetNewVersion returns the new updated version name
+func (r *Ref) GetNewVersion(sessionName string) string {
+	return r.GetVersion() + "-" + sessionName
+}
+
+// AddTargetResource adds the status of an involved Resource to this ref
+func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
+	replaced := false
+	for i, status := range r.Targets {
+		if ref.Name == status.Name && ref.Kind == status.Kind {
+			r.Targets[i] = ref
+			replaced = true
+		}
+	}
+	if !replaced {
+		r.Targets = append(r.Targets, ref)
+	}
 }
 
 // AddResourceStatus adds the status of an involved Resource to this ref
@@ -87,24 +135,6 @@ type LocatedResourceStatus struct {
 	ResourceStatus
 
 	Labels map[string]string
-}
-
-// GetVersion returns the existing version name
-func (l *LocatedResourceStatus) GetVersion() string {
-	if val, ok := l.Labels["version"]; ok {
-		return val
-	}
-	return "unknown"
-}
-
-// GetNewVersion returns the new updated version name
-func (l *LocatedResourceStatus) GetNewVersion(sessionName string) string {
-	return l.GetVersion() + "-" + sessionName
-}
-
-// GetHostName returns the targets host name
-func (l *LocatedResourceStatus) GetHostName() string {
-	return strings.Split(l.Name, "-")[0]
 }
 
 // NewLocatedResource is a simple helper to create LocatedResourceStatus

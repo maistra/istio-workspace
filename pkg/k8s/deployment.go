@@ -32,7 +32,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 		return false
 	}
-	ref.Target = model.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels)
+	ref.AddTargetResource(model.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels))
 	return true
 }
 
@@ -41,19 +41,22 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
 	}
-	if !ref.HasTarget(DeploymentKind) {
+	targets := ref.GetTargetsByKind(DeploymentKind)
+	if len(targets) == 0 {
 		return nil
 	}
-	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Target.Name)
+	target := targets[0]
+
+	deployment, err := getDeployment(ctx, ctx.Namespace, target.Name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
+	ctx.Log.Info("Found Deployment", "name", deployment.Name)
 
-	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.Target.GetNewVersion(ctx.Name))
+	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
 		return err
@@ -76,7 +79,7 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //noli
 		deployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},
 		}
-		ctx.Log.Info("Found Deployment", "name", ref.Target.Name)
+		ctx.Log.Info("Found Deployment", "name", status.Name)
 		err := ctx.Client.Delete(ctx, deployment)
 		if err != nil {
 			if errors.IsNotFound(err) {

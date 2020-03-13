@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/pkg/model"
 
@@ -27,27 +28,27 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 		return nil
 	}
 
-	targetName := ref.Target.GetHostName()
+	for _, hostName := range ref.GetTargetHostNames() {
+		drs, err := getDestinationRulesByHost(ctx, ctx.Namespace, hostName)
+		if err != nil {
+			return err
+		}
+		for _, dr := range drs {
+			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
+			mutatedDr, err := mutateDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
+			if err != nil {
+				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
+				ctx.Log.Error(err, "failed to mutate DestinationRule", "name", dr.GetName())
+			}
+			err = ctx.Client.Update(ctx, &mutatedDr)
+			if err != nil {
+				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
+				ctx.Log.Error(err, "failed to update DestinationRule", "name", dr.GetName())
+			}
 
-	dr, err := getDestinationRule(ctx, ctx.Namespace, targetName)
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
-		return err
+			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionModified})
+		}
 	}
-
-	ctx.Log.Info("Found DestinationRule", "name", targetName)
-	mutatedDr, err := mutateDestinationRule(*dr, ref.Target.GetNewVersion(ctx.Name))
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
-		return err
-	}
-	err = ctx.Client.Update(ctx, &mutatedDr)
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionFailed})
-		return err
-	}
-
-	ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: targetName, Action: model.ActionModified})
 	return nil
 }
 
@@ -66,7 +67,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 		}
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr, err := revertDestinationRule(*dr, ref.Target.GetNewVersion(ctx.Name))
+		mutatedDr, err := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
 			break
@@ -107,4 +108,19 @@ func getDestinationRule(ctx model.SessionContext, namespace, name string) (*isti
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
 	return &destinationRule, err
+}
+
+func getDestinationRulesByHost(ctx model.SessionContext, namespace, hostName string) ([]*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+	matches := []*istionetwork.DestinationRule{}
+
+	destinationRules := istionetwork.DestinationRuleList{}
+	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
+	for _, dr := range destinationRules.Items { //nolint[:rangeValCopy]
+		if dr.Spec.Host == hostName {
+			match := dr
+			matches = append(matches, &match)
+		}
+	}
+
+	return matches, err
 }

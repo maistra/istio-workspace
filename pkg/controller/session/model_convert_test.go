@@ -14,8 +14,9 @@ import (
 var _ = Describe("Basic model conversion", func() {
 
 	var (
-		kind, name, aFailed, aModified, aCreated, aLocated = "test", "1", "failed", "modified", "created", "located"
-		sess                                               v1alpha1.Session
+		kind, name, servname                   = "test", "1", "1-serv"
+		aFailed, aModified, aCreated, aLocated = "failed", "modified", "created", "located"
+		sess                                   v1alpha1.Session
 	)
 	Context("ref to status", func() {
 		var (
@@ -31,10 +32,15 @@ var _ = Describe("Basic model conversion", func() {
 				Name:     "ref-name",
 				Strategy: "prepared-image",
 				Args:     map[string]string{"image": "x"},
-				Target: model.LocatedResourceStatus{
-					ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
-					Labels:         map[string]string{},
-				},
+				Targets: []model.LocatedResourceStatus{
+					model.LocatedResourceStatus{
+						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
+						Labels:         map[string]string{},
+					},
+					model.LocatedResourceStatus{
+						ResourceStatus: model.ResourceStatus{Kind: "service", Name: "serv-n", Action: model.ActionLocated},
+						Labels:         map[string]string{},
+					}},
 				ResourceStatuses: []model.ResourceStatus{
 					{Kind: kind, Name: name, Action: model.ActionCreated},
 					{Kind: "test", Name: "2", Action: model.ActionModified},
@@ -57,12 +63,19 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(sess.Status.Refs[0].Args).To(Equal(ref.Args))
 		})
 
-		It("target mapped", func() {
+		It("targets mapped", func() {
 			Expect(sess.Status.Refs).To(HaveLen(1))
-			Expect(sess.Status.Refs[0].Target).ToNot(BeNil())
-			Expect(*sess.Status.Refs[0].Target.Kind).To(Equal(ref.Target.Kind))
-			Expect(*sess.Status.Refs[0].Target.Name).To(Equal(ref.Target.Name))
-			Expect(*sess.Status.Refs[0].Target.Action).To(Equal("located"))
+			Expect(sess.Status.Refs[0].Targets).To(HaveLen(2))
+
+			Expect(sess.Status.Refs[0].Targets[0]).ToNot(BeNil())
+			Expect(*sess.Status.Refs[0].Targets[0].Kind).To(Equal(ref.Targets[0].Kind))
+			Expect(*sess.Status.Refs[0].Targets[0].Name).To(Equal(ref.Targets[0].Name))
+			Expect(*sess.Status.Refs[0].Targets[0].Action).To(Equal("located"))
+
+			Expect(sess.Status.Refs[0].Targets[1]).ToNot(BeNil())
+			Expect(*sess.Status.Refs[0].Targets[1].Kind).To(Equal(ref.Targets[1].Kind))
+			Expect(*sess.Status.Refs[0].Targets[1].Name).To(Equal(ref.Targets[1].Name))
+			Expect(*sess.Status.Refs[0].Targets[1].Action).To(Equal("located"))
 		})
 
 		It("action mapped", func() {
@@ -149,9 +162,15 @@ var _ = Describe("Basic model conversion", func() {
 								Strategy: "prepared-image",
 								Args:     map[string]string{"image": "x"},
 							},
-							Target: &v1alpha1.LabeledRefResource{
-								RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
-								Labels:      map[string]string{},
+							Targets: []*v1alpha1.LabeledRefResource{
+								&v1alpha1.LabeledRefResource{
+									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
+									Labels:      map[string]string{},
+								},
+								&v1alpha1.LabeledRefResource{
+									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &servname, Action: &aLocated},
+									Labels:      map[string]string{},
+								},
 							},
 							Resources: []*v1alpha1.RefResource{
 								{
@@ -188,13 +207,18 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
 		})
 
-		It("target mapped", func() {
+		It("targets mapped", func() {
 			Expect(refs).To(HaveLen(2))
 
 			Expect(refs[0].Name).To(Equal(sess.Status.Refs[0].Name))
-			Expect(refs[0].Target.Kind).To(Equal(*sess.Status.Refs[0].Target.Kind))
-			Expect(refs[0].Target.Name).To(Equal(*sess.Status.Refs[0].Target.Name))
-			Expect(refs[0].Target.Action).To(Equal(model.ActionLocated))
+
+			Expect(refs[0].Targets[0].Kind).To(Equal(*sess.Status.Refs[0].Targets[0].Kind))
+			Expect(refs[0].Targets[0].Name).To(Equal(*sess.Status.Refs[0].Targets[0].Name))
+			Expect(refs[0].Targets[0].Action).To(Equal(model.ActionLocated))
+
+			Expect(refs[0].Targets[1].Kind).To(Equal(*sess.Status.Refs[0].Targets[1].Kind))
+			Expect(refs[0].Targets[1].Name).To(Equal(*sess.Status.Refs[0].Targets[1].Name))
+			Expect(refs[0].Targets[1].Action).To(Equal(model.ActionLocated))
 		})
 	})
 	Context("route to route", func() {

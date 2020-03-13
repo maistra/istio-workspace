@@ -28,34 +28,36 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 		return nil
 	}
 
-	targetHost := ref.Target.GetHostName()
-	targetVersion := ref.Target.GetVersion()
+	targetVersion := ref.GetVersion()
 
-	vss, err := getVirtualServices(ctx, ctx.Namespace)
-	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: targetHost, Action: model.ActionFailed})
-		return err
-	}
-
-	for _, vs := range vss.Items { //nolint[:rangeValCopy]
-		if !mutationRequired(vs, targetHost, targetVersion) {
-			continue
-		}
-		ctx.Log.Info("Found VirtualService", "name", targetHost)
-		mutatedVs, err := mutateVirtualService(ctx, ref.Target, vs)
+	for _, hostName := range ref.GetTargetHostNames() {
+		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName, Action: model.ActionFailed})
 			return err
 		}
 
-		err = ctx.Client.Update(ctx, &mutatedVs)
-		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
-			return err
-		}
+		for _, vs := range vss.Items { //nolint[:rangeValCopy]
+			if !mutationRequired(vs, hostName, targetVersion) {
+				continue
+			}
+			ctx.Log.Info("Found VirtualService", "name", hostName)
+			mutatedVs, err := mutateVirtualService(ctx, hostName, ref.GetVersion(), ref.GetNewVersion(ctx.Name), vs)
+			if err != nil {
+				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+				return err
+			}
 
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionModified})
+			err = ctx.Client.Update(ctx, &mutatedVs)
+			if err != nil {
+				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+				return err
+			}
+
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionModified})
+		}
 	}
+
 	return nil
 }
 
@@ -74,7 +76,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 		}
 
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
-		mutatedVs, err := revertVirtualService(ctx, ref.Target.GetNewVersion(ctx.Name), *vs)
+		mutatedVs, err := revertVirtualService(ctx, ref.GetNewVersion(ctx.Name), *vs)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
 			break
@@ -91,7 +93,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, sourceResource model.LocatedResourceStatus, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
 
 	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []*v1alpha3.HTTPRoute {
 		routes := []*v1alpha3.HTTPRoute{}
@@ -151,14 +153,14 @@ func mutateVirtualService(ctx model.SessionContext, sourceResource model.Located
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 
-	targetsHTTP := findRoutes(clonedSource, sourceResource.GetHostName(), sourceResource.GetVersion())
+	targetsHTTP := findRoutes(clonedSource, hostName, version)
 	if len(targetsHTTP) == 0 {
 		return istionetwork.VirtualService{}, fmt.Errorf("route not found")
 	}
 	for _, tHTTP := range targetsHTTP {
 		targetHTTP := *tHTTP
-		targetHTTP = removeOtherRoutes(targetHTTP, sourceResource.GetHostName(), sourceResource.GetVersion())
-		targetHTTP = updateSubset(targetHTTP, sourceResource.GetNewVersion(ctx.Name))
+		targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
+		targetHTTP = updateSubset(targetHTTP, newVersion)
 		targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
 		targetHTTP = removeWeight(targetHTTP)
 		targetHTTP.Mirror = nil

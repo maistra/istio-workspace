@@ -246,6 +246,8 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 		})
 		Context("updated reference", func() {
+			locatedTargetName := "test-a"
+			locatedAction := "located"
 			BeforeEach(func() {
 				objects = []runtime.Object{
 					&v1alpha1.Session{
@@ -301,6 +303,15 @@ var _ = Describe("Basic session manipulation", func() {
 											"image": "x",
 										}},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
+									Targets: []*v1alpha1.LabeledRefResource{
+										&v1alpha1.LabeledRefResource{
+											RefResource: v1alpha1.RefResource{
+												Kind:   &kind,
+												Name:   &locatedTargetName,
+												Action: &locatedAction,
+											},
+										},
+									},
 								},
 							},
 						},
@@ -355,6 +366,17 @@ var _ = Describe("Basic session manipulation", func() {
 					Expect(modified.Strategy).To(Equal("prepared-image"))
 					Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
 					Expect(modified.Resources).To(HaveLen(0))
+				})
+			})
+			Context("ensure targets are reflected on update", func() {
+				It("when any change happen", func() {
+					locator.Action = foundTestLocatorTarget("test-a", "test-b")
+					revertor.Action = noOp
+					controller.Reconcile(req)
+
+					modified := GetStatusRef("locations", GetSession("test", "test-session"))
+					Expect(modified).ToNot(BeNil())
+					Expect(modified.Targets).To(HaveLen(2))
 				})
 			})
 		})
@@ -424,6 +446,16 @@ func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //noli
 // found Action for Locator tracker
 func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
 	return true
+}
+
+// found Action for Locator tracker
+func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+	return func(ctx model.SessionContext, ref *model.Ref) bool {
+		for _, name := range names {
+			ref.AddTargetResource(model.NewLocatedResource("test", name, map[string]string{}))
+		}
+		return true
+	}
 }
 
 // noOp Action for Mutator/Revertor trackers

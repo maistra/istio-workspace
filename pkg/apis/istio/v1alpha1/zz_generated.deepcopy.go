@@ -90,10 +90,16 @@ func (in *RefResource) DeepCopy() *RefResource {
 func (in *RefStatus) DeepCopyInto(out *RefStatus) {
 	*out = *in
 	in.Ref.DeepCopyInto(&out.Ref)
-	if in.Target != nil {
-		in, out := &in.Target, &out.Target
-		*out = new(LabeledRefResource)
-		(*in).DeepCopyInto(*out)
+	if in.Targets != nil {
+		in, out := &in.Targets, &out.Targets
+		*out = make([]*LabeledRefResource, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(LabeledRefResource)
+				(*in).DeepCopyInto(*out)
+			}
+		}
 	}
 	if in.Resources != nil {
 		in, out := &in.Resources, &out.Resources
