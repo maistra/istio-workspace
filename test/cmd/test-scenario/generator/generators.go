@@ -1,10 +1,12 @@
-package main
+package generator
 
 import (
-	"fmt"
+	"io"
+	"time"
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/maistra/istio/pkg/test/framework/runtime/components/environment/native/service"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
@@ -18,6 +20,11 @@ import (
 const (
 	envServiceName = "SERVICE_NAME"
 	envServiceCall = "SERVICE_CALL"
+)
+
+var (
+	TestImageName = ""
+	GatewayHost   = "*"
 )
 
 // Entry is a simple value object that holds the basic configuration used by the generator
@@ -42,7 +49,7 @@ type SubGenerator func(service Entry) runtime.Object
 type Modifier func(service Entry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout
-func Generate(services []Entry, modifiers ...Modifier) {
+func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 	modify := func(service Entry, object runtime.Object) {
 		for _, modifier := range modifiers {
@@ -52,10 +59,10 @@ func Generate(services []Entry, modifiers ...Modifier) {
 	printObj := func(object runtime.Object) {
 		b, err := yaml.Marshal(object)
 		if err != nil {
-			fmt.Println("Marshal error", err)
+			io.WriteString(out, "Marshal error"+err.Error()+"\n")
 		}
-		fmt.Println(string(b))
-		fmt.Println("---")
+		out.Write(b)
+		io.WriteString(out, "---\n")
 	}
 	for _, service := range services {
 		func(service Entry) {
@@ -86,10 +93,12 @@ func DeploymentConfig(service Entry) runtime.Object {
 			Kind:       "DeploymentConfig",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service.Name,
+			Name:      service.Name,
+			Namespace: service.Namespace,
 			Labels: map[string]string{
 				"app": service.Name,
 			},
+			CreationTimestamp: v1.Time{Time: time.Now()},
 		},
 		Spec: osappsv1.DeploymentConfigSpec{
 			Replicas: 1,
@@ -110,7 +119,9 @@ func Deployment(service Entry) runtime.Object {
 			Kind:       "Deployment",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service.Name,
+			Name:              service.Name,
+			Namespace:         service.Namespace,
+			CreationTimestamp: v1.Time{Time: time.Now()},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replica,
@@ -132,7 +143,8 @@ func Service(service Entry) runtime.Object {
 			Kind:       "Service",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service.Name,
+			Name:      service.Name,
+			Namespace: service.Namespace,
 			Labels: map[string]string{
 				"app": service.Name,
 			},
@@ -159,7 +171,8 @@ func DestinationRule(service Entry) runtime.Object {
 			Kind:       "DestinationRule",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service.Name,
+			Name:      service.Name,
+			Namespace: service.Namespace,
 		},
 		Spec: istiov1alpha3.DestinationRule{
 			Host: service.HostName(),
@@ -175,7 +188,8 @@ func VirtualService(service Entry) runtime.Object {
 			Kind:       "VirtualService",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: service.Name,
+			Name:      service.Name,
+			Namespace: service.Namespace,
 		},
 		Spec: istiov1alpha3.VirtualService{
 			Hosts: []string{service.HostName()},
@@ -214,7 +228,8 @@ func Gateway() runtime.Object {
 			Kind:       "Gateway",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name: "test-gateway",
+			Name:      "test-gateway",
+			Namespace: service.Namespace,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{
@@ -253,7 +268,7 @@ func template(name string) corev1.PodTemplateSpec {
 			Containers: []corev1.Container{
 				{
 					Name:            name,
-					Image:           testImageName,
+					Image:           TestImageName,
 					ImagePullPolicy: "Always",
 					Env: []corev1.EnvVar{
 						{
