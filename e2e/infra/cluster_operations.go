@@ -18,8 +18,10 @@ func UpdateSecurityConstraintsFor(namespace string) {
 		"oc adm policy add-scc-to-user privileged -z default -n "+namespace)
 }
 
-var user = "admin" //nolint[:goconst]
-var pwd = "admin"  //nolint[:goconst]
+var (
+	user = "admin"
+	pwd  = "admin"
+)
 
 func LoginAsTestPowerUser() {
 	if ikeUser, found := os.LookupEnv("IKE_CLUSTER_USER"); found {

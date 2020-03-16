@@ -128,7 +128,7 @@ type applier struct {
 	d parser.DecodeFunc
 }
 
-func newApplier(namespace string) (*applier, error) { //nolint[:golint]
+func newApplier(namespace string) (*applier, error) {
 	client, err := dynclient.NewDefaultDynamicClient(namespace)
 	if err != nil {
 		return nil, err
