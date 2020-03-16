@@ -25,10 +25,6 @@ const (
 	EnvServiceCall = "SERVICE_CALL"
 )
 
-var (
-	rootDir = "test/cmd/test-service/assets/" //nolint:deadcode
-)
-
 func main() {
 	logf.SetLogger(log.CreateClusterAwareLogger())
 
