@@ -2,6 +2,7 @@ package model_test
 
 import (
 	"github.com/maistra/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
