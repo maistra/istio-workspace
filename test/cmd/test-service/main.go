@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	rootDir = "test/cmd/test-service/assets/" //nolint[:deadcode]
+	rootDir = "test/cmd/test-service/assets/" //nolint:deadcode
 )
 
 func main() {

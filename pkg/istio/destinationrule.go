@@ -107,7 +107,7 @@ func getDestinationRulesByHost(ctx model.SessionContext, namespace, hostName str
 
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
-	for _, dr := range destinationRules.Items { //nolint[:rangeValCopy]
+	for _, dr := range destinationRules.Items { //nolint:rangeValCopy
 		if dr.Spec.Host == hostName {
 			match := dr
 			matches = append(matches, &match)

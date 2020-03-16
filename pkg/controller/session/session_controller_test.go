@@ -492,7 +492,7 @@ func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
 }
 
 // removeResource Action for revertor tracker
-func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:unparam] kind is always receiving 'test' so far
+func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint:unparam kind is always receiving 'test' so far
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})
 		return nil
