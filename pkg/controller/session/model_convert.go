@@ -92,8 +92,8 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 }
 
 // ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref
-func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref) model.Ref {
-	return model.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}
+func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) model.Ref {
+	return model.Ref{Name: ref.Name, Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
 }
 
 // ConvertAPIRouteToModelRoute returns the defined route from the session or the Default
