@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,10 +29,17 @@ type Route struct {
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
 type Ref struct {
 	Name             string
+	Namespace        string
 	Strategy         string
 	Args             map[string]string
 	Targets          []LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
+}
+
+// HostName represents the Hostname of a service in a given namespace
+type HostName struct {
+	Name      string
+	Namespace string
 }
 
 // GetTargetsByKind returns the targets of the given kind
@@ -48,11 +56,19 @@ func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
 	return targets
 }
 
+// Match returns true if this Hostname is equal to the short or long v of a dns name
+func (h *HostName) Match(name string) bool {
+	if h.Name == name || fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name {
+		return true
+	}
+	return false
+}
+
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under
-func (r *Ref) GetTargetHostNames() []string {
-	hosts := []string{}
+func (r *Ref) GetTargetHostNames() []HostName {
+	hosts := []HostName{}
 	for _, service := range r.GetTargetsByKind("Service") {
-		hosts = append(hosts, service.Name)
+		hosts = append(hosts, HostName{Name: service.Name, Namespace: r.Namespace})
 	}
 
 	return hosts

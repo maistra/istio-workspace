@@ -29,10 +29,10 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			Context("existing rule", func() {
-				GetMutatedRoute := func(vs istionetwork.VirtualService, host, subset string) *v1alpha3.HTTPRoute {
+				GetMutatedRoute := func(vs istionetwork.VirtualService, host model.HostName, subset string) *v1alpha3.HTTPRoute {
 					for _, h := range vs.Spec.Http {
 						for _, r := range h.Route {
-							if r.Destination.Host == host && r.Destination.Subset == subset {
+							if host.Match(r.Destination.Host) && r.Destination.Subset == subset {
 								return h
 							}
 						}
@@ -43,16 +43,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					mutatedVirtualService istionetwork.VirtualService
 					ctx                   model.SessionContext
 					targetV1              = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
-					targetV1Host          = "details"
+					targetV1Host          = model.HostName{Name: "details"}
 					targetV1Subset        = "v1-vs-test"
 					targetV4              = model.NewLocatedResource("Deployment", "details-v4", map[string]string{"version": "v4"})
-					targetV4Host          = "details"
+					targetV4Host          = model.HostName{Name: "details"}
 					targetV4Subset        = "v4-vs-test"
 					targetV5              = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
-					targetV5Host          = "details"
+					targetV5Host          = model.HostName{Name: "details"}
 					targetV5Subset        = "v5-vs-test"
 					targetV6              = model.NewLocatedResource("Deployment", "x-v5", map[string]string{"version": "v5"})
-					targetV6Host          = "x"
+					targetV6Host          = model.HostName{Name: "x"}
 					targetV6Subset        = "v5-vs-test"
 				)
 
@@ -163,12 +163,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("route missing", func() {
-					_, err = mutateVirtualService(ctx, "miss-v5", "v5", "v5-vs-test", virtualService)
+					_, err = mutateVirtualService(ctx, model.HostName{Name: "miss-v5"}, "v5", "v5-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
 				It("route missing version", func() {
-					_, err = mutateVirtualService(ctx, "details-v10", "v10", "v10-vs-test", virtualService)
+					_, err = mutateVirtualService(ctx, model.HostName{Name: "details-v10"}, "v10", "v10-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
@@ -254,13 +254,13 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			}
 		})
 		It("Should require unversioned targets", func() {
-			Expect(mutationRequired(virtualService, "x", "v1")).To(BeTrue())
+			Expect(mutationRequired(virtualService, model.HostName{Name: "x"}, "v1")).To(BeTrue())
 		})
 		It("Should require versioned targets", func() {
-			Expect(mutationRequired(virtualService, "y", "v1")).To(BeTrue())
+			Expect(mutationRequired(virtualService, model.HostName{Name: "y"}, "v1")).To(BeTrue())
 		})
 		It("Should not require other versioned targets", func() {
-			Expect(mutationRequired(virtualService, "z", "v1")).To(BeFalse())
+			Expect(mutationRequired(virtualService, model.HostName{Name: "z"}, "v1")).To(BeFalse())
 		})
 	})
 })
