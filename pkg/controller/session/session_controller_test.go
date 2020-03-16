@@ -439,17 +439,17 @@ var _ = Describe("Basic session manipulation", func() {
 })
 
 // notFound Action for Locator tracker
-func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return false
 }
 
 // found Action for Locator tracker
-func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return true
 }
 
 // found Action for Locator tracker
-func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref *model.Ref) bool {
 	return func(ctx model.SessionContext, ref *model.Ref) bool {
 		for _, name := range names {
 			ref.AddTargetResource(model.NewLocatedResource("test", name, map[string]string{}))
@@ -459,7 +459,7 @@ func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref 
 }
 
 // noOp Action for Mutator/Revertor trackers
-func noOp(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func noOp(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
@@ -468,13 +468,13 @@ type trackedLocator struct {
 	Action    model.Locator
 }
 
-func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }
 
 // addResource Action for mutator tracker
-func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error {
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(status)
 		return nil
@@ -486,13 +486,13 @@ type trackedMutator struct {
 	Action    model.Mutator
 }
 
-func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }
 
 // removeResource Action for revertor tracker
-func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint[:unparam] kind is always receiving 'test' so far
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})
 		return nil
@@ -504,7 +504,7 @@ type trackedRevertor struct {
 	Action    model.Revertor
 }
 
-func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error {
 	t.WasCalled = true
 	return t.Action(ctx, ref)
 }

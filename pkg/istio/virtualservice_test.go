@@ -200,8 +200,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				JustBeforeEach(func() {
-					revertedVirtualService, err = revertVirtualService(ctx, "v1-vs-test", virtualService)
-					Expect(err).ToNot(HaveOccurred())
+					revertedVirtualService = revertVirtualService(ctx, "v1-vs-test", virtualService)
 				})
 
 				It("route removed", func() {

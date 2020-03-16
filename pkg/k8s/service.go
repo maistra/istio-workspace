@@ -17,7 +17,7 @@ const (
 var _ model.Locator = ServiceLocator
 
 // ServiceLocator attempts to locate the Services for the target Deployment/DeploymentConfig
-func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	deployments := ref.GetTargetsByKind("Deployment", "DeploymentConfig")
 
 	services, err := getServices(ctx, ctx.Namespace)
@@ -38,7 +38,7 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:h
 	return found
 }
 
-func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) { //nolint[:hugeParam]
+func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) {
 	services := corev1.ServiceList{}
 	err := ctx.Client.List(ctx, &services, client.InNamespace(namespace))
 	return &services, err
