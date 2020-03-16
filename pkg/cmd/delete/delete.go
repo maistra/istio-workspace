@@ -16,10 +16,10 @@ func NewCmd() *cobra.Command {
 		Use:          "delete",
 		Short:        "Deletes an existing Session",
 		SilenceUsage: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			_, remove, err := internal.RemoveSessions(cmd)
 			if err == nil {
 				remove()

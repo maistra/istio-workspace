@@ -32,13 +32,13 @@ func NewCmd() *cobra.Command {
 		Use:          "develop",
 		Short:        "Starts the development flow",
 		SilenceUsage: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 			}
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			dir, err := os.Getwd()
 			if err != nil {
 				return err
