@@ -45,7 +45,7 @@ Environment variables you can override:{{range tplParams}}
 	return installCmd
 }
 
-func installOperator(cmd *cobra.Command, args []string) error { //nolint:unparam,gocyclo
+func installOperator(cmd *cobra.Command, args []string) error { //nolint:unparam,gocyclo //reason args required by cobra, cyclo can be skipped in sake of readability
 	namespace, err := cmd.Flags().GetString("namespace")
 	if err != nil {
 		return err

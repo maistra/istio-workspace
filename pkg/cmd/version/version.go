@@ -20,7 +20,7 @@ func NewCmd() *cobra.Command {
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint:unparam
+		RunE: func(cmd *cobra.Command, args []string) error {
 			LogVersion()
 			return nil
 		},

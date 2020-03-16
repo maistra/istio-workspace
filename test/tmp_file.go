@@ -15,7 +15,7 @@ import (
 )
 
 // TestReporter can be used to report test failures. It is satisfied by the standard library's *testing.T.
-type TestReporter interface { //nolint:golint
+type TestReporter interface { //nolint:golint //reason test code
 	Errorf(format string, args ...interface{})
 }
 

@@ -37,7 +37,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 			return err
 		}
 
-		for _, vs := range vss.Items { //nolint[:rangeValCopy]
+		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			if !mutationRequired(vs, hostName, targetVersion) {
 				continue
 			}
@@ -76,7 +76,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		}
 
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
-		mutatedVs := revertVirtualService(ctx, ref.GetNewVersion(ctx.Name), *vs)
+		mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
 		err = ctx.Client.Update(ctx, &mutatedVs)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
@@ -89,7 +89,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:gocyclo
+func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:lll,gocyclo //reason for readability
 	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []*v1alpha3.HTTPRoute {
 		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
@@ -170,7 +170,7 @@ func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersio
 	return *target, nil
 }
 
-func revertVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) istionetwork.VirtualService { //nolint[:unparam]
+func revertVirtualService(subsetName string, vs istionetwork.VirtualService) istionetwork.VirtualService {
 	for i := 0; i < len(vs.Spec.Http); i++ {
 		http := vs.Spec.Http[i]
 		for n := 0; n < len(http.Route); n++ {

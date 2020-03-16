@@ -27,7 +27,7 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	}
 	found := false
 	for _, deployment := range deployments {
-		for _, service := range services.Items { //nolint:rangeValCopy
+		for _, service := range services.Items { //nolint:gocritic //reason for readability
 			selector := labels.SelectorFromSet(service.Spec.Selector)
 			if selector.Matches(labels.Set(deployment.Labels)) {
 				found = true

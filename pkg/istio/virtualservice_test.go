@@ -183,24 +183,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			Context("existing rule", func() {
-				var (
-					revertedVirtualService istionetwork.VirtualService
-					ctx                    model.SessionContext
-				)
+				var revertedVirtualService istionetwork.VirtualService
 
 				BeforeEach(func() {
 					yaml = complextMutatedVirtualService
-					ctx = model.SessionContext{
-						Route: model.Route{
-							Type:  "header",
-							Name:  "test",
-							Value: "x",
-						},
-					}
 				})
 
 				JustBeforeEach(func() {
-					revertedVirtualService = revertVirtualService(ctx, "v1-vs-test", virtualService)
+					revertedVirtualService = revertVirtualService("v1-vs-test", virtualService)
 				})
 
 				It("route removed", func() {

@@ -41,7 +41,7 @@ func NewCmd() *cobra.Command {
 	return serveCmd
 }
 
-func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam
+func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam //reason cmd required by cobra
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		log.Error(err, "Failed to get watch namespace")

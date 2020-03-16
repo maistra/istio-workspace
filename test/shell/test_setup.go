@@ -41,7 +41,7 @@ func ExecuteCommand(outputChan chan string, execute func() (string, error)) func
 
 var appFs = afero.NewOsFs()
 
-func buildBinary(packagePath, name string, flags ...string) string { //nolint:unparam at this moment we always pass the same value for packagePath
+func buildBinary(packagePath, name string, flags ...string) string { //nolint:unparam //reason at this moment we always pass the same value for packagePath
 	binPath, err := gexec.Build(packagePath, flags...)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
