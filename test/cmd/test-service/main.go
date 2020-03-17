@@ -25,6 +25,10 @@ const (
 	EnvServiceCall = "SERVICE_CALL"
 )
 
+var (
+	rootDir = "test/cmd/test-service/assets/" //nolint:varcheck,deadcode,unused //reason This is required to use the dev mode for assets (reading from fs)
+)
+
 func main() {
 	logf.SetLogger(log.CreateClusterAwareLogger())
 
