@@ -105,7 +105,7 @@ func mutateVirtualService(ctx model.SessionContext, hostName model.HostName, ver
 		return routes
 	}
 
-  removeOtherRoutes := func(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
+	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
 		for i, r := range http.Route {
 			if !((r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == subset) ||
 				(r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == "")) {
@@ -197,7 +197,7 @@ func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwo
 	return &virtualServices, err
 }
 
-func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool { 
+func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {
 	for _, http := range vs.Spec.Http {
 		for _, route := range http.Route {
 			if route.Destination != nil && targetHost.Match(route.Destination.Host) {
