@@ -31,12 +31,14 @@ import (
 
 var _ = Describe("Complete session manipulation", func() {
 	var (
+		namespace  = "test"
 		objects    []runtime.Object
 		err        error
 		controller reconcile.Reconciler
 		req        reconcile.Request
 		schema     *runtime.Scheme
 		c          client.Client
+		scenario   func(io.Writer)
 	)
 	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
@@ -46,15 +48,17 @@ var _ = Describe("Complete session manipulation", func() {
 			return s
 		}
 	}(&c)
-	BeforeEach(func() {
+	JustBeforeEach(func() {
+		logf.SetLogger(log.CreateClusterAwareLogger())
+
 		schema, _ = v1alpha1.SchemeBuilder.Build()
 		_ = corev1.AddToScheme(schema)
 		_ = appsv1.AddToScheme(schema)
 		_ = istionetwork.AddToScheme(schema)
 
-	})
-	JustBeforeEach(func() {
-		logf.SetLogger(log.CreateClusterAwareLogger())
+		objs, err := Scenario(schema, namespace, scenario)
+		Expect(err).ToNot(HaveOccurred())
+		objects = append(objects, objs...)
 
 		req = reconcile.Request{
 			NamespacedName: types.NamespacedName{
@@ -68,12 +72,11 @@ var _ = Describe("Complete session manipulation", func() {
 
 	Context("in a complete lifecycle", func() {
 		BeforeEach(func() {
-			objects, err = Scenario(schema, "test", generator.TestScenario1ThreeServicesInSequence)
-			Expect(err).ToNot(HaveOccurred())
+			scenario = generator.TestScenario1ThreeServicesInSequence
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-session",
-					Namespace: "test",
+					Namespace: namespace,
 				},
 				Spec: v1alpha1.SessionSpec{
 					Refs: []v1alpha1.Ref{
