@@ -62,3 +62,11 @@ rules:
       - '*'
     verbs:
       - '*'
+  - apiGroups:
+    - apps
+    resourceNames:
+    - istio-workspace
+    resources:
+    - deployments/finalizers
+    verbs:
+    - update
