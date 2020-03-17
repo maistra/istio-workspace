@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestK8(t *testing.T) {
+func TestModel(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "model Suite")
 }
