@@ -16,10 +16,10 @@ func NewCmd() *cobra.Command {
 		Use:          "create",
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			_, _, err := internal.Sessions(cmd)
 			return err
 		},

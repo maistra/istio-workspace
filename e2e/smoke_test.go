@@ -300,7 +300,7 @@ func verifyThatResponseMatchesModifiedService(tmpDir, namespace string) {
 	Eventually(ikeWithWatch.Done(), 1*time.Minute).Should(BeClosed())
 }
 
-func call(routeURL string, headers map[string]string) func() (string, error) { //nolint[:unparam]
+func call(routeURL string, headers map[string]string) func() (string, error) {
 	return func() (string, error) {
 		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
 		return GetBodyWithHeaders(routeURL, headers)

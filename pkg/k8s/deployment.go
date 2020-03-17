@@ -23,7 +23,7 @@ var _ model.Mutator = DeploymentMutator
 var _ model.Revertor = DeploymentRevertor
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name
-func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint[:hugeParam]
+func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
 		if errors.IsNotFound(err) { // Ref is not a Deployment type
@@ -37,7 +37,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool { //nolint
 }
 
 // DeploymentMutator attempts to clone the located Deployment
-func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error {
 	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
 		return nil
 	}
@@ -73,7 +73,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error { //nolin
 }
 
 // DeploymentRevertor attempts to delete the cloned Deployment
-func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	statuses := ref.GetResourceStatus(DeploymentKind)
 	for _, status := range statuses {
 		deployment := &appsv1.Deployment{
@@ -114,7 +114,7 @@ func cloneDeployment(deployment *appsv1.Deployment, ref *model.Ref, version stri
 	return &clone, nil
 }
 
-func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) { //nolint[:hugeParam]
+func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 	return &deployment, err

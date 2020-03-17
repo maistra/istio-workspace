@@ -32,7 +32,7 @@ func NewCmd() *cobra.Command {
 		Use:                    "ike",
 		Short:                  "ike lets you safely develop and test on prod without a sweat",
 		BashCompletionFunction: completion.BashCompletionFunc,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if v.Released() {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
@@ -46,7 +46,7 @@ func NewCmd() *cobra.Command {
 			}
 			return config.SetupConfigSources(loadConfigFileName(cmd))
 		},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
 			if shouldPrintVersion {
 				version.LogVersion()

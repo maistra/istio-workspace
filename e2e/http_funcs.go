@@ -14,7 +14,7 @@ func GetBody(rawURL string, cookies ...*http.Cookie) (string, error) {
 	for _, c := range cookies {
 		req.AddCookie(c)
 	}
-	resp, err := http.DefaultClient.Do(req) //nolint[:gosec]
+	resp, err := http.DefaultClient.Do(req) //nolint:gosec //reason test code
 	if err != nil {
 		return "", err
 	}
@@ -35,7 +35,7 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	for k, v := range headers {
 		req.Header[k] = []string{v}
 	}
-	resp, err := http.DefaultClient.Do(req) //nolint[:gosec]
+	resp, err := http.DefaultClient.Do(req) //nolint:gosec //reason cmd required by cobra
 	if err != nil {
 		return "", err
 	}
