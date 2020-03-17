@@ -90,7 +90,6 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 }
 
 func mutateVirtualService(ctx model.SessionContext, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:lll,gocyclo //reason for readability
-
 	findRoutes := func(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
 		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
