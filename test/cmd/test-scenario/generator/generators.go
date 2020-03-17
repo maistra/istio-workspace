@@ -6,7 +6,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/maistra/istio/pkg/test/framework/runtime/components/environment/native/service"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
@@ -59,10 +58,10 @@ func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	printObj := func(object runtime.Object) {
 		b, err := yaml.Marshal(object)
 		if err != nil {
-			io.WriteString(out, "Marshal error"+err.Error()+"\n")
+			_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
 		}
-		out.Write(b)
-		io.WriteString(out, "---\n")
+		_, _ = out.Write(b)
+		_, _ = io.WriteString(out, "---\n")
 	}
 	for _, service := range services {
 		func(service Entry) {
@@ -229,7 +228,7 @@ func Gateway() runtime.Object {
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-gateway",
-			Namespace: service.Namespace,
+			Namespace: Namespace,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{

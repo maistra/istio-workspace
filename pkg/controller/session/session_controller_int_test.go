@@ -41,7 +41,7 @@ var _ = Describe("Complete session manipulation", func() {
 	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
 			s := v1alpha1.Session{}
-			err := (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+			err = (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 			Expect(err).ToNot(HaveOccurred())
 			return s
 		}
@@ -130,8 +130,8 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 		if err != nil {
 			return nil, err
 		}
-		if obj, ok := obj.(runtime.Object); ok {
-			objects = append(objects, obj)
+		if robj, ok := obj.(runtime.Object); ok {
+			objects = append(objects, robj)
 		}
 	}
 	return objects, nil
