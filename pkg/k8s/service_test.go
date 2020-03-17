@@ -24,10 +24,11 @@ var _ = Describe("Operations for k8s Service kind", func() {
 
 	CreateTestRef := func(kind string, lables map[string]string) model.Ref {
 		return model.Ref{
-			Name:     "test-ref",
-			Strategy: "telepresence",
-			Targets:  []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", lables)},
-			Args:     map[string]string{"version": "0.103"},
+			Name:      "test-ref",
+			Namespace: "test",
+			Strategy:  "telepresence",
+			Targets:   []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", lables)},
+			Args:      map[string]string{"version": "0.103"},
 		}
 	}
 	JustBeforeEach(func() {
@@ -113,7 +114,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			hosts := ref.GetTargetHostNames()
 			Expect(len(hosts)).To(Equal(1))
 
-			Expect(hosts[0]).To(Equal("test-1"))
+			Expect(hosts[0].Name).To(Equal("test-1"))
 		})
 
 		It("should add all matching services", func() {

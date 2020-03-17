@@ -137,7 +137,7 @@ var _ = Describe("Complete session manipulation", func() {
 								Route: []*istiov1alpha3.HTTPRouteDestination{
 									{
 										Destination: &istiov1alpha3.Destination{
-											Host:   "test-service",
+											Host:   "test-service.test.svc.cluster.local", // full name dns
 											Subset: "v1",
 										},
 									},
@@ -152,7 +152,7 @@ var _ = Describe("Complete session manipulation", func() {
 						Namespace: "test",
 					},
 					Spec: istiov1alpha3.DestinationRule{
-						Host: "test-service",
+						Host: "test-service", // short name dns
 						Subsets: []*istiov1alpha3.Subset{
 							&istiov1alpha3.Subset{
 								Name: "v1",

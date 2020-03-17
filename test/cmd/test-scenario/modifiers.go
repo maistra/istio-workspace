@@ -31,7 +31,7 @@ func GatewayOnHost(hostname string) Modifier {
 }
 
 // Call modifier to have the test service call another. Combine with ForService
-func Call(target string) Modifier {
+func Call(target Entry) Modifier {
 	return func(service Entry, object runtime.Object) {
 		appendOrAdd := func(name, value string, vars []corev1.EnvVar) []corev1.EnvVar {
 			found := false
@@ -54,21 +54,21 @@ func Call(target string) Modifier {
 
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-				envServiceCall, "http://"+target+":9080",
+				envServiceCall, "http://"+target.HostName()+":9080",
 				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-				envServiceCall, "http://"+target+":9080",
+				envServiceCall, "http://"+target.HostName()+":9080",
 				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 	}
 }
 
 // ForService modifier is a filter to only execute the given modifiers if the target object belongs to the named target.
-func ForService(target string, modifiers ...Modifier) Modifier {
+func ForService(target Entry, modifiers ...Modifier) Modifier {
 	return func(service Entry, object runtime.Object) {
-		if target != service.Name {
+		if target.Name != service.Name {
 			return
 		}
 		for _, modifier := range modifiers {
@@ -93,7 +93,7 @@ func WithVersion(version string) Modifier {
 				Route: []*istiov1alpha3.HTTPRouteDestination{
 					{
 						Destination: &istiov1alpha3.Destination{
-							Host:   service.Name,
+							Host:   service.HostName(),
 							Subset: version,
 						},
 					},

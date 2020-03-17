@@ -206,8 +206,8 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error {
 	for _, specRef := range session.Spec.Refs {
-		ctx.Log.Info("Add ref", "name", specRef)
-		ref := ConvertAPIRefToModelRef(specRef)
+		ctx.Log.Info("Add ref", "name", specRef.Name)
+		ref := ConvertAPIRefToModelRef(specRef, session.Namespace)
 		err := r.sync(ctx, session, &ref)
 		if err != nil {
 			return err

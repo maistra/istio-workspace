@@ -17,7 +17,13 @@ const (
 
 // ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
-	statusRef := &istiov1alpha1.RefStatus{Ref: istiov1alpha1.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}}
+	statusRef := &istiov1alpha1.RefStatus{
+		Ref: istiov1alpha1.Ref{
+			Name:     ref.Name,
+			Strategy: ref.Strategy,
+			Args:     ref.Args,
+		},
+	}
 	for _, t := range ref.Targets {
 		target := t
 		action := string(target.Action)
@@ -52,7 +58,12 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	refs := []*model.Ref{}
 	for _, statusRef := range session.Status.Refs {
-		r := &model.Ref{Name: statusRef.Name, Strategy: statusRef.Strategy, Args: statusRef.Args}
+		r := &model.Ref{
+			Name:      statusRef.Name,
+			Namespace: session.Namespace,
+			Strategy:  statusRef.Strategy,
+			Args:      statusRef.Args,
+		}
 		ConvertAPIStatusToModelRef(session, r)
 		refs = append(refs, r)
 	}
@@ -65,8 +76,11 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 		if statusRef.Name == ref.Name {
 			for _, statusTarget := range statusRef.Targets {
 				ref.AddTargetResource(model.LocatedResourceStatus{
-					ResourceStatus: model.ResourceStatus{Kind: *statusTarget.Kind, Name: *statusTarget.Name, Action: model.ResourceAction(*statusTarget.Action)},
-					Labels:         statusTarget.Labels,
+					ResourceStatus: model.ResourceStatus{
+						Kind:   *statusTarget.Kind,
+						Name:   *statusTarget.Name,
+						Action: model.ResourceAction(*statusTarget.Action)},
+					Labels: statusTarget.Labels,
 				})
 			}
 			for _, resource := range statusRef.Resources {
@@ -78,8 +92,8 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 }
 
 // ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref
-func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref) model.Ref {
-	return model.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}
+func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) model.Ref {
+	return model.Ref{Name: ref.Name, Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
 }
 
 // ConvertAPIRouteToModelRoute returns the defined route from the session or the Default
