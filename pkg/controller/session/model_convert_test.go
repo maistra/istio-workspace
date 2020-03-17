@@ -29,9 +29,10 @@ var _ = Describe("Basic model conversion", func() {
 		})
 		BeforeEach(func() {
 			ref = model.Ref{
-				Name:     "ref-name",
-				Strategy: "prepared-image",
-				Args:     map[string]string{"image": "x"},
+				Name:      "ref-name",
+				Namespace: "x",
+				Strategy:  "prepared-image",
+				Args:      map[string]string{"image": "x"},
 				Targets: []model.LocatedResourceStatus{
 					model.LocatedResourceStatus{
 						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
@@ -195,6 +196,7 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs).To(HaveLen(2))
 
 			Expect(refs[0].Name).To(Equal(sess.Status.Refs[0].Name))
+			Expect(refs[0].Namespace).To(Equal(sess.Namespace))
 			Expect(refs[0].Strategy).To(Equal(sess.Status.Refs[0].Strategy))
 			Expect(refs[0].Args).To(Equal(sess.Status.Refs[0].Args))
 			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
@@ -202,6 +204,9 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[0].ResourceStatuses[0].Action).To(Equal(model.ActionCreated))
 
 			Expect(refs[1].Name).To(Equal(sess.Status.Refs[1].Name))
+			Expect(refs[1].Namespace).To(Equal(sess.Namespace))
+			Expect(refs[1].Strategy).To(Equal(sess.Status.Refs[1].Strategy))
+			Expect(refs[1].Args).To(Equal(sess.Status.Refs[1].Args))
 			Expect(refs[1].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[1].Resources[0].Kind))
 			Expect(refs[1].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[1].Resources[0].Name))
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))

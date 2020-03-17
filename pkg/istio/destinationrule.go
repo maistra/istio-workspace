@@ -102,13 +102,13 @@ func getDestinationRule(ctx model.SessionContext, namespace, name string) (*isti
 	return &destinationRule, err
 }
 
-func getDestinationRulesByHost(ctx model.SessionContext, namespace, hostName string) ([]*istionetwork.DestinationRule, error) {
+func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostName model.HostName) ([]*istionetwork.DestinationRule, error) {
 	matches := []*istionetwork.DestinationRule{}
 
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
 	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
-		if dr.Spec.Host == hostName {
+		if hostName.Match(dr.Spec.Host) {
 			match := dr
 			matches = append(matches, &match)
 		}

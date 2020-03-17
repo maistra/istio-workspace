@@ -33,7 +33,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 	for _, hostName := range ref.GetTargetHostNames() {
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName.Name, Action: model.ActionFailed})
 			return err
 		}
 
@@ -89,12 +89,12 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:lll,gocyclo //reason for readability
-	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []*v1alpha3.HTTPRoute {
+func mutateVirtualService(ctx model.SessionContext, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:lll,gocyclo //reason for readability
+	findRoutes := func(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
 		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
 			for _, r := range h.Route {
-				if r.Destination != nil && r.Destination.Host == host {
+				if r.Destination != nil && host.Match(r.Destination.Host) {
 					if r.Destination.Subset == "" || r.Destination.Subset == subset {
 						routes = append(routes, h)
 					}
@@ -104,10 +104,10 @@ func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersio
 		return routes
 	}
 
-	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host, subset string) v1alpha3.HTTPRoute {
+	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
 		for i, r := range http.Route {
-			if !((r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == subset) ||
-				(r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == "")) {
+			if !((r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == subset) ||
+				(r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == "")) {
 				http.Route = append(http.Route[:i], http.Route[i+1:]...)
 			}
 		}
@@ -196,10 +196,10 @@ func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwo
 	return &virtualServices, err
 }
 
-func mutationRequired(vs istionetwork.VirtualService, targetHost, targetVersion string) bool {
+func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {
 	for _, http := range vs.Spec.Http {
 		for _, route := range http.Route {
-			if route.Destination != nil && route.Destination.Host == targetHost {
+			if route.Destination != nil && targetHost.Match(route.Destination.Host) {
 				if route.Destination.Subset == "" || route.Destination.Subset == targetVersion {
 					return true
 				}
