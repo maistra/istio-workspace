@@ -20,7 +20,7 @@ const (
 	envServiceCall = "SERVICE_CALL"
 )
 
-// Entry is a simple value object
+// Entry is a simple value object that holds the basic configuration used by the generator
 type Entry struct {
 	Name           string
 	DeploymentType string
