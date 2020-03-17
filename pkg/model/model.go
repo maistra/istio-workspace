@@ -58,10 +58,9 @@ func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
 
 // Match returns true if this Hostname is equal to the short or long v of a dns name
 func (h *HostName) Match(name string) bool {
-	if h.Name == name || fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name {
-		return true
-	}
-	return false
+	equalsShortName := h.Name == name
+	equalsFullDNSName := fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name
+	return equalsShortName || equalsFullDNSName
 }
 
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under
