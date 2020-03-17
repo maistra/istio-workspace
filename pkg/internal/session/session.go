@@ -38,7 +38,7 @@ type State struct {
 type Handler func(opts Options) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing
-func Offline(opts Options) (State, func(), error) { //nolint[:hugeParam]
+func Offline(opts Options) (State, func(), error) {
 	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
@@ -52,7 +52,7 @@ type handler struct {
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session
-func RemoveHandler(opts Options) (State, func(), error) { //nolint[:hugeParam]
+func RemoveHandler(opts Options) (State, func(), error) {
 	client, err := DefaultClient(opts.NamespaceName)
 
 	if err != nil {
@@ -73,7 +73,7 @@ func RemoveHandler(opts Options) (State, func(), error) { //nolint[:hugeParam]
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
 //  * route - the definition of traffic routing
-func CreateOrJoinHandler(opts Options) (State, func(), error) { //nolint[:hugeParam]
+func CreateOrJoinHandler(opts Options) (State, func(), error) {
 	sessionName := getOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
 

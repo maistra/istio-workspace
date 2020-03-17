@@ -16,7 +16,7 @@ const (
 )
 
 // ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list
-func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) { //nolint[:hugeParam]
+func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	statusRef := &istiov1alpha1.RefStatus{Ref: istiov1alpha1.Ref{Name: ref.Name, Strategy: ref.Strategy, Args: ref.Args}}
 	for _, t := range ref.Targets {
 		target := t
@@ -49,7 +49,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 }
 
 // ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list
-func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref { //nolint[:hugeParam]
+func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	refs := []*model.Ref{}
 	for _, statusRef := range session.Status.Refs {
 		r := &model.Ref{Name: statusRef.Name, Strategy: statusRef.Strategy, Args: statusRef.Args}
@@ -60,7 +60,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 }
 
 // ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name
-func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) { //nolint[:hugeParam]
+func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			for _, statusTarget := range statusRef.Targets {
@@ -99,7 +99,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 }
 
 // RefUpdated check if a Ref has been updated compared to current status
-func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool { //nolint[:hugeParam]
+func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			if statusRef.Strategy != ref.Strategy || !reflect.DeepEqual(statusRef.Args, ref.Args) {

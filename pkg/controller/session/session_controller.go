@@ -165,7 +165,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
@@ -182,7 +182,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	}
 }
 
-func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) { //nolint[:hugeParam]
+func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
 	for _, ref := range refs {
 		if err := r.delete(ctx, session, ref); err != nil {
 			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
@@ -190,7 +190,7 @@ func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *isti
 	}
 }
 
-func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
+func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
 	ctx.Log.Info("Remove ref", "name", ref.Name)
 
 	ConvertAPIStatusToModelRef(*session, ref)
@@ -204,7 +204,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 	return ctx.Client.Status().Update(ctx, session)
 }
 
-func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error { //nolint[:hugeParam]
+func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error {
 	for _, specRef := range session.Spec.Refs {
 		ctx.Log.Info("Add ref", "name", specRef)
 		ref := ConvertAPIRefToModelRef(specRef)
@@ -216,7 +216,7 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 	return nil
 }
 
-func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error { //nolint[:hugeParam]
+func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
 	// if ref has changed, delete first
 	if RefUpdated(*session, *ref) {
 		err := r.delete(ctx, session, ref)

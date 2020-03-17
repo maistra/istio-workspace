@@ -27,7 +27,7 @@ func NewCmd() *cobra.Command {
 		Example:      eg,
 		SilenceUsage: true,
 		ValidArgs:    []string{"bash", "zsh"},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
 			case "bash":
 				return cmd.Root().GenBashCompletion(os.Stdout)
