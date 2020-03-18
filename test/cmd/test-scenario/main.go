@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-)
-
-var (
-	testImageName   = ""
-	gatewayHost     = "*"
-	targetNamespace = ""
+	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 )
 
 func main() {
@@ -19,23 +15,23 @@ func main() {
 		os.Exit(-100)
 	}
 
-	testImageName = getTestImageName()
+	generator.TestImageName = getTestImageName()
 	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
-		gatewayHost = h
+		generator.GatewayHost = h
 	}
 
 	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
-		targetNamespace = h
+		generator.Namespace = h
 	}
 
-	scenarios := map[string]func(){
-		"scenario-1": TestScenario1ThreeServicesInSequence,
-		"scenario-2": TestScenario2ThreeServicesInSequenceDeploymentConfig,
-		"demo":       DemoScenario,
+	scenarios := map[string]func(io.Writer){
+		"scenario-1": generator.TestScenario1ThreeServicesInSequence,
+		"scenario-2": generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"demo":       generator.DemoScenario,
 	}
 	scenario := os.Args[1]
 	if f, ok := scenarios[scenario]; ok {
-		f()
+		f(os.Stdout)
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

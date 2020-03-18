@@ -1,4 +1,4 @@
-package main
+package generator_test
 
 import (
 	"testing"
@@ -13,7 +13,7 @@ import (
 
 func TestSessionController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Session reconciler Suite")
+	RunSpecWithJUnitReporter(t, "Generator Suite")
 }
 
 var _ = SynchronizedAfterSuite(func() {}, func() {

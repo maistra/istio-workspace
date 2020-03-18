@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	osappsv1 "github.com/openshift/api/apps/v1"
