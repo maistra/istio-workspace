@@ -14,7 +14,7 @@ type client struct {
 }
 
 // NewClient creates client to handle Session resources based on passed config
-func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
+func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
 	return &client{namespace: namespace, Interface: c}, nil
 }
 
@@ -24,7 +24,7 @@ var defaultClient *client
 // The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
 // If namespace parameter is empty default one from the current context is used
-func DefaultClient(namespace string) (*client, error) { //nolint[:golint] otherwise golint complains about "exported func returns unexported type *sessionName.client, which can be annoying to use"
+func DefaultClient(namespace string) (*client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
 	if defaultClient == nil {
 		kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			clientcmd.NewDefaultClientConfigLoadingRules(),

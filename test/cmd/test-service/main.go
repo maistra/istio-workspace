@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	rootDir = "test/cmd/test-service/assets/" //nolint[:deadcode]
+	rootDir = "test/cmd/test-service/assets/" //nolint:varcheck,deadcode,unused //reason This is required to use the dev mode for assets (reading from fs)
 )
 
 func main() {

@@ -138,10 +138,10 @@ func NewTestCmd() *cobra.Command {
 		Use:          "test",
 		Short:        "Test of configuration",
 		SilenceUsage: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error { //nolint[:unparam]
+		RunE: func(cmd *cobra.Command, args []string) error {
 			value, _ := cmd.Flags().GetString("arg")
 			cmd.Println(expectedOutput, ":", value)
 			return nil

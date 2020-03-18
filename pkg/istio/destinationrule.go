@@ -23,7 +23,7 @@ var _ model.Revertor = DestinationRuleRevertor
 
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service
-func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 	if len(ref.GetResourceStatus(DestinationRuleKind)) > 0 {
 		return nil
 	}
@@ -35,11 +35,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 		}
 		for _, dr := range drs {
 			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
-			mutatedDr, err := mutateDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
-			if err != nil {
-				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
-				ctx.Log.Error(err, "failed to mutate DestinationRule", "name", dr.GetName())
-			}
+			mutatedDr := mutateDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -53,7 +49,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error { //
 }
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
-func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	resources := ref.GetResourceStatus(DestinationRuleKind)
 
 	for _, resource := range resources {
@@ -67,11 +63,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 		}
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr, err := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
-		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
-			break
-		}
+		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
@@ -84,39 +76,39 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error { /
 	return nil
 }
 
-func mutateDestinationRule(dr istionetwork.DestinationRule, name string) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func mutateDestinationRule(dr istionetwork.DestinationRule, name string) istionetwork.DestinationRule {
 	dr.Spec.Subsets = append(dr.Spec.Subsets, &v1alpha3.Subset{
 		Name: name,
 		Labels: map[string]string{
 			"version": name,
 		},
 	})
-	return dr, nil
+	return dr
 }
 
-func revertDestinationRule(dr istionetwork.DestinationRule, name string) (istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func revertDestinationRule(dr istionetwork.DestinationRule, name string) istionetwork.DestinationRule {
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
 		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
 			break
 		}
 	}
-	return dr, nil
+	return dr
 }
 
-func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
 	return &destinationRule, err
 }
 
-func getDestinationRulesByHost(ctx model.SessionContext, namespace, hostName string) ([]*istionetwork.DestinationRule, error) { //nolint[:hugeParam]
+func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostName model.HostName) ([]*istionetwork.DestinationRule, error) {
 	matches := []*istionetwork.DestinationRule{}
 
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
-	for _, dr := range destinationRules.Items { //nolint[:rangeValCopy]
-		if dr.Spec.Host == hostName {
+	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
+		if hostName.Match(dr.Spec.Host) {
 			match := dr
 			matches = append(matches, &match)
 		}

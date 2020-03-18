@@ -23,7 +23,7 @@ var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
 
 // VirtualServiceMutator attempts to create a virtual service for forked service
-func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 	if len(ref.GetResourceStatus(VirtualServiceKind)) > 0 {
 		return nil
 	}
@@ -33,11 +33,11 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	for _, hostName := range ref.GetTargetHostNames() {
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName.Name, Action: model.ActionFailed})
 			return err
 		}
 
-		for _, vs := range vss.Items { //nolint[:rangeValCopy]
+		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			if !mutationRequired(vs, hostName, targetVersion) {
 				continue
 			}
@@ -62,7 +62,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 }
 
 // VirtualServiceRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
-func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	resources := ref.GetResourceStatus(VirtualServiceKind)
 
 	for _, resource := range resources {
@@ -76,11 +76,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 		}
 
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
-		mutatedVs, err := revertVirtualService(ctx, ref.GetNewVersion(ctx.Name), *vs)
-		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
-			break
-		}
+		mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
 		err = ctx.Client.Update(ctx, &mutatedVs)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
@@ -93,13 +89,12 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error { //
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
-
-	findRoutes := func(vs *istionetwork.VirtualService, host, subset string) []*v1alpha3.HTTPRoute {
+func mutateVirtualService(ctx model.SessionContext, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint:lll,gocyclo //reason for readability
+	findRoutes := func(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
 		routes := []*v1alpha3.HTTPRoute{}
 		for _, h := range vs.Spec.Http {
 			for _, r := range h.Route {
-				if r.Destination != nil && r.Destination.Host == host {
+				if r.Destination != nil && host.Match(r.Destination.Host) {
 					if r.Destination.Subset == "" || r.Destination.Subset == subset {
 						routes = append(routes, h)
 					}
@@ -108,21 +103,24 @@ func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersio
 		}
 		return routes
 	}
-	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host, subset string) v1alpha3.HTTPRoute {
+
+	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
 		for i, r := range http.Route {
-			if !((r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == subset) ||
-				(r.Destination != nil && r.Destination.Host == host && r.Destination.Subset == "")) {
+			if !((r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == subset) ||
+				(r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == "")) {
 				http.Route = append(http.Route[:i], http.Route[i+1:]...)
 			}
 		}
 		return http
 	}
+
 	updateSubset := func(http v1alpha3.HTTPRoute, subset string) v1alpha3.HTTPRoute {
 		for _, r := range http.Route {
 			r.Destination.Subset = subset
 		}
 		return http
 	}
+
 	addHeaderMatch := func(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
 		addHeader := func(m *v1alpha3.HTTPMatchRequest, route model.Route) {
 			if route.Type == "header" {
@@ -143,6 +141,7 @@ func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersio
 		}
 		return http
 	}
+
 	removeWeight := func(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
 		for _, r := range http.Route {
 			r.Weight = 0
@@ -171,8 +170,7 @@ func mutateVirtualService(ctx model.SessionContext, hostName, version, newVersio
 	return *target, nil
 }
 
-func revertVirtualService(ctx model.SessionContext, subsetName string, vs istionetwork.VirtualService) (istionetwork.VirtualService, error) { //nolint[:hugeParam]
-
+func revertVirtualService(subsetName string, vs istionetwork.VirtualService) istionetwork.VirtualService {
 	for i := 0; i < len(vs.Spec.Http); i++ {
 		http := vs.Spec.Http[i]
 		for n := 0; n < len(http.Route); n++ {
@@ -183,25 +181,25 @@ func revertVirtualService(ctx model.SessionContext, subsetName string, vs istion
 			}
 		}
 	}
-	return vs, nil
+	return vs
 }
 
-func getVirtualService(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) { //nolint[:hugeParam]
+func getVirtualService(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) {
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 	return &virtualService, err
 }
 
-func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) { //nolint[:hugeParam]
+func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
 	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
 	return &virtualServices, err
 }
 
-func mutationRequired(vs istionetwork.VirtualService, targetHost, targetVersion string) bool { //nolint[:hugeParam]
+func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {
 	for _, http := range vs.Spec.Http {
 		for _, route := range http.Route {
-			if route.Destination != nil && route.Destination.Host == targetHost {
+			if route.Destination != nil && targetHost.Match(route.Destination.Host) {
 				if route.Destination.Subset == "" || route.Destination.Subset == targetVersion {
 					return true
 				}
