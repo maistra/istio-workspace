@@ -1,4 +1,4 @@
-package generator
+package generator_test
 
 import (
 	"testing"
