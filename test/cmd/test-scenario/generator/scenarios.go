@@ -1,46 +1,58 @@
-package main
+package generator
+
+import (
+	"io"
+)
+
+var (
+	Namespace = ""
+)
 
 // TestScenario1ThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain. Similar to the original bookinfo example setup.
-func TestScenario1ThreeServicesInSequence() {
-	productpage := Entry{"productpage", "Deployment", targetNamespace}
-	reviews := Entry{"reviews", "Deployment", targetNamespace}
-	ratings := Entry{"ratings", "Deployment", targetNamespace}
+func TestScenario1ThreeServicesInSequence(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
 
 	Generate(
+		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
 		ForService(productpage, Call(reviews), ConnectToGateway()),
 		ForService(reviews, Call(ratings)),
-		GatewayOnHost(gatewayHost),
+		GatewayOnHost(GatewayHost),
 	)
 }
 
 // TestScenario2ThreeServicesInSequenceDeploymentConfig is a basic test setup with a
 // few services calling each other in a chain. Similar to the original bookinfo example setup.
 // Using DeploymentConfig.
-func TestScenario2ThreeServicesInSequenceDeploymentConfig() {
-	productpage := Entry{"productpage", "DeploymentConfig", targetNamespace}
-	reviews := Entry{"reviews", "DeploymentConfig", targetNamespace}
-	ratings := Entry{"ratings", "DeploymentConfig", targetNamespace}
+func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
+	productpage := Entry{"productpage", "DeploymentConfig", Namespace}
+	reviews := Entry{"reviews", "DeploymentConfig", Namespace}
+	ratings := Entry{"ratings", "DeploymentConfig", Namespace}
 
 	Generate(
+		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
 		ForService(productpage, Call(reviews), ConnectToGateway()),
 		ForService(reviews, Call(ratings)),
-		GatewayOnHost(gatewayHost),
+		GatewayOnHost(GatewayHost),
 	)
 }
 
 // DemoScenario is a simple setup for demo purposes
-func DemoScenario() {
-	productpage := Entry{"productpage", "Deployment", targetNamespace}
-	reviews := Entry{"reviews", "Deployment", targetNamespace}
-	ratings := Entry{"ratings", "Deployment", targetNamespace}
-	authors := Entry{"authors", "Deployment", targetNamespace}
-	locations := Entry{"locations", "Deployment", targetNamespace}
+func DemoScenario(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
+	authors := Entry{"authors", "Deployment", Namespace}
+	locations := Entry{"locations", "Deployment", Namespace}
+
 	Generate(
+		out,
 		[]Entry{productpage, reviews, ratings, authors, locations},
 		WithVersion("v1"),
 		ForService(productpage, Call(reviews), Call(authors), ConnectToGateway()),
