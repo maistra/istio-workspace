@@ -14,6 +14,16 @@ import (
 
 var _ = Describe("telepresence commands wrapper", func() {
 
+	var restoreOriginalTelepresenceEnvVar func()
+
+	BeforeEach(func() {
+		restoreOriginalTelepresenceEnvVar = TemporaryEnvVars("TELEPRESENCE_VERSION", "")
+	})
+
+	AfterEach(func() {
+		restoreOriginalTelepresenceEnvVar()
+	})
+
 	Context("telepresence not available", func() {
 
 		tmpPath := NewTmpPath()

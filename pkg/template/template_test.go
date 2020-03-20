@@ -109,6 +109,8 @@ var _ = Describe("Operations for template system", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(o)).To(ContainSubstring("1000"))
 				Expect(string(o)).To(ContainSubstring("x-x-v"))
+				Expect(string(o)).ToNot(ContainSubstring("COMMAND"))
+				Expect(string(o)).ToNot(ContainSubstring("ARGS"))
 			})
 
 			It("should fail when no version is provided", func() {
@@ -130,6 +132,8 @@ var _ = Describe("Operations for template system", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(o)).To(ContainSubstring("1000"))
 				Expect(string(o)).To(ContainSubstring("maistra.org/test-image:test"))
+				Expect(string(o)).To(ContainSubstring("COMMAND"))
+				Expect(string(o)).To(ContainSubstring("ARGS"))
 			})
 		})
 
@@ -282,7 +286,9 @@ var testDeployment = `
                                 "value": "http://reviews:9080/"
                             }
                         ],
-                        "image": "docker.io/aslakknutsen/istio-workspace-test:latest",
+						"image": "docker.io/aslakknutsen/istio-workspace-test:latest",
+						"command": "COMMAND",
+						"args": ["ARGS"],
                         "imagePullPolicy": "Always",
                         "livenessProbe": {
                             "failureThreshold": 3,
