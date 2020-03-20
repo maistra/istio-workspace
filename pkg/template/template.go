@@ -55,6 +55,13 @@ func NewDefaultEngine() *Engine {
 					}
 				}
 				},
+				{{ if .Data.Has "/spec/template/spec/containers/0/args" }}
+				{"op": "remove", "path": "/spec/template/spec/containers/0/args"},
+				{{ end }}
+				{{ if .Data.Has "/spec/template/spec/containers/0/command" }}
+				{"op": "remove", "path": "/spec/template/spec/containers/0/command"},
+				{{ end }}
+
 					{{ template "_basic-remove" . }}
 				]
 `),
