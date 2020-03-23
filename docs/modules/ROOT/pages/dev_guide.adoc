@@ -11,12 +11,12 @@ Such a commit should have the following content:
 . Release notes named after tag `tag.adoc` in `docs/modules/ROOT/pages/release_notes/`
 . New release included in `docs/modules/ROOT/pages/release_notes.adoc`
 
-NOTE: Above steps are provided by `scripts/release.sh`
+NOTE: Above steps are automated by `scripts/release.sh`
 
 Such tagged commit triggers a job in CircleCI which will:
 
 . Build and push tagged docker image to `quay.io` registry
-. Push cross-compiled binaries and release notes
+. Push cross-compiled binaries and release notes to GitHub
 
 Diagram below describes the entire process and its artifacts.
 
