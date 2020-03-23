@@ -74,7 +74,7 @@ fi
 
 ## Generate changelog and append it to the highlights
 ghc=$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)
-"${ghc}"/ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/"${version}".adoc
+"${ghc}/ghc" generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/"${version}".adoc
 
 ## Replace antora version for docs build
 sed -i "/version:/c\version: ${version}" docs/antora.yml
