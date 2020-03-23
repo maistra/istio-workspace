@@ -56,10 +56,8 @@ while test $# -gt 0; do
   esac
 done
 
-/bin/bash "${BASEDIR}"/scripts/validate.sh "${version}"
-
-if [[ $? -ne 0 ]]; then
-  die "Please correct errors!"
+if ! /bin/bash "${BASEDIR}"/scripts/validate.sh "${version}"; then
+  die
 fi
 
 ## Check if tag exists
