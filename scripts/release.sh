@@ -41,7 +41,7 @@ while test $# -gt 0; do
             shift
             ;;
     --version*)
-            version=`echo $1 | sed -e 's/^[^=]*=//g'`
+            version=$(echo $1 | sed -e 's/^[^=]*=//g')
             shift
             ;;
     -d|--dry-run)
