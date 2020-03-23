@@ -67,7 +67,7 @@ if [[ ${tag_exists} -ne 0 ]]; then
 fi
 
 ## Ensure you are on master
-current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+current_branch=$(git branch | grep "\*" | cut -d ' ' -f2)
 if [[ ${current_branch} != "release_${version}" ]]; then
   die "You are on ${current_branch} branch. Switch to release_${version}!"
 fi
