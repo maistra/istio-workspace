@@ -15,16 +15,31 @@ var log = logf.Log.WithName("version")
 
 // NewCmd creates version cmd which prints version and Build details of the executed binary
 func NewCmd() *cobra.Command {
-	return &cobra.Command{
+	versionCmd := &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			LogVersion()
+			short, err := cmd.Flags().GetBool("short")
+			if err != nil {
+				return err
+			}
+			if short {
+				logShortVersion()
+			} else {
+				LogVersion()
+			}
 			return nil
 		},
 	}
+
+	versionCmd.Flags().BoolP("short", "s", false, "prints only version without build details")
+	return versionCmd
+}
+
+func logShortVersion() {
+	log.Info(version.Version)
 }
 
 func LogVersion() {
