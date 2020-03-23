@@ -8,4 +8,12 @@ As users are completely free to name Target Resource(`Deployment` or `Deployment
 
 By resolving Services that could possibly match the Target Resource, we look for all Virtual Services that specify that `Service/Host`.
 
+=== Support full local cluster dns names
+
+`VirtualServices` and `DesinationRules` can now be defined with both short form or full dns name using the `Host` field and istio-workspaces will still be able to find the connections.
+
+Example:
+
+ratings vs ratings.namespace.svc.cluster.local
+
 == {nbsp}
