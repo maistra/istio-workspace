@@ -4,4 +4,4 @@ Summary
 
 === Feature A
 
-== {nbsp} 
+== {nbsp}

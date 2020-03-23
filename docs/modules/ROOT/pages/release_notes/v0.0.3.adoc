@@ -1,0 +1,19 @@
+== Highlights of v0.0.3 release
+
+This release is mainly focused around improving stability and refactorings, but there is one notable feature worth mentioning.
+
+=== Resolution of host name for target Resource
+
+As users are completely free to name Target Resource(`Deployment` or `DeploymentConfig`), Service and VirtualServices etc, we improved resolution strategy which previously relied on pattern matching.
+
+By resolving Services that could possibly match the Target Resource, we look for all Virtual Services that specify that `Service/Host`.
+
+=== Support full local cluster dns names
+
+`VirtualServices` and `DesinationRules` can now be defined with both short form or full dns name using the `Host` field and istio-workspaces will still be able to find the connections.
+
+Example:
+
+`ratings` vs `ratings.namespace.svc.cluster.local`
+
+== {nbsp}
