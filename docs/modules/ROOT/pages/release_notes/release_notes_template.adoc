@@ -4,4 +4,4 @@ Summary
 
 === Feature A
 
-== {nbsp}
+== All changes in this release
