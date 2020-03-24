@@ -8,6 +8,14 @@ defaults:
     - image: &golang-img circleci/golang:1.14
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
+  skip-e2e-check: &skip-e2e-check
+    name: "Checks for /skip-e2e directive"
+    command: |
+      COMMIT_MSG=$(git log --format=%B -n 1 $CIRCLE_SHA1)
+      if [[ $COMMIT_MSG == *"/skip-e2e"* ]]; then
+        echo "/skip-e2e directive detected. Explictly stopping e2e tests."
+        circleci step halt
+      fi
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
@@ -44,13 +52,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Checks for [skip-e2e] directive"
-          command: |
-            COMMIT_MSG=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
-            if [[ $COMMIT_MSG == *"[skip-e2e]"* ]]; then
-              echo "[skip-e2e] detected. Explictly stopping e2e tests."
-              circleci step halt
-            fi
+          <<: *skip-e2e-check
       - run:
           <<: *golang-install
       - run:
@@ -113,13 +115,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Checks for [skip-e2e] directive"
-          command: |
-            COMMIT_MSG=$(git log --format=oneline -n 1 $CIRCLE_SHA1)
-            if [[ $COMMIT_MSG == *"[skip-e2e]"* ]]; then
-              echo "[skip-e2e] detected. Explictly stopping e2e tests."
-              circleci step halt
-            fi
+          <<: *skip-e2e-check
       - run:
           <<: *golang-install
       - run:
