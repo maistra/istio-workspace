@@ -41,7 +41,7 @@ while test $# -gt 0; do
             shift
             ;;
     --version*)
-            version=`echo $1 | sed -e 's/^[^=]*=//g'`
+            version=$(echo $1 | sed -e 's/^[^=]*=//g')
             shift
             ;;
     -d|--dry-run)
@@ -56,27 +56,25 @@ while test $# -gt 0; do
   esac
 done
 
-/bin/bash "${BASEDIR}"/scripts/validate.sh "${version}"
-
-if [[ $? -ne 0 ]]; then
-  die "Please correct errors!"
+if ! /bin/bash "${BASEDIR}"/scripts/validate.sh "${version}"; then
+  die
 fi
 
 ## Check if tag exists
-tag_exists=$(git --no-pager tag --list | grep -c ${version})
+tag_exists=$(git --no-pager tag --list | grep -c "${version}")
 if [[ ${tag_exists} -ne 0 ]]; then
   die "Tag ${version} already exists!"
 fi
 
 ## Ensure you are on master
-current_branch=$(git branch | grep \* | cut -d ' ' -f2)
+current_branch=$(git branch | grep "\*" | cut -d ' ' -f2)
 if [[ ${current_branch} != "release_${version}" ]]; then
   die "You are on ${current_branch} branch. Switch to release_${version}!"
 fi
 
 ## Generate changelog and append it to the highlights
 ghc=$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)
-${ghc}/ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/${version}.adoc
+"${ghc}/ghc" generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/"${version}".adoc
 
 ## Replace antora version for docs build
 sed -i "/version:/c\version: ${version}" docs/antora.yml
