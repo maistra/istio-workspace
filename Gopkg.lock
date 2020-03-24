@@ -167,12 +167,12 @@
   version = "v1.3.5"
 
 [[projects]]
-  digest = "1:46fad42d41240222fd2e4a619503cf525d145db015d712b9b5ee856d55ab321b"
+  digest = "1:87bdc37e46200fca76931215e3892f387eb6e698e882a7d0748f05a69184a50f"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "NT"
-  revision = "2e3e74fa920e7d6278b7a9737ab5c8b7b1480294"
-  version = "v29.0.3"
+  revision = "f5442b7a9ba82833f3612dad5a03d1383f363949"
+  version = "v30.0.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -906,7 +906,6 @@
   ]
   pruneopts = "NT"
   revision = "e3a6b8045b0b303430f6d0c261fd9e35be50800e"
-  version = "kubernetes-1.14.6"
 
 [[projects]]
   digest = "1:c83dbd2d9eb3a62e58ea455543f29d402560c4dd5520b62d43019db6f5bb7d5f"
