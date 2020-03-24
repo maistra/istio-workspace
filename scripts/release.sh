@@ -66,7 +66,7 @@ if [[ ${tag_exists} -ne 0 ]]; then
   die "Tag ${version} already exists!"
 fi
 
-## Ensure you are on master
+## Ensure you are on release branch
 current_branch=$(git branch | grep "\*" | cut -d ' ' -f2)
 if [[ ${current_branch} != "release_${version}" ]]; then
   die "You are on ${current_branch} branch. Switch to release_${version}!"
@@ -81,7 +81,6 @@ sed -i "/version:/c\version: ${version}" docs/antora.yml
 sed -i "/^== Releases.*/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
 
 git add . && git commit -am"release: ${version}"
-git tag -a "${version}" -m"Automatically created release tag"
 
 ## Prepare next release iteration
 sed -i "/version:/c\version: latest" docs/antora.yml
@@ -89,8 +88,8 @@ git commit -am"release: next iteration"
 
 if ! ${dry_run}; then
   echo "Pushing changes to remote"
-  git push && git push --tags
+  git push
 else
-  echo "In dry-run mode, not pushing changes to remote"
-  echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag (git tag -d ${version})"
+  echo "Executed in dry-run mode, not pushing changes to remote."
+  echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag if created (git tag -d ${version})."
 fi
