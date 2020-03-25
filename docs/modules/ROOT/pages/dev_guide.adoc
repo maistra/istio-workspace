@@ -15,7 +15,7 @@ Once the PR is approved you can perform additional steps by invoking `scripts/re
 
 [source,bash]
 ----
-./scripts/release.sh -v v0.0.2 --dry-run
+./scripts/release.sh -v v0.0.2
 ----
 
 This will validate if above steps were correctly performed and create two commits:
@@ -27,7 +27,7 @@ This will validate if above steps were correctly performed and create two commit
 . `release: next iteration`
   * reverts version-related changes from previous commit
 
-IMPORTANT: Not using `--dry-run` flag will result in pushing release commits.
+IMPORTANT: Using `--do-release` flag will result in pushing release commits to remote.
 
 === Triggering release process
 
