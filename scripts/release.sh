@@ -13,12 +13,12 @@ show_help() {
   echo "Options:"
   echo "-h, --help                shows brief help"
   echo "-v, --version=vx.y.yz     defines version for coming release. must be non-existing and following semantic rules"
-  echo "-d, --dry-run             runs release process without doing actual push to git remote"
+  echo "-d, --do-release          runs release process doing actual push to git remote"
 }
 
 BASEDIR=$(git rev-parse --show-toplevel)
 version=""
-dry_run=false
+do_release=false
 
 if [[ "$#" -eq 0 ]]; then
   show_help
@@ -44,9 +44,9 @@ while test $# -gt 0; do
             version=$(echo $1 | sed -e 's/^[^=]*=//g')
             shift
             ;;
-    -d|--dry-run)
+    -d|--do-release)
             shift
-            dry_run=true
+            do_release=true
             shift
             ;;
     *)
@@ -86,10 +86,10 @@ git add . && git commit -am"release: ${version}"
 sed -i "/version:/c\version: latest" docs/antora.yml
 git commit -am"release: next iteration"
 
-if ! ${dry_run}; then
+if ${do_release}; then
   echo "Pushing changes to remote"
   git push
 else
-  echo "Executed in dry-run mode, not pushing changes to remote."
+  echo "Executed in default dry-run mode, not pushing changes to remote."
   echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag if created (git tag -d ${version})."
 fi
