@@ -952,6 +952,7 @@
     "pkg/util/mergepatch",
     "pkg/util/naming",
     "pkg/util/net",
+    "pkg/util/rand",
     "pkg/util/runtime",
     "pkg/util/sets",
     "pkg/util/strategicpatch",
@@ -1126,7 +1127,7 @@
   revision = "d1ab8797c55812f4fefe2c7b00a0d04a4740a93c"
 
 [[projects]]
-  digest = "1:24a82624c628038b6f6610afd4079b2e082c5afb3b26e5757a48df2f3d1d0f56"
+  digest = "1:9a80366db22d89f39d073178fd9c8293a5d56ee924afd5b26c6bb929254c8b61"
   name = "sigs.k8s.io/controller-runtime"
   packages = [
     "pkg/cache",
@@ -1138,6 +1139,7 @@
     "pkg/controller",
     "pkg/event",
     "pkg/handler",
+    "pkg/healthz",
     "pkg/internal/controller",
     "pkg/internal/controller/metrics",
     "pkg/internal/log",
@@ -1150,6 +1152,7 @@
     "pkg/manager/signals",
     "pkg/metrics",
     "pkg/predicate",
+    "pkg/ratelimiter",
     "pkg/reconcile",
     "pkg/recorder",
     "pkg/runtime/inject",
@@ -1164,8 +1167,8 @@
     "pkg/webhook/internal/metrics",
   ]
   pruneopts = "NT"
-  revision = "d21241119ea4de139f1892ba2f5bc72c96d07f3f"
-  version = "v0.3.0"
+  revision = "525a2d7dce5661cb90395b40a31575589ae504a2"
+  version = "v0.5.1"
 
 [[projects]]
   digest = "1:5fdf0517a870044f13def5f9f2dc75eb8cfb88baf7862eaf9884a06152f9391b"
