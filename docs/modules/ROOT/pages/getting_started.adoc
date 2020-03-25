@@ -42,11 +42,12 @@ Or if you only want to install it for a single Namespace:
 ike install-operator -l
 ----
 
+NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags 
+
 == Using `ike` CLI
 
 [source,bash]
 ----
-
 ike develop  \
   --deployment details-v1 \ <1>
   --port 9080 \ <2>

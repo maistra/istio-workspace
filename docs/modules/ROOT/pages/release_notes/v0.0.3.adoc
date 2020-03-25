@@ -16,7 +16,7 @@ Example:
 
 `ratings` vs `ratings.namespace.svc.cluster.local`
 
-== {nbsp}
+== All changes in this release
 
 === New features
 

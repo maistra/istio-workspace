@@ -118,3 +118,5 @@ those won't be respected.
 
 Prints version of the binary and build metadata.
 include::cmd:ike[flags='version',block=true,print=true]
+
+include::cmd:ike[flags='version --help --help-format=adoc']
