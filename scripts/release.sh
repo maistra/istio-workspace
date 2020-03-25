@@ -13,12 +13,12 @@ show_help() {
   echo "Options:"
   echo "-h, --help                shows brief help"
   echo "-v, --version=vx.y.yz     defines version for coming release. must be non-existing and following semantic rules"
-  echo "-d, --dry-run             runs release process without doing actual push to git remote"
+  echo "-d, --do-release          runs release process doing actual push to git remote"
 }
 
 BASEDIR=$(git rev-parse --show-toplevel)
 version=""
-dry_run=false
+do_release=false
 
 if [[ "$#" -eq 0 ]]; then
   show_help
@@ -44,9 +44,9 @@ while test $# -gt 0; do
             version=$(echo $1 | sed -e 's/^[^=]*=//g')
             shift
             ;;
-    -d|--dry-run)
+    -d|--do-release)
             shift
-            dry_run=true
+            do_release=true
             shift
             ;;
     *)
@@ -66,7 +66,7 @@ if [[ ${tag_exists} -ne 0 ]]; then
   die "Tag ${version} already exists!"
 fi
 
-## Ensure you are on master
+## Ensure you are on release branch
 current_branch=$(git branch | grep "\*" | cut -d ' ' -f2)
 if [[ ${current_branch} != "release_${version}" ]]; then
   die "You are on ${current_branch} branch. Switch to release_${version}!"
@@ -81,16 +81,15 @@ sed -i "/version:/c\version: ${version}" docs/antora.yml
 sed -i "/^== Releases.*/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
 
 git add . && git commit -am"release: ${version}"
-git tag -a "${version}" -m"Automatically created release tag"
 
 ## Prepare next release iteration
 sed -i "/version:/c\version: latest" docs/antora.yml
 git commit -am"release: next iteration"
 
-if ! ${dry_run}; then
+if ${do_release}; then
   echo "Pushing changes to remote"
-  git push && git push --tags
+  git push
 else
-  echo "In dry-run mode, not pushing changes to remote"
-  echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag (git tag -d ${version})"
+  echo "Executed in default dry-run mode, not pushing changes to remote."
+  echo "Don't forget to revert commits (i.e. git reset --hard HEAD~~) and delete the tag if created (git tag -d ${version})."
 fi
