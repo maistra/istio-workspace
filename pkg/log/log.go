@@ -1,11 +1,10 @@
 package log
 
 import (
-	"os"
-	"time"
-
 	"github.com/go-logr/logr"
 	zapr2 "github.com/go-logr/zapr"
+	"os"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -19,15 +18,10 @@ func CreateOperatorAwareLogger() logr.Logger {
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
 
-	notInCluster := !isRunningAsOperator()
+	operator := isRunningAsOperator()
 	sink := zapcore.AddSync(os.Stderr)
 
-	if notInCluster {
-		encCfg := newCliEncoderConfig()
-		enc = zapcore.NewConsoleEncoder(encCfg)
-		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
-		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
-	} else {
+	if operator {
 		encCfg := zap.NewProductionEncoderConfig()
 		enc = zapcore.NewJSONEncoder(encCfg)
 		lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
@@ -35,11 +29,16 @@ func CreateOperatorAwareLogger() logr.Logger {
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 				return zapcore.NewSampler(core, time.Second, 100, 100)
 			}))
+	} else {
+		encCfg := newCliEncoderConfig()
+		enc = zapcore.NewConsoleEncoder(encCfg)
+		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
+		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
 	}
 
 	opts = append(opts, zap.AddCallerSkip(1), zap.ErrorOutput(sink))
 
-	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: notInCluster}
+	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: !operator}
 	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
 	log = log.WithOptions(opts...)
 
