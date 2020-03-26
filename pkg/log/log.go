@@ -13,12 +13,13 @@ import (
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-func CreateClusterAwareLogger() logr.Logger {
+// CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI
+func CreateOperatorAwareLogger() logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
 
-	notInCluster := !isRunningInK8sCluster()
+	notInCluster := !isRunningAsOperator()
 	sink := zapcore.AddSync(os.Stderr)
 
 	if notInCluster {
@@ -54,7 +55,7 @@ func newCliEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func isRunningInK8sCluster() bool {
-	_, runningInCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST")
+func isRunningAsOperator() bool {
+	_, runningInCluster := os.LookupEnv("OPERATOR_NAME")
 	return runningInCluster
 }

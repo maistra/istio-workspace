@@ -49,7 +49,7 @@ var _ = Describe("Complete session manipulation", func() {
 		}
 	}(&c)
 	JustBeforeEach(func() {
-		logf.SetLogger(log.CreateClusterAwareLogger())
+		logf.SetLogger(log.CreateOperatorAwareLogger())
 
 		schema, _ = v1alpha1.SchemeBuilder.Build()
 		_ = corev1.AddToScheme(schema)
