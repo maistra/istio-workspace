@@ -28,7 +28,7 @@ func main() {
 	// Logs to os.Stderr, where all structured logging should go
 	// When running outside of k8s cluster it will use development
 	// mode so the log is not in JSON, but plain text format
-	logger := log.CreateClusterAwareLogger()
+	logger := log.CreateOperatorAwareLogger()
 	logf.SetLogger(logger)
 
 	// Setting random seed e.g. for session name generator

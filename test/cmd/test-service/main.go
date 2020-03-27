@@ -30,7 +30,7 @@ var (
 )
 
 func main() {
-	logf.SetLogger(log.CreateClusterAwareLogger())
+	logf.SetLogger(log.CreateOperatorAwareLogger())
 
 	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {

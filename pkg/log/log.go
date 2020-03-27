@@ -1,11 +1,10 @@
 package log
 
 import (
-	"os"
-	"time"
-
 	"github.com/go-logr/logr"
 	zapr2 "github.com/go-logr/zapr"
+	"os"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -13,20 +12,16 @@ import (
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-func CreateClusterAwareLogger() logr.Logger {
+// CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI
+func CreateOperatorAwareLogger() logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
 
-	notInCluster := !isRunningInK8sCluster()
+	operator := isRunningAsOperator()
 	sink := zapcore.AddSync(os.Stderr)
 
-	if notInCluster {
-		encCfg := newCliEncoderConfig()
-		enc = zapcore.NewConsoleEncoder(encCfg)
-		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
-		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
-	} else {
+	if operator {
 		encCfg := zap.NewProductionEncoderConfig()
 		enc = zapcore.NewJSONEncoder(encCfg)
 		lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
@@ -34,11 +29,16 @@ func CreateClusterAwareLogger() logr.Logger {
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 				return zapcore.NewSampler(core, time.Second, 100, 100)
 			}))
+	} else {
+		encCfg := newCliEncoderConfig()
+		enc = zapcore.NewConsoleEncoder(encCfg)
+		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
+		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
 	}
 
 	opts = append(opts, zap.AddCallerSkip(1), zap.ErrorOutput(sink))
 
-	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: notInCluster}
+	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: !operator}
 	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
 	log = log.WithOptions(opts...)
 
@@ -54,7 +54,7 @@ func newCliEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func isRunningInK8sCluster() bool {
-	_, runningInCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST")
+func isRunningAsOperator() bool {
+	_, runningInCluster := os.LookupEnv("OPERATOR_NAME")
 	return runningInCluster
 }
