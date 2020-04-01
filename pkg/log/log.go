@@ -1,10 +1,11 @@
 package log
 
 import (
-	"github.com/go-logr/logr"
-	zapr2 "github.com/go-logr/zapr"
 	"os"
 	"time"
+
+	"github.com/go-logr/logr"
+	zapr2 "github.com/go-logr/zapr"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
