@@ -10,15 +10,13 @@ By resolving Services that could possibly match the Target Resource, we look for
 
 === Support full local cluster dns names
 
-`VirtualServices` and `DesinationRules` can now be defined with both short form or full dns name using the `Host` field and istio-workspaces will still be able to find the connections.
+`VirtualServices` and `DestinationRules` can now be defined with both short form or full dns name using the `Host` field and `istio-workspace` will still be able to find the connections.
 
-Example:
+NOTE: **Example**: `ratings` vs `ratings.namespace.svc.cluster.local`
 
-`ratings` vs `ratings.namespace.svc.cluster.local`
+=== All changes in this release
 
-== All changes in this release
-
-=== New features
+==== New features
 
  * fix(release): improvements in release shell script [skip-e2e] (https://github.com/Maistra/istio-workspace/pull/396[#396]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * feat(cmd): version cmd prints short semver info [skip-e2e] (https://github.com/Maistra/istio-workspace/pull/391[#391]), by https://github.com/bartoszmajsak[@bartoszmajsak]
@@ -28,7 +26,7 @@ Example:
  * chore: minor refactoring - context and logger (https://github.com/Maistra/istio-workspace/pull/379[#379]), by https://github.com/aslakknutsen[@aslakknutsen]
  * feat: logs version when starting the operator (https://github.com/Maistra/istio-workspace/pull/344[#344]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Bug fixes
+==== Bug fixes
 
  * fix(operator): remove args and command from telepresence clone (https://github.com/Maistra/istio-workspace/pull/393[#393]), by https://github.com/aslakknutsen[@aslakknutsen]
  * fix(docs): proper install snippet [skip-e2e] (https://github.com/Maistra/istio-workspace/pull/388[#388]), by https://github.com/bartoszmajsak[@bartoszmajsak]
@@ -38,7 +36,7 @@ Example:
  * fix: cleans up session on error (wrong deployment) (https://github.com/Maistra/istio-workspace/pull/349[#349]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * fix(template): creates replica if not exists (https://github.com/Maistra/istio-workspace/pull/342[#342]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Latest dependencies update
+==== Latest dependencies update
 
  * build(deps): to 0.14.0 (https://github.com/Maistra/istio-workspace/pull/356[#356])
  * github.com/google/go-github to 29.0.3 (https://github.com/Maistra/istio-workspace/pull/364[#364])
@@ -50,7 +48,7 @@ Example:
  * go.uber.org/goleak to `75e74d7` (https://github.com/Maistra/istio-workspace/pull/377[#377])
  * gopkg.in/fsnotify.v1 to 1.4.9 (https://github.com/Maistra/istio-workspace/pull/384[#384])
 
-=== Project infrastructure
+==== Project infrastructure
 
  * fix(release): improvements in release shell script [skip-e2e] (https://github.com/Maistra/istio-workspace/pull/396[#396]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * fix: cleans up linter usage (https://github.com/Maistra/istio-workspace/pull/385[#385]), by https://github.com/bartoszmajsak[@bartoszmajsak]
@@ -58,7 +56,7 @@ Example:
  * fix(test): generate a suitable deployment resource for a pure k8s ins… (https://github.com/Maistra/istio-workspace/pull/376[#376]), by https://github.com/aslakknutsen[@aslakknutsen]
  * chore: bumps golang to 1.14 (https://github.com/Maistra/istio-workspace/pull/372[#372]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Testing
+==== Testing
  * fix(tests): controls tp version env var (https://github.com/Maistra/istio-workspace/pull/392[#392]), by https://github.com/bartoszmajsak[@bartoszmajsak]
  * test(generator): use generator in int test scenario (https://github.com/Maistra/istio-workspace/pull/386[#386]), by https://github.com/aslakknutsen[@aslakknutsen]
  * fix(e2e): add to the members array instead of replacing it (https://github.com/Maistra/istio-workspace/pull/380[#380]), by https://github.com/aslakknutsen[@aslakknutsen]
