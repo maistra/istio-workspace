@@ -20,10 +20,8 @@ func CreateFile(filePath, content string) {
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 	_, err = file.WriteString(content)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
-	defer func() {
-		err = file.Close()
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
-	}()
+	err = file.Close()
+	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 }
 
 // DeleteFile deletes file under defined path

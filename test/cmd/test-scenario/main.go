@@ -25,9 +25,10 @@ func main() {
 	}
 
 	scenarios := map[string]func(io.Writer){
-		"scenario-1": generator.TestScenario1ThreeServicesInSequence,
-		"scenario-2": generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
-		"demo":       generator.DemoScenario,
+		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
+		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,
+		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"demo":         generator.DemoScenario,
 	}
 	scenario := os.Args[1]
 	if f, ok := scenarios[scenario]; ok {

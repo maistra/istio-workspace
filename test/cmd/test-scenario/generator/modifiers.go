@@ -15,6 +15,15 @@ func ConnectToGateway() Modifier {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{"*"}
 			obj.Spec.Gateways = append(obj.Spec.Gateways, "test-gateway")
+			for i := 0; i < len(obj.Spec.Http); i++ {
+				http := obj.Spec.Http[i]
+				for n := 0; n < len(http.Route); n++ {
+					route := http.Route[n]
+					route.Destination.Port = &istiov1alpha3.PortSelector{Port: &istiov1alpha3.PortSelector_Number{Number: 9080}}
+					http.Route[n] = route
+				}
+				obj.Spec.Http[i] = http
+			}
 		}
 	}
 }
@@ -30,8 +39,25 @@ func GatewayOnHost(hostname string) Modifier {
 	}
 }
 
+// Protocol is a function that reutrns the URL for a given Protocol for a given Service
+type Protocol func(target Entry) string
+
+// HTTP returns the HTTP URL for the given target
+func HTTP() Protocol {
+	return func(target Entry) string {
+		return "http://" + target.HostName() + ":9080"
+	}
+}
+
+// GRPC returns the GRPC URL for the given target
+func GRPC() Protocol {
+	return func(target Entry) string {
+		return target.HostName() + ":9081"
+	}
+}
+
 // Call modifier to have the test service call another. Combine with ForService
-func Call(target Entry) Modifier {
+func Call(proto Protocol, target Entry) Modifier {
 	return func(service Entry, object runtime.Object) {
 		appendOrAdd := func(name, value string, vars []corev1.EnvVar) []corev1.EnvVar {
 			found := false
@@ -54,12 +80,12 @@ func Call(target Entry) Modifier {
 
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-				envServiceCall, "http://"+target.HostName()+":9080",
+				envServiceCall, proto(target),
 				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-				envServiceCall, "http://"+target.HostName()+":9080",
+				envServiceCall, proto(target),
 				obj.Spec.Template.Spec.Containers[0].Env)
 		}
 	}

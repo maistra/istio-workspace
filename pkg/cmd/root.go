@@ -5,19 +5,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
-
-	"github.com/maistra/istio-workspace/pkg/cmd/version"
-
-	"github.com/maistra/istio-workspace/pkg/cmd/format"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/format"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
 
 	v "github.com/maistra/istio-workspace/version"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -29,8 +26,8 @@ func NewCmd() *cobra.Command {
 	releaseInfo := make(chan string, 1)
 
 	rootCmd := &cobra.Command{
-		Use:                    "ike",
-		Short:                  "ike lets you safely develop and test on production without a sweat!\n\n" +
+		Use: "ike",
+		Short: "ike lets you safely develop and test on production without a sweat!\n\n" +
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

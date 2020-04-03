@@ -8,9 +8,9 @@ var (
 	Namespace = ""
 )
 
-// TestScenario1ThreeServicesInSequence is a basic test setup with a few services
-// calling each other in a chain. Similar to the original bookinfo example setup.
-func TestScenario1ThreeServicesInSequence(out io.Writer) {
+// TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
+// calling each other in a chain over http. Similar to the original bookinfo example setup.
+func TestScenario1HTTPThreeServicesInSequence(out io.Writer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}
@@ -19,8 +19,25 @@ func TestScenario1ThreeServicesInSequence(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
-		ForService(productpage, Call(reviews), ConnectToGateway()),
-		ForService(reviews, Call(ratings)),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway()),
+		ForService(reviews, Call(HTTP(), ratings)),
+		GatewayOnHost(GatewayHost),
+	)
+}
+
+// TestScenario1GRPCThreeServicesInSequence is a basic test setup with a few services
+// calling each other in a chain over grpc. Similar to the original bookinfo example setup.
+func TestScenario1GRPCThreeServicesInSequence(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
+
+	Generate(
+		out,
+		[]Entry{productpage, reviews, ratings},
+		WithVersion("v1"),
+		ForService(productpage, Call(GRPC(), reviews), ConnectToGateway()),
+		ForService(reviews, Call(GRPC(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
 }
@@ -37,8 +54,8 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
-		ForService(productpage, Call(reviews), ConnectToGateway()),
-		ForService(reviews, Call(ratings)),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway()),
+		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
 }
@@ -55,9 +72,9 @@ func DemoScenario(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings, authors, locations},
 		WithVersion("v1"),
-		ForService(productpage, Call(reviews), Call(authors), ConnectToGateway()),
-		ForService(reviews, Call(ratings)),
-		ForService(authors, Call(locations)),
+		ForService(productpage, Call(HTTP(), reviews), Call(HTTP(), authors), ConnectToGateway()),
+		ForService(reviews, Call(GRPC(), ratings)),
+		ForService(authors, Call(GRPC(), locations)),
 		GatewayOnHost("ike-demo.io"), GatewayOnHost("*.ike-demo.io"),
 	)
 }

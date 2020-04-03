@@ -154,6 +154,10 @@ func Service(service Entry) runtime.Object {
 					Name: "http",
 					Port: 9080,
 				},
+				{
+					Name: "grpc",
+					Port: 9081,
+				},
 			},
 			Selector: map[string]string{
 				"app": service.Name,
@@ -278,10 +282,19 @@ func template(name string) corev1.PodTemplateSpec {
 							Name:  "HTTP_ADDR",
 							Value: ":9080",
 						},
+						{
+							Name:  "GRPC_ADDR",
+							Value: ":9081",
+						},
 					},
 					Ports: []corev1.ContainerPort{
 						{
+							Name:          "http",
 							ContainerPort: 9080,
+						},
+						{
+							Name:          "grpc",
+							ContainerPort: 9081,
 						},
 					},
 					LivenessProbe: &corev1.Probe{
