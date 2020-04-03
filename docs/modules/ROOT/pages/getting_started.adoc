@@ -11,16 +11,13 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 
 == Installing `ike` CLI
 
-Run:
+Run `curl -sL http://git.io/get-ike | bash` to get latest `ike` binary.
 
-[source,bash]
-----
-curl -sL http://git.io/get-ike | bash
-----
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.1 --dir=/usr/bin`
 
-to get latest `ike` binary.
+Here are all available flags of this installation script
 
-TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.1 --dir=~/bin`
+include::cmd:curl[flags='-sL http://git.io/get-ike | bash -s -- --help',block=true]
 
 == Installing cluster component
 

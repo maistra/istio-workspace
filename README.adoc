@@ -18,7 +18,21 @@ Get latest `ike` binary through simple download script:
 curl -sL http://git.io/get-ike | bash
 ----
 
-TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.1 --dir=~/bin`
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.1 --dir=/usr/bin`
+
+[source,bash]
+----
+get - downloads ike binary matching your operating system
+ 
+./get.sh [options]
+ 
+Options:
+-h, --help          shows brief help
+-v, --version       defines version specific version of the binary to download (defaults to latest)
+-d, --dir           target directory to which the binary is downloaded (defaults to random tmp dir in /tmp suffixed with ike-version)
+-n, --name          saves binary under specific name (defaults to ike)
+
+----
 
 When logged in to the cluster run the following for a cluster wide operator:
 
@@ -33,8 +47,6 @@ or if you only want to install the operator for a single namespace run:
 ----
 ike install-operator -l
 ----
-
-
 
 And you are all set!
 
