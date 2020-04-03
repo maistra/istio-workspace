@@ -21,6 +21,7 @@ show_help() {
   echo "-h, --help          shows brief help"
   echo "-v, --version       defines version specific version of the binary to download (defaults to latest)"
   echo "-d, --dir           target directory to which the binary is downloaded (defaults to random tmp dir in /tmp suffixed with ike-version)"
+  echo "-n, --name          saves binary under specific name (defaults to ike)"
 }
 
 last_version() {
@@ -76,6 +77,19 @@ while test $# -gt 0; do
             dir=`echo $1 | sed -e 's/^[^=]*=//g'`
             shift
             ;;
+    -n)
+            shift
+            if test $# -gt 0; then
+              binary_name=$1
+            else
+              die "Please provide a name"
+            fi
+            shift
+            ;;
+    --name*)
+            binary_name=`echo $1 | sed -e 's/^[^=]*=//g'`
+            shift
+            ;;
     *)
             die "Unknown param $1"
             break
@@ -83,14 +97,16 @@ while test $# -gt 0; do
   esac
 done
 
+test -z "$binary_name" && binary_name="ike"
 test -z "$version" && version="$(last_version)"
 test -z "$version" && {
   die "Unable to get ike version. You can still try to download it manually from $RELEASES_URL."
 }
 test -z "$dir" &&  dir="$(mktemp -d --suffix=-ike-${version})"
 
-download ${version}
+download "${version}"
 tar -C "$dir" -xzf "$TAR_FILE" ike
+mv -n $dir/ike $dir/$binary_name
 
-echo "Downloaded ike binary ($version) to $dir"
+echo "Downloaded ike binary ($version) to $dir/$binary_name"
 echo "Make sure it's on your \$PATH."

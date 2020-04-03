@@ -30,7 +30,8 @@ func NewCmd() *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:                    "ike",
-		Short:                  "ike lets you safely develop and test on prod without a sweat",
+		Short:                  "ike lets you safely develop and test on production without a sweat!\n\n" +
+			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if v.Released() {
