@@ -72,7 +72,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 	Context("in a complete lifecycle", func() {
 		BeforeEach(func() {
-			scenario = generator.TestScenario1ThreeServicesInSequence
+			scenario = generator.TestScenario1HTTPThreeServicesInSequence
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-session",

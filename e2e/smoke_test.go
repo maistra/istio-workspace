@@ -8,15 +8,16 @@ import (
 	"time"
 
 	"github.com/go-cmd/cmd"
+
 	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
-	"github.com/onsi/gomega/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 )
 
 var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
@@ -293,11 +294,11 @@ func RunIke(dir string, arguments ...string) *cmd.Cmd {
 }
 
 // StopIke shuts down the process
-func StopIke(cmd *cmd.Cmd) {
-	stopFailed := cmd.Stop()
+func StopIke(ike *cmd.Cmd) {
+	stopFailed := ike.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
 
-	Eventually(cmd.Done(), 1*time.Minute).Should(BeClosed())
+	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
 }
 
 func DumpEnvironmentDebugInfo(namespace, dir string) {
@@ -337,11 +338,5 @@ func call(routeURL string, headers map[string]string) func() (string, error) {
 	return func() (string, error) {
 		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
 		return GetBodyWithHeaders(routeURL, headers)
-	}
-}
-
-func callGetOn(name string) func() (string, error) {
-	return func() (string, error) {
-		return GetBody(fmt.Sprintf("http://%[1]s-%[1]s."+GetClusterHost(), name))
 	}
 }

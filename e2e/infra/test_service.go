@@ -10,16 +10,6 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// ModifyServerCodeIn changes the code base of a simple python-based web server and puts it in the defined directory
-func ModifyServerCodeIn(tmpDir string) {
-	CreateFile(tmpDir+"/"+"server.py", modifiedServerPy)
-}
-
-// OriginalServerCodeIn puts the original code base of a simple python-based web server in the defined directory
-func OriginalServerCodeIn(tmpDir string) {
-	CreateFile(tmpDir+"/"+"server.py", origServerPy)
-}
-
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry
 func BuildTestService(namespace string) (registry string) {
 	projectDir := shell.GetProjectDir()
@@ -100,60 +90,6 @@ func setTestNamespace(namespace string) {
 func GetGatewayHost(namespace string) string {
 	return namespace + "-test.com"
 }
-
-// origServerPy contains original server code used in `ike develop` tests
-// Based on https://github.com/datawire/hello-world
-const origServerPy = `
-from http.server import HTTPStatus, BaseHTTPRequestHandler
-from socketserver import TCPServer
-
-PORT = 8000
-MESSAGE = "Hello, world!\n".encode("ascii")
-
-class Handler(BaseHTTPRequestHandler):
-    """Respond to requests with hello."""
-
-    def do_GET(self):
-        """Handle GET"""
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-type", "text/plain")
-        self.send_header("Content-length", len(MESSAGE))
-        self.end_headers()
-        self.wfile.write(MESSAGE)
-
-
-print("Serving at port", PORT)
-TCPServer.allow_reuse_address = True
-httpd = TCPServer(("", PORT), Handler)
-httpd.serve_forever()
-
-`
-
-// modifiedServerPy contains modified server response used in `ike develop` tests
-const modifiedServerPy = `
-from http.server import HTTPStatus, BaseHTTPRequestHandler
-from socketserver import TCPServer
-
-PORT = 8000
-MESSAGE = "Hello, telepresence! Ike Here!\n".encode("ascii")
-
-class Handler(BaseHTTPRequestHandler):
-    """Respond to requests with hello."""
-
-    def do_GET(self):
-        """Handle GET"""
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-type", "text/plain")
-        self.send_header("Content-length", len(MESSAGE))
-        self.end_headers()
-        self.wfile.write(MESSAGE)
-
-
-print("Serving at port", PORT)
-TCPServer.allow_reuse_address = True
-httpd = TCPServer(("", PORT), Handler)
-httpd.serve_forever()
-`
 
 // PublisherRuby contains fixed response to be changed by tests
 const PublisherRuby = `
