@@ -201,7 +201,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureAllPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
-						ike := RunIke("../", "develop",
+						ike := RunIke(testshell.GetProjectDir(), "develop",
 							"--deployment", "ratings-v1",
 							"--port", "9081",
 							"--method", "inject-tcp",
