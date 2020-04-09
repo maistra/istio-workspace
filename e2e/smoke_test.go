@@ -289,8 +289,7 @@ func ChangeNamespace(namespace string) {
 
 // RunIke runs the ike cli in the given dir
 func RunIke(dir string, arguments ...string) *cmd.Cmd {
-	ikeWithWatch := testshell.ExecuteInDir(dir, "ike", arguments...)
-	return ikeWithWatch
+	return testshell.ExecuteInDir(dir, "ike", arguments...)
 }
 
 // StopIke shuts down the process
