@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -55,6 +56,13 @@ func main() {
 			os.Exit(-1)
 		}
 		c.Call = u
+	}
+
+	serviceName := flag.String("serviceName", c.Name, "The service name")
+	flag.Parse()
+
+	if serviceName != nil {
+		c.Name = *serviceName
 	}
 
 	httpAdr := "127.0.0.1:8080"

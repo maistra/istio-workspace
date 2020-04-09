@@ -201,16 +201,15 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureAllPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
-						ike := RunIke(tmpDir, "develop",
+						ike := RunIke("../", "develop",
 							"--deployment", "ratings-v1",
 							"--port", "9081",
 							"--method", "inject-tcp",
-							"--run", "go run ./test/cmd/test-service",
+							"--run", "go run ./test/cmd/test-service -serviceName=PublisherA",
 							"--route", "header:x-test-suite=smoke",
 						)
 						EnsureAllPodsAreReady(namespace)
 
-						defer test.TemporaryEnvVars("SERVICE_NAME", "PublisherA", "GRPC_ADDR", ":9081")()
 						EnsureSessionRouteIsReachable(namespace, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
 						StopIke(ike)
