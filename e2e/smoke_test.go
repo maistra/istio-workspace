@@ -191,7 +191,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				})
 			})
 
-			FContext("grpc protocol", func() {
+			Context("grpc protocol", func() {
 				BeforeEach(func() {
 					scenario = "scenario-1.1"
 				})
