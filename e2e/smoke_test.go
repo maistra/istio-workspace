@@ -84,7 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 						EnsureSessionRouteIsReachable(namespace, ContainSubstring("Publisher Ike"))
 
-						StopIke(ike)
+						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 					})
 					It("should watch for changes in ratings service in specified namespace and serve it", func() {
@@ -115,7 +115,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 						EnsureSessionRouteIsReachable(namespace, ContainSubstring("Publisher Ike"))
 
-						StopIke(ike)
+						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 					})
 				})
@@ -212,7 +212,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 						EnsureSessionRouteIsReachable(namespace, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
-						StopIke(ike)
+						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 					})
 				})
@@ -249,7 +249,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 				EnsureSessionRouteIsReachable(namespace, ContainSubstring("Publisher Ike"))
 
-				StopIke(ike)
+				Stop(ike)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 			})
 		})
@@ -291,8 +291,8 @@ func RunIke(dir string, arguments ...string) *cmd.Cmd {
 	return testshell.ExecuteInDir(dir, "ike", arguments...)
 }
 
-// StopIke shuts down the process
-func StopIke(ike *cmd.Cmd) {
+// Stop shuts down the process
+func Stop(ike *cmd.Cmd) {
 	stopFailed := ike.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
 
