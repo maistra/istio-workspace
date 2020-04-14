@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -36,6 +38,17 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	status := <-cmd.Start()
 	<-cmd.Done()
 	done <- status
+}
+
+// ShutdownHook will wait for SIGTERM signal and stop the cmd
+// unless done receiving channel passed to it receives status or is closed
+func ShutdownHook() (chan os.Signal, func()) {
+	hookChan := make(chan os.Signal, 1)
+	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
+	return hookChan, func() {
+		signal.Stop(hookChan)
+		close(hookChan)
+	}
 }
 
 // RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers
