@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+// The Caller service defintion.
+service Caller {
+  // Call
+  rpc Call (Callee) returns (CallStack) {}
+}
+
+// An empty request object
+message Callee {}
+
+// The response message containing information from the called service.
+message CallStack {
+  string caller = 1;
+  string protocol = 2;
+  string path = 3;
+  string color = 4;
+  int64 startTime = 5;
+  int64 endTime = 6;
+  repeated CallStack called = 7;
+}

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/log"
+
+	grpc "google.golang.org/grpc"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -17,6 +21,9 @@ import (
 const (
 	// EnvHTTPAddr name of Env variable that sets the listening address
 	EnvHTTPAddr = "HTTP_ADDR"
+
+	// EnvGRPCAddr name of Env variable that sets the listening address
+	EnvGRPCAddr = "GRPC_ADDR"
 
 	// EnvServiceName name of Env variable that sets the Service name used in call stack
 	EnvServiceName = "SERVICE_NAME"
@@ -28,6 +35,12 @@ const (
 var (
 	rootDir = "test/cmd/test-service/assets/" //nolint:varcheck,deadcode,unused //reason This is required to use the dev mode for assets (reading from fs)
 )
+
+// Config describes the basic Name and who to call next for a given HandlerFunc
+type Config struct {
+	Name string
+	Call []*url.URL
+}
 
 func main() {
 	logf.SetLogger(log.CreateOperatorAwareLogger())
@@ -45,9 +58,20 @@ func main() {
 		c.Call = u
 	}
 
-	adr := ":8080"
+	serviceName := flag.String("serviceName", c.Name, "The service name")
+	flag.Parse()
+
+	if serviceName != nil {
+		c.Name = *serviceName
+	}
+
+	httpAdr := "127.0.0.1:8080"
 	if v, b := os.LookupEnv(EnvHTTPAddr); b {
-		adr = v
+		httpAdr = v
+	}
+	grpcAdr := "127.0.0.1:8081"
+	if v, b := os.LookupEnv(EnvGRPCAddr); b {
+		grpcAdr = v
 	}
 
 	logger := logf.Log.WithName("service").WithValues("name", c.Name)
@@ -56,12 +80,24 @@ func main() {
 	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(http.StatusOK)
 	})
-	http.HandleFunc("/", NewBasic(c, logger))
-	err := http.ListenAndServe(adr, nil)
+	http.HandleFunc("/", NewBasic(c, MultiplexRequestInvoker, logger))
+	go func() {
+		err := http.ListenAndServe(httpAdr, nil)
+		if err != nil {
+			logger.Error(err, "failed initializing")
+		}
+		logger.Info("Started serving basic test service")
+	}()
+
+	lis, err := net.Listen("tcp", grpcAdr)
 	if err != nil {
-		logger.Error(err, "failed initializing")
+		logger.Error(err, "failed to listen")
 	}
-	logger.Info("Started serving basic test service")
+	s := grpc.NewServer()
+	RegisterCallerServer(s, &server{Config: c, Invoker: MultiplexRequestInvoker, Log: logger})
+	if err := s.Serve(lis); err != nil {
+		logger.Error(err, "failed to serve")
+	}
 }
 
 func parseURL(value string) ([]*url.URL, error) {
