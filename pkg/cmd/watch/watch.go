@@ -1,7 +1,10 @@
 package watch
 
 import (
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
@@ -95,6 +98,15 @@ func watchForChanges(command *cobra.Command, args []string) error {
 	runDone := make(chan gocmd.Status, 1)
 	defer close(runDone)
 
+	hookChan := make(chan os.Signal, 1)
+	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
+	defer func() {
+		signal.Stop(hookChan)
+		close(hookChan)
+	}()
+
+	signaled := false
+
 	go func() {
 		var runCmd *gocmd.Cmd
 		var restartedPID int
@@ -107,6 +119,7 @@ func watchForChanges(command *cobra.Command, args []string) error {
 					restartedPID = runCmd.Status().PID
 					_ = runCmd.Stop()
 				}
+
 				runCmd = gocmd.NewCmdOptions(shell.StreamOutput, run[0], run[1:]...)
 				shell.RedirectStreams(runCmd, command.OutOrStdout(), command.OutOrStderr())
 				go shell.Start(runCmd, runDone)
@@ -115,11 +128,19 @@ func watchForChanges(command *cobra.Command, args []string) error {
 					done <- status
 					break OutOfLoop
 				}
+			case <-hookChan:
+				if runCmd != nil {
+					runCmd.Stop()
+					signaled = true
+				}
 			}
 		}
 	}()
 
 	restart <- struct{}{}
 	status := <-done
-	return status.Error
+	if !signaled {
+		return status.Error
+	}
+	return nil
 }
