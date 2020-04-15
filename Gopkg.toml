@@ -120,4 +120,4 @@ required = [
 
 [[constraint]]
   name = "github.com/google/go-github"
-  version = "=v30.1.0"
+  version = "=v31.0.0"
