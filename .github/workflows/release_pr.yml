@@ -179,7 +179,7 @@ jobs:
                   });
                   core.setFailed(`Release failed!`);
               } else {
-                const merge = github.pulls.merge({
+                const merge = await github.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.issue.number,
