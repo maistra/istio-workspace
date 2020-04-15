@@ -1,0 +1,190 @@
+name: Release Pull Request
+
+on:
+  issue_comment:
+    types: created
+
+jobs:
+  append_changelog:
+    if: | 
+      startsWith(github.event.comment.body, '/changelog') 
+      && (contains(github.event.comment.author_association, 'MEMBER') 
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set GitHub user
+      run: |
+        git config --local user.name "Alien Ike"
+        git config --local user.email "arquillian-team@lists.jboss.org"        
+    - uses: actions/github-script@0.9.0
+      name: Checkout PR branch
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const { exec } = require("child_process")
+
+          const pr = await github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          exec(`git fetch origin pull/${pr.data.number}/head:${pr.data.head.ref} && git checkout ${pr.data.head.ref} && git push --set-upstream origin ${pr.data.head.ref}`, (error, stdout, stderr) => {
+              if (error) {                 
+                  core.setFailed(`Failed checking out PR branch. ${error}`);
+                  console.log(stderr);
+              }
+          });
+
+    - uses: actions/github-script@0.9.0
+      name: Notify
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          version = context.payload.comment.body.split(' ')[1]
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚙️ Generating changelog for `' + version + '`. It will be added to this PR.'
+          });
+    - uses: actions/github-script@0.9.0
+      name: Validate
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          version = context.payload.comment.body.split(' ')[1]
+                  
+          const { exec } = require("child_process");
+          
+          exec(`./scripts/validate.sh ${version}`, (error, stdout, stderr) => {
+              if (error || stderr) {
+                  github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `🛑😭 ${stderr}`
+                  });
+                  core.setFailed(`Validation failed!`);
+              }
+          });
+          
+    - name: Generate changelog
+      if: success()
+      uses: actions/github-script@0.9.0
+      env:
+        GHC_GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          version = context.payload.comment.body.split(' ')[1]
+                  
+          const { exec } = require("child_process");
+  
+          exec(`$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)/ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/${version}.adoc`, (error, stdout, stderr) => {
+              if (error || stderr) {
+                  github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `🤦😭\n\n${stderr}`
+                  });
+                  core.setFailed(`Failed with: ${error}`);
+              } else {
+                exec(`git add . && git commit -m"release: adds changelog for ${version}" && git push && git rev-parse --short HEAD`, (error, stdout, stderr) => {
+                    if (error) {
+                      github.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `🤦😭\n\n${error}\n\n${stderr}`
+                      });
+                      core.setFailed(`Failed with: ${error}`);
+                  } else {
+                     var lines = stdout.match(/(.+)([^\s])/g);
+                     const commitHash = lines[lines.length -1];
+                     github.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `✅ Changelog added in ${commitHash} 🙌🙌🙌 `
+                     });
+                  }
+                });
+              }
+          });
+    - name: Comment about action failure
+      if: failure()
+      uses: actions/github-script@0.9.0
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🤷 🤦 Failed generating changelog. Please check details in the GitHub action.'
+          });
+      
+  prepare_release:
+    if: | 
+      startsWith(github.event.comment.body, '/release') 
+      && (contains(github.event.comment.author_association, 'MEMBER') 
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set GitHub user
+      run: |
+        git config --local user.name "Alien Ike"
+        git config --local user.email "arquillian-team@lists.jboss.org"
+    - uses: actions/github-script@0.9.0
+      name: Checkout PR branch
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const { exec } = require("child_process")
+
+          const pr = await github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          exec(`git fetch origin pull/${pr.data.number}/head:${pr.data.head.ref} && git checkout ${pr.data.head.ref} && git push --set-upstream origin ${pr.data.head.ref}`, (error, stdout, stderr) => {
+              if (error) {                 
+                  core.setFailed(`Failed checking out PR branch. ${error}`);
+                  console.log(stderr);
+              }
+          });
+    - uses: actions/github-script@0.9.0
+      name: Release commits
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          version = context.payload.comment.body.split(' ')[1]
+                  
+          const { exec } = require("child_process");
+          
+          exec(`./scripts/release.sh -v ${version}`, (error, stdout, stderr) => {
+              if (error) {
+                  github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `🛑😭 ${stderr}`
+                  });
+                  core.setFailed(`Release failed!`);
+              } else {
+                github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `🎇 🎉 🎆 ${version} has been shipped! 🚀🚀🚀`
+                  });
+              }
+          }); 
+    
