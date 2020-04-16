@@ -8,11 +8,12 @@ die () {
 show_help() {
   echo "release - attempts to release new version of this project"
   echo " "
-  echo "./release.sh [options]"
+  echo "./release.sh [flags|version]"
   echo " "
   echo "Options:"
   echo "-h, --help                shows brief help"
   echo "-v, --version=vx.y.yz     defines version for coming release. must be non-existing and following semantic rules"
+  echo "                          this can also be passed as a first parameter to the script"
 }
 
 BASEDIR=$(git rev-parse --show-toplevel)
@@ -43,8 +44,8 @@ while test $# -gt 0; do
             shift
             ;;
     *)
-            die "Unknown param $1"
-            break
+            version=$(echo $1 | sed -e 's/^[^=]*=//g')
+            shift
             ;;
   esac
 done
