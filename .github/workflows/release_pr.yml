@@ -179,29 +179,27 @@ jobs:
                   });
                   core.setFailed(`Release failed!`);
               } else {
-                const merge = await github.pulls.merge({
+                github.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.issue.number,
                   merge_method: 'rebase'
-                });
-                console.log(merge);
-                if (merge.data.merged) {
+                }).then(() => { 
                   github.issues.createComment({
                     issue_number: context.issue.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     body: `🎇 🎉 🎆 ${version} has been shipped! 🚀🚀🚀`
                   });
-                } else {
+               }).catch((data) => {
                   github.issues.createComment({
                     issue_number: context.issue.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    body: `🛑😭 ${merge.data.message}`
+                    body: `🛑😭 ${data.message}`
                   });
                   core.setFailed(`Merge failed!`);
                 }                         
-              }
+              });
           }); 
     
