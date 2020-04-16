@@ -172,34 +172,34 @@ jobs:
           exec(`./scripts/release.sh -v ${version}`, (error, stdout, stderr) => {
               if (error) {
                   github.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: `🛑😭 ${stderr}`
+                      issue_number: context.issue.number,
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      body: `🛑😭 ${stderr}`
                   });
                   core.setFailed(`Release failed!`);
               } else {
-                github.pulls.merge({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: context.issue.number,
-                  merge_method: 'rebase'
-                }).then(() => { 
-                  github.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: `🎇 🎉 🎆 ${version} has been shipped! 🚀🚀🚀`
+                  github.pulls.merge({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      pull_number: context.issue.number,
+                      merge_method: 'rebase'
+                  }).then(() => {
+                      github.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: `🎇 🎉 🎆 ${version} has been shipped! 🚀🚀🚀`
+                      });
+                  }).catch((data) => {
+                      github.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: `🛑😭 ${data.message}`
+                      });
+                      core.setFailed(`Merge failed!`);
                   });
-               }).catch((data) => {
-                  github.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: `🛑😭 ${data.message}`
-                  });
-                  core.setFailed(`Merge failed!`);
-                }                         
-              });
-          }); 
+              }
+          });
     
