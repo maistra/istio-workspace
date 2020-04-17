@@ -170,10 +170,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Validate release"
-          command: |
-            ./scripts/validate.sh "${CIRCLE_TAG}"
-      - run:
           name: "Installs release tools prerequisites"
           command: |
             cd ~
