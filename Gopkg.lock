@@ -569,8 +569,8 @@
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = "NT"
-  revision = "4525543ce4fe90f7970f5e2cdc300b8ffc8c0582"
-  version = "v1.6.2"
+  revision = "59b19175035095196a623aac8d0f5c83481f3d77"
+  version = "v1.6.3"
 
 [[projects]]
   digest = "1:f60e4a8af6b6f3940cbdd28b1262221d28b4eb4d31b87bdb7b219f5fc0f278bf"
