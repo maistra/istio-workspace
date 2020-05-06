@@ -82,5 +82,4 @@ In addition we provide `.editorconfig` file which is supported by https://editor
 
 === License
 
-This project is licensed under the link:http://www.apache.org/licenses/[Apache License, Version 2.0]
-.
+This project is licensed under the link:http://www.apache.org/licenses/[Apache License, Version 2.0].
