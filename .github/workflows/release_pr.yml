@@ -1,0 +1,255 @@
+name: Release Pull Request
+
+on:
+  issue_comment:
+    types: created
+
+jobs:
+  prepare_release:
+    if: |
+      startsWith(github.event.comment.body, '/release')
+      && (contains(github.event.comment.author_association, 'MEMBER')
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch all tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set GitHub user
+        env:
+          GIT_USER: ${{secrets.GIT_USER}}
+          GIT_EMAIL: ${{secrets.GIT_EMAIL}}
+        run: |
+          git config --local user.name "${GIT_USER}"
+          git config --local user.email "${GIT_EMAIL}"
+      - name: Checkout PR branch
+        id: checkout
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const prHead = pr.data.head.sha;
+            core.setOutput("pr_head", prHead);
+
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: prHead,
+              context: 'release / changelog',
+              state: 'pending',
+            });
+
+            const { spawnSync } = require("child_process")
+            const { status, stderr } = spawnSync(`git fetch origin pull/${pr.data.number}/head:${pr.data.head.ref} && git checkout ${pr.data.head.ref} && git push --set-upstream origin ${pr.data.head.ref}`, {shell: true});
+
+            if (status != 0) {
+              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                context: 'release / changelog',
+                state: 'error',
+                description: 'Failed checking out PR branch',
+              }));
+              core.setFailed('Failed checking out PR branch');
+            }
+
+      - name: Validate
+        id: validation
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const version = context.payload.comment.body.split(' ')[1]
+            core.setOutput("version", version);
+
+            const { spawnSync } = require("child_process");
+
+            const { status, stderr } = spawnSync(`./.github/actions/validate.sh ${version}`, {shell: true});
+
+            if (status != 0) {
+                const prHead = "${{ steps.checkout.outputs.pr_head }}";
+                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                  context: 'release / changelog',
+                  state: 'failure',
+                  description: 'Failed validating release Pull Request',
+                  details: stderr.toString(),
+                }));
+                core.setFailed('Validation failed!');
+            }
+
+      - name: Generate changelog
+        if: success()
+        uses: actions/github-script@0.9.0
+        env:
+          GHC_GITHUB_TOKEN: ${{secrets.GH_RELEASE_TOKEN}}
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const version = "${{ steps.validation.outputs.version }}";
+            const prHead = "${{ steps.checkout.outputs.pr_head }}";
+            const changelogCmd = `$(curl -sL http://git.io/install-ghc | bash -s -- --path-only)/ghc generate -r maistra/istio-workspace --format adoc >> docs/modules/ROOT/pages/release_notes/${version}.adoc`;
+
+            const { spawnSync } = require("child_process");
+
+            const { status, stderr } = spawnSync(changelogCmd, {shell: true});
+
+            if (status != 0) {
+                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                  context: 'release / changelog',
+                  state: 'failure',
+                  description: 'Failed generating changelog',
+                  details: stderr.toString(),
+                }));
+                core.setFailed('Failed generating changelog');
+            } else {
+              const pushCmd = `git add . && git commit -m"release: adds changelog for ${version}" && git push && git rev-parse --short HEAD`;
+              const { status, stderr, stdout } = spawnSync(pushCmd, {shell: true});
+              if (status != 0) {
+                  core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                    context: 'release / changelog',
+                    state: 'error',
+                    description: 'Failed committing release changelog',
+                  }));
+                  core.setFailed('Failed committing changelog');
+              }
+            }
+
+      - name: Release commits
+        if: success()
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const version = "${{ steps.validation.outputs.version }}";
+
+            const { spawnSync } = require("child_process");
+
+            const { status, stderr} = spawnSync(`./.github/actions/release.sh -v ${version}`, {shell: true});
+
+            if (status != 0) {
+              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                context: 'release / changelog',
+                state: 'failure',
+                description: 'Unable to create release-related commits',
+                details: stderr.toString(),
+              }));
+              core.setFailed(`Release failed!`);
+            } else {
+              const prHead = "${{ steps.checkout.outputs.pr_head }}";
+              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                context: 'release / changelog',
+                state: 'success',
+                description: 'Additional release-related commits created',
+              }));
+            }
+      - name: Publish job status and comment with details
+        if: always()
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const status = ${{env.STATUS}};
+
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: status.sha,
+              context: status.context,
+              state: status.state,
+              description: status.description,
+              target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
+            });
+
+            if (status.details) {
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `#### ⚠ ${status.description}\n\n${status.details}`,
+              });
+            }
+
+  shipit:
+    if: |
+      startsWith(github.event.comment.body, '/shipit')
+      && (contains(github.event.comment.author_association, 'MEMBER')
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Populate PR Head
+        id: pr_head
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput("sha", pr.data.head.sha);
+      - name: Rebase on master
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const prHead = "${{ steps.pr_head.outputs.sha }}";
+
+            github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: prHead,
+              context: 'release / shipit',
+              state: 'pending',
+            });
+
+            github.pulls.merge({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    merge_method: 'rebase'
+            }).then(() => {
+                github.request("POST /repos/:owner/:repo/statuses/:sha", {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: prHead,
+                  context: 'release / shipit',
+                  state: 'success',
+                  description: 'New version has been shipped!',
+                  target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
+                });
+
+                github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: '🎇 🎉 🎆 New version has been shipped! 🚀🚀🚀'
+                });
+
+            }).catch((data) => {
+                github.request("POST /repos/:owner/:repo/statuses/:sha", {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: prHead,
+                  context: 'release / shipit',
+                  state: 'error',
+                  description: `${data.message}`,
+                  target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
+                });
+
+                github.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `#### ⚠ Failed rebasing release PR\n\n${data.message}`
+                });
+
+                core.setFailed('Release rebase failed!');
+            });
+
