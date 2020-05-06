@@ -82,7 +82,7 @@ func GetIstioIngressHostname() string {
 	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
 		return "http://" + cmd.Status().Stdout[0]
 	}
-	cmd = shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get svc istio-ingressgateway -n %v -o jsonpath='{.spec.clusterIP}'", GetIstioNamespace()))
+	cmd = shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get route istio-ingressgateway -n %v -o jsonpath='{.spec.host}'", GetIstioNamespace()))
 	<-cmd.Done()
 	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
 		return "http://" + cmd.Status().Stdout[0]
