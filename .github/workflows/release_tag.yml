@@ -1,0 +1,52 @@
+name: Tag release
+
+on:
+  push:
+    branches: master
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Tag matching commit (with `/tag vX.Y.Z` directive in the commit message)"
+        uses: actions/github-script@0.9.0
+        env:
+          GIT_USER: ${{secrets.GIT_USER}}
+          GIT_EMAIL: ${{secrets.GIT_EMAIL}}
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const captureVersion = /(?:^|\s)\/tag v(.*?)(?:\s|$)/g;
+            context.payload.commits.forEach(commit => {
+              if (commit.message.includes('/tag')) {
+                const match = captureVersion.exec(commit.message);
+                if (match) {
+                  const version = `v${match[1]}`
+                  github.git.createTag({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    tag: version,
+                    message: `${version} released by GitHub Action`,
+                    object: commit.id,
+                    type: 'commit',
+                    tagger: {
+                      name: "${{ env.GIT_USER }}",
+                      email: "${{ env.GIT_EMAIL }}",
+                    },
+                  }).then(() => {
+                    github.git.createRef({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      ref: `refs/tags/${version}`,
+                      sha: commit.id,
+                    }).catch((error) => {
+                      core.setFailed(`Failed tagging ${commit.id}. Reason: ${error}`);
+                    });
+                  }).catch((error) => {
+                      core.setFailed(`Failed tagging ${commit.id}. Reason: ${error}`);
+                  });
+
+                } else {
+                  core.setFailed(`Failed trying to tag the commit ${commit.id}. Did you specify correct version?`);
+                }
+              }
+            });
