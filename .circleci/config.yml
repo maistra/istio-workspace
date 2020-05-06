@@ -141,7 +141,6 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
-      - e2e_tests_local_openshift_3
       - e2e_tests_remote_openshift_4
   circleci_release:
     jobs:
