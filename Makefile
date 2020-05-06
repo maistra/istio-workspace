@@ -294,14 +294,6 @@ define process_template # params: template location
 		-p WATCH_NAMESPACE=$(OPERATOR_WATCH_NAMESPACE)
 endef
 
-.PHONY: start-cluster
-start-cluster: ## Starts local OpenShift cluster configured to work with Istio (Maistra)
-	./scripts/openshift/start-cluster.sh
-
-.PHONY: load-istio
-load-istio: ## Triggers installation of basic Istio/Maistra setup in the cluster (see deploy/istio/base-install.yaml)
-	./scripts/openshift/deploy-istio.sh
-
 .PHONY: deploy-operator
 deploy-operator: ## Deploys istio-workspace operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
