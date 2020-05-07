@@ -38,6 +38,8 @@ jobs:
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "Gopkg.lock" }}
+      - restore_cache:
+          keys:
             - build-cache-{{ checksum "/tmp/build.githash" }}
       - run:
           name: "Check if build with this content was already executed"
@@ -59,7 +61,7 @@ jobs:
       - save_cache:
           key: build-cache-{{ checksum "build.githash" }}
           paths:
-            - build.githash
+            - ./build.githash
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote_openshift_4:
@@ -81,12 +83,12 @@ jobs:
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f e2e-openshift-4.githash ]]; then
+            if [[ -f ${CIRCLE_WORKING_DIRECTORY}/e2e-openshift-4.githash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              cp /tmp/e2e-openshift-4.githash e2e-openshift-4.githash
+              cp /tmp/e2e-openshift-4.githash ${CIRCLE_WORKING_DIRECTORY}/e2e-openshift-4.githash
             fi
 
       - run:
@@ -138,7 +140,7 @@ jobs:
       - save_cache:
           key: build-cache-{{ checksum "./build/_output/e2e-openshift-4.githash" }}
           paths:
-            - e2e-openshift-4.githash
+            - ./e2e-openshift-4.githash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
