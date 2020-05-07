@@ -37,8 +37,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 	}
 
-	ClientVersion()
-
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
 
@@ -46,11 +44,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		LoginAsTestPowerUser()
 
 		fmt.Printf("\nExposing Docker Registry\n")
-		if ClientVersion() == 4 {
-			<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
-		} else {
-			<-testshell.Execute("oc expose service docker-registry -n default").Done()
-		}
+		<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 
 		BuildOperator()
 		createProjectsForCompletionTests()

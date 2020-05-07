@@ -40,23 +40,19 @@ func DeployTestScenario(scenario, namespace string) {
 	setDockerEnvForTestServiceDeploy(namespace)
 
 	LoginAsTestPowerUser()
-	if ClientVersion() == 4 {
-		<-shell.ExecuteInDir(".", "bash", "-c",
-			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
-		gomega.Eventually(func() string {
-			return GetProjectLabels(namespace)
-		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
-	}
+	<-shell.ExecuteInDir(".", "bash", "-c",
+		`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
+	gomega.Eventually(func() string {
+		return GetProjectLabels(namespace)
+	}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
 func CleanupTestScenario(namespace string) {
-	if ClientVersion() == 4 {
-		LoginAsTestPowerUser()
-		removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
-		patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
-		<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
-	}
+	LoginAsTestPowerUser()
+	removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
+	patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
+	<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
 }
 
 // GetProjectLabels returns labels for a given namespace as a string

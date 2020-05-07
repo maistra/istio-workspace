@@ -27,14 +27,7 @@ func setDockerEnvForLocalOperatorDeploy(namespace string) string {
 }
 
 func setDockerRegistryExternal() string {
-	var registry string
-	switch ClientVersion() {
-	case 3:
-		registry = "docker-registry-default." + GetClusterHost() + ":80"
-	case 4:
-		registry = "default-route-openshift-image-registry." + GetClusterHost()
-	}
-
+	registry := "default-route-openshift-image-registry." + GetClusterHost()
 	setDockerRegistry(registry)
 	return registry
 }
@@ -57,12 +50,5 @@ func setDockerRegistryInternal() string {
 
 // GetDockerRegistryInternal returns the internal address for the docker registry
 func GetDockerRegistryInternal() string {
-	var registry string
-	switch ClientVersion() {
-	case 3:
-		registry = "172.30.1.1:5000"
-	case 4:
-		registry = "image-registry.openshift-image-registry.svc:5000"
-	}
-	return registry
+	return "image-registry.openshift-image-registry.svc:5000"
 }
