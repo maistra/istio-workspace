@@ -34,20 +34,20 @@ jobs:
       - run:
           name: "Obtain git tree hash"
           command: |
-            mkdir -p ./build/_output/
-            git rev-parse HEAD: > /tmp/build.hash
+            git rev-parse HEAD: > /tmp/build.githash
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "Gopkg.lock" }}
-            - build-cache-{{ checksum "/tmp/build.hash" }}
+            - build-cache-{{ checksum "/tmp/build.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f ./build/_output/build.hash ]]; then
+            if [[ -f build.githash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
-              cp /tmp/build.hash ./build/_output/build.hash
+              echo "New build - if suceeds build git hash will be cached"
+              cp /tmp/build.githash build.githash
             fi
       - run:
           name: "Run the build"
@@ -57,9 +57,9 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "./build/_output/build.hash" }}
+          key: build-cache-{{ checksum "build.githash" }}
           paths:
-            - ./build/_output/build.hash
+            - build.githash
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote_openshift_4:
@@ -74,19 +74,19 @@ jobs:
       - run:
           name: "Obtain git tree hash"
           command: |
-            mkdir -p ./build/_output/
-            git rev-parse HEAD: > /tmp/e2e-openshift-4.hash
+            git rev-parse HEAD: > /tmp/e2e-openshift-4.githash
       - restore_cache:
           keys:
-            - build-cache-{{ checksum "/tmp/e2e-openshift-4.hash" }}
+            - build-cache-{{ checksum "/tmp/e2e-openshift-4.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f ./build/_output/e2e-openshift-4.hash ]]; then
+            if [[ -f e2e-openshift-4.githash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
-              cp /tmp/e2e-openshift-4.hash ./build/_output/e2e-openshift-4.hash
+              echo "New build - if suceeds build git hash will be cached"
+              cp /tmp/e2e-openshift-4.githash e2e-openshift-4.githash
             fi
 
       - run:
@@ -136,9 +136,9 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "./build/_output/e2e-openshift-4.hash" }}
+          key: build-cache-{{ checksum "./build/_output/e2e-openshift-4.githash" }}
           paths:
-            - ./build/_output/e2e-openshift-4.hash
+            - e2e-openshift-4.githash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
