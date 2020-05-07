@@ -31,16 +31,34 @@ jobs:
       - image: *golang-img
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            git rev-parse HEAD: > /tmp/build.hash
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "Gopkg.lock" }}
+            - build-cache-{{ checksum "/tmp/build.hash" }}
       - run:
-          name: "Runs the build"
+          name: "Check if build with this content was already executed"
+          command: |
+            if [[ -f ./bin/build.hash ]]; then
+              echo "This exact code base has been successfully built"
+              circleci step halt
+            else
+              cp /tmp/build.hash ./bin/build.hash
+            fi
+      - run:
+          name: "Run the build"
           command: make build-ci
       - save_cache:
           key: golang-deps-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+      - save_cache:
+          key: build-cache-{{ checksum "./bin/build.hash" }}
+          paths:
+            - ./bin/build.hash
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote_openshift_4:
@@ -52,6 +70,23 @@ jobs:
       IKE_CLUSTER_VERSION: 4
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            git rev-parse HEAD: > /tmp/e2e-openshift-4.hash
+      - restore_cache:
+          keys:
+            - build-cache-{{ checksum "/tmp/e2e-openshift-4.hash" }}
+      - run:
+          name: "Check if build with this content was already executed"
+          command: |
+            if [[ -f ./bin/e2e-openshift-4.hash ]]; then
+              echo "This exact code base has been successfully built"
+              circleci step halt
+            else
+              cp /tmp/e2e-openshift-4.hash ./bin/e2e-openshift-4.hash
+            fi
+
       - run:
           <<: *skip-e2e-check
       - run:
@@ -98,6 +133,10 @@ jobs:
           key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+      - save_cache:
+          key: build-cache-{{ checksum "./bin/e2e-openshift-4.hash" }}
+          paths:
+            - ./bin/e2e-openshift-4.hash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
