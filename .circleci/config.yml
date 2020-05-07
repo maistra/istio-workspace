@@ -46,6 +46,7 @@ jobs:
               echo "This exact code base has been successfully built"
               circleci step halt
             else
+              mkdir ./bin
               cp /tmp/build.hash ./bin/build.hash
             fi
       - run:
@@ -84,6 +85,7 @@ jobs:
               echo "This exact code base has been successfully built"
               circleci step halt
             else
+              mkdir ./bin
               cp /tmp/e2e-openshift-4.hash ./bin/e2e-openshift-4.hash
             fi
 
