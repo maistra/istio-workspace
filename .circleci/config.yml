@@ -42,12 +42,11 @@ jobs:
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f ./bin/build.hash ]]; then
+            if [[ -f ./build/_output/build.hash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
-              mkdir ./bin
-              cp /tmp/build.hash ./bin/build.hash
+              cp /tmp/build.hash ./build/_output/build.hash
             fi
       - run:
           name: "Run the build"
@@ -57,9 +56,9 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "./bin/build.hash" }}
+          key: build-cache-{{ checksum "./build/_output/build.hash" }}
           paths:
-            - ./bin/build.hash
+            - ./build/_output/build.hash
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
   e2e_tests_remote_openshift_4:
@@ -81,12 +80,11 @@ jobs:
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f ./bin/e2e-openshift-4.hash ]]; then
+            if [[ -f ./build/_output/e2e-openshift-4.hash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
-              mkdir ./bin
-              cp /tmp/e2e-openshift-4.hash ./bin/e2e-openshift-4.hash
+              cp /tmp/e2e-openshift-4.hash ./build/_output/e2e-openshift-4.hash
             fi
 
       - run:
@@ -136,9 +134,9 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "./bin/e2e-openshift-4.hash" }}
+          key: build-cache-{{ checksum "./build/_output/e2e-openshift-4.hash" }}
           paths:
-            - ./bin/e2e-openshift-4.hash
+            - ./build/_output/e2e-openshift-4.hash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
