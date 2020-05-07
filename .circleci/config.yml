@@ -79,7 +79,7 @@ jobs:
             git rev-parse HEAD: > /tmp/e2e-openshift-4.githash
       - restore_cache:
           keys:
-            - build-cache-{{ checksum "/tmp/e2e-openshift-4.githash" }}
+            - e2e-cache-{{ checksum "/tmp/e2e-openshift-4.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -138,7 +138,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "./build/_output/e2e-openshift-4.githash" }}
+          key: e2e-cache-{{ checksum "./build/_output/e2e-openshift-4.githash" }}
           paths:
             - ./e2e-openshift-4.githash
 
