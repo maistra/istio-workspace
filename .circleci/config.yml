@@ -1,6 +1,6 @@
 defaults:
   golang-install: &golang-install
-    name: "Installs latest Golang"
+    name: "Install latest Golang"
     command: |
       sudo rm -rf /usr/local/go
       sudo circleci-install golang 1.14.2
@@ -9,7 +9,7 @@ defaults:
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
-    name: "Checks for /skip-e2e directive"
+    name: "Check for /skip-e2e directive"
     command: |
       COMMIT_MSG=$(git log --format=%B -n 1 $CIRCLE_SHA1)
       if [[ $COMMIT_MSG == *"/skip-e2e"* ]]; then
@@ -70,7 +70,6 @@ jobs:
       <<: *machine-conf
     environment:
       <<: *env-vars
-      IKE_CLUSTER_VERSION: 4
     steps:
       - checkout
       - run:
@@ -83,7 +82,7 @@ jobs:
       - run:
           name: "Check if build with this content was already executed"
           command: |
-            if [[ -f ${CIRCLE_WORKING_DIRECTORY}/e2e-openshift-4.githash ]]; then
+            if [[ -f e2e-openshift-4.githash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
             else
@@ -96,7 +95,7 @@ jobs:
       - run:
           <<: *golang-install
       - run:
-          name: "Installs telepresence"
+          name: "Install telepresence"
           command: |
             cd ~
             pyenv global 3.5.2
@@ -104,7 +103,7 @@ jobs:
             sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
-          name: "Configures Docker daemon with insecure-registry"
+          name: "Configure Docker daemon with insecure-registry"
           command: |
             json=`mktemp`
             echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80", "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"] }' > ${json}
@@ -112,7 +111,7 @@ jobs:
             sudo service docker restart
             echo "Configured Docker daemon with insecure-registry"
       - run:
-          name: "Installs Openshift and k8s client tools"
+          name: "Install Openshift and k8s client tools"
           command: |
             cd ~
             wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.2/openshift-client-linux-4.3.2.tar.gz" -O "oc.tar.gz"
@@ -125,7 +124,7 @@ jobs:
           keys:
             - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
-          name: "Runs end-to-end tests"
+          name: "Run end-to-end tests"
           command: |
             IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
             IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
