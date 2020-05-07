@@ -88,7 +88,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              cp /tmp/e2e-openshift-4.githash ${CIRCLE_WORKING_DIRECTORY}/e2e-openshift-4.githash
+              cp /tmp/e2e-openshift-4.githash e2e-openshift-4.githash
             fi
 
       - run:
