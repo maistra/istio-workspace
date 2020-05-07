@@ -34,6 +34,7 @@ jobs:
       - run:
           name: "Obtain git tree hash"
           command: |
+            mkdir -p ./build/_output/
             git rev-parse HEAD: > /tmp/build.hash
       - restore_cache:
           keys:
@@ -73,6 +74,7 @@ jobs:
       - run:
           name: "Obtain git tree hash"
           command: |
+            mkdir -p ./build/_output/
             git rev-parse HEAD: > /tmp/e2e-openshift-4.hash
       - restore_cache:
           keys:
