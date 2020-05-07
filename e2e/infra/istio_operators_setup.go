@@ -9,12 +9,6 @@ import (
 	"github.com/onsi/gomega"
 )
 
-// LoadIstio calls make load-istio target and waits until operator sets up the mesh
-func LoadIstio() {
-	projectDir := shell.GetProjectDir()
-	<-shell.ExecuteInDir(projectDir, "make", "load-istio").Done()
-}
-
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()

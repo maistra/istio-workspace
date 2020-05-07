@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"os"
 	"path"
-	"strconv"
 	"testing"
 	"time"
 
@@ -38,36 +37,14 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		}
 	}
 
-	ClientVersion()
-
 	tmpPath.SetPath(path.Dir(shell.CurrentDir())+"/dist", os.Getenv("PATH"))
 	ensureRequiredBinaries()
-
-	shouldManageCluster := manageCluster()
-
-	if shouldManageCluster {
-		tmpClusterDir = TmpDir(GinkgoT(), "/tmp/ike-e2e-tests/cluster-maistra-"+naming.RandName(16))
-		executeWithTimer(func() {
-			fmt.Printf("\nStarting up Openshift/Istio cluster in [%s]\n", tmpClusterDir)
-			projectDir := testshell.GetProjectDir()
-			Expect(os.Setenv("IKE_CLUSTER_DIR", tmpClusterDir)).ToNot(HaveOccurred())
-			<-testshell.ExecuteInDir(projectDir, "make", "start-cluster").Done()
-		})
-	}
 
 	executeWithTimer(func() {
 		LoginAsTestPowerUser()
 
 		fmt.Printf("\nExposing Docker Registry\n")
-		if ClientVersion() == 4 {
-			<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
-		} else {
-			<-testshell.Execute("oc expose service docker-registry -n default").Done()
-		}
-
-		if shouldManageCluster {
-			LoadIstio() // Not needed for running cluster
-		}
+		<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 
 		BuildOperator()
 		createProjectsForCompletionTests()
@@ -81,12 +58,6 @@ var _ = SynchronizedAfterSuite(func() {},
 	func() {
 		deleteProjectsForCompletionTests()
 		tmpPath.Restore()
-		if manageCluster() {
-			executeWithTimer(func() {
-				fmt.Println("\nStopping Openshift/Istio cluster")
-				<-testshell.Execute("oc cluster down").Done()
-			})
-		}
 
 		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
@@ -113,15 +84,6 @@ func deleteProjectsForCompletionTests() {
 		DeleteProjectCmd(CompletionProject1),
 		DeleteProjectCmd(CompletionProject2),
 	)
-}
-
-func manageCluster() bool {
-	if manage, found := os.LookupEnv("IKE_E2E_MANAGE_CLUSTER"); found {
-		shouldManage, _ := strconv.ParseBool(manage)
-		return shouldManage
-	}
-
-	return true
 }
 
 func ensureRequiredBinaries() {
