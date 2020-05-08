@@ -1,6 +1,6 @@
 defaults:
   golang-install: &golang-install
-    name: "Installs latest Golang"
+    name: "Install latest Golang"
     command: |
       sudo rm -rf /usr/local/go
       sudo circleci-install golang 1.14.2
@@ -9,7 +9,7 @@ defaults:
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
-    name: "Checks for /skip-e2e directive"
+    name: "Check for /skip-e2e directive"
     command: |
       COMMIT_MSG=$(git log --format=%B -n 1 $CIRCLE_SHA1)
       if [[ $COMMIT_MSG == *"/skip-e2e"* ]]; then
@@ -18,46 +18,84 @@ defaults:
       fi
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
-    IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
     IKE_E2E_KEEP_NS: "false"
     IKE_E2E_MANAGE_CLUSTER: "false"
+
 version: 2.1
 jobs:
 
-  ## Regular build running unit tests and linters
+  ## Regular build running tests
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
       - image: *golang-img
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            git rev-parse HEAD: > /tmp/build.githash
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "Gopkg.lock" }}
+      - restore_cache:
+          keys:
+            - build-cache-{{ checksum "/tmp/build.githash" }}
       - run:
-          name: "Runs the build"
+          name: "Check if build with this content was already executed"
+          command: |
+            if [[ -f build.githash ]]; then
+              echo "This exact code base has been successfully built"
+              circleci step halt
+            else
+              echo "New build - if suceeds build git hash will be cached"
+              cp /tmp/build.githash build.githash
+            fi
+      - run:
+          name: "Run the build"
           command: make build-ci
       - save_cache:
           key: golang-deps-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+      - save_cache:
+          key: build-cache-{{ checksum "build.githash" }}
+          paths:
+            - ./build.githash
 
-  ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
+  ## End-to-end testing involving OpenShift cluster with Istio (Maistra disitribution) running remotely
   e2e_tests_remote_openshift_4:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
     environment:
       <<: *env-vars
-      IKE_CLUSTER_VERSION: 4
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            git rev-parse HEAD: > /tmp/e2e-openshift-4.githash
+      - restore_cache:
+          keys:
+            - e2e-cache-{{ checksum "/tmp/e2e-openshift-4.githash" }}
+      - run:
+          name: "Check if build with this content was already executed"
+          command: |
+            if [[ -f e2e-openshift-4.githash ]]; then
+              echo "This exact code base has been successfully built"
+              circleci step halt
+            else
+              echo "New build - if suceeds build git hash will be cached"
+              cp /tmp/e2e-openshift-4.githash e2e-openshift-4.githash
+            fi
+
       - run:
           <<: *skip-e2e-check
       - run:
           <<: *golang-install
       - run:
-          name: "Installs telepresence"
+          name: "Install telepresence"
           command: |
             cd ~
             pyenv global 3.5.2
@@ -65,7 +103,7 @@ jobs:
             sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
-          name: "Configures Docker daemon with insecure-registry"
+          name: "Configure Docker daemon with insecure-registry"
           command: |
             json=`mktemp`
             echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80", "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"] }' > ${json}
@@ -73,7 +111,7 @@ jobs:
             sudo service docker restart
             echo "Configured Docker daemon with insecure-registry"
       - run:
-          name: "Installs Openshift and k8s client tools"
+          name: "Install Openshift and k8s client tools"
           command: |
             cd ~
             wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.2/openshift-client-linux-4.3.2.tar.gz" -O "oc.tar.gz"
@@ -86,7 +124,7 @@ jobs:
           keys:
             - golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
       - run:
-          name: "Runs end-to-end tests"
+          name: "Run end-to-end tests"
           command: |
             IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
             IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
@@ -98,6 +136,10 @@ jobs:
           key: golang-deps-e2e-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - ./vendor
+      - save_cache:
+          key: e2e-cache-{{ checksum "e2e-openshift-4.githash" }}
+          paths:
+            - ./e2e-openshift-4.githash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace

@@ -4,6 +4,8 @@ converted-release-notes.md
 # Test results
 *ginkgo-test-results.xml
 
+# Git tree hash files - used for CircleCI build optimization - see https://github.com/Maistra/istio-workspace/issues/428
+
 # Temporary Files
 bin/
 build/_output
