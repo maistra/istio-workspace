@@ -18,13 +18,13 @@ defaults:
       fi
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
-    IKE_CLUSTER_DIR: "/home/circleci/cached-openshift-cluster"
     IKE_E2E_KEEP_NS: "false"
     IKE_E2E_MANAGE_CLUSTER: "false"
+
 version: 2.1
 jobs:
 
-  ## Regular build running unit tests and linters
+  ## Regular build running tests
   build:
     working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
@@ -63,7 +63,7 @@ jobs:
           paths:
             - ./build.githash
 
-  ## End-to-end testing involving OpenShift cluster with Istio (Maistra) running remotely
+  ## End-to-end testing involving OpenShift cluster with Istio (Maistra disitribution) running remotely
   e2e_tests_remote_openshift_4:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
@@ -137,7 +137,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: e2e-cache-{{ checksum "./build/_output/e2e-openshift-4.githash" }}
+          key: e2e-cache-{{ checksum "e2e-openshift-4.githash" }}
           paths:
             - ./e2e-openshift-4.githash
 
