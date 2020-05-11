@@ -104,7 +104,7 @@ required = [
 
 [[constraint]]
   name = "github.com/spf13/viper"
-  version = "=v1.6.3"
+  version = "=v1.7.0"
 
 [[constraint]]
   name = "github.com/spf13/cobra"
