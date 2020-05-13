@@ -967,12 +967,13 @@
   revision = "ed4b507c54e129239375e3521f233aaa397d23b7"
 
 [[projects]]
-  branch = "release-1.4"
-  digest = "1:c2161a9e513fc2edcf75b6d3961f7bd3870e0d491ed17f41ae658ce262a02484"
+  branch = "release-1.4-buffer-fix"
+  digest = "1:527d385fd1db9c54ca126d5588ff015e7facbef2340dae9180d4bc8327d89ce3"
   name = "istio.io/client-go"
   packages = ["pkg/apis/networking/v1alpha3"]
   pruneopts = "NT"
-  revision = "9053b0f86b0359b7e66293eb6098cc551aec6f69"
+  revision = "d2f3dcb36e202fb581a1b6a1dcda5873adbdebeb"
+  source = "https://github.com/bartoszmajsak/client-go.git"
 
 [[projects]]
   digest = "1:6f91da5c96bcfaa89a13014b14907f0f28f8e48317f1122b90dda61d0bcc734a"

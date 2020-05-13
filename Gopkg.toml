@@ -48,7 +48,8 @@ required = [
 
 [[constraint]]
   name = "istio.io/client-go"
-  branch = "release-1.4"
+  branch = "release-1.4-buffer-fix"
+  source = "https://github.com/bartoszmajsak/client-go.git"
 
 [[constraint]]
   name = "github.com/operator-framework/operator-sdk"
@@ -123,8 +124,6 @@ required = [
 [[override]]
   name = "istio.io/api"
   branch = "release-1.4"
-#  branch = "istio-8772"
-#  source = "https://github.com/aslakknutsen/istio-api.git"
 
 [[override]]
   name = "k8s.io/utils"
