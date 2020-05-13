@@ -109,10 +109,6 @@ required = [
 ## Overrides
 
 [[override]]
-  name = "k8s.io/gengo"
-  revision = "793b05dca9b871fdc15aeaff1f201e141ef5afa7" # locks pre klog/v2 due to https://github.com/kubernetes/klog/issues/138#issuecomment-612198590
-
-[[override]]
   name = "k8s.io/kube-openapi"
   branch = "release-1.16"
 
@@ -123,9 +119,8 @@ required = [
 [[override]]
   name = "istio.io/api"
   branch = "release-1.4"
-#  branch = "istio-8772"
-#  source = "https://github.com/aslakknutsen/istio-api.git"
 
+## Locking k8s/{klog,utils,gengo} to before klog@v2.0.0 as otherwise we are facing https://github.com/kubernetes/klog/issues/138
 [[override]]
   name = "k8s.io/utils"
   revision = "5770800c2500f42361fa90f2d5df947d2c5db138"
@@ -134,7 +129,11 @@ required = [
   name = "k8s.io/klog"
   version = "v1.0.0"
 
-# Workaround for https://github.com/golang/dep/issues/1799
+[[override]]
+  name = "k8s.io/gengo"
+  revision = "793b05dca9b871fdc15aeaff1f201e141ef5afa7"
+
+# Workaround for https://github.com/golang/dep/issues/1799 - see https://github.com/golang/dep/issues/1799#issuecomment-381190029
 # Otherwise ginkgo/gomega won't be pulled in
 [[override]]
   name = "gopkg.in/fsnotify.v1"
