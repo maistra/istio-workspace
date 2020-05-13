@@ -20,8 +20,7 @@ required = [
   [[prune.project]]
     name = "k8s.io/gengo"
 
-## Constraints
-
+# Constraints
 [[constraint]]
   name = "k8s.io/code-generator"
   version = "kubernetes-1.16.0"
@@ -106,8 +105,7 @@ required = [
   name = "github.com/google/go-github"
   version = "=v31.0.0"
 
-## Overrides
-
+# Overrides
 [[override]]
   name = "k8s.io/kube-openapi"
   branch = "release-1.16"
@@ -133,8 +131,8 @@ required = [
   name = "k8s.io/gengo"
   revision = "793b05dca9b871fdc15aeaff1f201e141ef5afa7"
 
-# Workaround for https://github.com/golang/dep/issues/1799 - see https://github.com/golang/dep/issues/1799#issuecomment-381190029
-# Otherwise ginkgo/gomega won't be pulled in
+## Workaround for https://github.com/golang/dep/issues/1799 - see https://github.com/golang/dep/issues/1799#issuecomment-381190029
+## Otherwise ginkgo/gomega won't be pulled in
 [[override]]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
