@@ -36,10 +36,10 @@ all: deps format lint compile test ## Runs 'deps format lint test compile' targe
 build-ci: deps format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
-test: codegen ## Runs tests
+test: operator-codegen ## Runs tests
 	$(call header,"Running tests")
 	ginkgo -r -v --skipPackage=e2e ${args}
 
@@ -63,24 +63,24 @@ format: ## Removes unneeded imports and formats source code
 	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
-lint-prepare: deps codegen
+lint-prepare: deps operator-codegen
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
-GROUP_VERSIONS:="istio:v1alpha1"
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
-.PHONY: codegen
-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
+.PHONY: operator-codegen
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
-		$(GROUP_VERSIONS)
+		"istio:v1alpha1" \
+		--go-header-file ./scripts/boilerplate.txt
 
 # ##########################################################################
 # Build configuration

@@ -28,7 +28,7 @@ func CreateOperatorAwareLogger() logr.Logger {
 		lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
 		opts = append(opts, zap.AddStacktrace(zap.WarnLevel),
 			zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-				return zapcore.NewSampler(core, time.Second, 100, 100)
+				return zapcore.NewSamplerWithOptions(core, time.Second, 100, 100)
 			}))
 	} else {
 		encCfg := newCliEncoderConfig()

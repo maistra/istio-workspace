@@ -8,7 +8,7 @@ import (
 
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
-	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

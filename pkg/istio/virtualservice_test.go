@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"istio.io/api/networking/v1alpha3"
-	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
 	k8yaml "sigs.k8s.io/yaml"
 )
