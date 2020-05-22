@@ -77,7 +77,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().StringP("port", "p", "8000", "port to be exposed in format local[:remote]")
+	developCmd.Flags().StringP("port", "p", "", "port to be exposed in format local[:remote]")
 	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
 	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
 	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
@@ -125,11 +125,17 @@ func parseArguments(cmd *cobra.Command) []string {
 		}
 	}
 
-	tpCmd := append([]string{
+	tpArgs := []string{
 		"--deployment", cmd.Flag("deployment").Value.String(),
-		"--expose", cmd.Flag("port").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
-		"--run"}, runArgs...)
+	}
+	if s, err := cmd.Flags().GetString("port"); err != nil {
+		tpArgs = append(tpArgs, "--expose")
+		tpArgs = append(tpArgs, s)
+	}
+
+	tpArgs = append(tpArgs, "--run")
+	tpCmd := append(tpArgs, runArgs...)
 
 	namespaceFlag := cmd.Flag("namespace")
 	if namespaceFlag.Changed {
