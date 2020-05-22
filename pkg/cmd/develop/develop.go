@@ -129,7 +129,7 @@ func parseArguments(cmd *cobra.Command) []string {
 		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 	}
-	if s, err := cmd.Flags().GetString("port"); err != nil {
+	if s, err := cmd.Flags().GetString("port"); err == nil && s != "" {
 		tpArgs = append(tpArgs, "--expose")
 		tpArgs = append(tpArgs, s)
 	}
