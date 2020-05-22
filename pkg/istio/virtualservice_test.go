@@ -237,9 +237,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 									{
 										Destination: &istionetworkv1alpha3.Destination{
 											Host: "customer",
-											Port: &istionetworkv1alpha3.PortSelector{
-												Port: &istionetworkv1alpha3.PortSelector_Number{Number: 8080},
-											},
+											Port: &istionetworkv1alpha3.PortSelector{Number: 8080},
 										},
 									},
 								},
@@ -261,9 +259,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 									{
 										Destination: &istionetworkv1alpha3.Destination{
 											Host: "reviews",
-											Port: &istionetworkv1alpha3.PortSelector{
-												Port: &istionetworkv1alpha3.PortSelector_Number{Number: 8080},
-											},
+											Port: &istionetworkv1alpha3.PortSelector{Number: 8080},
 										},
 									},
 								},

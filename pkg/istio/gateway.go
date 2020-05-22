@@ -3,7 +3,7 @@ package istio
 import (
 	"github.com/maistra/istio-workspace/pkg/model"
 
-	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/api/errors"

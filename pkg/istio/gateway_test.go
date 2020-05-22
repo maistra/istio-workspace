@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"istio.io/api/networking/v1alpha3"
-	istionetwork "istio.io/api/pkg/kube/apis/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 )
 
 var _ = Describe("Operations for istio gateway kind", func() {
