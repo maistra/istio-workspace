@@ -74,13 +74,6 @@ var _ = Describe("Usage of ike develop command", func() {
 				Expect(err.Error()).To(And(ContainSubstring("required flag(s)"), ContainSubstring("run")))
 			})
 
-			It("should have default port 8000 when flag not specified", func() {
-				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java -jar rating.jar")
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(developCmd.Flag("port").Value.String()).To(Equal("8000"))
-			})
-
 			It("should have default method inject-tcp when flag not specified", func() {
 				_, err := ValidateArgumentsOf(developCmd).Passing("--deployment", "rating-service", "--run", "java -jar rating.jar")
 
@@ -214,7 +207,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("--deployment rating-service"))
-			Expect(output).To(ContainSubstring("--expose 8000"))
+			Expect(output).To(Not(ContainSubstring("--expose")))
 			Expect(output).To(ContainSubstring("--method inject-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
@@ -228,7 +221,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("--deployment rating-service"))
 			Expect(output).To(ContainSubstring("--namespace my-project"))
-			Expect(output).To(ContainSubstring("--expose 8000"))
+			Expect(output).To(Not(ContainSubstring("--expose")))
 			Expect(output).To(ContainSubstring("--method inject-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
