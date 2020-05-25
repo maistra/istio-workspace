@@ -16,7 +16,6 @@ func UpdateSecurityConstraintsFor(namespace string) {
 }
 
 func EnablePullingImages(namespace string) {
-	setDockerRegistryInternal()
 	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n "+ImageRepo).Done()
 	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n "+ImageRepo).Done()
 }
