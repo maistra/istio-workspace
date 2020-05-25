@@ -16,8 +16,8 @@ func UpdateSecurityConstraintsFor(namespace string) {
 }
 
 func EnablePullingImages(namespace string) {
-	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n "+ImageRepo).Done()
-	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n "+ImageRepo).Done()
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n " + ImageRepo).Done()
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n " + ImageRepo).Done()
 }
 
 var (

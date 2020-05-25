@@ -61,7 +61,7 @@ func GetProjectLabels(namespace string) string {
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
-func setDockerEnvForTestServiceDeploy(namespace string)  {
+func setDockerEnvForTestServiceDeploy(namespace string) {
 	setTestNamespace(namespace)
 	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
