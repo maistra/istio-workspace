@@ -287,20 +287,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:76efa3b55850d9caa14f8c0b3a951797f9bc2ffc283526073dcad1b06b6e02d3"
-  name = "github.com/hpcloud/tail"
-  packages = [
-    ".",
-    "ratelimiter",
-    "util",
-    "watch",
-    "winfile",
-  ]
-  pruneopts = "NT"
-  revision = "a30252cb686a21eb2d0b98132633053ec2f7f1e5"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:b391e0e88682b33e62e6bcb005a4cfdebe9a14969dab6ebc5e7e4c166986e427"
   name = "github.com/imdario/mergo"
   packages = ["."]
@@ -385,7 +371,21 @@
   version = "1.0.1"
 
 [[projects]]
-  digest = "1:048c7055e487eb0db9e76c00f60128ff212c893c348b982081ddd43fb889376f"
+  digest = "1:9d49100458068e59bfff1cee76dca3c04a146f9343a01001a8c4996d42cec058"
+  name = "github.com/nxadm/tail"
+  packages = [
+    ".",
+    "ratelimiter",
+    "util",
+    "watch",
+    "winfile",
+  ]
+  pruneopts = "NT"
+  revision = "327c577245448d8192115e77a76ea3d6aee88202"
+  version = "v1.4.4"
+
+[[projects]]
+  digest = "1:cc9bd2940e4996ba71257d81da853194a0a7fcf73e45c9138463464cf981ad9a"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -408,8 +408,8 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "40598150331533e3cd497f21dcce387dae84b561"
-  version = "v1.12.0"
+  revision = "149d5d94b7be4ef2a9c67c5b2de17584aa6073fe"
+  version = "v1.12.2"
 
 [[projects]]
   digest = "1:a98198297dbd968de81ae500d8c3f5adf4724fe36ab8a4db6e1886cee5c5f747"
