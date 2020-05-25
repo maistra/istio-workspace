@@ -11,24 +11,24 @@ import (
 )
 
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry
-func BuildTestService(namespace string) (registry string) {
+func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
-	registry = setDockerEnvForTestServiceBuild(namespace)
+	setTestNamespace(ImageRepo)
+	registry = setDockerRegistryExternal()
 
-	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
 }
 
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
-func BuildTestServicePreparedImage(callerName, namespace string) (registry string) {
+func BuildTestServicePreparedImage(callerName string) (registry string) {
 	projectDir := shell.GetProjectDir()
-	registry = setDockerEnvForTestServiceBuild(namespace)
+	setTestNamespace(ImageRepo)
+	registry = setDockerRegistryExternal()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 
-	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
 	return
@@ -37,9 +37,9 @@ func BuildTestServicePreparedImage(callerName, namespace string) (registry strin
 // DeployTestScenario deploys a test scenario into the specified namespace
 func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
+	setDockerRegistryInternal()
 	setDockerEnvForTestServiceDeploy(namespace)
 
-	LoginAsTestPowerUser()
 	<-shell.ExecuteInDir(".", "bash", "-c",
 		`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
 	gomega.Eventually(func() string {
@@ -49,7 +49,6 @@ func DeployTestScenario(scenario, namespace string) {
 }
 
 func CleanupTestScenario(namespace string) {
-	LoginAsTestPowerUser()
 	removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
 	patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
 	<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
@@ -62,24 +61,15 @@ func GetProjectLabels(namespace string) string {
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
-func setDockerEnvForTestServiceBuild(namespace string) (registry string) {
-	setTestNamespace(namespace)
-	return setDockerRegistryExternal()
-}
-
-func setDockerEnvForTestServiceDeploy(namespace string) (registry string) {
+func setDockerEnvForTestServiceDeploy(namespace string)  {
 	setTestNamespace(namespace)
 	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	return setDockerRegistryInternal()
 }
 
 func setTestNamespace(namespace string) {
 	err := os.Setenv("TEST_NAMESPACE", namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	setDockerRepository(namespace)
 }
 
 // GetGatewayHost returns the host the Gateway in the scenario is bound to (http header Host)
