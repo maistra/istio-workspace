@@ -95,7 +95,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			const config = `develop:
   deployment: test
   run: "java -jar config.jar"
-  port: 9876
+  port: 9876,9877
 `
 			var configFile afero.File
 
@@ -124,11 +124,18 @@ var _ = Describe("Usage of ike develop command", func() {
 				Expect(developCmd.Flag("run").Value.String()).To(Equal(`'./test.sh'`))
 			})
 
+			It("should load multiple ports", func() {
+				_, err := ValidateArgumentsOf(developCmd).Passing("--config", configFile.Name())
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(developCmd.Flags().GetStringSlice("port")).To(ContainElements("9876", "9877"))
+			})
+
 			Context("with config file source overwritten by ENV", func() {
 				const envConfig = `develop:
   deployment: env-test
   run: "java -jar config.jar"
-  port: 9876
+  port: 9876,9878
 `
 				var envConfigFile afero.File
 
@@ -146,7 +153,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 					Expect(err).ToNot(HaveOccurred())
 					Expect(developCmd.Flag("deployment").Value.String()).To(Equal("env-test"))
-					Expect(developCmd.Flag("port").Value.String()).To(Equal("12324"))
+					Expect(developCmd.Flags().GetStringSlice("port")).To(ContainElement("12324"))
 				})
 			})
 
@@ -154,7 +161,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 				var restoreEnvVars func()
 				BeforeEach(func() {
-					restoreEnvVars = TemporaryEnvVars("IKE_DEVELOP_PORT", "4321")
+					restoreEnvVars = TemporaryEnvVars("IKE_DEVELOP_PORT", "4321,4322")
 				})
 				AfterEach(func() {
 					restoreEnvVars()
@@ -164,16 +171,22 @@ var _ = Describe("Usage of ike develop command", func() {
 					_, err := ValidateArgumentsOf(developCmd).Passing("--config", configFile.Name())
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(developCmd.Flag("port").Value.String()).To(Equal("4321"))
+					Expect(developCmd.Flags().GetStringSlice("port")).To(ContainElement("4321"))
 				})
 
 				It("should use flag over environment variable", func() {
 					_, err := ValidateArgumentsOf(developCmd).Passing("--port", "1111", "--config", configFile.Name())
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(developCmd.Flag("port").Value.String()).To(Equal("1111"))
+					Expect(developCmd.Flags().GetStringSlice("port")).To(ContainElement("1111"))
 				})
 
+				It("should read multiple ports", func() {
+					_, err := ValidateArgumentsOf(developCmd).Passing("--config", configFile.Name())
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(developCmd.Flags().GetStringSlice("port")).To(ContainElements("4321", "4322"))
+				})
 			})
 		})
 	})
@@ -190,12 +203,14 @@ var _ = Describe("Usage of ike develop command", func() {
 			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--port", "4321:5000",
+				"--port", "4322:5001",
 				"--method", "vpn-tcp",
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("--deployment rating-service"))
 			Expect(output).To(ContainSubstring("--expose 4321:5000"))
+			Expect(output).To(ContainSubstring("--expose 4322:5001"))
 			Expect(output).To(ContainSubstring("--method vpn-tcp"))
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})

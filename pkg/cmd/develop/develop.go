@@ -77,7 +77,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().StringP("port", "p", "", "port to be exposed in format local[:remote]")
+	developCmd.Flags().StringSliceP("port", "p", []string{}, "list of ports to be exposed in format local[:remote].")
 	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
 	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
 	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
@@ -130,7 +130,10 @@ func parseArguments(cmd *cobra.Command) []string {
 		"--method", cmd.Flag("method").Value.String(),
 	}
 	if cmd.Flags().Changed("port") {
-		tpArgs = append(tpArgs, "--expose", cmd.Flag("port").Value.String())
+		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occure if flag does not exist. If it doesn't, it won't be Changed()
+		for _, port := range ports {
+			tpArgs = append(tpArgs, "--expose", port)
+		}
 	}
 
 	tpArgs = append(tpArgs, "--run")
