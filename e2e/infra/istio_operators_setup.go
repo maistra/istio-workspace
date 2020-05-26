@@ -12,48 +12,26 @@ import (
 // BuildOperator builds istio-workspace operator and pushes it to specified registry
 func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
-	_, registry = setDockerEnvForOperatorBuild()
-	LoginAsTestPowerUser()
+	namespace := setOperatorNamespace()
+	registry = setDockerRegistryExternal()
+	setDockerRepository(ImageRepo)
+	<-shell.Execute(NewProjectCmd(namespace)).Done()
+	EnablePullingImages(namespace)
 	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
 
-// PushOperatorImage deploys istio-workspace operator into specified namespace
-func PushOperatorImage(namespace string) {
-	projectDir := shell.GetProjectDir()
-	gomega.Expect(projectDir).To(gomega.Not(gomega.BeEmpty()))
-	LoginAsTestPowerUser()
-
-	setDockerEnvForLocalOperatorBuild(namespace)
-	_ = os.Setenv("IKE_IMAGE_NAME", "istio-workspace")
-	<-shell.ExecuteInDir(".", "bash", "-c",
-		"docker tag $IKE_DOCKER_REGISTRY/istio-workspace-operator/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG "+
-			"$IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker push $IKE_DOCKER_REGISTRY/"+namespace+"/$IKE_IMAGE_NAME:$IKE_IMAGE_TAG").Done()
-
-	setDockerEnvForLocalOperatorDeploy(namespace)
-}
-
 func InstallLocalOperator(namespace string) {
+	setDockerRegistryInternal()
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
 }
 
 func setOperatorNamespace() (namespace string) {
 	operatorNS := "istio-workspace-operator"
-
 	err := os.Setenv("OPERATOR_NAMESPACE", operatorNS)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	setDockerRepository(operatorNS)
 	return operatorNS
-}
-
-func setLocalOperatorNamespace(namespace string) {
-	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
-	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-
-	setDockerRepository(namespace)
 }
 
 func GetClusterHost() string {

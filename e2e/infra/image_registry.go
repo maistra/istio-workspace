@@ -8,26 +8,16 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func setDockerEnvForOperatorBuild() (namespace, registry string) {
-	ns := setOperatorNamespace()
-	repo := setDockerRegistryExternal()
-	return ns, repo
-}
-
-func setDockerEnvForLocalOperatorBuild(namespace string) string {
-	setLocalOperatorNamespace(namespace)
-	repo := setDockerRegistryExternal()
-	return repo
-}
-
-func setDockerEnvForLocalOperatorDeploy(namespace string) string {
-	setLocalOperatorNamespace(namespace)
-	repo := setDockerRegistryInternal()
-	return repo
-}
+const ImageRepo = "istio-workspace-images"
 
 func setDockerRegistryExternal() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
+	setDockerRegistry(registry)
+	return registry
+}
+
+func setDockerRegistryInternal() string {
+	registry := GetDockerRegistryInternal()
 	setDockerRegistry(registry)
 	return registry
 }
@@ -40,12 +30,6 @@ func setDockerRegistry(registry string) {
 func setDockerRepository(namespace string) {
 	err := os.Setenv(config.EnvDockerRepository, namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-}
-
-func setDockerRegistryInternal() string {
-	registry := GetDockerRegistryInternal()
-	setDockerRegistry(registry)
-	return registry
 }
 
 // GetDockerRegistryInternal returns the internal address for the docker registry

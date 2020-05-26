@@ -36,11 +36,10 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 			namespace = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
-			LoginAsTestPowerUser()
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
-			PushOperatorImage(namespace)
+			EnablePullingImages(namespace)
 			InstallLocalOperator(namespace)
 		})
 

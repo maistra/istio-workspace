@@ -34,13 +34,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			namespace = generateNamespaceName()
 			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
 
-			LoginAsTestPowerUser()
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
 			UpdateSecurityConstraintsFor(namespace)
-			PushOperatorImage(namespace)
+			EnablePullingImages(namespace)
 			InstallLocalOperator(namespace)
-			BuildTestService(namespace)
 			DeployTestScenario(scenario, namespace)
 		})
 
@@ -60,6 +58,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				})
 
 				Context("basic deployment modifications", func() {
+
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -87,6 +86,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 					})
+
 					It("should watch for changes in ratings service in specified namespace and serve it", func() {
 						EnsureAllPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -121,19 +121,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				})
 
 				Context("deployment create/delete operations", func() {
-					var registry string
-					preparedImageV1 := "prepared-image"
-					preparedImageV2 := "image-prepared"
-
-					JustBeforeEach(func() {
-						BuildTestServicePreparedImage(preparedImageV1, namespace)
-						BuildTestServicePreparedImage(preparedImageV2, namespace)
-						registry = GetDockerRegistryInternal()
-					})
+					registry := GetDockerRegistryInternal()
 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllPodsAreReady(namespace)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV1)))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
 						ChangeNamespace("default")
 
@@ -142,7 +134,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+namespace+"/istio-workspace-test-prepared-"+preparedImageV1+":latest",
+							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV1+":latest",
 							"-s", "test-session",
 						)
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
@@ -151,27 +143,27 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureAllPodsAreReady(namespace)
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, ContainSubstring(preparedImageV1), Not(ContainSubstring("ratings-v1")))
+						EnsureSessionRouteIsReachable(namespace, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-						//ShouldNot(ContainSubstring(preparedImageV1))
+						//ShouldNot(ContainSubstring(PreparedImageV1))
 
 						// when we start ike to create with a updated v
 						ike2 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+namespace+"/istio-workspace-test-prepared-"+preparedImageV2+":latest",
+							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV2+":latest",
 							"-s", "test-session",
 						)
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, ContainSubstring(preparedImageV2), Not(ContainSubstring("ratings-v1")))
+						EnsureSessionRouteIsReachable(namespace, ContainSubstring(PreparedImageV2), Not(ContainSubstring("ratings-v1")))
 
 						// but also check if prod is intact
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV2)))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
 
 						// when we start ike to delete
 						ikeDel := RunIke(tmpDir, "delete",
@@ -182,7 +174,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(preparedImageV2)))
+						EnsureSessionRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
