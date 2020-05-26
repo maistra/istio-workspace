@@ -24,6 +24,9 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
+const PreparedImageV1 = "prepared-image"
+const PreparedImageV2 = "image-prepared"
+
 var tmpClusterDir string
 
 var tmpPath = NewTmpPath()
@@ -46,7 +49,13 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		fmt.Printf("\nExposing Docker Registry\n")
 		<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 
+		<-testshell.Execute(NewProjectCmd(ImageRepo)).Done()
+		UpdateSecurityConstraintsFor(ImageRepo)
+
 		BuildOperator()
+		BuildTestService()
+		BuildTestServicePreparedImage(PreparedImageV1)
+		BuildTestServicePreparedImage(PreparedImageV2)
 		createProjectsForCompletionTests()
 	})
 
@@ -68,7 +77,6 @@ var CompletionProject1 = "ike-autocompletion-test-" + naming.RandName(16)
 var CompletionProject2 = "ike-autocompletion-test-" + naming.RandName(16)
 
 func createProjectsForCompletionTests() {
-	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
 		NewProjectCmd(CompletionProject1),
 		DeployHelloWorldCmd("my-datawire-deployment", CompletionProject1),
@@ -79,7 +87,6 @@ func createProjectsForCompletionTests() {
 }
 
 func deleteProjectsForCompletionTests() {
-	LoginAsTestPowerUser()
 	testshell.ExecuteAll(
 		DeleteProjectCmd(CompletionProject1),
 		DeleteProjectCmd(CompletionProject2),

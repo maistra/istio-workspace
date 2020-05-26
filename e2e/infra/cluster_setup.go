@@ -10,10 +10,14 @@ import (
 
 // UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace
 func UpdateSecurityConstraintsFor(namespace string) {
-	LoginAsTestPowerUser()
 	shell.ExecuteAll(
 		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
 		"oc adm policy add-scc-to-user privileged -z default -n "+namespace)
+}
+
+func EnablePullingImages(namespace string) {
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n " + ImageRepo).Done()
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n " + ImageRepo).Done()
 }
 
 var (

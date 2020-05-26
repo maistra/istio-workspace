@@ -24,7 +24,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			projectName = strings.ReplaceAll(CurrentGinkgoTestDescription().TestText, " ", "-") + "-" + naming.RandName(16)
 			projectName = strings.ReplaceAll(projectName, "should", "ike")
 			<-testshell.Execute(NewProjectCmd(projectName)).Done()
-			PushOperatorImage(projectName)
+			EnablePullingImages(projectName)
 		})
 
 		AfterEach(func() {
