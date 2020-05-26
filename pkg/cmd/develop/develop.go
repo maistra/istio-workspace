@@ -77,7 +77,7 @@ func NewCmd() *cobra.Command {
 	}
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
-	developCmd.Flags().StringSliceP("port", "p", []string{}, "port to be exposed in format local[:remote]. Repeat the flag to expose multiple ports.")
+	developCmd.Flags().StringSliceP("port", "p", []string{}, "list of ports to be exposed in format local[:remote].")
 	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
 	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
 	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
