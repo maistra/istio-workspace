@@ -444,7 +444,7 @@
     "template/v1",
   ]
   pruneopts = "NT"
-  revision = "e9d93e317dd13b6f135baca5cee888d5ff3c222b"
+  revision = "a843dc3262a0cdc5fe6c20620f3e47f5f905efd1"
 
 [[projects]]
   digest = "1:99106d2db6cee9b07efdc50e30972c2d6290c5ac13278fb7f6cdb4da52ea1014"
