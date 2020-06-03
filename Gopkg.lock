@@ -385,7 +385,7 @@
   version = "v1.4.4"
 
 [[projects]]
-  digest = "1:cc9bd2940e4996ba71257d81da853194a0a7fcf73e45c9138463464cf981ad9a"
+  digest = "1:4b506e88ed1b1f59db806f249d8bb08f46232054f5a943a2166b3c96fea21f8a"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -393,6 +393,7 @@
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
+    "internal/global",
     "internal/leafnodes",
     "internal/remote",
     "internal/spec",
@@ -408,8 +409,8 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "149d5d94b7be4ef2a9c67c5b2de17584aa6073fe"
-  version = "v1.12.2"
+  revision = "9bef594084d663dc2c58c2874b5d2edf06071744"
+  version = "v1.12.3"
 
 [[projects]]
   digest = "1:a98198297dbd968de81ae500d8c3f5adf4724fe36ab8a4db6e1886cee5c5f747"
@@ -444,7 +445,7 @@
     "template/v1",
   ]
   pruneopts = "NT"
-  revision = "e9d93e317dd13b6f135baca5cee888d5ff3c222b"
+  revision = "a843dc3262a0cdc5fe6c20620f3e47f5f905efd1"
 
 [[projects]]
   digest = "1:99106d2db6cee9b07efdc50e30972c2d6290c5ac13278fb7f6cdb4da52ea1014"
