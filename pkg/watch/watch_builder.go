@@ -40,7 +40,7 @@ func (wb *Builder) Excluding(exclusions ...string) *Builder {
 func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Error(err, "failed creating fs watch")
+		logger.Error(err, "failed creating fs watch")
 		return nil, err
 	}
 

@@ -3,11 +3,14 @@ package openshift_test
 import (
 	"context"
 
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,10 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
@@ -42,7 +41,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
-			Log:       logf.Log.WithName("test"),
+			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "openshift-deploymentconfig"),
 			Client:    fake.NewFakeClientWithScheme(schema, objects...),
 		}
 	})

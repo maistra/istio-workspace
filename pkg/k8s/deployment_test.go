@@ -9,16 +9,15 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/maistra/istio-workspace/pkg/k8s"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Operations for k8s Deployment kind", func() {
@@ -39,7 +38,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
-			Log:       logf.Log.WithName("test"),
+			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "k8s-deployment"),
 			Client:    fake.NewFakeClient(objects...),
 		}
 	})

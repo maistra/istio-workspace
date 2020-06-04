@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/log"
+
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
@@ -19,10 +21,9 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/spf13/cobra"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("develop")
+var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "develop")
 
 var DefaultExclusions = []string{"*.log", ".git/"}
 
@@ -86,11 +87,11 @@ func NewCmd() *cobra.Command {
 	developCmd.Flags().StringSlice("watch-exclude", DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
-		log.Error(err, "failed while trying to hide a flag")
+		logger.Error(err, "failed while trying to hide a flag")
 	}
 	developCmd.Flags().Bool("offline", false, "avoid calling external sources")
 	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
-		log.Error(err, "failed while trying to hide a flag")
+		logger.Error(err, "failed while trying to hide a flag")
 	}
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")

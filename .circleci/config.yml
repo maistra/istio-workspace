@@ -20,6 +20,7 @@ defaults:
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
     IKE_E2E_MANAGE_CLUSTER: "false"
+    IKE_LOG_DEBUG: "true"
 
 version: 2.1
 jobs:

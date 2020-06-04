@@ -2,19 +2,20 @@ package log
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
-	zapr2 "github.com/go-logr/zapr"
+	zapr2 "github.com/go-logr/zapr" //nolint:depguard //reason registers wrapper as logger
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
+	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap" //nolint:depguard //reason registers wrapper as logger
 )
 
 // CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI
-func CreateOperatorAwareLogger() logr.Logger {
+func CreateOperatorAwareLogger(name string) logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
@@ -32,8 +33,16 @@ func CreateOperatorAwareLogger() logr.Logger {
 			}))
 	} else {
 		encCfg := newCliEncoderConfig()
-		enc = zapcore.NewConsoleEncoder(encCfg)
-		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
+		lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
+		if debugLevel, found := os.LookupEnv("IKE_LOG_DEBUG"); found {
+			debug, _ := strconv.ParseBool(debugLevel)
+			if debug {
+				zap.NewAtomicLevelAt(zap.DebugLevel)
+				enc = zapcore.NewConsoleEncoder(encCfg)
+			}
+		} else {
+			enc = newFilteringEncoder(zapcore.NewConsoleEncoder(encCfg))
+		}
 		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
 	}
 
@@ -41,7 +50,7 @@ func CreateOperatorAwareLogger() logr.Logger {
 
 	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: !operator}
 	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
-	log = log.WithOptions(opts...)
+	log = log.Named(name).WithOptions(opts...)
 
 	return zapr2.NewLogger(log)
 }
@@ -49,7 +58,7 @@ func CreateOperatorAwareLogger() logr.Logger {
 func newCliEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		// Keys can be anything except the empty string - that means it should be ignored
-		MessageKey:  "M",
+		MessageKey:  "msg",
 		LineEnding:  zapcore.DefaultLineEnding,
 		EncodeLevel: zapcore.CapitalLevelEncoder,
 	}

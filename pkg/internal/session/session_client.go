@@ -33,26 +33,26 @@ func DefaultClient(namespace string) (*client, error) { //nolint:golint //reason
 		var err error
 		restCfg, err := kubeCfg.ClientConfig()
 		if err != nil {
-			log.Error(err, "failed to create default client")
+			logger.Error(err, "failed to create default client")
 			return nil, err
 		}
 
 		c, err := versioned.NewForConfig(restCfg)
 		if err != nil {
-			log.Error(err, "failed to create default client")
+			logger.Error(err, "failed to create default client")
 			return nil, err
 		}
 
 		if namespace == "" {
 			namespace, _, err = kubeCfg.Namespace()
 			if err != nil {
-				log.Error(err, "failed to create default client")
+				logger.Error(err, "failed to create default client")
 				return nil, err
 			}
 		}
 		defaultClient, err = NewClient(c, namespace)
 		if err != nil {
-			log.Error(err, "failed to create default client")
+			logger.Error(err, "failed to create default client")
 			return nil, err
 		}
 	}

@@ -9,13 +9,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/log"
+	"google.golang.org/grpc"
 
-	grpc "google.golang.org/grpc"
+	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log" //nolint:depguard //reason registers wrapper as logger
 )
 
 const (
@@ -42,8 +42,10 @@ type Config struct {
 	Call []*url.URL
 }
 
+var logger = log.CreateOperatorAwareLogger("test").WithValues("type", "test-service")
+
 func main() {
-	logf.SetLogger(log.CreateOperatorAwareLogger())
+	logf.SetLogger(logger)
 
 	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {

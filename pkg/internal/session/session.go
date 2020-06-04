@@ -9,14 +9,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var (
-	log = logf.Log.WithName("session_handler")
+	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
 )
 
 // Options holds the variables used by the Session Handler
@@ -183,7 +183,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 		return false, nil
 	})
 	if err != nil {
-		log.Error(err, "failed waiting for deployment to create")
+		logger.Error(err, "failed waiting for deployment to create")
 		return name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 	return name, nil
@@ -192,7 +192,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 func (h *handler) removeOrLeaveSession() {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
-		log.Error(err, "failed removing or leaving session")
+		logger.Error(err, "failed removing or leaving session")
 		return // assume missing, nothing to clean?
 	}
 	// more than one participant, update session

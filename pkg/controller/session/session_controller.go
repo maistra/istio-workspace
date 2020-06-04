@@ -3,6 +3,8 @@ package session
 import (
 	"context"
 
+	"github.com/maistra/istio-workspace/pkg/log"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
@@ -15,7 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -27,7 +28,7 @@ const (
 )
 
 var (
-	log = logf.Log.WithName("controller_session")
+	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
 )
 
 // DefaultManipulators contains the default config for the reconciler
@@ -107,7 +108,7 @@ type ReconcileSession struct {
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec
 func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
 	// Fetch the Session instance

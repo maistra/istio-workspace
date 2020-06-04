@@ -60,7 +60,7 @@ deps: check-tools ## Fetches all dependencies
 .PHONY: format
 format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
+	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
 lint-prepare: deps operator-codegen
