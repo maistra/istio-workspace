@@ -33,8 +33,14 @@ func CreateOperatorAwareLogger(name string) logr.Logger {
 			}))
 	} else {
 		encCfg := newCliEncoderConfig()
-		enc = zapcore.NewConsoleEncoder(encCfg)
-		lvl = zap.NewAtomicLevelAt(zap.DebugLevel)
+		enc = newFilteringEncoder(zapcore.NewConsoleEncoder(encCfg))
+		lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
+		if debugLevel, found := os.LookupEnv("IKE_LOG_DEBUG"); found {
+			debug, _ := strconv.ParseBool(debugLevel)
+			if debug {
+				zap.NewAtomicLevelAt(zap.DebugLevel)
+			}
+		}
 		opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
 	}
 
