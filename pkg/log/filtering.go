@@ -8,21 +8,23 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// filteringEncoder enables filtering out fields.
+// For example that can be useful for CLI logger if you want to skip printing additional context as JSON
 type filteringEncoder struct {
-	delegate zapcore.Encoder
-	fields   map[string]struct{}
+	delegate        zapcore.Encoder
+	fieldsToInclude map[string]struct{}
 }
 
-func newFilteringEncoder(delegate zapcore.Encoder, fieldsToShow ...string) filteringEncoder {
-	fields := make(map[string]struct{}, len(fieldsToShow))
-	for _, field := range fieldsToShow {
+func newFilteringEncoder(delegate zapcore.Encoder, includedFields ...string) filteringEncoder {
+	fields := make(map[string]struct{}, len(includedFields))
+	for _, field := range includedFields {
 		fields[field] = struct{}{}
 	}
-	return filteringEncoder{delegate: delegate, fields: fields}
+	return filteringEncoder{delegate: delegate, fieldsToInclude: fields}
 }
 
 func (f filteringEncoder) shouldSkip(key string) bool {
-	_, ok := f.fields[key]
+	_, ok := f.fieldsToInclude[key]
 	return !ok
 }
 
@@ -206,5 +208,5 @@ func (f filteringEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Fiel
 }
 
 func (f filteringEncoder) Clone() zapcore.Encoder {
-	return filteringEncoder{f.delegate.Clone(), f.fields}
+	return filteringEncoder{f.delegate.Clone(), f.fieldsToInclude}
 }
