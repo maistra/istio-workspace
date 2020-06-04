@@ -60,7 +60,7 @@ deps: check-tools ## Fetches all dependencies
 .PHONY: format
 format: ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
+	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
 lint-prepare: deps operator-codegen
@@ -149,7 +149,7 @@ tools: install-dep ## Installs required go tools
 	GO111MODULE=on go get -u github.com/golangci/golangci-lint/cmd/golangci-lint@v1.19.1
 	go get -u golang.org/x/tools/cmd/goimports
 	$(eval GINKGO_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/onsi/ginkgo"}}{{.Version}}{{end}}'))
-	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
+	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@v1.12.3
 	GO111MODULE=on go get -u github.com/go-bindata/go-bindata/...@v3.1.2
 	GO111MODULE=on go get -u github.com/golang/protobuf/protoc-gen-go
 
