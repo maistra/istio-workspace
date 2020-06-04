@@ -57,7 +57,7 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 
 		enc := json.NewEncoder(resp)
 		enc.SetIndent("", "  ")
-		err := enc.Encode(callStack)
+		var err = enc.Encode(&callStack)
 		if err != nil {
 			fmt.Println("Failed to encode", err)
 			return
