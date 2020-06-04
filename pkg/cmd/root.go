@@ -9,16 +9,15 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/log"
 
 	v "github.com/maistra/istio-workspace/version"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("root")
+var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "root")
 
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
@@ -54,16 +53,18 @@ func NewCmd() *cobra.Command {
 			return nil
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			defer func() {
+				close(releaseInfo)
+			}()
 			if v.Released() {
 				timer := time.NewTimer(2 * time.Second)
 				select {
 				case release := <-releaseInfo:
-					log.Info(release)
+					logger.Info(release)
 				case <-timer.C:
 					// do nothing, just timeout
 				}
 			}
-			close(releaseInfo)
 			return nil
 		},
 	}
@@ -74,7 +75,7 @@ func NewCmd() *cobra.Command {
 	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
 	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
 	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
-		log.Error(err, "failed while trying to hide a flag")
+		logger.Error(err, "failed while trying to hide a flag")
 	}
 
 	config.SetupConfig()

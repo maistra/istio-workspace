@@ -2,10 +2,10 @@ package config
 
 import (
 	"github.com/maistra/istio-workspace/pkg/assets"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
 	openshiftApi "github.com/openshift/api/template/v1"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // These consts are used across the project to load corresponding env variables
@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	log        = logf.Log.WithName("session_handler")
+	logger     = log.CreateOperatorAwareLogger("session").WithValues("type", "handler")
 	Parameters []openshiftApi.Parameter
 )
 
@@ -30,12 +30,12 @@ func init() {
 func collectTplParams(resource string) {
 	tpl, err := parser.Load(resource)
 	if err != nil {
-		log.Error(err, "failed parsing "+resource+"template")
+		logger.Error(err, "failed parsing "+resource+"template")
 	}
 
 	tplParams, err := parser.ParseParameters(tpl)
 	if err != nil {
-		log.Error(err, "failed parsing parameters in the template "+resource)
+		logger.Error(err, "failed parsing parameters in the template "+resource)
 	}
 	Parameters = append(Parameters, tplParams...)
 }

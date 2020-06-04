@@ -16,8 +16,9 @@ linters-settings:
   depguard:
     list-type: blacklist
     packages:
-      # logging is allowed only by "sigs.k8s.io/controller-runtime/pkg/log"
       - github.com/sirupsen/logrus
+      - sigs.k8s.io/controller-runtime/pkg/log
+      - sigs.k8s.io/controller-runtime/pkg/log/zap
       - sigs.k8s.io/controller-runtime/pkg/runtime/log
   misspell:
     locale: US

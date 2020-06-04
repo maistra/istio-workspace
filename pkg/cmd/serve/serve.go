@@ -4,26 +4,25 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/version"
-
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
 	"github.com/maistra/istio-workspace/pkg/apis"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/controller"
+	"github.com/maistra/istio-workspace/pkg/log"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/spf13/cobra"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
-var log = logf.Log.WithName("serve")
+var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "serve")
 
 var (
 	metricsHost       = "0.0.0.0"
@@ -44,14 +43,14 @@ func NewCmd() *cobra.Command {
 func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam //reason cmd required by cobra
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		log.Error(err, "Failed to get watch namespace")
+		logger.Error(err, "Failed to get watch namespace")
 		return err
 	}
 
 	// Get a config to talk to the apiserver
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
-		log.Error(err, "")
+		logger.Error(err, "")
 		return err
 	}
 
@@ -59,7 +58,7 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam /
 
 	// Become the leader before proceeding
 	if e := leader.Become(ctx, "istio-workspace-lock"); e != nil {
-		log.Error(e, "")
+		logger.Error(e, "")
 		return e
 	}
 
@@ -69,21 +68,21 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam /
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
-		log.Error(err, "")
+		logger.Error(err, "")
 		return err
 	}
 
-	log.Info("Registering Components.")
+	logger.Info("Registering Components.")
 
 	// Setup Scheme for all resources
 	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
-		log.Error(err, "")
+		logger.Error(err, "")
 		return nil
 	}
 
 	// Setup all Controllers
 	if err = controller.AddToManager(mgr); err != nil {
-		log.Error(err, "")
+		logger.Error(err, "")
 		return err
 	}
 
@@ -95,15 +94,15 @@ func startOperator(cmd *cobra.Command, args []string) error { //nolint:unparam /
 			TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 	}
 	if _, err = metrics.CreateMetricsService(ctx, cfg, servicePorts); err != nil {
-		log.Info(err.Error())
+		logger.Info(err.Error())
 	}
 
-	log.Info("Starting the operator.")
+	logger.Info("Starting the operator.")
 	version.LogVersion()
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		log.Error(err, "Manager exited non-zero")
+		logger.Error(err, "Manager exited non-zero")
 		return err
 	}
 

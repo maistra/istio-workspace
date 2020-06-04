@@ -3,12 +3,12 @@ package create
 import (
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/spf13/cobra"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("cmd").WithValues("type", "create")
+var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "create")
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined
 func NewCmd() *cobra.Command {
@@ -34,7 +34,7 @@ func NewCmd() *cobra.Command {
 		"(defaults to default for the current context)")
 	createCmd.Flags().Bool("offline", false, "avoid calling external sources")
 	if err := createCmd.Flags().MarkHidden("offline"); err != nil {
-		log.Error(err, "failed while trying to hide a flag")
+		logger.Error(err, "failed while trying to hide a flag")
 	}
 
 	createCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(createCmd))
