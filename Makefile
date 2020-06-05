@@ -126,9 +126,9 @@ $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS) test/cmd/test-service/h
 	$(call header,"Compiling test service... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
-test/cmd/test-service/main.pb.go: test/cmd/test-service/main.proto
+test/cmd/test-service/main.pb.go: $(PROJECT_DIR)/bin/protoc test/cmd/test-service/main.proto
 	$(call header,"Compiling test proto... carry on!")
-	protoc -I test/cmd/test-service/ test/cmd/test-service/main.proto --go_out=plugins=grpc:test/cmd/test-service
+	$(PROJECT_DIR)/bin/protoc -I test/cmd/test-service/ test/cmd/test-service/main.proto --go_out=plugins=grpc:test/cmd/test-service
 
 test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
 	$(call header,"Compiling test assets... carry on!")
@@ -153,7 +153,7 @@ tools: install-dep ## Installs required go tools
 	GO111MODULE=on go get -u github.com/go-bindata/go-bindata/...@v3.1.2
 	GO111MODULE=on go get -u github.com/golang/protobuf/protoc-gen-go
 
-EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc protoc-gen-go
+EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: check-tools
@@ -174,10 +174,15 @@ $(PROJECT_DIR)/bin/operator-sdk:
 	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
+$(PROJECT_DIR)/bin/protoc:
+	$(call header,"Installing protoc")
+	mkdir -p $(PROJECT_DIR)/bin/
+	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
+	chmod +x $(PROJECT_DIR)/bin/protoc
+
 $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
 	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
-
 
 # ##########################################################################
 ##@ Docker
