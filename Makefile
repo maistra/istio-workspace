@@ -168,10 +168,10 @@ endif
 OPERATOR_ARCH:=$(shell uname -m)
 
 $(PROJECT_DIR)/bin/operator-sdk:
-	$(call header,"Installing operator-sdk cli tool")
+	$(call header,"Installing operator-sdk cli")
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
-	wget -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
+	wget -q --show-progress -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 $(PROJECT_DIR)/bin/protoc:
