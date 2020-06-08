@@ -20,7 +20,7 @@ func NewCmd() *cobra.Command {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, _, err := internal.Sessions(cmd)
+			_, _, _, err := internal.Sessions(cmd)
 			return err
 		},
 	}
