@@ -29,7 +29,7 @@ var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "develop")
 
 const urlHint = `Knowing your application url you can now access your new version by using
 
-$ curl -H"%s:%s" YOUR_APP_URL.\n
+$ curl -H"%s:%s" YOUR_APP_URL.
 
 If you can't see any changes make sure that this header is respected by your app and propagated down the call chain.`
 
