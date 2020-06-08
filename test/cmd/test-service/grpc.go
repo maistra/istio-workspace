@@ -1,12 +1,12 @@
 package main
 
 import (
-	context "context"
+	"context"
 	"net/url"
 	"time"
 
 	"github.com/go-logr/logr"
-	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
