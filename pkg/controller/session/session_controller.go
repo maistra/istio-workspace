@@ -38,20 +38,20 @@ func DefaultManipulators() Manipulators {
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
-			istio.VirtualServiceGatewayLocator, // finds all connected virtual services
+			istio.VirtualServiceGatewayLocator,
 		},
 		Mutators: []model.Mutator{
 			k8s.DeploymentMutator,
 			openshift.DeploymentConfigMutator,
 			istio.DestinationRuleMutator,
-			istio.GatewayMutator, //add host to gw
+			istio.GatewayMutator,
 			istio.VirtualServiceMutator,
 		},
 		Revertors: []model.Revertor{
 			k8s.DeploymentRevertor,
 			openshift.DeploymentConfigRevertor,
 			istio.DestinationRuleRevertor,
-			istio.GatewayRevertor, //remove host from gw
+			istio.GatewayRevertor,
 			istio.VirtualServiceRevertor,
 		},
 	}

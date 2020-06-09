@@ -56,16 +56,6 @@ var _ = Describe("Complete session manipulation", func() {
 			return s
 		}
 	}(&c)
-	/*
-		GetVirtualService := func(c *client.Client) func(namespace, name string) istionetwork.VirtualService {
-			return func(namespace, name string) istionetwork.VirtualService {
-				s := istionetwork.VirtualService{}
-				err = (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
-				Expect(err).ToNot(HaveOccurred())
-				return s
-			}
-		}(&c)
-	*/
 	GetVirtualServices := func(c *client.Client) func(namespace string) istionetwork.VirtualServiceList {
 		return func(namespace string) istionetwork.VirtualServiceList {
 			s := istionetwork.VirtualServiceList{}
