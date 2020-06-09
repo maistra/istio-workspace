@@ -83,26 +83,21 @@ func Name(name string) Predicate {
 	}
 }
 
+// AnyKind is a shortcut Predicate for Any and Kind from strings
+func AnyKind(kinds ...string) Predicate {
+	pred := []Predicate{}
+	for _, kind := range kinds {
+		pred = append(pred, Kind(kind))
+	}
+	return Any(pred...)
+}
+
 // GetTargets use a Predicate to filter the LocatedResourceStatus
 func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 	targets := []LocatedResourceStatus{}
 	for _, target := range r.Targets {
 		if predicate(target.ResourceStatus) {
 			targets = append(targets, target)
-		}
-	}
-	return targets
-}
-
-// GetTargetsByKind returns the targets of the given kind
-func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
-	targets := []LocatedResourceStatus{}
-	for _, target := range r.Targets {
-		for _, kind := range kinds {
-			if target.Kind == kind {
-				targets = append(targets, target)
-				break
-			}
 		}
 	}
 	return targets
@@ -118,7 +113,7 @@ func (h *HostName) Match(name string) bool {
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under
 func (r *Ref) GetTargetHostNames() []HostName {
 	hosts := []HostName{}
-	for _, service := range r.GetTargetsByKind("Service") {
+	for _, service := range r.GetTargets(Kind("Service")) {
 		hosts = append(hosts, HostName{Name: service.Name, Namespace: r.Namespace})
 	}
 
@@ -127,7 +122,7 @@ func (r *Ref) GetTargetHostNames() []HostName {
 
 // GetVersion returns the existing version name
 func (r *Ref) GetVersion() string {
-	target := r.GetTargetsByKind("Deployment", "DeploymentConfig")
+	target := r.GetTargets(AnyKind("Deployment", "DeploymentConfig"))
 	if len(target) == 1 {
 		if val, ok := target[0].Labels["version"]; ok {
 			return val
@@ -183,17 +178,6 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 	refs := []ResourceStatus{}
 	for _, status := range r.ResourceStatuses {
 		if predicate(status) {
-			refs = append(refs, status)
-		}
-	}
-	return refs
-}
-
-// GetResourceStatus returns a array of involved Resources based on a k8s Kind
-func (r *Ref) GetResourceStatus(kind string) []ResourceStatus {
-	refs := []ResourceStatus{}
-	for _, status := range r.ResourceStatuses {
-		if status.Kind == kind {
 			refs = append(refs, status)
 		}
 	}

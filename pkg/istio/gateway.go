@@ -22,10 +22,10 @@ var _ model.Revertor = GatewayRevertor
 
 // GatewayMutator attempts to expose a external host on the gateway
 func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
-	if len(ref.GetResourceStatus(GatewayKind)) > 0 {
+	if len(ref.GetResources(model.Kind(GatewayKind))) > 0 {
 		return nil
 	}
-	for _, gwName := range ref.GetTargetsByKind(GatewayKind) {
+	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: gw.Name, Action: model.ActionFailed})
 		if err != nil {
@@ -51,7 +51,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:
 
 // GatewayRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
 func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
-	resources := ref.GetResourceStatus(GatewayKind)
+	resources := ref.GetResources(model.Kind(GatewayKind))
 
 	for _, resource := range resources {
 		gw, err := getGateway(ctx, ctx.Namespace, resource.Name)

@@ -29,7 +29,7 @@ var _ model.Revertor = VirtualServiceRevertor
 
 // VirtualServiceMutator attempts to create a virtual service for forked service
 func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResourceStatus(VirtualServiceKind)) > 0 {
+	if len(ref.GetResources(model.Kind(VirtualServiceKind))) > 0 {
 		return nil
 	}
 
@@ -78,7 +78,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 // VirtualServiceRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
 func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	resources := ref.GetResourceStatus(VirtualServiceKind)
+	resources := ref.GetResources(model.Kind(VirtualServiceKind))
 
 	for _, resource := range resources {
 		vs, err := getVirtualService(ctx, ctx.Namespace, resource.Name)

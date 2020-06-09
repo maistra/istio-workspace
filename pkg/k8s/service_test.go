@@ -98,7 +98,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 		It("should find services for Deployment", func() {
 			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "x"})
 			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargetsByKind(k8s.ServiceKind)
+			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
 			Expect(len(services)).To(Equal(1))
 
 			Expect(services[0].Name).To(Equal("test-1"))
@@ -106,7 +106,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 		It("should find services for DeploymentConfig", func() {
 			ref := CreateTestRef(openshift.DeploymentConfigKind, map[string]string{"app": "x"})
 			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargetsByKind(k8s.ServiceKind)
+			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
 			Expect(len(services)).To(Equal(1))
 
 			Expect(services[0].Name).To(Equal("test-1"))
@@ -123,7 +123,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 		It("should add all matching services", func() {
 			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "z"})
 			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargetsByKind(k8s.ServiceKind)
+			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
 			Expect(len(services)).To(Equal(2))
 
 			Expect(services[0].Name).To(Equal("test-2"))

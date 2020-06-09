@@ -24,7 +24,7 @@ var _ model.Revertor = DestinationRuleRevertor
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service
 func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResourceStatus(DestinationRuleKind)) > 0 {
+	if len(ref.GetResources(model.Kind(DestinationRuleKind))) > 0 {
 		return nil
 	}
 
@@ -50,7 +50,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
 func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	resources := ref.GetResourceStatus(DestinationRuleKind)
+	resources := ref.GetResources(model.Kind(DestinationRuleKind))
 
 	for _, resource := range resources {
 		dr, err := getDestinationRule(ctx, ctx.Namespace, resource.Name)

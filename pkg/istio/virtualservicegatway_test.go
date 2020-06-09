@@ -116,7 +116,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 			found := VirtualServiceGatewayLocator(ctx, &ref)
 			Expect(found).To(BeTrue())
 
-			gws := ref.GetTargetsByKind(GatewayKind)
+			gws := ref.GetTargets(model.Kind(GatewayKind))
 			Expect(gws).To(HaveLen(1))
 			Expect(gws[0].Labels[LabelIkeHosts]).To(Equal("redhat-kubecon.io,redhat-devcon.io"))
 		})

@@ -18,7 +18,7 @@ var _ model.Locator = ServiceLocator
 
 // ServiceLocator attempts to locate the Services for the target Deployment/DeploymentConfig
 func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	deployments := ref.GetTargetsByKind("Deployment", "DeploymentConfig")
+	deployments := ref.GetTargets(model.AnyKind("Deployment", "DeploymentConfig"))
 
 	services, err := getServices(ctx, ctx.Namespace)
 	if err != nil {
