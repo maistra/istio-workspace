@@ -121,7 +121,7 @@ type DecodeFunc func(data []byte, defaults *schema.GroupVersionKind, into runtim
 // and constructs decode function to be applied on the source YAML
 func Decoder() (DecodeFunc, error) {
 	s := runtime.NewScheme()
-	if err := openshiftApi.AddToScheme(s); err != nil {
+	if err := openshiftApi.Install(s); err != nil {
 		return nil, err
 	}
 	if err := scheme.AddToScheme(s); err != nil {
