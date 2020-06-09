@@ -20,6 +20,8 @@ const (
 
 	// LabelIkeMutated is a bool label to indicated we own the resource
 	LabelIkeMutated = "ike.mutated"
+	// LabelIkeMutatedValue is the bool value of the LabelIkeMutated label
+	LabelIkeMutatedValue = "true"
 )
 
 var _ model.Mutator = VirtualServiceMutator
@@ -41,7 +43,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			_, connected := connectedToGateway(vs)
-			if (!mutationRequired(vs, hostName, targetVersion) && !connected) || vs.Labels[LabelIkeMutated] == "true" {
+			if (!mutationRequired(vs, hostName, targetVersion) && !connected) || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 				continue
 			}
 			ctx.Log.Info("Found VirtualService", "name", hostName)
@@ -59,7 +61,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 				}
 
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionCreated})
-
 			} else {
 				err = ctx.Client.Update(ctx, &mutatedVs)
 				if err != nil {
@@ -191,9 +192,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
-
-	if gateways, connected := connectedToGateway(*target); connected { // Not connected to a Gateway
-
+	if gateways, connected := connectedToGateway(*target); connected {
 		hosts := []string{}
 		for _, gateway := range gateways {
 			for _, gwTarget := range ref.GetTargets(model.All(model.Kind(GatewayKind), model.Name(gateway))) {
@@ -209,7 +208,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 		if target.Labels == nil {
 			target.Labels = map[string]string{}
 		}
-		target.Labels[LabelIkeMutated] = "true"
+		target.Labels[LabelIkeMutated] = LabelIkeMutatedValue
 
 		targetsHTTP := findRoutes(clonedSource, hostName, version)
 		for _, tHTTP := range targetsHTTP {
@@ -228,24 +227,24 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 			target.Spec.Http[i] = &targetHTTP
 		}
 		return *target, true, nil
-	} else {
-		targetsHTTP := findRoutes(clonedSource, hostName, version)
-		if len(targetsHTTP) == 0 {
-			return istionetwork.VirtualService{}, false, fmt.Errorf("route not found")
-		}
-		for _, tHTTP := range targetsHTTP {
-			targetHTTP := *tHTTP
-			targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
-			targetHTTP = updateSubset(targetHTTP, newVersion)
-			targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
-			targetHTTP = removeWeight(targetHTTP)
-			targetHTTP.Mirror = nil
-			targetHTTP.Redirect = nil
-
-			target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
-		}
-		return *target, false, nil
 	}
+	// Not connected to a Gateway
+	targetsHTTP := findRoutes(clonedSource, hostName, version)
+	if len(targetsHTTP) == 0 {
+		return istionetwork.VirtualService{}, false, fmt.Errorf("route not found")
+	}
+	for _, tHTTP := range targetsHTTP {
+		targetHTTP := *tHTTP
+		targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
+		targetHTTP = updateSubset(targetHTTP, newVersion)
+		targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
+		targetHTTP = removeWeight(targetHTTP)
+		targetHTTP.Mirror = nil
+		targetHTTP.Redirect = nil
+
+		target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
+	}
+	return *target, false, nil
 }
 
 func revertVirtualService(subsetName string, vs istionetwork.VirtualService) istionetwork.VirtualService {

@@ -2,6 +2,7 @@ package istio
 
 import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	. "github.com/onsi/ginkgo"
@@ -13,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
@@ -104,7 +104,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				Namespace: "bookinfo",
 				Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
 				Client:    c,
-				Log:       logf.Log.WithName("controller_session"),
+				Log:       log.CreateOperatorAwareLogger("session").WithValues("type", "controller"),
 			}
 		})
 

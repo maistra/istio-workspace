@@ -80,7 +80,7 @@ func GetGatewayHost(namespace string) string {
 
 const charset = "abcdefghijklmnopqrstuvwxyz"
 
-var seededRand *rand.Rand = rand.New(
+var seededRand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
 
 // StringWithCharset returns a random string of length based on charset

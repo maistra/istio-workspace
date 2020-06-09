@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"istio.io/api/networking/v1alpha3"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+
 	k8yaml "sigs.k8s.io/yaml"
 )
 
@@ -38,7 +38,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			})
 
 			Context("existing rule", func() {
-				GetMutatedRoute := func(vs istionetwork.VirtualService, host model.HostName, subset string) *v1alpha3.HTTPRoute {
+				GetMutatedRoute := func(vs istionetwork.VirtualService, host model.HostName, subset string) *istionetworkv1alpha3.HTTPRoute {
 					for _, h := range vs.Spec.Http {
 						for _, r := range h.Route {
 							if host.Match(r.Destination.Host) && r.Destination.Subset == subset {
@@ -302,7 +302,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				Namespace: "bookinfo",
 				Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
 				Client:    c,
-				Log:       logf.Log.WithName("controller_session"),
+				Log:       log.CreateOperatorAwareLogger("session").WithValues("type", "controller"),
 			}
 		})
 
@@ -370,17 +370,17 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 		BeforeEach(func() {
 			virtualService = istionetwork.VirtualService{
-				Spec: v1alpha3.VirtualService{
-					Http: []*v1alpha3.HTTPRoute{
+				Spec: istionetworkv1alpha3.VirtualService{
+					Http: []*istionetworkv1alpha3.HTTPRoute{
 						{
-							Route: []*v1alpha3.HTTPRouteDestination{
+							Route: []*istionetworkv1alpha3.HTTPRouteDestination{
 								{
-									Destination: &v1alpha3.Destination{
+									Destination: &istionetworkv1alpha3.Destination{
 										Host: "x",
 									},
 								},
 								{
-									Destination: &v1alpha3.Destination{
+									Destination: &istionetworkv1alpha3.Destination{
 										Host:   "y",
 										Subset: "v1",
 									},
@@ -388,9 +388,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 							},
 						},
 						{
-							Route: []*v1alpha3.HTTPRouteDestination{
+							Route: []*istionetworkv1alpha3.HTTPRouteDestination{
 								{
-									Destination: &v1alpha3.Destination{
+									Destination: &istionetworkv1alpha3.Destination{
 										Host:   "z",
 										Subset: "v2",
 									},
