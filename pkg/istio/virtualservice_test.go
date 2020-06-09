@@ -51,6 +51,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				var (
 					mutatedVirtualService istionetwork.VirtualService
 					ctx                   model.SessionContext
+					ref                   model.Ref
 					targetV1              = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
 					targetV1Host          = model.HostName{Name: "details"}
 					targetV1Subset        = "v1-vs-test"
@@ -75,34 +76,38 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 							Value: "x",
 						},
 					}
+					ref = model.Ref{
+						Name: "customer-v1",
+					}
+
 				})
 
 				It("route added", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
 				})
 
 				It("route added before target route", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(mutatedVirtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("has match", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Match).ToNot(BeNil())
 				})
 
 				It("has subset", func() { // covered by GetMutatedRoute
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("create match when no match found", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV4Host, targetV4.Labels["version"], targetV4Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV4Host, targetV4.Labels["version"], targetV4Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV4Host, targetV4Subset)
@@ -115,7 +120,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with no headers", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset)
@@ -128,7 +133,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with found headers", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV5Host, targetV5.Labels["version"], targetV5Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV5Host, targetV5.Labels["version"], targetV5Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					mutated := GetMutatedRoute(mutatedVirtualService, targetV5Host, targetV5Subset)
@@ -141,43 +146,43 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("remove weighted destination", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route[0].Weight).To(Equal(int32(0)))
 				})
 				It("remove other destinations", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Route).To(HaveLen(1))
 				})
 				It("remove mirror", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Mirror).To(BeNil())
 				})
 				It("remove redirect", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV1Host, targetV1.Labels["version"], targetV1Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
 				})
 				It("include destinations with no subset", func() {
-					mutatedVirtualService, _, err = mutateVirtualService(ctx, targetV6Host, targetV6.Labels["version"], targetV6Subset, virtualService)
+					mutatedVirtualService, _, err = mutateVirtualService(ctx, &ref, targetV6Host, targetV6.Labels["version"], targetV6Subset, virtualService)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(GetMutatedRoute(mutatedVirtualService, targetV6Host, targetV6Subset).Redirect).To(BeNil())
 				})
 
 				It("route missing", func() {
-					_, _, err = mutateVirtualService(ctx, model.HostName{Name: "miss-v5"}, "v5", "v5-vs-test", virtualService)
+					_, _, err = mutateVirtualService(ctx, &ref, model.HostName{Name: "miss-v5"}, "v5", "v5-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
 				It("route missing version", func() {
-					_, _, err = mutateVirtualService(ctx, model.HostName{Name: "details-v10"}, "v10", "v10-vs-test", virtualService)
+					_, _, err = mutateVirtualService(ctx, &ref, model.HostName{Name: "details-v10"}, "v10", "v10-vs-test", virtualService)
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring("route not found"))
 				})
@@ -277,7 +282,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Servers: []*istionetworkv1alpha3.Server{
 							{
 								Port:  &istionetworkv1alpha3.Port{Name: "http", Protocol: "HTTP", Number: 80},
-								Hosts: []string{"redhat-kubecon.io", "*.redhat-kubecon.io"},
+								Hosts: []string{"redhat-kubecon.io"},
 							},
 						},
 					},
@@ -303,8 +308,11 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 		It("should attach to a host", func() {
 			ref := model.Ref{
-				Name:    "customer-v1",
-				Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "customer", nil)},
+				Name: "customer-v1",
+				Targets: []model.LocatedResourceStatus{
+					model.NewLocatedResource("Service", "customer", nil),
+					model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
+				},
 			}
 
 			err := VirtualServiceMutator(ctx, &ref)
@@ -318,8 +326,11 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 		It("should add request headers", func() {
 			ref := model.Ref{
-				Name:    "customer-v1",
-				Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "customer", nil)},
+				Name: "customer-v1",
+				Targets: []model.LocatedResourceStatus{
+					model.NewLocatedResource("Service", "customer", nil),
+					model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
+				},
 			}
 
 			err := VirtualServiceMutator(ctx, &ref)
@@ -333,8 +344,11 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 		It("should duplicate non effected vs", func() {
 			ref := model.Ref{
-				Name:    "customer-v1",
-				Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "customer", nil)},
+				Name: "customer-v1",
+				Targets: []model.LocatedResourceStatus{
+					model.NewLocatedResource("Service", "customer", nil),
+					model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
+				},
 			}
 
 			err := VirtualServiceMutator(ctx, &ref)

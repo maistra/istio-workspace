@@ -1,6 +1,8 @@
 package istio
 
 import (
+	"fmt"
+
 	"github.com/maistra/istio-workspace/pkg/model"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -56,11 +58,34 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
-			It("add gateway", func() {
+			It("single add", func() {
 				gw, err := mutateGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
+			})
+			It("multiple add", func() {
+				gw, err := mutateGateway(ctx, gateway)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
+
+				ctx2 := model.SessionContext{
+					Name: "gw-test2",
+					Route: model.Route{
+						Type:  "header",
+						Name:  "test",
+						Value: "x",
+					},
+				}
+				gw, err = mutateGateway(ctx2, gw)
+				Expect(err).ToNot(HaveOccurred())
+
+				fmt.Println(gw.Labels[LabelIkeHosts])
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com", "gw-test2.domain.com"))
 			})
 		})
 
@@ -69,8 +94,9 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			JustBeforeEach(func() {
 				gateway = istionetwork.Gateway{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "gateway",
-						Namespace: "test",
+						Name:        "gateway",
+						Namespace:   "test",
+						Annotations: map[string]string{LabelIkeHosts: "gw-test.domain.com,gw-test2.domain.com"},
 					},
 					Spec: v1alpha3.Gateway{
 						Selector: map[string]string{
@@ -85,7 +111,8 @@ var _ = Describe("Operations for istio gateway kind", func() {
 								},
 								Hosts: []string{
 									"domain.com",
-									"test.domain.com",
+									"gw-test.domain.com",
+									"gw-test2.domain.com",
 								},
 							},
 						},
@@ -93,11 +120,34 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
-			It("remove gateway", func() {
+			It("single remove", func() {
 				gw, err := revertGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+			})
+
+			It("multiple remove", func() {
+				gw, err := revertGateway(ctx, gateway)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test2.domain.com"))
+
+				ctx2 := model.SessionContext{
+					Name: "gw-test2",
+					Route: model.Route{
+						Type:  "header",
+						Name:  "test",
+						Value: "x",
+					},
+				}
+				gw, err = revertGateway(ctx2, gw)
+				Expect(err).ToNot(HaveOccurred())
+
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(1))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com"))
+				Expect(gw.Labels).ToNot(HaveKey(LabelIkeHosts))
 			})
 		})
 	})

@@ -42,6 +42,58 @@ type HostName struct {
 	Namespace string
 }
 
+// Predicate base function to filter Resources
+type Predicate func(ResourceStatus) bool
+
+// Any Predicate returns true if any of the predicates match
+func Any(predicates ...Predicate) Predicate {
+	return func(resource ResourceStatus) bool {
+		for _, predicate := range predicates {
+			if predicate(resource) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// All Predicate returns true if all of the predicates match
+func All(predicates ...Predicate) Predicate {
+	return func(resource ResourceStatus) bool {
+		for _, predicate := range predicates {
+			if !predicate(resource) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+// Kind Predicate returns true if kind matches resource
+func Kind(kind string) Predicate {
+	return func(resource ResourceStatus) bool {
+		return resource.Kind == kind
+	}
+}
+
+// Name Predicate returns true if name matches resource
+func Name(name string) Predicate {
+	return func(resource ResourceStatus) bool {
+		return resource.Name == name
+	}
+}
+
+// GetTargets use a Predicate to filter the LocatedResourceStatus
+func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
+	targets := []LocatedResourceStatus{}
+	for _, target := range r.Targets {
+		if predicate(target.ResourceStatus) {
+			targets = append(targets, target)
+		}
+	}
+	return targets
+}
+
 // GetTargetsByKind returns the targets of the given kind
 func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
 	targets := []LocatedResourceStatus{}
@@ -124,6 +176,17 @@ func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 			r.ResourceStatuses = append(r.ResourceStatuses[:i], r.ResourceStatuses[i+1:]...)
 		}
 	}
+}
+
+// GetResources use a Predicate to filter the ResourceStatus
+func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
+	refs := []ResourceStatus{}
+	for _, status := range r.ResourceStatuses {
+		if predicate(status) {
+			refs = append(refs, status)
+		}
+	}
+	return refs
 }
 
 // GetResourceStatus returns a array of involved Resources based on a k8s Kind
