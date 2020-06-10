@@ -30,13 +30,17 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			Args:      map[string]string{"version": "0.103"},
 		}
 	}
+
 	JustBeforeEach(func() {
+		schema := runtime.NewScheme()
+		err := corev1.AddToScheme(schema)
+		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "k8s-service"),
-			Client:    fake.NewFakeClient(objects...),
+			Client:    fake.NewFakeClientWithScheme(schema, objects...),
 		}
 	})
 
