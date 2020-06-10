@@ -116,92 +116,10 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 }
 
 func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) { //nolint:lll,gocyclo //reason for readability
-	findRoutes := func(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
-		routes := []*v1alpha3.HTTPRoute{}
-		for _, h := range vs.Spec.Http {
-			for _, r := range h.Route {
-				if r.Destination != nil && host.Match(r.Destination.Host) {
-					if r.Destination.Subset == "" || r.Destination.Subset == subset {
-						routes = append(routes, h)
-					}
-				}
-			}
-		}
-		return routes
-	}
-
-	removeOtherRoutes := func(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
-		for i, r := range http.Route {
-			if !((r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == subset) ||
-				(r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == "")) {
-				http.Route = append(http.Route[:i], http.Route[i+1:]...)
-			}
-		}
-		return http
-	}
-
-	updateSubset := func(http v1alpha3.HTTPRoute, subset string) v1alpha3.HTTPRoute {
-		for _, r := range http.Route {
-			r.Destination.Subset = subset
-		}
-		return http
-	}
-
-	addHeaderMatch := func(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
-		addHeader := func(m *v1alpha3.HTTPMatchRequest, route model.Route) {
-			if route.Type == "header" {
-				if m.Headers == nil {
-					m.Headers = map[string]*v1alpha3.StringMatch{}
-				}
-				m.Headers[route.Name] = &v1alpha3.StringMatch{MatchType: &v1alpha3.StringMatch_Exact{Exact: route.Value}}
-			}
-		}
-		if len(http.Match) > 0 {
-			for _, m := range http.Match {
-				addHeader(m, route)
-			}
-		} else {
-			m := &v1alpha3.HTTPMatchRequest{}
-			addHeader(m, route)
-			http.Match = append(http.Match, m)
-		}
-		return http
-	}
-
-	addHeaderRequest := func(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
-		if http.Headers == nil {
-			http.Headers = &v1alpha3.Headers{
-				Request: &v1alpha3.Headers_HeaderOperations{
-					Add: map[string]string{},
-				},
-			}
-		}
-		if http.Headers.Request == nil {
-			http.Headers.Request = &v1alpha3.Headers_HeaderOperations{
-				Add: map[string]string{},
-			}
-		}
-		http.Headers.Request.Add[route.Name] = route.Value
-		return http
-	}
-	removeWeight := func(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
-		for _, r := range http.Route {
-			r.Weight = 0
-		}
-		return http
-	}
-
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	if gateways, connected := connectedToGateway(*target); connected {
-		hosts := []string{}
-		for _, gateway := range gateways {
-			for _, gwTarget := range ref.GetTargets(model.All(model.Kind(GatewayKind), model.Name(gateway))) {
-				for _, host := range strings.Split(gwTarget.Labels[LabelIkeHosts], ",") {
-					hosts = append(hosts, ctx.Name+"."+host)
-				}
-			}
-		}
+		hosts := getHostsFromRef(ctx, gateways, ref)
 
 		target.SetName(target.Name + "-" + ctx.Name)
 		target.Spec.Hosts = hosts
@@ -289,4 +207,92 @@ func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName,
 
 func connectedToGateway(vs istionetwork.VirtualService) ([]string, bool) { //nolint[:hugeParam]
 	return vs.Spec.Gateways, len(vs.Spec.Gateways) > 0
+}
+
+func findRoutes(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
+	routes := []*v1alpha3.HTTPRoute{}
+	for _, h := range vs.Spec.Http {
+		for _, r := range h.Route {
+			if r.Destination != nil && host.Match(r.Destination.Host) {
+				if r.Destination.Subset == "" || r.Destination.Subset == subset {
+					routes = append(routes, h)
+				}
+			}
+		}
+	}
+	return routes
+}
+
+func removeOtherRoutes(http v1alpha3.HTTPRoute, host model.HostName, subset string) v1alpha3.HTTPRoute {
+	for i, r := range http.Route {
+		if !((r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == subset) ||
+			(r.Destination != nil && host.Match(r.Destination.Host) && r.Destination.Subset == "")) {
+			http.Route = append(http.Route[:i], http.Route[i+1:]...)
+		}
+	}
+	return http
+}
+
+func updateSubset(http v1alpha3.HTTPRoute, subset string) v1alpha3.HTTPRoute {
+	for _, r := range http.Route {
+		r.Destination.Subset = subset
+	}
+	return http
+}
+
+func addHeaderMatch(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
+	addHeader := func(m *v1alpha3.HTTPMatchRequest, route model.Route) {
+		if route.Type == "header" {
+			if m.Headers == nil {
+				m.Headers = map[string]*v1alpha3.StringMatch{}
+			}
+			m.Headers[route.Name] = &v1alpha3.StringMatch{MatchType: &v1alpha3.StringMatch_Exact{Exact: route.Value}}
+		}
+	}
+	if len(http.Match) > 0 {
+		for _, m := range http.Match {
+			addHeader(m, route)
+		}
+	} else {
+		m := &v1alpha3.HTTPMatchRequest{}
+		addHeader(m, route)
+		http.Match = append(http.Match, m)
+	}
+	return http
+}
+
+func addHeaderRequest(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRoute {
+	if http.Headers == nil {
+		http.Headers = &v1alpha3.Headers{
+			Request: &v1alpha3.Headers_HeaderOperations{
+				Add: map[string]string{},
+			},
+		}
+	}
+	if http.Headers.Request == nil {
+		http.Headers.Request = &v1alpha3.Headers_HeaderOperations{
+			Add: map[string]string{},
+		}
+	}
+	http.Headers.Request.Add[route.Name] = route.Value
+	return http
+}
+
+func removeWeight(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
+	for _, r := range http.Route {
+		r.Weight = 0
+	}
+	return http
+}
+
+func getHostsFromRef(ctx model.SessionContext, gateways []string, ref *model.Ref) []string {
+	hosts := []string{}
+	for _, gateway := range gateways {
+		for _, gwTarget := range ref.GetTargets(model.All(model.Kind(GatewayKind), model.Name(gateway))) {
+			for _, host := range strings.Split(gwTarget.Labels[LabelIkeHosts], ",") {
+				hosts = append(hosts, ctx.Name+"."+host)
+			}
+		}
+	}
+	return hosts
 }
