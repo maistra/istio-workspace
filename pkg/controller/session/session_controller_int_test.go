@@ -120,7 +120,7 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 		})
 
-		It("with update", func() {
+		It("with ref update", func() {
 			req := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      "test-session1",
@@ -146,7 +146,7 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(sess.Status.Refs[0].Targets).To(HaveLen(3))
 		})
 
-		It("with multiple", func() {
+		It("with multiple sessions", func() {
 			req1 := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      "test-session1",
@@ -172,26 +172,85 @@ var _ = Describe("Complete session manipulation", func() {
 
 			// Verify
 			gw := GetGateway("test", "test-gateway")
-			fmt.Println(gw.Spec.Servers[0].Hosts)
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
 
 			vss := GetVirtualServices("test")
 			Expect(vss.Items).To(HaveLen(5))
 
 			// Delete first session
-			sess := GetSession("test", "test-session1")
+			session := GetSession("test", "test-session1")
 			now := metav1.Now()
-			sess.DeletionTimestamp = &now
+			session.DeletionTimestamp = &now
+			c.Update(context.Background(), &session)
 
-			c.Update(context.Background(), &sess)
 			res1, err = controller.Reconcile(req1)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(res2.Requeue).To(BeFalse())
+			Expect(res1.Requeue).To(BeFalse())
 
 			// Verify
 			vss = GetVirtualServices("test")
 			Expect(vss.Items).To(HaveLen(4))
 
+		})
+
+		FIt("with multiple ref", func() {
+			req1 := reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      "test-session1",
+					Namespace: "test",
+				},
+			}
+			// Create first ref
+			res1, err := controller.Reconcile(req1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res1.Requeue).To(BeFalse())
+
+			session := GetSession("test", "test-session1")
+
+			session.Spec.Refs = append(session.Spec.Refs,
+				v1alpha1.Ref{
+					Name:     "reviews-v1",
+					Strategy: "prepared-image",
+					Args: map[string]string{
+						"image": "x:x:x",
+					},
+				},
+			)
+			c.Update(context.Background(), &session)
+
+			// Create second ref
+			res2, err := controller.Reconcile(req1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res2.Requeue).To(BeFalse())
+
+			// Verify
+			gw := GetGateway("test", "test-gateway")
+			fmt.Println(gw.Spec.Servers[0].Hosts)
+			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+
+			vss := GetVirtualServices("test")
+			Expect(vss.Items).To(HaveLen(4))
+
+			// Delete first ref
+			session = GetSession("test", "test-session1")
+			session.Spec.Refs = []v1alpha1.Ref{session.Spec.Refs[1]}
+			c.Update(context.Background(), &session)
+
+			res1, err = controller.Reconcile(req1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res2.Requeue).To(BeFalse())
+
+			// Verify - no vs removed (only gateway connected duplicated)
+			vss = GetVirtualServices("test")
+			for _, vs := range vss.Items {
+				fmt.Println(vs.Name)
+			}
+			Expect(vss.Items).To(HaveLen(4))
+
+			// Verify - same Gateways Hosts still connected, ref01 still need them
+			gw = GetGateway("test", "test-gateway")
+			fmt.Println(gw.Spec.Servers[0].Hosts)
+			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 		})
 
 	})
