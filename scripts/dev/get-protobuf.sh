@@ -22,7 +22,7 @@ get_arch() {
 url=https://github.com/google/protobuf/releases/download/v${protobuf_version}/protoc-${protobuf_version}-$(get_arch)
 
 tmp_file=$(mktemp)
-pwd=$(PWD)
+pwd=$(pwd)
 wget -c -q --show-progress "${url}" -O "${tmp_file}"
 unzip "${tmp_file}" 'bin/*' -d "${pwd}"
 rm "${tmp_file}"
