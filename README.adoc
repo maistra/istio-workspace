@@ -3,6 +3,11 @@ image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", 
 
 == Istio Workspace
 
+=== See it in action!
+
+[.text-center]
+video::XTNVadUzMCc[youtube,width=852,height=480]
+
 === Documentation
 
 More details can be found on our https://istio-workspace-docs.netlify.com/[documentation page]. 

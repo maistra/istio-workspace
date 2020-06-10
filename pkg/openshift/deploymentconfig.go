@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	apis.AddToSchemes = append(apis.AddToSchemes, appsv1.AddToScheme)
+	apis.AddToSchemes = append(apis.AddToSchemes, appsv1.Install)
 }
 
 const (

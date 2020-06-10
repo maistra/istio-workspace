@@ -304,7 +304,7 @@ var _ = Describe("Basic session manipulation", func() {
 										}},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 									Targets: []*v1alpha1.LabeledRefResource{
-										&v1alpha1.LabeledRefResource{
+										{
 											RefResource: v1alpha1.RefResource{
 												Kind:   &kind,
 												Name:   &locatedTargetName,
