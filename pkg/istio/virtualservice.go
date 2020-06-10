@@ -20,6 +20,7 @@ const (
 
 	// LabelIkeMutated is a bool label to indicated we own the resource
 	LabelIkeMutated = "ike.mutated"
+
 	// LabelIkeMutatedValue is the bool value of the LabelIkeMutated label
 	LabelIkeMutatedValue = "true"
 )
