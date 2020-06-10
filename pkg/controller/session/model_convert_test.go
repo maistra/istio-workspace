@@ -34,11 +34,11 @@ var _ = Describe("Basic model conversion", func() {
 				Strategy:  "prepared-image",
 				Args:      map[string]string{"image": "x"},
 				Targets: []model.LocatedResourceStatus{
-					model.LocatedResourceStatus{
+					{
 						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
 						Labels:         map[string]string{},
 					},
-					model.LocatedResourceStatus{
+					{
 						ResourceStatus: model.ResourceStatus{Kind: "service", Name: "serv-n", Action: model.ActionLocated},
 						Labels:         map[string]string{},
 					}},
@@ -164,11 +164,11 @@ var _ = Describe("Basic model conversion", func() {
 								Args:     map[string]string{"image": "x"},
 							},
 							Targets: []*v1alpha1.LabeledRefResource{
-								&v1alpha1.LabeledRefResource{
+								{
 									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
 									Labels:      map[string]string{},
 								},
-								&v1alpha1.LabeledRefResource{
+								{
 									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &servname, Action: &aLocated},
 									Labels:      map[string]string{},
 								},

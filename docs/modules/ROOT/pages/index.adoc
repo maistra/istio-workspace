@@ -6,3 +6,7 @@ It's been always hard to test new functionality before it reaches production. Ev
 
 This project works with https://istio.io/[Istio] and https://k8s.io[Kubernetes] or https://openshift.com[Openshift] to give you confidence that your changes won't blow up production cluster and your users won’t even notice a glitch.
 
+== See it in action!
+
+[.text-center]
+video::XTNVadUzMCc[youtube,width=852,height=480] 

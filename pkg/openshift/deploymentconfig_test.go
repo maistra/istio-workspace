@@ -35,7 +35,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 	}
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()
-		err := appsv1.AddToScheme(schema)
+		err := appsv1.Install(schema)
 		Expect(err).ToNot(HaveOccurred())
 		ctx = model.SessionContext{
 			Context:   context.Background(),
