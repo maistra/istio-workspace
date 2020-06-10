@@ -66,7 +66,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
 			})
-			It("add multipe session", func() {
+			It("add multiple session", func() {
 				gw, err := mutateGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -88,7 +88,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com", "gw-test2.domain.com"))
 			})
-			It("add multipe refs", func() {
+			It("add multiple refs", func() {
 				gw, err := mutateGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
