@@ -59,14 +59,14 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
-			It("single add", func() {
+			It("add single session", func() {
 				gw, err := mutateGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
 			})
-			It("multiple add", func() {
+			It("add multipe session", func() {
 				gw, err := mutateGateway(ctx, gateway)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -87,6 +87,20 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				fmt.Println(gw.Labels[LabelIkeHosts])
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com", "gw-test2.domain.com"))
+			})
+			It("add multipe refs", func() {
+				gw, err := mutateGateway(ctx, gateway)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
+
+				gw, err = mutateGateway(ctx, gw)
+				Expect(err).ToNot(HaveOccurred())
+
+				fmt.Println(gw.Labels[LabelIkeHosts])
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "gw-test.domain.com"))
 			})
 		})
 

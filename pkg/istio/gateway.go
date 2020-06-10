@@ -92,8 +92,8 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istio
 	for _, server := range source.Spec.Servers {
 		hosts := server.Hosts
 		for _, host := range hosts {
-			if !existInList(existingHosts, host) {
-				newHost := ctx.Name + "." + host
+			newHost := ctx.Name + "." + host
+			if !existInList(existingHosts, host) && !existInList(existingHosts, newHost) {
 				existingHosts = append(existingHosts, newHost)
 				hosts = append(hosts, newHost)
 			}
