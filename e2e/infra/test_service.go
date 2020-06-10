@@ -83,7 +83,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz"
 var seededRand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
 
-// StringWithCharset returns a random string of length based on charset
+// stringWithCharset returns a random string of length based on charset
 func stringWithCharset(length int, charset string) string {
 	b := make([]byte, length)
 	for i := range b {
