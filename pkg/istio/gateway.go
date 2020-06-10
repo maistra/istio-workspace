@@ -27,8 +27,8 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:
 	}
 	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
-		ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: gw.Name, Action: model.ActionFailed})
 		if err != nil {
+			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: gw.Name, Action: model.ActionFailed})
 			return err
 		}
 
