@@ -6,7 +6,7 @@ image:https://circleci.com/gh/Maistra/istio-workspace.svg?style=svg["CircleCI", 
 === See it in action!
 
 [.text-center]
-video::XTNVadUzMCc[youtube,width=852,height=480]
+image:https://img.youtube.com/vi/XTNVadUzMCc/hqdefault.jpg[link="https://youtu.be/XTNVadUzMCc",window="_blank"]
 
 === Documentation
 
