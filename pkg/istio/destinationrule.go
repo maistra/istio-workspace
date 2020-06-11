@@ -24,10 +24,6 @@ var _ model.Revertor = DestinationRuleRevertor
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service
 func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResources(model.Kind(DestinationRuleKind))) > 0 {
-		return nil
-	}
-
 	for _, hostName := range ref.GetTargetHostNames() {
 		drs, err := getDestinationRulesByHost(ctx, ctx.Namespace, hostName)
 		if err != nil {
@@ -35,7 +31,11 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		for _, dr := range drs {
 			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
-			mutatedDr := mutateDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
+			newVersion := ref.GetNewVersion(ctx.Name)
+			if alreadyMutated(*dr, newVersion) {
+				continue
+			}
+			mutatedDr := mutateDestinationRule(*dr, newVersion)
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -74,6 +74,15 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	}
 
 	return nil
+}
+
+func alreadyMutated(dr istionetwork.DestinationRule, name string) bool {
+	for _, sub := range dr.Spec.Subsets {
+		if sub.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func mutateDestinationRule(dr istionetwork.DestinationRule, name string) istionetwork.DestinationRule {

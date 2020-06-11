@@ -11,6 +11,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/test/operator"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -34,36 +35,12 @@ var _ = Describe("Complete session manipulation", func() {
 	var (
 		namespace  = "test"
 		objects    []runtime.Object
-		err        error
 		controller reconcile.Reconciler
 		schema     *runtime.Scheme
 		c          client.Client
 		scenario   func(io.Writer)
+		get        *operator.Helpers
 	)
-	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
-		return func(namespace, name string) v1alpha1.Session {
-			s := v1alpha1.Session{}
-			err = (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
-			Expect(err).ToNot(HaveOccurred())
-			return s
-		}
-	}(&c)
-	GetGateway := func(c *client.Client) func(namespace, name string) istionetwork.Gateway {
-		return func(namespace, name string) istionetwork.Gateway {
-			s := istionetwork.Gateway{}
-			err = (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
-			Expect(err).ToNot(HaveOccurred())
-			return s
-		}
-	}(&c)
-	GetVirtualServices := func(c *client.Client) func(namespace string) istionetwork.VirtualServiceList {
-		return func(namespace string) istionetwork.VirtualServiceList {
-			s := istionetwork.VirtualServiceList{}
-			err = (*c).List(context.Background(), &s, client.InNamespace(namespace))
-			Expect(err).ToNot(HaveOccurred())
-			return s
-		}
-	}(&c)
 	JustBeforeEach(func() {
 		logf.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
 
@@ -77,6 +54,7 @@ var _ = Describe("Complete session manipulation", func() {
 		objects = append(objects, objs...)
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
+		get = operator.New(&c)
 		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
 	})
 
@@ -132,14 +110,14 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
-			target := GetSession("test", "test-session1")
+			target := get.Session("test", "test-session1")
 			target.Spec.Refs[0].Args["image"] = "y:y:y"
 
 			res, err = controller.Reconcile(req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
-			sess := GetSession("test", "test-session1")
+			sess := get.Session("test", "test-session1")
 			Expect(target.Spec.Refs[0].Args["image"]).To(Equal("y:y:y"))
 			Expect(sess.Status.Refs).To(HaveLen(1))
 			Expect(sess.Status.Refs[0].Resources).To(HaveLen(5))
@@ -171,14 +149,14 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(res2.Requeue).To(BeFalse())
 
 			// Verify
-			gw := GetGateway("test", "test-gateway")
+			gw := get.Gateway("test", "test-gateway")
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
 
-			vss := GetVirtualServices("test")
+			vss := get.VirtualServices("test")
 			Expect(vss.Items).To(HaveLen(5))
 
 			// Delete first session
-			session := GetSession("test", "test-session1")
+			session := get.Session("test", "test-session1")
 			now := metav1.Now()
 			session.DeletionTimestamp = &now
 			c.Update(context.Background(), &session)
@@ -188,7 +166,7 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(res1.Requeue).To(BeFalse())
 
 			// Verify
-			vss = GetVirtualServices("test")
+			vss = get.VirtualServices("test")
 			Expect(vss.Items).To(HaveLen(4))
 
 		})
@@ -205,7 +183,7 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res1.Requeue).To(BeFalse())
 
-			session := GetSession("test", "test-session1")
+			session := get.Session("test", "test-session1")
 
 			session.Spec.Refs = append(session.Spec.Refs,
 				v1alpha1.Ref{
@@ -224,15 +202,15 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(res2.Requeue).To(BeFalse())
 
 			// Verify
-			gw := GetGateway("test", "test-gateway")
+			gw := get.Gateway("test", "test-gateway")
 			fmt.Println(gw.Spec.Servers[0].Hosts)
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 
-			vss := GetVirtualServices("test")
+			vss := get.VirtualServices("test")
 			Expect(vss.Items).To(HaveLen(4))
 
 			// Delete first ref
-			session = GetSession("test", "test-session1")
+			session = get.Session("test", "test-session1")
 			session.Spec.Refs = []v1alpha1.Ref{session.Spec.Refs[1]}
 			c.Update(context.Background(), &session)
 
@@ -241,14 +219,14 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(res2.Requeue).To(BeFalse())
 
 			// Verify - no vs removed (only gateway connected duplicated)
-			vss = GetVirtualServices("test")
+			vss = get.VirtualServices("test")
 			for _, vs := range vss.Items {
 				fmt.Println(vs.Name)
 			}
 			Expect(vss.Items).To(HaveLen(4))
 
 			// Verify - same Gateways Hosts still connected, ref01 still need them
-			gw = GetGateway("test", "test-gateway")
+			gw = get.Gateway("test", "test-gateway")
 			fmt.Println(gw.Spec.Servers[0].Hosts)
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 		})
