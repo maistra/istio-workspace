@@ -11,7 +11,7 @@ import (
 // Sessions creates a Handler for the given session operation
 // session expects that cmd has offline, namespace, route, deployment and session flags defined.
 // otherwise it fails
-func Sessions(cmd *cobra.Command) (session.State, func(), error) {
+func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 
 	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
@@ -20,9 +20,10 @@ func Sessions(cmd *cobra.Command) (session.State, func(), error) {
 
 	options, err := ToOptions(cmd.Flags())
 	if err != nil {
-		return session.State{}, nil, err
+		return session.State{}, options, nil, err
 	}
-	return sessionHandler(options)
+	state, f, err := sessionHandler(options)
+	return state, options, f, err
 }
 
 // RemoveSessions creates a Handler for the given session operation for removing a session

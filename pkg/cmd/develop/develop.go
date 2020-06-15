@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/internal/session"
+
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/maistra/istio-workspace/pkg/telepresence"
@@ -25,6 +27,12 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "develop")
 
+const urlHint = `Knowing your application url you can now access your new version by using
+
+$ curl -H"%s:%s" YOUR_APP_URL.
+
+If you can't see any changes make sure that this header is respected by your app and propagated down the call chain.`
+
 var DefaultExclusions = []string{"*.log", ".git/"}
 
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined
@@ -44,7 +52,7 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sessionState, sessionClose, err := internal.Sessions(cmd)
+			sessionState, options, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
 				return err
 			}
@@ -71,6 +79,10 @@ func NewCmd() *cobra.Command {
 				shell.ShutdownHook(tp, done)
 				shell.Start(tp, done)
 			}()
+
+			if route, _ := session.ParseRoute(options.RouteExp); route != nil {
+				logger.Info(fmt.Sprintf(urlHint, route.Name, route.Value))
+			}
 
 			finalStatus := <-done
 			return finalStatus.Error
