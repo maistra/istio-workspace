@@ -3,27 +3,33 @@ package k8s_test
 import (
 	"context"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/test/operator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for k8s Deployment kind", func() {
 
-	var objects []runtime.Object
-	var ctx model.SessionContext
+	var (
+		objects []runtime.Object
+		c       client.Client
+		ctx     model.SessionContext
+		get     *operator.Helpers
+	)
 
 	CreateTestRef := func() model.Ref {
 		return model.Ref{
@@ -37,12 +43,14 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		schema := runtime.NewScheme()
 		err := appsv1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
+		c = fake.NewFakeClientWithScheme(schema, objects...)
+		get = operator.New(c)
 		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "k8s-deployment"),
-			Client:    fake.NewFakeClientWithScheme(schema, objects...),
+			Client:    c,
 		}
 	})
 
@@ -129,9 +137,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			_ = get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
@@ -139,9 +145,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
@@ -150,9 +154,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
@@ -161,9 +163,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.Deployment{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo("v1-test"))
 		})
@@ -186,10 +186,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.Deployment{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-				Expect(err).ToNot(HaveOccurred())
-
+				deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
@@ -198,10 +195,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.Deployment{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-				Expect(err).ToNot(HaveOccurred())
-
+				deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
