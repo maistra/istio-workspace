@@ -83,7 +83,6 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",
-			Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
 			Client:    c,
 			Log:       log.CreateOperatorAwareLogger("destinationrule"),
 		}
