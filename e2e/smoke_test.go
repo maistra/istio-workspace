@@ -178,7 +178,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
+						EnsureSessionRouteIsNotReachable(namespace, sessionname, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -282,6 +282,16 @@ func EnsureSessionRouteIsReachable(namespace, sessionname string, matchers ...ty
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionname + "." + GetGatewayHost(namespace)}),
 		3*time.Minute, 1*time.Second).Should(And(matchers...))
+}
+
+// EnsureSessionRouteIsNotReachable the manipulated route is reachable
+func EnsureSessionRouteIsNotReachable(namespace, sessionname string, matchers ...types.GomegaMatcher) {
+	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+
+	// check original response using headers
+	Expect(call(productPageURL, map[string]string{
+		"Host":         GetGatewayHost(namespace),
+		"x-test-suite": "smoke"})()).Should(And(matchers...))
 }
 
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike
