@@ -54,7 +54,7 @@ var _ = Describe("Complete session manipulation", func() {
 		objects = append(objects, objs...)
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(&c)
+		get = operator.New(c)
 		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
 	})
 
@@ -171,7 +171,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		})
 
-		FIt("with multiple ref", func() {
+		It("with multiple ref", func() {
 			req1 := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      "test-session1",

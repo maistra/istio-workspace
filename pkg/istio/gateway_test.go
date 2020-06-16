@@ -5,8 +5,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/operator"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,6 +13,8 @@ import (
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for istio gateway kind", func() {
@@ -33,7 +33,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			&istionetwork.GatewayList{}).Build()
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(&c)
+		get = operator.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",

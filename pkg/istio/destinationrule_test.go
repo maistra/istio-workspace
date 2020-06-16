@@ -5,22 +5,21 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/operator"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
-	"istio.io/api/networking/v1alpha3"
-	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for istio DestinationRule kind", func() {
 
-	GetName := func(s *v1alpha3.Subset) string { return s.Name }
+	GetName := func(s *istionetworkv1alpha3.Subset) string { return s.Name }
 
 	var (
 		objects []runtime.Object
@@ -80,7 +79,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			&istionetwork.DestinationRuleList{}).Build()
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(&c)
+		get = operator.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",
