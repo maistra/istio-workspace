@@ -30,10 +30,6 @@ var _ model.Revertor = VirtualServiceRevertor
 
 // VirtualServiceMutator attempts to create a virtual service for forked service
 func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResources(model.Kind(VirtualServiceKind))) > 0 {
-		return nil
-	}
-
 	targetVersion := ref.GetVersion()
 
 	for _, hostName := range ref.GetTargetHostNames() {
