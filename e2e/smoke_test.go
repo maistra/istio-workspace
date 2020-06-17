@@ -289,9 +289,10 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionname string, matchers ..
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
 	// check original response using headers
-	Expect(call(productPageURL, map[string]string{
+	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
-		"x-test-suite": "smoke"})()).Should(And(matchers...))
+		"x-test-suite": "smoke"}),
+		3*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike
