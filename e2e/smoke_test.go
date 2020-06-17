@@ -28,7 +28,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			namespace,
 			tmpDir string
 			scenario    string
-			sessionname string
+			sessionName string
 		)
 
 		JustBeforeEach(func() {
@@ -41,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			EnablePullingImages(namespace)
 			InstallLocalOperator(namespace)
 			DeployTestScenario(scenario, namespace)
-			sessionname = GenerateSessionName(7)
+			sessionName = GenerateSessionName(7)
 		})
 
 		AfterEach(func() {
@@ -75,16 +75,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--watch",
 							"--run", "ruby ratings.rb 9080",
 							"--route", "header:x-test-suite=smoke",
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						EnsureAllPodsAreReady(namespace)
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("PublisherA"))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
 						modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 						CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("Publisher Ike"))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
 						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -108,16 +108,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--watch",
 							"--run", "ruby ratings.rb 9080",
 							"--route", "header:x-test-suite=smoke",
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						EnsureAllPodsAreReady(namespace)
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("PublisherA"))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
 						modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 						CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("Publisher Ike"))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
 						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -139,7 +139,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
 							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV1+":latest",
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
 
@@ -147,7 +147,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureAllPodsAreReady(namespace)
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -159,12 +159,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
 							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV2+":latest",
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring(PreparedImageV2), Not(ContainSubstring("ratings-v1")))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV2), Not(ContainSubstring("ratings-v1")))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
@@ -173,12 +173,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						ikeDel := RunIke(tmpDir, "delete",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
-						EnsureSessionRouteIsNotReachable(namespace, sessionname, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
+						EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -203,11 +203,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--method", "inject-tcp",
 							"--run", "go run ./test/cmd/test-service -serviceName=PublisherA",
 							"--route", "header:x-test-suite=smoke",
-							"--session", sessionname,
+							"--session", sessionName,
 						)
 						EnsureAllPodsAreReady(namespace)
 
-						EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
+						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
 						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -236,16 +236,16 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--watch",
 					"--run", "ruby ratings.rb 9080",
 					"--route", "header:x-test-suite=smoke",
-					"--session", sessionname,
+					"--session", sessionName,
 				)
 				EnsureAllPodsAreReady(namespace)
-				EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("PublisherA"))
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 				// then modify the service
 				modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
 				CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
 
-				EnsureSessionRouteIsReachable(namespace, sessionname, ContainSubstring("Publisher Ike"))
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
 				Stop(ike)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -269,7 +269,7 @@ func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatche
 }
 
 // EnsureSessionRouteIsReachable the manipulated route is reachable
-func EnsureSessionRouteIsReachable(namespace, sessionname string, matchers ...types.GomegaMatcher) {
+func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
 	// check original response using headers
@@ -280,12 +280,12 @@ func EnsureSessionRouteIsReachable(namespace, sessionname string, matchers ...ty
 
 	// check original response using host route
 	Eventually(call(productPageURL, map[string]string{
-		"Host": sessionname + "." + GetGatewayHost(namespace)}),
+		"Host": sessionName + "." + GetGatewayHost(namespace)}),
 		3*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable
-func EnsureSessionRouteIsNotReachable(namespace, sessionname string, matchers ...types.GomegaMatcher) {
+func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
 	// check original response using headers
