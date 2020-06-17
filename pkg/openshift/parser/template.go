@@ -28,7 +28,7 @@ const substitution = "{{ .$1 }}"
 
 // ProcessTemplateUsingEnvVars takes template path, loads its content and
 // substitutes variables by using those which are defined as environment variables.
-// Returns processed template as byte array
+// Returns processed template as byte array.
 func ProcessTemplateUsingEnvVars(templatePath string) ([]byte, error) {
 	envMap := make(map[string]string)
 	for _, v := range os.Environ() {
@@ -39,7 +39,7 @@ func ProcessTemplateUsingEnvVars(templatePath string) ([]byte, error) {
 	return ProcessTemplate(templatePath, envMap)
 }
 
-// ProcessTemplate applies variables defined in the passed map to the
+// ProcessTemplate applies variables defined in the passed map to the template.
 func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, error) {
 	data, err := Load(templatePath)
 	if err != nil {
@@ -75,7 +75,7 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 	return processed.Bytes(), nil
 }
 
-// ParseParameters parses parameters defined in the template
+// ParseParameters parses parameters defined in the template.
 func ParseParameters(tpl []byte) ([]openshiftApi.Parameter, error) {
 	var parameters struct {
 		Parameter []openshiftApi.Parameter `yaml:"parameters"`
@@ -89,7 +89,7 @@ func ParseParameters(tpl []byte) ([]openshiftApi.Parameter, error) {
 
 // Load loads file asset into byte array
 //
-// Assets from given directory are added to the final binary through go-bindata code generation
+// Assets from given directory are added to the final binary through go-bindata code generation.
 func Load(filePath string) ([]byte, error) {
 	data, err := assets.Asset(filePath)
 	if err != nil {
@@ -99,7 +99,7 @@ func Load(filePath string) ([]byte, error) {
 	return data, nil
 }
 
-// Parse takes byte array as a source and turns it into runtime.Object
+// Parse takes byte array as a source and turns it into runtime.Object.
 func Parse(source []byte) (runtime.Object, error) {
 	decode, err := Decoder()
 	if err != nil {
@@ -118,7 +118,7 @@ func Parse(source []byte) (runtime.Object, error) {
 type DecodeFunc func(data []byte, defaults *schema.GroupVersionKind, into runtime.Object) (runtime.Object, *schema.GroupVersionKind, error)
 
 // Decoder registers required schemas containing objects to be deserialize from YAML
-// and constructs decode function to be applied on the source YAML
+// and constructs decode function to be applied on the source YAML.
 func Decoder() (DecodeFunc, error) {
 	s := runtime.NewScheme()
 	if err := openshiftApi.Install(s); err != nil {

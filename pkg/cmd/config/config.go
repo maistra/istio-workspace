@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// SetupConfig defines Viper env var prefixes and type handling when inferring key value
+// SetupConfig defines Viper env var prefixes and type handling when inferring key value.
 func SetupConfig() {
 	viper.Reset()
 	viper.SetEnvPrefix("IKE")
@@ -57,7 +57,7 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 	return nil
 }
 
-// SupportedExtensions returns a slice of all supported config format (as file extensions)
+// SupportedExtensions returns a slice of all supported config format (as file extensions).
 func SupportedExtensions() []string {
 	return viper.SupportedExts
 }
@@ -74,7 +74,7 @@ func contains(s []string, e string) bool {
 // SyncFullyQualifiedFlag ensures that if configuration provides a value for a given cmd.flag it will be set back to the flag itself,
 // but only if the flag was not set through CLI.
 //
-// This way we can make flags required but still have their values provided by the configuration source
+// This way we can make flags required but still have their values provided by the configuration source.
 func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	value := viper.GetString(cmd.Name() + "." + flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {

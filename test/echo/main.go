@@ -10,10 +10,10 @@ import (
 )
 
 // SleepMs indicates for how long the program should sleep before he gets terminated
-// The value is in milliseconds or "infinite" which will result in endless loop
+// The value is in milliseconds or "infinite" which will result in endless loop.
 var SleepMs string
 
-// Echo if specified as build flag will be the output of the command
+// Echo if specified as build flag will be the output of the command.
 var Echo string
 
 func main() {

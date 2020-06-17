@@ -10,7 +10,7 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "create")
 
-// NewCmd creates instance of "create" Cobra Command with flags and execution logic defined
+// NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	createCmd := &cobra.Command{
 		Use:          "create",

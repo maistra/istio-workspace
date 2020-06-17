@@ -12,7 +12,7 @@ var (
 	}
 )
 
-// AddFlagCompletion adds custom bash completion function defined through bashCompletionFlags map
+// AddFlagCompletion adds custom bash completion function defined through bashCompletionFlags map.
 func AddFlagCompletion(cmd *cobra.Command) {
 	for name, completion := range bashCompletionFlags {
 		pflag := cmd.Flags().Lookup(name)

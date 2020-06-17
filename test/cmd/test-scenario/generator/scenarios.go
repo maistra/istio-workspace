@@ -60,7 +60,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 	)
 }
 
-// DemoScenario is a simple setup for demo purposes
+// DemoScenario is a simple setup for demo purposes.
 func DemoScenario(out io.Writer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}

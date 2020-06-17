@@ -18,7 +18,7 @@ const (
 `
 )
 
-// NewCmd creates completion cmd provides autocomplete functionality for different shell environments
+// NewCmd creates completion cmd provides autocomplete functionality for different shell environments.
 func NewCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:          "completion [SHELL]",
@@ -44,7 +44,7 @@ func NewCmd() *cobra.Command {
 // We are not using the builtin zsh completion that comes from cobra but instead doing it
 // via bashcompinit and use the GenBashCompletion then
 // This allows us the user to simply do a `source <(ike completion zsh)` to get
-// zsh completion
+// zsh completion.
 func runCompletionZsh(out io.Writer, ike *cobra.Command) error {
 	zshHead := "#compdef ike\n"
 

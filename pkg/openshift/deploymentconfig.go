@@ -27,7 +27,7 @@ var _ model.Locator = DeploymentConfigLocator
 var _ model.Mutator = DeploymentConfigMutator
 var _ model.Revertor = DeploymentConfigRevertor
 
-// DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name
+// DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
@@ -41,7 +41,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return true
 }
 
-// DeploymentConfigMutator attempts to clone the located DeploymentConfig
+// DeploymentConfigMutator attempts to clone the located DeploymentConfig.
 func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
 	if len(ref.GetResourceStatus(DeploymentConfigKind)) > 0 {
 		return nil
@@ -77,7 +77,7 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-// DeploymentConfigRevertor attempts to delete the cloned DeploymentConfig
+// DeploymentConfigRevertor attempts to delete the cloned DeploymentConfig.
 func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	statuses := ref.GetResourceStatus(DeploymentConfigKind)
 	for _, status := range statuses {

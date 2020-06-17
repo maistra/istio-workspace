@@ -38,6 +38,8 @@ linters-settings:
       - wrapperFunc
       - commentFormatting # https://github.com/go-critic/go-critic/issues/755
       - hugeParam # seems to be premature optimization based on https://github.com/Maistra/istio-workspace/pull/378#discussion_r392208906
+  nestif:
+    min-complexity: 8
   unused:
     check-exported: true
   gocognit:
@@ -48,7 +50,12 @@ linters:
   disable:
     - gochecknoinits # k8s/istio generated APIs are using init()
     - gochecknoglobals # TODO discuss
+    - gocognit # TODO open issue
+    - goerr113 # TODO discuss
     - gofmt # We use goimports and when using them both leads to contradicting errors
+    - gomnd
+    - gomodguard # We are still using dep
+    - wsl # TODO discuss
 
 run:
   deadline: 10m
@@ -59,6 +66,9 @@ run:
 
 issues:
   exclude-rules:
+    - path: pkg/log
+      linters:
+        - depguard
     - path: pkg/openshift/
       linters:
         - dupl
@@ -77,8 +87,3 @@ issues:
         - gosec
         - unused
 
-service:
-  project-path: github.com/maistra/istio-workspace
-  golangci-lint-version: 1.19.1 # Locks the version to avoid newly introduces linters
-  prepare:
-    - make lint-prepare

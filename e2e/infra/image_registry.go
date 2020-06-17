@@ -16,10 +16,8 @@ func setDockerRegistryExternal() string {
 	return registry
 }
 
-func setDockerRegistryInternal() string {
-	registry := GetDockerRegistryInternal()
-	setDockerRegistry(registry)
-	return registry
+func setDockerRegistryInternal() {
+	setDockerRegistry(GetDockerRegistryInternal())
 }
 
 func setDockerRegistry(registry string) {
@@ -32,7 +30,7 @@ func setDockerRepository(namespace string) {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
-// GetDockerRegistryInternal returns the internal address for the docker registry
+// GetDockerRegistryInternal returns the internal address for the docker registry.
 func GetDockerRegistryInternal() string {
 	return "image-registry.openshift-image-registry.svc:5000"
 }

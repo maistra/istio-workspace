@@ -10,7 +10,7 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "delete")
 
-// NewCmd creates instance of "create" Cobra Command with flags and execution logic defined
+// NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	deleteCmd := &cobra.Command{
 		Use:          "delete",
