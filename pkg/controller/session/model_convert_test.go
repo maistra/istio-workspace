@@ -45,7 +45,7 @@ var _ = Describe("Basic model conversion", func() {
 				ResourceStatuses: []model.ResourceStatus{
 					{Kind: kind, Name: name, Action: model.ActionCreated},
 					{Kind: "test", Name: "2", Action: model.ActionModified},
-					{Kind: "test-2", Name: "2", Action: model.ActionFailed},
+					{Kind: "test-2", Name: "2", Action: model.ActionFailed, Prop: map[string]string{"host": "x"}},
 				}}
 		})
 
@@ -84,14 +84,18 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(*sess.Status.Refs[0].Resources[0].Kind).To(Equal(ref.ResourceStatuses[0].Kind))
 			Expect(*sess.Status.Refs[0].Resources[0].Name).To(Equal(ref.ResourceStatuses[0].Name))
 			Expect(*sess.Status.Refs[0].Resources[0].Action).To(Equal(aCreated))
+			Expect(sess.Status.Refs[0].Resources[0].Prop).To(BeEmpty())
 
 			Expect(*sess.Status.Refs[0].Resources[1].Kind).To(Equal(ref.ResourceStatuses[1].Kind))
 			Expect(*sess.Status.Refs[0].Resources[1].Name).To(Equal(ref.ResourceStatuses[1].Name))
 			Expect(*sess.Status.Refs[0].Resources[1].Action).To(Equal(aModified))
+			Expect(sess.Status.Refs[0].Resources[1].Prop).To(BeEmpty())
 
 			Expect(*sess.Status.Refs[0].Resources[2].Kind).To(Equal(ref.ResourceStatuses[2].Kind))
 			Expect(*sess.Status.Refs[0].Resources[2].Name).To(Equal(ref.ResourceStatuses[2].Name))
 			Expect(*sess.Status.Refs[0].Resources[2].Action).To(Equal(aFailed))
+			Expect(sess.Status.Refs[0].Resources[2].Prop).ToNot(BeEmpty())
+			Expect(sess.Status.Refs[0].Resources[2].Prop["host"]).To(Equal("x"))
 		})
 
 		Context("exists in status", func() {
@@ -184,6 +188,7 @@ var _ = Describe("Basic model conversion", func() {
 							Resources: []*v1alpha1.RefResource{
 								{
 									Kind: &kind, Name: &name, Action: &aFailed,
+									Prop: map[string]string{"host": "x"},
 								},
 							},
 						},
@@ -210,6 +215,9 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[1].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[1].Resources[0].Kind))
 			Expect(refs[1].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[1].Resources[0].Name))
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
+			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
+			Expect(refs[1].ResourceStatuses[0].Prop).ToNot(BeEmpty())
+			Expect(refs[1].ResourceStatuses[0].Prop["host"]).To(Equal("x"))
 		})
 
 		It("targets mapped", func() {

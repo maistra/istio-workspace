@@ -190,6 +190,7 @@ type ResourceStatus struct {
 	Name string
 	// created, mutated, failed
 	Action ResourceAction
+	Prop   map[string]string
 }
 
 // LocatedResourceStatus is a ResourceStatus with labels.

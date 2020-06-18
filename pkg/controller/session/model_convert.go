@@ -35,7 +35,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
 		action := string(rs.Action)
-		statusRef.Resources = append(statusRef.Resources, &istiov1alpha1.RefResource{Name: &rs.Name, Kind: &rs.Kind, Action: &action})
+		statusRef.Resources = append(statusRef.Resources, &istiov1alpha1.RefResource{Name: &rs.Name, Kind: &rs.Kind, Action: &action, Prop: rs.Prop})
 	}
 	var existsInStatus bool
 	for i, statRef := range session.Status.Refs {
@@ -85,7 +85,7 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 			}
 			for _, resource := range statusRef.Resources {
 				r := resource
-				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action)})
+				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action), Prop: r.Prop})
 			}
 		}
 	}
