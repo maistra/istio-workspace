@@ -10,7 +10,7 @@ import (
 
 // Sessions creates a Handler for the given session operation
 // session expects that cmd has offline, namespace, route, deployment and session flags defined.
-// otherwise it fails
+// otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 
@@ -22,13 +22,15 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
+
 	state, f, err := sessionHandler(options)
+
 	return state, options, f, err
 }
 
 // RemoveSessions creates a Handler for the given session operation for removing a session
 // session expects that cmd has offline and session flags defined.
-// otherwise it fails
+// otherwise it fails.
 func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	options, err := ToRemoveOptions(cmd.Flags())
 	if err != nil {
@@ -39,7 +41,7 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 
 const telepresenceStrategy = "telepresence"
 
-// ToOptions converts between FlagSet to a Handler Options
+// ToOptions converts between FlagSet to a Handler Options.
 func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
@@ -86,7 +88,7 @@ func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 	}, nil
 }
 
-// ToRemoveOptions converts between FlagSet to a Handler Options
+// ToRemoveOptions converts between FlagSet to a Handler Options.
 func ToRemoveOptions(flags *pflag.FlagSet) (session.Options, error) {
 	n, err := flags.GetString("namespace")
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 // filteringEncoder enables filtering out fields.
-// For example that can be useful for CLI logger if you want to skip printing additional context as JSON
+// For example that can be useful for CLI logger if you want to skip printing additional context as JSON.
 type filteringEncoder struct {
 	delegate        zapcore.Encoder
 	fieldsToInclude map[string]struct{}

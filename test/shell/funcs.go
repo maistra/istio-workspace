@@ -11,14 +11,14 @@ import (
 	"github.com/google/shlex"
 )
 
-// Execute executes given command in the current directory
+// Execute executes given command in the current directory.
 func Execute(command string) *gocmd.Cmd {
 	cmd, _ := shlex.Split(command)
 	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
-// ExecuteAll executes all passed commands in sequence, waiting for every single one to finish
-// before starting next one
+// ExecuteAll executes all passed commands in sequence, waiting for every single one to finish.
+// before starting next one.
 func ExecuteAll(commands ...string) {
 	for _, command := range commands {
 		<-Execute(command).Done()
@@ -26,7 +26,7 @@ func ExecuteAll(commands ...string) {
 }
 
 // ExecuteInDir executes given command in the defined directory
-// Redirects streams to stdout/err
+// Redirects streams to stdout/err.
 func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	command := gocmd.NewCmdOptions(shell.BufferAndStreamOutput, name, args...)
 	command.Dir = dir

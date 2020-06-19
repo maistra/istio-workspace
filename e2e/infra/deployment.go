@@ -10,7 +10,7 @@ import (
 
 var appFs = afero.NewOsFs()
 
-// CreateFile creates file under defined path with a given content
+// CreateFile creates file under defined path with a given content.
 func CreateFile(filePath, content string) {
 	file, err := appFs.Create(filePath)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
@@ -22,7 +22,7 @@ func CreateFile(filePath, content string) {
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 }
 
-// DeleteFile deletes file under defined path
+// DeleteFile deletes file under defined path.
 func DeleteFile(filePath string) {
 	err := appFs.Remove(filePath)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())

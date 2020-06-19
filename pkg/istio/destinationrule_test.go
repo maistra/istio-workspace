@@ -1,4 +1,4 @@
-package istio
+package istio //nolint:testpackage //reason we want to test converters in isolation
 
 import (
 	. "github.com/onsi/ginkgo"

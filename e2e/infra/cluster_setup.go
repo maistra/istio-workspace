@@ -8,7 +8,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace
+// UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace.
 func UpdateSecurityConstraintsFor(namespace string) {
 	shell.ExecuteAll(
 		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
@@ -42,13 +42,13 @@ func LoginAsTestPowerUser() {
 	<-shell.ExecuteInDir(".", "bash", "-c", "oc login "+srv+" -u "+user+" -p "+pwd+" --insecure-skip-tls-verify=true").Done()
 }
 
-// GetEvents returns all events which occurred for a given namespace
+// GetEvents returns all events which occurred for a given namespace.
 func GetEvents(ns string) {
 	state := shell.Execute("oc get events -n " + ns)
 	<-state.Done()
 }
 
-// DumpTelepresenceLog dumps telepresence log if exists
+// DumpTelepresenceLog dumps telepresence log if exists.
 func DumpTelepresenceLog(dir string) {
 	fh, err := os.Open(dir + string(os.PathSeparator) + "telepresence.log")
 	if err != nil {

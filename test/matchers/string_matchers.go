@@ -7,7 +7,7 @@ import (
 	"github.com/onsi/gomega/types"
 )
 
-// OnlyContain ensures that given string contains only characters specified as char
+// OnlyContain ensures that given string contains only characters specified as char.
 func OnlyContain(chars string) types.GomegaMatcher {
 	allowedChars := make(map[rune]struct{}, len(chars))
 	for _, char := range chars {

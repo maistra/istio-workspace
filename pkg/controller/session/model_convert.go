@@ -15,7 +15,7 @@ const (
 	RouteStrategyHeader = "header"
 )
 
-// ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list
+// ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list.
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	statusRef := &istiov1alpha1.RefStatus{
 		Ref: istiov1alpha1.Ref{
@@ -54,7 +54,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	}
 }
 
-// ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list
+// ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list.
 func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	refs := []*model.Ref{}
 	for _, statusRef := range session.Status.Refs {
@@ -70,7 +70,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	return refs
 }
 
-// ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name
+// ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name.
 func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
@@ -91,12 +91,12 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	}
 }
 
-// ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref
+// ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref.
 func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) model.Ref {
 	return model.Ref{Name: ref.Name, Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
 }
 
-// ConvertAPIRouteToModelRoute returns the defined route from the session or the Default
+// ConvertAPIRouteToModelRoute returns the defined route from the session or the Default.
 func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 	if session.Spec.Route.Type == "" {
 		return model.Route{
@@ -112,7 +112,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 	}
 }
 
-// RefUpdated check if a Ref has been updated compared to current status
+// RefUpdated check if a Ref has been updated compared to current status.
 func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {

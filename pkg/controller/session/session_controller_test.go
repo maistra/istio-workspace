@@ -438,17 +438,17 @@ var _ = Describe("Basic session manipulation", func() {
 	})
 })
 
-// notFound Action for Locator tracker
+// notFound Action for Locator tracker.
 func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return false
 }
 
-// found Action for Locator tracker
+// found Action for Locator tracker.
 func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	return true
 }
 
-// found Action for Locator tracker
+// found Action for Locator tracker.
 func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref *model.Ref) bool {
 	return func(ctx model.SessionContext, ref *model.Ref) bool {
 		for _, name := range names {
@@ -458,7 +458,7 @@ func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref 
 	}
 }
 
-// noOp Action for Mutator/Revertor trackers
+// noOp Action for Mutator/Revertor trackers.
 func noOp(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
@@ -473,7 +473,7 @@ func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
 	return t.Action(ctx, ref)
 }
 
-// addResource Action for mutator tracker
+// addResource Action for mutator tracker.
 func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error {
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(status)
@@ -491,7 +491,7 @@ func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
 	return t.Action(ctx, ref)
 }
 
-// removeResource Action for revertor tracker
+// removeResource Action for revertor tracker.
 func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint:unparam //reason kind is always receiving 'test' so far
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})

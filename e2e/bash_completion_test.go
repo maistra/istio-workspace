@@ -72,6 +72,7 @@ func completionFor(cmd string) []string {
 	tmpDir := test.TmpDir(GinkgoT(), "ike-bash-completion")
 	completionScript := tmpDir + "/get_completion.sh"
 	CreateFile(completionScript, getCompletionBash)
+
 	defer DeleteFile(completionScript)
 
 	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")

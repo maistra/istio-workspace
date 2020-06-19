@@ -26,7 +26,7 @@ var appFs = afero.NewOsFs()
 
 // TmpDir creates a temporary directory under os.TempDir() with a following pattern:
 // os.TempDir()/[random-alphanumeric]/dir, where dir is a passed parameter which can be a relative path
-// When dir is an absolute path and error is reported
+// When dir is an absolute path and error is reported.
 func TmpDir(t TestReporter, dir string) string {
 	fullPath := dir
 	if !path.IsAbs(dir) {
@@ -48,7 +48,7 @@ func TmpDir(t TestReporter, dir string) string {
 
 // TmpFile creates a specified file for us to use when testing
 // if filePath is a full path it will just be created and cleaned up afterwards
-// otherwise the file will be places under some random alphanumeric folder under temp directory
+// otherwise the file will be places under some random alphanumeric folder under temp directory.
 func TmpFile(t TestReporter, filePath, content string) afero.File {
 	fullPath := filePath
 	if !path.IsAbs(filePath) {

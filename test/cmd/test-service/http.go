@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 )
 
-// NewBasic constructs a new basic HandlerFunc that behaves as described by the provided Config
+// NewBasic constructs a new basic HandlerFunc that behaves as described by the provided Config.
 func NewBasic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerFunc {
 	return basic(config, invoker, log)
 }

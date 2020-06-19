@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// GetBodyWithHeaders calls GET on a given URL with a specific set request headers and returns its body or error in case there's one
+// GetBodyWithHeaders calls GET on a given URL with a specific set request headers and returns its body or error in case there's one.
 func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
 	req, err := http.NewRequest("GET", rawURL, nil)
 	if err != nil {
@@ -17,7 +17,7 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	for k, v := range headers {
 		req.Header[k] = []string{v}
 	}
-	resp, err := http.DefaultClient.Do(req) //nolint:gosec //reason cmd required by cobra
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}

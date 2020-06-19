@@ -15,21 +15,21 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("shell")
 
-// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd
+// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
 var StreamOutput = gocmd.Options{
 	Buffered:  false,
 	Streaming: true,
 }
 
 // BufferAndStreamOutput sets buffering and streaming of output when running gocmd.Cmd
-// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices
+// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices.
 var BufferAndStreamOutput = gocmd.Options{
 	Buffered:  true,
 	Streaming: true,
 }
 
 // Start starts new process (gocmd) and wait until it's done. Status struct is then propagated back to
-// done channel passed as argument
+// done channel passed as argument.
 func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	cmd.Env = os.Environ()
 	logger.V(1).Info("starting command",
@@ -42,7 +42,7 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 }
 
 // ShutdownHook will wait for SIGTERM signal and stop the cmd
-// unless done receiving channel passed to it receives status or is closed
+// unless done receiving channel passed to it receives status or is closed.
 func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 	go func() {
 		hookChan := make(chan os.Signal, 1)
@@ -68,7 +68,7 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 	}()
 }
 
-// RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers
+// RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers.
 func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-chan gocmd.Status) {
 	go func() {
 	OutOfLoop:
@@ -95,7 +95,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 	}()
 }
 
-// CurrentDir returns current directory from where binary is executed
+// CurrentDir returns current directory from where binary is executed.
 func CurrentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -104,8 +104,8 @@ func CurrentDir() string {
 	return dir
 }
 
-// BinaryExists ensures that binary with given name (binName) is available on the PATH
-// hint lets you customize the error message
+// BinaryExists ensures that binary with given name (binName) is available on the PATH.
+// hint lets you customize the error message.
 func BinaryExists(binName, hint string) bool {
 	path, err := exec.LookPath(binName)
 	if err != nil {

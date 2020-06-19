@@ -11,7 +11,7 @@ import (
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
-// NewDefaultEngine returns a new Engine with a predefined templates
+// NewDefaultEngine returns a new Engine with a predefined templates.
 func NewDefaultEngine() *Engine {
 	patches := []Patch{
 		{
@@ -140,12 +140,12 @@ func NewDefaultEngine() *Engine {
 	return NewEngine(patches)
 }
 
-// NewEngine constructs a new Engine with the given templates
+// NewEngine constructs a new Engine with the given templates.
 func NewEngine(patches Patches) *Engine {
 	return &Engine{patches: patches}
 }
 
-// NewJSON constructs a JSON object from a json string
+// NewJSON constructs a JSON object from a json string.
 func NewJSON(data []byte) (JSON, error) {
 	t := JSON{}
 	err := json.Unmarshal(data, &t)
@@ -169,15 +169,15 @@ type Patch struct {
 	Variables map[string]string
 }
 
-// Patches holds all known patch templates for a Engine
+// Patches holds all known patch templates for a Engine.
 type Patches []Patch
 
-// Engine is a reusable instance with a configured set of patch templates
+// Engine is a reusable instance with a configured set of patch templates.
 type Engine struct {
 	patches Patches
 }
 
-// Value returns the object value behind a json path, e.g. /spec/metadata/name
+// Value returns the object value behind a json path, e.g. /spec/metadata/name.
 func (t JSON) Value(path string) (interface{}, error) {
 	parts := strings.Split(path, "/")
 	if len(parts) < 2 {
@@ -213,7 +213,7 @@ func (t JSON) Value(path string) (interface{}, error) {
 	return level, nil
 }
 
-// Has is a check if the json contain a value behind a json path, e.g. /spec/metadata/name
+// Has is a check if the json contain a value behind a json path, e.g. /spec/metadata/name.
 func (t JSON) Has(path string) bool {
 	v, err := t.Value(path)
 	if err != nil || v == nil {
@@ -222,7 +222,7 @@ func (t JSON) Has(path string) bool {
 	return true
 }
 
-// Equal checks if the values are the same
+// Equal checks if the values are the same.
 func (t JSON) Equal(path string, compare interface{}) bool {
 	v, err := t.Value(path)
 	if err != nil || v == nil {
@@ -232,7 +232,7 @@ func (t JSON) Equal(path string, compare interface{}) bool {
 	return fmt.Sprint(v) == fmt.Sprint(compare)
 }
 
-// Run performs the template transformation of a given json structure
+// Run performs the template transformation of a given json structure.
 func (e Engine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
 	t, err := loadTemplate(e.patches)
 	if err != nil {

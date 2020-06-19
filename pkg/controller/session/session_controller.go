@@ -31,7 +31,7 @@ var (
 	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
 )
 
-// DefaultManipulators contains the default config for the reconciler
+// DefaultManipulators contains the default config for the reconciler.
 func DefaultManipulators() Manipulators {
 	return Manipulators{
 		Locators: []model.Locator{
@@ -60,17 +60,17 @@ func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
-// newReconciler returns a new reconcile.Reconciler
+// newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
 }
 
-// NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager
+// NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager.
 func NewStandaloneReconciler(c client.Client, m Manipulators) reconcile.Reconciler {
 	return &ReconcileSession{client: c, manipulators: m}
 }
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
+// add adds a new Controller to mgr with r as the reconcile.Reconciler.
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("session-controller", mgr, controller.Options{Reconciler: r})
@@ -87,7 +87,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-// Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions
+// Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
 	Locators  []model.Locator
 	Mutators  []model.Mutator
@@ -96,7 +96,7 @@ type Manipulators struct {
 
 var _ reconcile.Reconciler = &ReconcileSession{}
 
-// ReconcileSession reconciles a Session object
+// ReconcileSession reconciles a Session object.
 type ReconcileSession struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
@@ -106,7 +106,7 @@ type ReconcileSession struct {
 }
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
-// and what is in the Session.Spec
+// and what is in the Session.Spec.
 func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")

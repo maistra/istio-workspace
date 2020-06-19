@@ -26,7 +26,7 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "install")
 
-// NewCmd takes care of deploying server-side components of istio-workspace
+// NewCmd takes care of deploying server-side components of istio-workspace.
 func NewCmd() *cobra.Command {
 	installCmd := &cobra.Command{
 		Use:          "install-operator",
@@ -46,7 +46,7 @@ Environment variables you can override:{{range tplParams}}
 	return installCmd
 }
 
-func installOperator(cmd *cobra.Command, args []string) error { //nolint:unparam,gocyclo //reason args required by cobra, cyclo can be skipped in sake of readability
+func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo //reason cyclo can be skipped for the sake of readability
 	namespace, err := cmd.Flags().GetString("namespace")
 	if err != nil {
 		return err

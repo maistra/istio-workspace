@@ -9,7 +9,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-// BuildOperator builds istio-workspace operator and pushes it to specified registry
+// BuildOperator builds istio-workspace operator and pushes it to specified registry.
 func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
 	namespace := setOperatorNamespace()

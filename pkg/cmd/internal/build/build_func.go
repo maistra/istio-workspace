@@ -17,7 +17,7 @@ const (
 )
 
 // Build expects that cmd has Build and no-Build flags defined.
-// otherwise it fails
+// otherwise it fails.
 func Build(cmd *cobra.Command) error {
 	buildFlag := cmd.Flag(BuildFlagName)
 	if buildFlag == nil {
