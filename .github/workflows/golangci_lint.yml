@@ -9,7 +9,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     env:
-      REPOSITORY: ${{ github.repository }}
+      REPOSITORY: maistra/istio-workspace
     steps:
       - name: Set up Go 1.14.4
         uses: actions/setup-go@v2

@@ -56,7 +56,6 @@ linters:
     - gomnd
     - gomodguard # We are still using dep
     - wsl # TODO discuss
-    - unused
 
 run:
   deadline: 10m
