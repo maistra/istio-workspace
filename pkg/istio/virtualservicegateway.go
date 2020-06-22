@@ -13,7 +13,7 @@ const (
 
 var _ model.Locator = VirtualServiceGatewayLocator
 
-// VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices
+// VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
 func VirtualServiceGatewayLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	located := false
 	vss, err := getVirtualServices(ctx, ctx.Namespace)

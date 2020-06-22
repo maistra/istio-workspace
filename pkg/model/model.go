@@ -45,7 +45,7 @@ type HostName struct {
 // Predicate base function to filter Resources.
 type Predicate func(ResourceStatus) bool
 
-// Any Predicate returns true if any of the predicates match
+// Any Predicate returns true if any of the predicates match.
 func Any(predicates ...Predicate) Predicate {
 	return func(resource ResourceStatus) bool {
 		for _, predicate := range predicates {
@@ -57,7 +57,7 @@ func Any(predicates ...Predicate) Predicate {
 	}
 }
 
-// All Predicate returns true if all of the predicates match
+// All Predicate returns true if all of the predicates match.
 func All(predicates ...Predicate) Predicate {
 	return func(resource ResourceStatus) bool {
 		for _, predicate := range predicates {
@@ -69,21 +69,21 @@ func All(predicates ...Predicate) Predicate {
 	}
 }
 
-// Kind Predicate returns true if kind matches resource
+// Kind Predicate returns true if kind matches resource.
 func Kind(kind string) Predicate {
 	return func(resource ResourceStatus) bool {
 		return resource.Kind == kind
 	}
 }
 
-// Name Predicate returns true if name matches resource
+// Name Predicate returns true if name matches resource.
 func Name(name string) Predicate {
 	return func(resource ResourceStatus) bool {
 		return resource.Name == name
 	}
 }
 
-// AnyKind is a shortcut Predicate for Any and Kind from strings
+// AnyKind is a shortcut Predicate for Any and Kind from strings.
 func AnyKind(kinds ...string) Predicate {
 	pred := []Predicate{}
 	for _, kind := range kinds {

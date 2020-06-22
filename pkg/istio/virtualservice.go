@@ -44,7 +44,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 				continue
 			}
 			ctx.Log.Info("Found VirtualService", "name", hostName)
-			mutatedVs, created, err := mutateVirtualService(ctx, ref, hostName, ref.GetVersion(), ref.GetNewVersion(ctx.Name), vs)
+			mutatedVs, created, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
 				return err
@@ -111,7 +111,9 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) {
+func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) {
+	version := ref.GetVersion()
+	newVersion := ref.GetNewVersion(ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	if gateways, connected := connectedToGateway(*target); connected {

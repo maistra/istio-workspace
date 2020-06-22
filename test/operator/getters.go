@@ -17,7 +17,7 @@ import (
  * Test helpers for Operator test suite
  */
 
-// New returns a new set of helpers for a given Client
+// New returns a new set of helpers for a given Client.
 func New(c client.Client) *Helpers {
 	return &Helpers{
 		Session:                   Session(c),
@@ -32,7 +32,7 @@ func New(c client.Client) *Helpers {
 	}
 }
 
-// Helpers simple struct to hold funcs
+// Helpers simple struct to hold funcs.
 type Helpers struct {
 	Session                   func(namespace, name string) v1alpha1.Session
 	Gateway                   func(namespace, name string) istionetwork.Gateway
@@ -45,7 +45,7 @@ type Helpers struct {
 	VirtualServices           func(namespace string) istionetwork.VirtualServiceList
 }
 
-// Session returns a session by name in a given namespace
+// Session returns a session by name in a given namespace.
 func Session(c client.Client) func(namespace, name string) v1alpha1.Session {
 	return func(namespace, name string) v1alpha1.Session {
 		s := v1alpha1.Session{}
@@ -55,7 +55,7 @@ func Session(c client.Client) func(namespace, name string) v1alpha1.Session {
 	}
 }
 
-// Gateway returns a gateway by name in a given namespace
+// Gateway returns a gateway by name in a given namespace.
 func Gateway(c client.Client) func(namespace, name string) istionetwork.Gateway {
 	return func(namespace, name string) istionetwork.Gateway {
 		s := istionetwork.Gateway{}
@@ -65,7 +65,7 @@ func Gateway(c client.Client) func(namespace, name string) istionetwork.Gateway 
 	}
 }
 
-// DestinationRule returns a destinationrule by name in a given namespace
+// DestinationRule returns a destinationrule by name in a given namespace.
 func DestinationRule(c client.Client) func(namespace, name string) istionetwork.DestinationRule {
 	return func(namespace, name string) istionetwork.DestinationRule {
 		s := istionetwork.DestinationRule{}
@@ -75,7 +75,7 @@ func DestinationRule(c client.Client) func(namespace, name string) istionetwork.
 	}
 }
 
-// VirtualService returns a virtualservice by name in a given namespace
+// VirtualService returns a virtualservice by name in a given namespace.
 func VirtualService(c client.Client) func(namespace, name string) istionetwork.VirtualService {
 	return func(namespace, name string) istionetwork.VirtualService {
 		s := istionetwork.VirtualService{}
@@ -85,7 +85,7 @@ func VirtualService(c client.Client) func(namespace, name string) istionetwork.V
 	}
 }
 
-// Deployment returns a deployment by name in a given namespace
+// Deployment returns a deployment by name in a given namespace.
 func Deployment(c client.Client) func(namespace, name string) appsv1.Deployment {
 	return func(namespace, name string) appsv1.Deployment {
 		s := appsv1.Deployment{}
@@ -95,7 +95,7 @@ func Deployment(c client.Client) func(namespace, name string) appsv1.Deployment 
 	}
 }
 
-// DeploymentWithError returns a deployment by name in a given namespace or error
+// DeploymentWithError returns a deployment by name in a given namespace or error.
 func DeploymentWithError(c client.Client) func(namespace, name string) (appsv1.Deployment, error) {
 	return func(namespace, name string) (appsv1.Deployment, error) {
 		s := appsv1.Deployment{}
@@ -104,7 +104,7 @@ func DeploymentWithError(c client.Client) func(namespace, name string) (appsv1.D
 	}
 }
 
-// DeploymentConfig returns a deploymentconfig by name in a given namespace
+// DeploymentConfig returns a deploymentconfig by name in a given namespace.
 func DeploymentConfig(c client.Client) func(namespace, name string) osappsv1.DeploymentConfig {
 	return func(namespace, name string) osappsv1.DeploymentConfig {
 		s := osappsv1.DeploymentConfig{}
@@ -114,7 +114,7 @@ func DeploymentConfig(c client.Client) func(namespace, name string) osappsv1.Dep
 	}
 }
 
-// DeploymentConfigWithError returns a deploymentconfig by name in a given namespace or error
+// DeploymentConfigWithError returns a deploymentconfig by name in a given namespace or error.
 func DeploymentConfigWithError(c client.Client) func(namespace, name string) (osappsv1.DeploymentConfig, error) {
 	return func(namespace, name string) (osappsv1.DeploymentConfig, error) {
 		s := osappsv1.DeploymentConfig{}
@@ -123,7 +123,7 @@ func DeploymentConfigWithError(c client.Client) func(namespace, name string) (os
 	}
 }
 
-// VirtualServices returns all virtualservices in a given namespace
+// VirtualServices returns all virtualservices in a given namespace.
 func VirtualServices(c client.Client) func(namespace string) istionetwork.VirtualServiceList {
 	return func(namespace string) istionetwork.VirtualServiceList {
 		s := istionetwork.VirtualServiceList{}
