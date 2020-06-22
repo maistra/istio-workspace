@@ -1,7 +1,8 @@
-package istio
+package istio_test
 
 import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 
@@ -113,12 +114,12 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				Name: "customer-v1",
 			}
 
-			found := VirtualServiceGatewayLocator(ctx, &ref)
+			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
 			Expect(found).To(BeTrue())
 
-			gws := ref.GetTargets(model.Kind(GatewayKind))
+			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
 			Expect(gws).To(HaveLen(1))
-			Expect(gws[0].Labels[LabelIkeHosts]).To(Equal("redhat-kubecon.io,redhat-devcon.io"))
+			Expect(gws[0].Labels[istio.LabelIkeHosts]).To(Equal("redhat-kubecon.io,redhat-devcon.io"))
 		})
 	})
 })

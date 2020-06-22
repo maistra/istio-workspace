@@ -111,7 +111,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) { //nolint:lll,gocyclo //reason for readability
+func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, version, newVersion string, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) {
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	if gateways, connected := connectedToGateway(*target); connected {
@@ -201,7 +201,7 @@ func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName,
 	return false
 }
 
-func connectedToGateway(vs istionetwork.VirtualService) ([]string, bool) { //nolint[:hugeParam]
+func connectedToGateway(vs istionetwork.VirtualService) ([]string, bool) {
 	return vs.Spec.Gateways, len(vs.Spec.Gateways) > 0
 }
 

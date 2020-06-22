@@ -21,7 +21,7 @@ var _ model.Mutator = GatewayMutator
 var _ model.Revertor = GatewayRevertor
 
 // GatewayMutator attempts to expose a external host on the gateway
-func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		if err != nil {
@@ -48,7 +48,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint[:
 }
 
 // GatewayRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects
-func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[:hugeParam]
+func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	resources := ref.GetResources(model.Kind(GatewayKind))
 
 	for _, resource := range resources {
@@ -79,7 +79,7 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error { //nolint[
 	return nil
 }
 
-func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istionetwork.Gateway, error) { //nolint[:hugeParam]
+func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istionetwork.Gateway, error) {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -102,7 +102,7 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istio
 	return source, nil
 }
 
-func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) (istionetwork.Gateway, error) { //nolint[:hugeParam]
+func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) (istionetwork.Gateway, error) {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -131,13 +131,13 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) (istio
 	return source, nil
 }
 
-func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) { //nolint[:hugeParam]
+func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 	return &Gateway, err
 }
 
-func getGateways(ctx model.SessionContext, namespace string) (*istionetwork.GatewayList, error) { //nolint[:hugeParam]
+func getGateways(ctx model.SessionContext, namespace string) (*istionetwork.GatewayList, error) {
 	gateways := istionetwork.GatewayList{}
 	err := ctx.Client.List(ctx, &gateways, client.InNamespace(namespace))
 	return &gateways, err

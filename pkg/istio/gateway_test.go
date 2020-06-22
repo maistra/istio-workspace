@@ -1,7 +1,8 @@
-package istio
+package istio_test
 
 import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/operator"
@@ -82,7 +83,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("add single session", func() {
-				err := GatewayMutator(ctx, ref)
+				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
@@ -91,7 +92,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("add multiple session", func() {
-				err := GatewayMutator(ctx, ref)
+				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
@@ -109,7 +110,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					Client: ctx.Client,
 					Log:    ctx.Log,
 				}
-				err = GatewayMutator(ctx2, ref)
+				err = istio.GatewayMutator(ctx2, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw = get.Gateway("test", "gateway")
@@ -118,14 +119,14 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("add multiple refs", func() {
-				err := GatewayMutator(ctx, ref)
+				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
 
-				err = GatewayMutator(ctx, ref)
+				err = istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw = get.Gateway("test", "gateway")
@@ -142,7 +143,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 						ObjectMeta: metav1.ObjectMeta{
 							Name:        "gateway",
 							Namespace:   "test",
-							Annotations: map[string]string{LabelIkeHosts: "test.domain.com,test2.domain.com"},
+							Annotations: map[string]string{istio.LabelIkeHosts: "test.domain.com,test2.domain.com"},
 						},
 						Spec: v1alpha3.Gateway{
 							Selector: map[string]string{
@@ -174,7 +175,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("single remove session", func() {
-				err := GatewayRevertor(ctx, ref)
+				err := istio.GatewayRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
@@ -182,7 +183,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("multiple remove sessions", func() {
-				err := GatewayRevertor(ctx, ref)
+				err := istio.GatewayRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
@@ -202,13 +203,13 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 				// Another Context would have had another Ref object with the Gateway Resource Status modifed. simulate.
 				ref.AddResourceStatus(model.ResourceStatus{Kind: "Gateway", Name: "gateway", Action: model.ActionModified})
-				err = GatewayRevertor(ctx2, ref)
+				err = istio.GatewayRevertor(ctx2, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(1))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com"))
-				Expect(gw.Labels).ToNot(HaveKey(LabelIkeHosts))
+				Expect(gw.Labels).ToNot(HaveKey(istio.LabelIkeHosts))
 			})
 		})
 	})

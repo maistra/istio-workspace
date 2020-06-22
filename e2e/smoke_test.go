@@ -284,7 +284,7 @@ func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...ty
 		3*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
-// EnsureSessionRouteIsNotReachable the manipulated route is reachable
+// EnsureSessionRouteIsNotReachable the manipulated route is reachable.
 func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
