@@ -19,7 +19,7 @@ var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "watch")
 
 // NewCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.
-// It is hidden (not user facing) as it's integral part of develop command
+// It is hidden (not user facing) as it's integral part of develop command.
 func NewCmd() *cobra.Command {
 	watchCmd := &cobra.Command{
 		Use:          "watch",

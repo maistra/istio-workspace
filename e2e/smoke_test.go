@@ -254,12 +254,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	})
 })
 
-// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace
+// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllPodsAreReady(namespace string) {
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
-// EnsureProdRouteIsReachable can be reached with no special arguments
+// EnsureProdRouteIsReachable can be reached with no special arguments.
 func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
@@ -268,7 +268,7 @@ func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatche
 		3*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
-// EnsureSessionRouteIsReachable the manipulated route is reachable
+// EnsureSessionRouteIsReachable the manipulated route is reachable.
 func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
@@ -295,17 +295,17 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ..
 		3*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
-// ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike
+// ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike.
 func ChangeNamespace(namespace string) {
 	<-testshell.Execute("oc project default").Done()
 }
 
-// RunIke runs the ike cli in the given dir
+// RunIke runs the ike cli in the given dir.
 func RunIke(dir string, arguments ...string) *cmd.Cmd {
 	return testshell.ExecuteInDir(dir, "ike", arguments...)
 }
 
-// Stop shuts down the process
+// Stop shuts down the process.
 func Stop(ike *cmd.Cmd) {
 	stopFailed := ike.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())

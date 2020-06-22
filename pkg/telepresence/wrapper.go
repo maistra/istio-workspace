@@ -18,7 +18,7 @@ const (
 // GetVersion checks which version of telepresence should be used or is available on the path
 // TELEPRESENCE_VERSION env variable is checked and if is defined takes precedence.
 // If the binary is present on the $PATH then its version is used.
-// If all above fails we return error, as there's no telepresence in use nor env var is defined
+// If all above fails we return error, as there's no telepresence in use nor env var is defined.
 func GetVersion() (string, error) {
 	tpVersion, found := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !found && BinaryAvailable() {
@@ -43,7 +43,7 @@ func GetVersion() (string, error) {
 	return tpVersion, nil
 }
 
-// BinaryAvailable checks if telepresence binary is available on the path
+// BinaryAvailable checks if telepresence binary is available on the path.
 func BinaryAvailable() bool {
 	return shell.BinaryExists(BinaryName, installHint)
 }

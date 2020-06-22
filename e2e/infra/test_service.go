@@ -11,7 +11,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// BuildTestService builds istio-workspace-test service and pushes it to specified registry
+// BuildTestService builds istio-workspace-test service and pushes it to specified registry.
 func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
 	setTestNamespace(ImageRepo)
@@ -22,7 +22,7 @@ func BuildTestService() (registry string) {
 	return
 }
 
-// BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry
+// BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry.
 func BuildTestServicePreparedImage(callerName string) (registry string) {
 	projectDir := shell.GetProjectDir()
 	setTestNamespace(ImageRepo)
@@ -35,7 +35,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 	return
 }
 
-// DeployTestScenario deploys a test scenario into the specified namespace
+// DeployTestScenario deploys a test scenario into the specified namespace.
 func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
 	setDockerRegistryInternal()
@@ -55,7 +55,7 @@ func CleanupTestScenario(namespace string) {
 	<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
 }
 
-// GetProjectLabels returns labels for a given namespace as a string
+// GetProjectLabels returns labels for a given namespace as a string.
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
@@ -73,7 +73,7 @@ func setTestNamespace(namespace string) {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
-// GetGatewayHost returns the host the Gateway in the scenario is bound to (http header Host)
+// GetGatewayHost returns the host the Gateway in the scenario is bound to (http header Host).
 func GetGatewayHost(namespace string) string {
 	return namespace + "-test.com"
 }
@@ -97,7 +97,7 @@ func GenerateSessionName(length int) string {
 	return stringWithCharset(length, charset)
 }
 
-// PublisherRuby contains fixed response to be changed by tests
+// PublisherRuby contains fixed response to be changed by tests.
 const PublisherRuby = `
 require 'webrick'
 require 'json'

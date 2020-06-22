@@ -13,7 +13,7 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "version")
 
-// NewCmd creates version cmd which prints version and Build details of the executed binary
+// NewCmd creates version cmd which prints version and Build details of the executed binary.
 func NewCmd() *cobra.Command {
 	versionCmd := &cobra.Command{
 		Use:          "version",

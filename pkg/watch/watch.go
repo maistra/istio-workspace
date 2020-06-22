@@ -15,10 +15,10 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("watch")
 
-// Handler allows to define how to react on file changes event
+// Handler allows to define how to react on file changes event.
 type Handler func(events []fsnotify.Event) error
 
-// Watch represents single file system watch and delegates change events to defined handler
+// Watch represents single file system watch and delegates change events to defined handler.
 type Watch struct {
 	watcher    *fsnotify.Watcher
 	handlers   []Handler
@@ -29,7 +29,7 @@ type Watch struct {
 }
 
 // Start observes on file change events and dispatches them to defined handler in batches every
-// given interval
+// given interval.
 func (w *Watch) Start() {
 	// Dispatch fsnotify events
 	go func() {
@@ -74,7 +74,7 @@ func (w *Watch) Start() {
 }
 
 // Excluded checks whether a path is excluded from watch by first inspecting .gitignores
-// and user-defined exclusions
+// and user-defined exclusions.
 func (w *Watch) Excluded(path string) bool {
 	reducedPath := path
 	for _, basePath := range w.basePaths {
@@ -92,7 +92,7 @@ func (w *Watch) Excluded(path string) bool {
 }
 
 // Close attempts to close underlying fsnotify.Watcher.
-// In case of failure it logs the error
+// In case of failure it logs the error.
 func (w *Watch) Close() {
 	w.done <- struct{}{}
 	if e := w.watcher.Close(); e != nil {
@@ -100,7 +100,7 @@ func (w *Watch) Close() {
 	}
 }
 
-// addPath adds single path (non-recursive) to be watch
+// addPath adds single path (non-recursive) to be watch.
 func (w *Watch) addPath(filePath string) error {
 	w.basePaths = append(w.basePaths, filePath)
 	return w.watcher.Add(filePath)
@@ -109,7 +109,7 @@ func (w *Watch) addPath(filePath string) error {
 // addRecursiveWatch handles adding watches recursively for the path provided
 // and its subdirectories. If a non-directory is specified, this call is a no-op.
 //
-// Based on https://github.com/openshift/origin/blob/85eb37b3/pkg/util/fsnotification/fsnotification.go
+// Based on https://github.com/openshift/origin/blob/85eb37b3/pkg/util/fsnotification/fsnotification.go.
 func (w *Watch) addRecursiveWatch(filePath string) error {
 	file, err := os.Stat(filePath)
 	if err != nil {
@@ -152,7 +152,7 @@ func (w *Watch) addExclusions(exclusions []string) error {
 	return nil
 }
 
-// addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path
+// addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path.
 func (w *Watch) addGitIgnore(path string) error {
 	gitIgnorePath := path + string(os.PathSeparator) + ".gitignore"
 	file, err := os.Open(gitIgnorePath)
@@ -186,7 +186,7 @@ func allSubFoldersOf(filePath string) (paths []string, err error) {
 	return
 }
 
-// extractEvents takes a map and returns slice of all values
+// extractEvents takes a map and returns slice of all values.
 func extractEvents(events map[string]fsnotify.Event) []fsnotify.Event {
 	changes := make([]fsnotify.Event, len(events))
 	i := 0

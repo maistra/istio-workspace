@@ -19,7 +19,7 @@ import (
 
 var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "root")
 
-// NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined
+// NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	var configFile string
 	releaseInfo := make(chan string, 1)

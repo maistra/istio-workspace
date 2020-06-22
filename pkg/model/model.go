@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// SessionContext holds the context for a single session object, giving access to key things like REST Client and target Namespace
+// SessionContext holds the context for a single session object, giving access to key things like REST Client and target Namespace.
 type SessionContext struct {
 	context.Context
 
@@ -19,14 +19,14 @@ type SessionContext struct {
 	Log       logr.Logger
 }
 
-// Route references the strategy used to route to the target Refs
+// Route references the strategy used to route to the target Refs.
 type Route struct {
 	Type  string
 	Name  string
 	Value string
 }
 
-// Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo
+// Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo.
 type Ref struct {
 	Name             string
 	Namespace        string
@@ -36,13 +36,13 @@ type Ref struct {
 	ResourceStatuses []ResourceStatus
 }
 
-// HostName represents the Hostname of a service in a given namespace
+// HostName represents the Hostname of a service in a given namespace.
 type HostName struct {
 	Name      string
 	Namespace string
 }
 
-// Predicate base function to filter Resources
+// Predicate base function to filter Resources.
 type Predicate func(ResourceStatus) bool
 
 // Any Predicate returns true if any of the predicates match
@@ -92,7 +92,7 @@ func AnyKind(kinds ...string) Predicate {
 	return Any(pred...)
 }
 
-// GetTargets use a Predicate to filter the LocatedResourceStatus
+// GetTargets use a Predicate to filter the LocatedResourceStatus.
 func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 	targets := []LocatedResourceStatus{}
 	for _, target := range r.Targets {
@@ -103,14 +103,14 @@ func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 	return targets
 }
 
-// Match returns true if this Hostname is equal to the short or long v of a dns name
+// Match returns true if this Hostname is equal to the short or long v of a dns name.
 func (h *HostName) Match(name string) bool {
 	equalsShortName := h.Name == name
 	equalsFullDNSName := fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name
 	return equalsShortName || equalsFullDNSName
 }
 
-// GetTargetHostNames returns a list of Host names that the target Deployment can be reached under
+// GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.
 func (r *Ref) GetTargetHostNames() []HostName {
 	hosts := []HostName{}
 	for _, service := range r.GetTargets(Kind("Service")) {
@@ -120,7 +120,7 @@ func (r *Ref) GetTargetHostNames() []HostName {
 	return hosts
 }
 
-// GetVersion returns the existing version name
+// GetVersion returns the existing version name.
 func (r *Ref) GetVersion() string {
 	target := r.GetTargets(AnyKind("Deployment", "DeploymentConfig"))
 	if len(target) == 1 {
@@ -131,12 +131,12 @@ func (r *Ref) GetVersion() string {
 	return "unknown"
 }
 
-// GetNewVersion returns the new updated version name
+// GetNewVersion returns the new updated version name.
 func (r *Ref) GetNewVersion(sessionName string) string {
 	return r.GetVersion() + "-" + sessionName
 }
 
-// AddTargetResource adds the status of an involved Resource to this ref
+// AddTargetResource adds the status of an involved Resource to this ref.
 func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
 	replaced := false
 	for i, status := range r.Targets {
@@ -150,7 +150,7 @@ func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
 	}
 }
 
-// AddResourceStatus adds the status of an involved Resource to this ref
+// AddResourceStatus adds the status of an involved Resource to this ref.
 func (r *Ref) AddResourceStatus(ref ResourceStatus) {
 	replaced := false
 	for i, status := range r.ResourceStatuses {
@@ -164,7 +164,7 @@ func (r *Ref) AddResourceStatus(ref ResourceStatus) {
 	}
 }
 
-// RemoveResourceStatus removes the status of an involved Resource to this ref
+// RemoveResourceStatus removes the status of an involved Resource to this ref.
 func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 	for i, status := range r.ResourceStatuses {
 		if ref.Name == status.Name && ref.Kind == status.Kind {
@@ -173,7 +173,7 @@ func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 	}
 }
 
-// GetResources use a Predicate to filter the ResourceStatus
+// GetResources use a Predicate to filter the ResourceStatus.
 func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 	refs := []ResourceStatus{}
 	for _, status := range r.ResourceStatuses {
@@ -184,7 +184,7 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 	return refs
 }
 
-// ResourceStatus holds information about the resources created/changed to fulfill a Ref
+// ResourceStatus holds information about the resources created/changed to fulfill a Ref.
 type ResourceStatus struct {
 	Kind string
 	Name string
@@ -192,14 +192,14 @@ type ResourceStatus struct {
 	Action ResourceAction
 }
 
-// LocatedResourceStatus is a ResourceStatus with labels
+// LocatedResourceStatus is a ResourceStatus with labels.
 type LocatedResourceStatus struct {
 	ResourceStatus
 
 	Labels map[string]string
 }
 
-// NewLocatedResource is a simple helper to create LocatedResourceStatus
+// NewLocatedResource is a simple helper to create LocatedResourceStatus.
 func NewLocatedResource(kind, name string, labels map[string]string) LocatedResourceStatus {
 	return LocatedResourceStatus{
 		ResourceStatus: ResourceStatus{
@@ -226,13 +226,13 @@ const (
 )
 
 // Locator should attempt to resolve a Ref.Name to a target Named kind, e.g. Deployment, DeploymentConfig.
-// return false if nothing was found
+// return false if nothing was found.
 type Locator func(SessionContext, *Ref) bool
 
 // Mutator should create/modify a target Kind as required as needed
-// * Add status to Ref for storage, failed or not
+// * Add status to Ref for storage, failed or not.
 type Mutator func(SessionContext, *Ref) error
 
 // Revertor should delete/modify a target Kind to return to the original state after a Mutator
-// * Remove status from Ref unless there is a failure that requires retry
+// * Remove status from Ref unless there is a failure that requires retry.
 type Revertor func(SessionContext, *Ref) error

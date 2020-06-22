@@ -26,14 +26,14 @@ var (
 	GatewayHost   = "*"
 )
 
-// Entry is a simple value object that holds the basic configuration used by the generator
+// Entry is a simple value object that holds the basic configuration used by the generator.
 type Entry struct {
 	Name           string
 	DeploymentType string
 	Namespace      string
 }
 
-// HostName return the full cluster host name if Namespace is set or the local if not
+// HostName return the full cluster host name if Namespace is set or the local if not.
 func (e *Entry) HostName() string {
 	if e.Namespace != "" {
 		return e.Name + "." + e.Namespace + ".svc.cluster.local"
@@ -41,13 +41,13 @@ func (e *Entry) HostName() string {
 	return e.Name
 }
 
-// SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification
+// SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification.
 type SubGenerator func(service Entry) runtime.Object
 
-// Modifier is a function to change a runtime.Object into something more specific for a given scenario
+// Modifier is a function to change a runtime.Object into something more specific for a given scenario.
 type Modifier func(service Entry, object runtime.Object)
 
-// Generate runs and prints the full test scenario generation to sysout
+// Generate runs and prints the full test scenario generation to sysout.
 func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 	modify := func(service Entry, object runtime.Object) {
@@ -80,7 +80,7 @@ func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	printObj(gw)
 }
 
-// DeploymentConfig basic SubGenerator for the kind DeploymentConfig
+// DeploymentConfig basic SubGenerator for the kind DeploymentConfig.
 func DeploymentConfig(service Entry) runtime.Object {
 	if service.DeploymentType != "DeploymentConfig" {
 		return nil
@@ -106,7 +106,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 	}
 }
 
-// Deployment basic SubGenerator for the kind Deployment
+// Deployment basic SubGenerator for the kind Deployment.
 func Deployment(service Entry) runtime.Object {
 	if service.DeploymentType != "Deployment" {
 		return nil
@@ -134,7 +134,7 @@ func Deployment(service Entry) runtime.Object {
 	}
 }
 
-// Service basic SubGenerator for the kind Service
+// Service basic SubGenerator for the kind Service.
 func Service(service Entry) runtime.Object {
 	return &corev1.Service{
 		TypeMeta: v1.TypeMeta{
@@ -166,7 +166,7 @@ func Service(service Entry) runtime.Object {
 	}
 }
 
-// DestinationRule basic SubGenerator for the kind DestinationRule
+// DestinationRule basic SubGenerator for the kind DestinationRule.
 func DestinationRule(service Entry) runtime.Object {
 	return &istionetwork.DestinationRule{
 		TypeMeta: v1.TypeMeta{
@@ -183,7 +183,7 @@ func DestinationRule(service Entry) runtime.Object {
 	}
 }
 
-// VirtualService basic SubGenerator for the kind VirtualService
+// VirtualService basic SubGenerator for the kind VirtualService.
 func VirtualService(service Entry) runtime.Object {
 	return &istionetwork.VirtualService{
 		TypeMeta: v1.TypeMeta{
@@ -223,7 +223,7 @@ func VirtualService(service Entry) runtime.Object {
 	}
 }
 
-// Gateway basic SubGenerator for the kind Gateway
+// Gateway basic SubGenerator for the kind Gateway.
 func Gateway() runtime.Object {
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{

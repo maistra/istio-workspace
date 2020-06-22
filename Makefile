@@ -63,7 +63,7 @@ format: ## Removes unneeded imports and formats source code
 	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
-lint-prepare: deps operator-codegen
+lint-prepare: deps operator-codegen compile
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
@@ -146,7 +146,7 @@ install-dep:
 .PHONY: tools
 tools: install-dep ## Installs required go tools
 	$(call header,"Installing required tools")
-	GO111MODULE=on go get -u github.com/golangci/golangci-lint/cmd/golangci-lint@v1.19.1
+	GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.27.0
 	go get -u golang.org/x/tools/cmd/goimports
 	$(eval GINKGO_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/onsi/ginkgo"}}{{.Version}}{{end}}'))
 	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)

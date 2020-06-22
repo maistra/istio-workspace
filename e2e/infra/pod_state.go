@@ -7,7 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// AllPodsReady checks whether all the pods (and their containers) in the given namespace are in Ready state
+// AllPodsReady checks whether all the pods (and their containers) in the given namespace are in Ready state.
 func AllPodsReady(ns string) func() bool {
 	return func() bool {
 		pods := GetAllPods(ns)
@@ -25,7 +25,7 @@ func AllPodsReady(ns string) func() bool {
 	}
 }
 
-// GetAllPods returns names of all pods from a given namespace
+// GetAllPods returns names of all pods from a given namespace.
 func GetAllPods(ns string) []string {
 	podsCmd := shell.ExecuteInDir(".",
 		"oc", "get", "pod",
@@ -35,13 +35,13 @@ func GetAllPods(ns string) []string {
 	return strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
 }
 
-// StateOf returns state of the pod
+// StateOf returns state of the pod.
 func StateOf(ns, pod string) {
 	state := shell.Execute("oc get pod " + pod + " -n " + ns + " -o yaml")
 	<-state.Done()
 }
 
-// LogsOf returns logs of all containers in the pod
+// LogsOf returns logs of all containers in the pod.
 func LogsOf(ns, pod string) string {
 	logs := shell.Execute("oc logs " + pod + " -n " + ns + " --all-containers=true")
 	<-logs.Done()

@@ -35,7 +35,7 @@ If you can't see any changes make sure that this header is respected by your app
 
 var DefaultExclusions = []string{"*.log", ".git/"}
 
-// NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined
+// NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	developCmd := &cobra.Command{
 		Use:          "develop",

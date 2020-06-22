@@ -19,7 +19,7 @@ var (
 	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
 )
 
-// Options holds the variables used by the Session Handler
+// Options holds the variables used by the Session Handler.
 type Options struct {
 	NamespaceName  string            // name of the namespace for target resource
 	DeploymentName string            // name of the initial resource to target
@@ -29,7 +29,7 @@ type Options struct {
 	StrategyArgs   map[string]string // additional arguments for the strategy
 }
 
-// State holds the new variables as presented by the creation of the session
+// State holds the new variables as presented by the creation of the session.
 type State struct {
 	DeploymentName string // name of the resource to target within the cloned route.
 }
@@ -37,12 +37,12 @@ type State struct {
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
 type Handler func(opts Options) (State, func(), error)
 
-// Offline is a empty Handler doing nothing. Used for testing
+// Offline is a empty Handler doing nothing. Used for testing.
 func Offline(opts Options) (State, func(), error) {
 	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
-// handler wraps the session client and required metadata used to manipulate the resources
+// handler wraps the session client and required metadata used to manipulate the resources.
 type handler struct {
 	c    *client
 	opts Options
@@ -51,7 +51,7 @@ type handler struct {
 // RemoveHandler provides the option to delete an existing sessions if found.
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
-//  * session - the name of the session
+//  * session - the name of the session.
 func RemoveHandler(opts Options) (State, func(), error) {
 	client, err := DefaultClient(opts.NamespaceName)
 
@@ -72,7 +72,7 @@ func RemoveHandler(opts Options) (State, func(), error) {
 //  * namespace - the name of the target namespace where deployment is defined
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
-//  * route - the definition of traffic routing
+//  * route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options) (State, func(), error) {
 	sessionName := getOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
@@ -97,7 +97,7 @@ func CreateOrJoinHandler(opts Options) (State, func(), error) {
 		}, nil
 }
 
-// createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name
+// createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
 func (h *handler) createOrJoinSession() (string, error) {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
@@ -220,7 +220,7 @@ func getOrCreateSessionName(sessionName string) string {
 	return u.Username + "-" + random
 }
 
-// ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value
+// ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
 func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 	if route == "" {
 		return nil, nil

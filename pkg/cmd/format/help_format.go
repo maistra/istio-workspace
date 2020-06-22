@@ -14,7 +14,7 @@ import (
 // EnhanceHelper wraps helper function with alternative formatting
 // and templates (e.g. asciidoc) based on --helper-format flag
 // Applies to all subcommands.
-// This can be useful when automatically generating documentation for CLI
+// This can be useful when automatically generating documentation for CLI.
 func EnhanceHelper(command *cobra.Command) {
 	originalHelpFunc := command.HelpFunc()
 	command.SetHelpFunc(func(cmd *cobra.Command, i []string) {
