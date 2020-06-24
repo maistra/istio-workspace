@@ -19,7 +19,7 @@ func TestScenario1HTTPThreeServicesInSequence(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
-		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway()),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
@@ -36,7 +36,7 @@ func TestScenario1GRPCThreeServicesInSequence(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
-		ForService(productpage, Call(GRPC(), reviews), ConnectToGateway()),
+		ForService(productpage, Call(GRPC(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(GRPC(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
@@ -54,7 +54,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings},
 		WithVersion("v1"),
-		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway()),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
@@ -72,9 +72,9 @@ func DemoScenario(out io.Writer) {
 		out,
 		[]Entry{productpage, reviews, ratings, authors, locations},
 		WithVersion("v1"),
-		ForService(productpage, Call(HTTP(), reviews), Call(HTTP(), authors), ConnectToGateway()),
+		ForService(productpage, Call(HTTP(), reviews), Call(HTTP(), authors), ConnectToGateway("ike-demo.io")),
 		ForService(reviews, Call(GRPC(), ratings)),
 		ForService(authors, Call(GRPC(), locations)),
-		GatewayOnHost("ike-demo.io"), GatewayOnHost("*.ike-demo.io"),
+		GatewayOnHost("ike-demo.io"),
 	)
 }

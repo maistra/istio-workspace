@@ -42,15 +42,62 @@ type HostName struct {
 	Namespace string
 }
 
-// GetTargetsByKind returns the targets of the given kind.
-func (r *Ref) GetTargetsByKind(kinds ...string) []LocatedResourceStatus {
+// Predicate base function to filter Resources.
+type Predicate func(ResourceStatus) bool
+
+// Any Predicate returns true if any of the predicates match.
+func Any(predicates ...Predicate) Predicate {
+	return func(resource ResourceStatus) bool {
+		for _, predicate := range predicates {
+			if predicate(resource) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// All Predicate returns true if all of the predicates match.
+func All(predicates ...Predicate) Predicate {
+	return func(resource ResourceStatus) bool {
+		for _, predicate := range predicates {
+			if !predicate(resource) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+// Kind Predicate returns true if kind matches resource.
+func Kind(kind string) Predicate {
+	return func(resource ResourceStatus) bool {
+		return resource.Kind == kind
+	}
+}
+
+// Name Predicate returns true if name matches resource.
+func Name(name string) Predicate {
+	return func(resource ResourceStatus) bool {
+		return resource.Name == name
+	}
+}
+
+// AnyKind is a shortcut Predicate for Any and Kind from strings.
+func AnyKind(kinds ...string) Predicate {
+	pred := []Predicate{}
+	for _, kind := range kinds {
+		pred = append(pred, Kind(kind))
+	}
+	return Any(pred...)
+}
+
+// GetTargets use a Predicate to filter the LocatedResourceStatus.
+func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 	targets := []LocatedResourceStatus{}
 	for _, target := range r.Targets {
-		for _, kind := range kinds {
-			if target.Kind == kind {
-				targets = append(targets, target)
-				break
-			}
+		if predicate(target.ResourceStatus) {
+			targets = append(targets, target)
 		}
 	}
 	return targets
@@ -66,7 +113,7 @@ func (h *HostName) Match(name string) bool {
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.
 func (r *Ref) GetTargetHostNames() []HostName {
 	hosts := []HostName{}
-	for _, service := range r.GetTargetsByKind("Service") {
+	for _, service := range r.GetTargets(Kind("Service")) {
 		hosts = append(hosts, HostName{Name: service.Name, Namespace: r.Namespace})
 	}
 
@@ -75,7 +122,7 @@ func (r *Ref) GetTargetHostNames() []HostName {
 
 // GetVersion returns the existing version name.
 func (r *Ref) GetVersion() string {
-	target := r.GetTargetsByKind("Deployment", "DeploymentConfig")
+	target := r.GetTargets(AnyKind("Deployment", "DeploymentConfig"))
 	if len(target) == 1 {
 		if val, ok := target[0].Labels["version"]; ok {
 			return val
@@ -126,11 +173,11 @@ func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 	}
 }
 
-// GetResourceStatus returns a array of involved Resources based on a k8s Kind.
-func (r *Ref) GetResourceStatus(kind string) []ResourceStatus {
+// GetResources use a Predicate to filter the ResourceStatus.
+func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 	refs := []ResourceStatus{}
 	for _, status := range r.ResourceStatuses {
-		if status.Kind == kind {
+		if predicate(status) {
 			refs = append(refs, status)
 		}
 	}

@@ -38,17 +38,20 @@ func DefaultManipulators() Manipulators {
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
+			istio.VirtualServiceGatewayLocator,
 		},
 		Mutators: []model.Mutator{
 			k8s.DeploymentMutator,
 			openshift.DeploymentConfigMutator,
 			istio.DestinationRuleMutator,
+			istio.GatewayMutator,
 			istio.VirtualServiceMutator,
 		},
 		Revertors: []model.Revertor{
 			k8s.DeploymentRevertor,
 			openshift.DeploymentConfigRevertor,
 			istio.DestinationRuleRevertor,
+			istio.GatewayRevertor,
 			istio.VirtualServiceRevertor,
 		},
 	}
@@ -151,10 +154,10 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	if deleted {
 		r.deleteAllRefs(ctx, session, refs)
 	} else {
+		r.deleteRemovedRefs(ctx, session, refs)
 		if err := r.syncAllRefs(ctx, session); err != nil {
 			return reconcile.Result{}, err
 		}
-		r.deleteRemovedRefs(ctx, session, refs)
 	}
 
 	if deleted {

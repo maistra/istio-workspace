@@ -6,24 +6,29 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
-
-	appsv1 "github.com/openshift/api/apps/v1"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	appsv1 "github.com/openshift/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
-	var objects []runtime.Object
-	var ctx model.SessionContext
+	var (
+		objects []runtime.Object
+		c       client.Client
+		ctx     model.SessionContext
+		get     *testclient.Getters
+	)
 
 	CreateTestRef := func() model.Ref {
 		return model.Ref{
@@ -37,12 +42,14 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		schema := runtime.NewScheme()
 		err := appsv1.Install(schema)
 		Expect(err).ToNot(HaveOccurred())
+		c = fake.NewFakeClientWithScheme(schema, objects...)
+		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
 			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "openshift-deploymentconfig"),
-			Client:    fake.NewFakeClientWithScheme(schema, objects...),
+			Client:    c,
 		}
 	})
 
@@ -138,9 +145,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			_ = get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
@@ -148,9 +153,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
@@ -159,9 +162,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
@@ -170,9 +171,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-			Expect(err).ToNot(HaveOccurred())
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo("v1-test"))
 		})
 
@@ -181,8 +180,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-			err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: notMatchingRef.Name + "-v1-" + ctx.Name}, &deployment)
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.Name+"-v1-"+ctx.Name)
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -194,10 +192,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.DeploymentConfig{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-				Expect(err).ToNot(HaveOccurred())
-
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
@@ -206,10 +201,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := appsv1.DeploymentConfig{}
-				err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
-				Expect(err).ToNot(HaveOccurred())
-
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -253,15 +245,13 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := appsv1.DeploymentConfig{}
-
-			mutatedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			revertorErr := openshift.DeploymentConfigRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
-			revertedFetchErr := ctx.Client.Get(ctx, types.NamespacedName{Namespace: ctx.Namespace, Name: ref.Name + "-v1-" + ctx.Name}, &deployment)
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})

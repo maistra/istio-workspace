@@ -38,10 +38,10 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 
 // DeploymentMutator attempts to clone the located Deployment.
 func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResourceStatus(DeploymentKind)) > 0 {
+	if len(ref.GetResources(model.Kind(DeploymentKind))) > 0 {
 		return nil
 	}
-	targets := ref.GetTargetsByKind(DeploymentKind)
+	targets := ref.GetTargets(model.Kind(DeploymentKind))
 	if len(targets) == 0 {
 		return nil
 	}
@@ -74,7 +74,7 @@ func DeploymentMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 // DeploymentRevertor attempts to delete the cloned Deployment.
 func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	statuses := ref.GetResourceStatus(DeploymentKind)
+	statuses := ref.GetResources(model.Kind(DeploymentKind))
 	for _, status := range statuses {
 		deployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},

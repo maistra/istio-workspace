@@ -1,127 +1,176 @@
-package istio //nolint:testpackage //reason we want to test converters in isolation
+package istio_test
 
 import (
+	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/test/testclient"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
-	"istio.io/api/networking/v1alpha3"
-	k8yaml "sigs.k8s.io/yaml"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for istio DestinationRule kind", func() {
 
-	GetName := func(s *v1alpha3.Subset) string { return s.Name }
+	GetName := func(s *istionetworkv1alpha3.Subset) string { return s.Name }
 
 	var (
-		err             error
-		destinationRule istionetwork.DestinationRule
-		yaml            string
+		objects []runtime.Object
+		c       client.Client
+		ctx     model.SessionContext
+		get     *testclient.Getters
 	)
+
+	BeforeEach(func() {
+		objects = []runtime.Object{
+			&istionetwork.DestinationRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "customer-mutate",
+					Namespace: "test",
+				},
+				Spec: istionetworkv1alpha3.DestinationRule{
+					Host: "customer-mutate",
+					Subsets: []*istionetworkv1alpha3.Subset{
+						&istionetworkv1alpha3.Subset{
+							Name: "v1",
+							Labels: map[string]string{
+								"version": "v1",
+							},
+						},
+					},
+				},
+			},
+			&istionetwork.DestinationRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "customer-revert",
+					Namespace: "test",
+				},
+				Spec: istionetworkv1alpha3.DestinationRule{
+					Host: "customer-revert",
+					Subsets: []*istionetworkv1alpha3.Subset{
+						&istionetworkv1alpha3.Subset{
+							Name: "v1",
+							Labels: map[string]string{
+								"version": "v1",
+							},
+						},
+						&istionetworkv1alpha3.Subset{
+							Name: "dr-test",
+							Labels: map[string]string{
+								"version": "dr-test",
+							},
+						},
+					},
+				},
+			},
+		}
+	})
+
+	JustBeforeEach(func() {
+		schema, _ := v1alpha1.SchemeBuilder.Register(
+			&istionetwork.DestinationRule{},
+			&istionetwork.DestinationRuleList{}).Build()
+
+		c = fake.NewFakeClientWithScheme(schema, objects...)
+		get = testclient.New(c)
+		ctx = model.SessionContext{
+			Name:      "test",
+			Namespace: "test",
+			Client:    c,
+			Log:       log.CreateOperatorAwareLogger("destinationrule"),
+		}
+	})
 
 	Context("mutators", func() {
 
-		JustBeforeEach(func() {
-			err = k8yaml.Unmarshal([]byte(yaml), &destinationRule)
-		})
-
 		Context("existing rule", func() {
+
 			var (
-				mutatedDestinationRule istionetwork.DestinationRule
+				ref *model.Ref
 			)
 
 			BeforeEach(func() {
-				yaml = simpleDestinationRule
-			})
-
-			JustBeforeEach(func() {
-				mutatedDestinationRule = mutateDestinationRule(destinationRule, "dr-test")
+				ref = &model.Ref{
+					Name: "customer-v1",
+					Targets: []model.LocatedResourceStatus{
+						model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
+						model.NewLocatedResource("Service", "customer-mutate", nil),
+					},
+				}
 			})
 
 			It("new subset added", func() {
-				Expect(mutatedDestinationRule.Spec.Subsets).To(HaveLen(3))
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRule("test", "customer-mutate")
+				Expect(dr.Spec.Subsets).To(HaveLen(2))
 			})
 
 			It("new subset added with name", func() {
-				Expect(mutatedDestinationRule.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("dr-test"))))
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRule("test", "customer-mutate")
+				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
 			})
 
+			It("new subset only added once", func() {
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				// apply twice
+				err = istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRule("test", "customer-mutate")
+				Expect(dr.Spec.Subsets).To(HaveLen(2))
+				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+			})
 		})
 	})
 
 	Context("revertors", func() {
 
-		JustBeforeEach(func() {
-			err = k8yaml.Unmarshal([]byte(yaml), &destinationRule)
+		var (
+			ref *model.Ref
+		)
+
+		BeforeEach(func() {
+			ref = &model.Ref{
+				Name: "customer-v1",
+				Targets: []model.LocatedResourceStatus{
+					model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
+					model.NewLocatedResource("Service", "customer-revert", nil),
+				},
+			}
 		})
 
 		Context("existing rule", func() {
-			var (
-				revertedDestinationRule istionetwork.DestinationRule
-			)
-
-			BeforeEach(func() {
-				yaml = simpleMutatedDestinationRule
-			})
 
 			It("new subset removed", func() {
-				revertedDestinationRule = revertDestinationRule(destinationRule, "dr-test")
+				err := istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(revertedDestinationRule.Spec.Subsets).To(HaveLen(2))
+				dr := get.DestinationRule("test", "customer-revert")
+				Expect(dr.Spec.Subsets).To(HaveLen(2))
 			})
 
 			It("correct subset removed", func() {
-				revertedDestinationRule = revertDestinationRule(destinationRule, "dr-test")
+				err := istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(revertedDestinationRule.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("dr-test"))))
+				dr := get.DestinationRule("test", "customer-revert")
+				Expect(dr.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("v1-test"))))
 			})
 		})
 	})
 })
-
-var simpleDestinationRule = `kind: DestinationRule
-metadata:
-  annotations:
-  creationTimestamp: 2019-01-16T19:28:05Z
-  generation: 1
-  name: details
-  namespace: bookinfo
-  resourceVersion: "4955188"
-  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/bookinfo/destinationrules/details
-  uid: d928001c-19c4-11e9-a489-482ae3045b54
-spec:
-  host: details
-  subsets:
-  - labels:
-      version: v1
-    name: v1
-  - labels:
-      version: v2
-    name: v2
-`
-
-var simpleMutatedDestinationRule = `kind: DestinationRule
-metadata:
-  creationTimestamp: "2019-01-16T19:28:05Z"
-  generation: 1
-  name: details
-  namespace: bookinfo
-  resourceVersion: "4955188"
-  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/bookinfo/destinationrules/details
-  uid: d928001c-19c4-11e9-a489-482ae3045b54
-spec:
-  host: details
-  subsets:
-  - labels:
-      version: v1
-    name: v1
-  - labels:
-      version: v2
-    name: v2
-  - labels:
-      version: dr-test
-    name: dr-test
-`

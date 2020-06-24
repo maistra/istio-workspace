@@ -8,7 +8,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "github.com/openshift/api/apps/v1"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -43,10 +42,10 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 
 // DeploymentConfigMutator attempts to clone the located DeploymentConfig.
 func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResourceStatus(DeploymentConfigKind)) > 0 {
+	if len(ref.GetResources(model.Kind(DeploymentConfigKind))) > 0 {
 		return nil
 	}
-	targets := ref.GetTargetsByKind(DeploymentConfigKind)
+	targets := ref.GetTargets(model.Kind(DeploymentConfigKind))
 	if len(targets) == 0 {
 		return nil
 	}
@@ -79,7 +78,7 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 // DeploymentConfigRevertor attempts to delete the cloned DeploymentConfig.
 func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	statuses := ref.GetResourceStatus(DeploymentConfigKind)
+	statuses := ref.GetResources(model.Kind(DeploymentConfigKind))
 	for _, status := range statuses {
 		deployment := &appsv1.DeploymentConfig{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},
