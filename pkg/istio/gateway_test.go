@@ -98,7 +98,6 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				Expect(ref.ResourceStatuses).To(HaveLen(1))
 				Expect(ref.ResourceStatuses[0].Name).To(Equal("gateway"))
 				Expect(ref.ResourceStatuses[0].Kind).To(Equal("Gateway"))
-				Expect(ref.ResourceStatuses[0].Prop).ToNot(BeEmpty())
 				Expect(ref.ResourceStatuses[0].Prop["hosts"]).To(Equal("test.domain.com"))
 			})
 
