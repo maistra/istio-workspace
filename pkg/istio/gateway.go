@@ -29,7 +29,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
-		mutatedGw, addedHosts, err := mutateGateway(ctx, *gw)
+		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
@@ -75,11 +75,11 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istionetwork.Gateway, []string, error) {
+func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
-	addedHosts := []string{}
+	addedHosts = []string{}
 	existingHosts := []string{}
 	if hosts := source.Annotations[LabelIkeHosts]; hosts != "" {
 		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
@@ -97,7 +97,7 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (istio
 		server.Hosts = hosts
 	}
 	source.Annotations[LabelIkeHosts] = strings.Join(existingHosts, ",")
-	return source, addedHosts, nil
+	return source, addedHosts
 }
 
 func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istionetwork.Gateway {
