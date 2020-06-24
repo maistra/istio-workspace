@@ -1,4 +1,4 @@
-package operator
+package testclient
 
 import (
 	"context"
@@ -14,12 +14,12 @@ import (
 )
 
 /*
- * Test helpers for Operator test suite
+ * Test Getters for Operator test suite
  */
 
-// New returns a new set of helpers for a given Client.
-func New(c client.Client) *Helpers {
-	return &Helpers{
+// New returns a new set of Getters for a given Client.
+func New(c client.Client) *Getters {
+	return &Getters{
 		Session:                   Session(c),
 		Gateway:                   Gateway(c),
 		DestinationRule:           DestinationRule(c),
@@ -32,8 +32,8 @@ func New(c client.Client) *Helpers {
 	}
 }
 
-// Helpers simple struct to hold funcs.
-type Helpers struct {
+// Getters simple struct to hold funcs.
+type Getters struct {
 	Session                   func(namespace, name string) v1alpha1.Session
 	Gateway                   func(namespace, name string) istionetwork.Gateway
 	DestinationRule           func(namespace, name string) istionetwork.DestinationRule

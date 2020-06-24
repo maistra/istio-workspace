@@ -1,10 +1,11 @@
-package istio //nolint:testpackage //reason we want to test converters in isolation
+package istio_test
 
 import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/test/operator"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,7 +26,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		objects []runtime.Object
 		c       client.Client
 		ctx     model.SessionContext
-		get     *operator.Helpers
+		get     *testclient.Getters
 	)
 
 	BeforeEach(func() {
@@ -79,7 +80,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			&istionetwork.DestinationRuleList{}).Build()
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(c)
+		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",
@@ -107,7 +108,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			It("new subset added", func() {
-				err := DestinationRuleMutator(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-mutate")
@@ -115,7 +116,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			It("new subset added with name", func() {
-				err := DestinationRuleMutator(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-mutate")
@@ -123,11 +124,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			It("new subset only added once", func() {
-				err := DestinationRuleMutator(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				// apply twice
-				err = DestinationRuleMutator(ctx, ref)
+				err = istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-mutate")
@@ -156,7 +157,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 
 			It("new subset removed", func() {
-				err := DestinationRuleRevertor(ctx, ref)
+				err := istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-revert")
@@ -164,7 +165,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			It("correct subset removed", func() {
-				err := DestinationRuleRevertor(ctx, ref)
+				err := istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-revert")

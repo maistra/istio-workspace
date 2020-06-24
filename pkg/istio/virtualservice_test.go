@@ -1,10 +1,10 @@
-package istio //nolint:testpackage //reason we want to test converters in isolation
+package istio //nolint:testpackage //reason we want to test mutationRequired in isolation
 
 import (
 	"github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/test/operator"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +23,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		objects []runtime.Object
 		c       client.Client
 		ctx     model.SessionContext
-		get     *operator.Helpers
+		get     *testclient.Getters
 	)
 
 	JustBeforeEach(func() {
@@ -33,7 +33,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			&istionetwork.Gateway{}).Build()
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(c)
+		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "vs-test",
 			Namespace: "test",

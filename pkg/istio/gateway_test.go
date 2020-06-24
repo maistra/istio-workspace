@@ -5,7 +5,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/test/operator"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -24,7 +24,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 		objects []runtime.Object
 		c       client.Client
 		ctx     model.SessionContext
-		get     *operator.Helpers
+		get     *testclient.Getters
 		ref     *model.Ref
 	)
 
@@ -34,7 +34,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			&istionetwork.GatewayList{}).Build()
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(c)
+		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",

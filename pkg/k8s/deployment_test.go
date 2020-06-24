@@ -6,7 +6,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/test/operator"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,7 +27,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		objects []runtime.Object
 		c       client.Client
 		ctx     model.SessionContext
-		get     *operator.Helpers
+		get     *testclient.Getters
 	)
 
 	CreateTestRef := func() model.Ref {
@@ -43,7 +43,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		err := appsv1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(c)
+		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",

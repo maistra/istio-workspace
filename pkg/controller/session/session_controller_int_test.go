@@ -10,7 +10,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
-	"github.com/maistra/istio-workspace/test/operator"
+	"github.com/maistra/istio-workspace/test/testclient"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -38,7 +38,7 @@ var _ = Describe("Complete session manipulation", func() {
 		schema     *runtime.Scheme
 		c          client.Client
 		scenario   func(io.Writer)
-		get        *operator.Helpers
+		get        *testclient.Getters
 	)
 	JustBeforeEach(func() {
 		logf.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
@@ -53,7 +53,7 @@ var _ = Describe("Complete session manipulation", func() {
 		objects = append(objects, objs...)
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
-		get = operator.New(c)
+		get = testclient.New(c)
 		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
 	})
 
