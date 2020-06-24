@@ -41,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			EnablePullingImages(namespace)
 			InstallLocalOperator(namespace)
 			DeployTestScenario(scenario, namespace)
-			sessionName = GenerateSessionName(7)
+			sessionName = GenerateSessionName()
 		})
 
 		AfterEach(func() {

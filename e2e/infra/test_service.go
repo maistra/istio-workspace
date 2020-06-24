@@ -93,8 +93,8 @@ func stringWithCharset(length int, charset string) string {
 }
 
 // GenerateSessionName returns a random safe string to be used as a session name.
-func GenerateSessionName(length int) string {
-	return stringWithCharset(length, charset)
+func GenerateSessionName() string {
+	return stringWithCharset(8, charset)
 }
 
 // PublisherRuby contains fixed response to be changed by tests.
