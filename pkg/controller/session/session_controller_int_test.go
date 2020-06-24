@@ -3,7 +3,6 @@ package session_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"strings"
 
@@ -203,7 +202,6 @@ var _ = Describe("Complete session manipulation", func() {
 
 			// Verify
 			gw := get.Gateway("test", "test-gateway")
-			fmt.Println(gw.Spec.Servers[0].Hosts)
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 
 			vss := get.VirtualServices("test")
@@ -220,14 +218,10 @@ var _ = Describe("Complete session manipulation", func() {
 
 			// Verify - no vs removed (only gateway connected duplicated)
 			vss = get.VirtualServices("test")
-			for _, vs := range vss.Items {
-				fmt.Println(vs.Name)
-			}
 			Expect(vss.Items).To(HaveLen(4))
 
 			// Verify - same Gateways Hosts still connected, ref01 still need them
 			gw = get.Gateway("test", "test-gateway")
-			fmt.Println(gw.Spec.Servers[0].Hosts)
 			Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 		})
 
