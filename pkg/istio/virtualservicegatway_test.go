@@ -19,8 +19,6 @@ import (
 
 var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 
-	// Missing tests:
-	//  - verify existing host logic from GW works (filter out our own sub domains)
 	Context("gateway attachment", func() {
 
 		var (
@@ -79,13 +77,16 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-gateway",
 						Namespace: "bookinfo",
+						Annotations: map[string]string{
+							istio.LabelIkeHosts: "active-session.redhat-devcon.io",
+						},
 					},
 					Spec: istionetworkv1alpha3.Gateway{
 						Selector: map[string]string{"istio": "ingressgateway"},
 						Servers: []*istionetworkv1alpha3.Server{
 							{
 								Port:  &istionetworkv1alpha3.Port{Name: "http", Protocol: "HTTP", Number: 80},
-								Hosts: []string{"redhat-kubecon.io", "redhat-devcon.io"},
+								Hosts: []string{"redhat-kubecon.io", "redhat-devcon.io", "active-session.redhat-devcon.io"},
 							},
 						},
 					},
@@ -109,7 +110,20 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 			}
 		})
 
-		It("should locate gateway", func() {
+		It("should expose hosts of located gateway", func() {
+			ref := model.Ref{
+				Name: "customer-v1",
+			}
+
+			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
+			Expect(found).To(BeTrue())
+
+			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
+			Expect(gws).To(HaveLen(1))
+			Expect(gws[0].Labels[istio.LabelIkeHosts]).ToNot(BeEmpty())
+		})
+
+		It("should only expose hosts not belonging to other sessions", func() {
 			ref := model.Ref{
 				Name: "customer-v1",
 			}
