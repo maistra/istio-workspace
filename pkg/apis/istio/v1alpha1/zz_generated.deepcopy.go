@@ -73,6 +73,13 @@ func (in *RefResource) DeepCopyInto(out *RefResource) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.Prop != nil {
+		in, out := &in.Prop, &out.Prop
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

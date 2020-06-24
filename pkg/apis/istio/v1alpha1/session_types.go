@@ -41,9 +41,10 @@ type RefStatus struct {
 
 // RefResource defines the observed resources mutated/created as part of the Ref.
 type RefResource struct {
-	Kind   *string `json:"kind,omitempty"`
-	Name   *string `json:"name,omitempty"`
-	Action *string `json:"action,omitempty"`
+	Kind   *string           `json:"kind,omitempty"`
+	Name   *string           `json:"name,omitempty"`
+	Action *string           `json:"action,omitempty"`
+	Prop   map[string]string `json:"prop,omitempty"`
 }
 
 // LabeledRefResource is a RefResource with Labels.
