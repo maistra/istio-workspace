@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "watch")
+var logger = log.Log.WithValues("type", "watch")
 
 // NewCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.

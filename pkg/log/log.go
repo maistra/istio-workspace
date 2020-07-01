@@ -11,8 +11,18 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
+
+// Log is the central logger for this program.
+var Log = zapr2.NewLogger(zap.New(zapcore.NewNopCore()))
+
+// SetLogger sets the central logger to use.
+func SetLogger(logger logr.Logger) {
+	Log = logger
+	logf.SetLogger(logger)
+}
 
 // CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
 func CreateOperatorAwareLogger(name string) logr.Logger {

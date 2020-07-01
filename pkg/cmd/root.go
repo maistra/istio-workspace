@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "root")
+var logger = log.Log.WithValues("type", "root")
 
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {

@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "serve")
+var logger = log.Log.WithValues("type", "serve")
 
 var (
 	metricsHost       = "0.0.0.0"

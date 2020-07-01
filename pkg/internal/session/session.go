@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
+	logger = log.Log.WithValues("type", "session")
 )
 
 // Options holds the variables used by the Session Handler.
