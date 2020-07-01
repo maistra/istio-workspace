@@ -121,6 +121,10 @@ parameters:
     description: "The tag of the image to be used"
     required: true
     value: latest
+  - name: IKE_VERSION
+    description: "The version of the binary"
+    required: true
+    value: latest
   - name: WATCH_NAMESPACE
     description: "The namespace to watch. Leave empty for cluster wide watch."
     required: false
