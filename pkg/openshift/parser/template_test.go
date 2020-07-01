@@ -37,7 +37,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", map[string]string{"IKE_VERSION": version.Version})
+			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.tpl.yaml", map[string]string{"IKE_VERSION": version.Version})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -54,7 +54,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", templateValues)
+			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.tpl.yaml", templateValues)
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -74,7 +74,7 @@ var _ = Describe("template processing", func() {
 				var yaml []byte
 
 				// when
-				yaml, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+				yaml, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.tpl.yaml")
 				Expect(err).ToNot(HaveOccurred())
 
 				// then
@@ -88,7 +88,7 @@ var _ = Describe("template processing", func() {
 		It("should process yaml to Openshift Template", func() {
 
 			// when
-			rawTemplate, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+			rawTemplate, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.tpl.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
 			raw, err := Parse(rawTemplate)
