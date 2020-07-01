@@ -13,7 +13,7 @@ import (
 	gocmd "github.com/go-cmd/cmd"
 )
 
-var logger = log.CreateOperatorAwareLogger("shell")
+var logger = log.Log.WithValues("type", "shell")
 
 // StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
 var StreamOutput = gocmd.Options{

@@ -16,8 +16,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/cmd/watch"
-
-	logf "sigs.k8s.io/controller-runtime/pkg/log" //nolint:depguard //reason registers wrapper as logger
 )
 
 func main() {
@@ -28,8 +26,7 @@ func main() {
 	// Logs to os.Stderr, where all structured logging should go
 	// When running outside of k8s cluster it will use development
 	// mode so the log is not in JSON, but plain text format
-	logger := log.CreateOperatorAwareLogger("root")
-	logf.SetLogger(logger)
+	log.SetLogger(log.CreateOperatorAwareLogger("root"))
 
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -48,7 +45,7 @@ func main() {
 	cmd.VisitAll(rootCmd, completion.AddFlagCompletion)
 
 	if err := rootCmd.Execute(); err != nil {
-		logger.Error(err, "failed executing command")
+		log.Log.Error(err, "failed executing command")
 		os.Exit(23)
 	}
 }

@@ -13,7 +13,7 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 )
 
-var logger = log.CreateOperatorAwareLogger("watch")
+var logger = log.Log.WithValues("type", "watch")
 
 // Handler allows to define how to react on file changes event.
 type Handler func(events []fsnotify.Event) error

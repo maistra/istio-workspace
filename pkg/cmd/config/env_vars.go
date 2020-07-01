@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	logger     = log.CreateOperatorAwareLogger("session").WithValues("type", "handler")
+	logger     = log.Log.WithValues("type", "handler")
 	Parameters []openshiftApi.Parameter
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "version")
+var logger = log.Log.WithValues("type", "version")
 
 // NewCmd creates version cmd which prints version and Build details of the executed binary.
 func NewCmd() *cobra.Command {

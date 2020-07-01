@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "delete")
+var logger = log.Log.WithValues("type", "delete")
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {

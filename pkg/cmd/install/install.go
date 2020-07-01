@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "install")
+var logger = log.Log.WithValues("type", "install")
 
 // NewCmd takes care of deploying server-side components of istio-workspace.
 func NewCmd() *cobra.Command {
