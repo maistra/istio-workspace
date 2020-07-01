@@ -303,7 +303,7 @@ endef
 deploy-operator: ## Deploys istio-workspace operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
 	oc new-project $(OPERATOR_NAMESPACE) || true
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
 	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
@@ -316,14 +316,14 @@ undeploy-operator: ## Undeploys istio-workspace operator resources from defined 
 	$(call process_template,deploy/istio-workspace/role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role.yaml
 	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
-	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+	oc delete -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml
 
 .PHONY: deploy-operator-local
 deploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
 deploy-operator-local: ## Deploys istio-workspace operator resources to a single Namespace defined by OPERATOR_NAMESPACE
 	$(call header,"Deploying local operator to $(OPERATOR_NAMESPACE)")
 	oc new-project $(OPERATOR_NAMESPACE) || true
-	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/service_account.yaml
 	oc apply -n $(OPERATOR_NAMESPACE) -f deploy/istio-workspace/role_local.yaml
 	$(call process_template,deploy/istio-workspace/role_binding_local.yaml) | oc apply -n $(OPERATOR_NAMESPACE) -f -
@@ -345,12 +345,12 @@ undeploy-operator-local: ## Undeploys istio-workspace operator resources from a 
 .PHONY: deploy-example
 deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
 	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
-	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml
 
 .PHONY: undeploy-example
 undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
 	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
-	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/istio_v1alpha1_session_cr.example.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml
 
 # ##########################################################################
 # Istio test application deployment

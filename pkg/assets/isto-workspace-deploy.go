@@ -4,7 +4,8 @@
 // deploy/istio-workspace/service_account.yaml
 // deploy/istio-workspace/operator.yaml
 // deploy/istio-workspace/role.yaml
-// deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml
+// deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml
+// deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml
 // deploy/istio-workspace/role_local.yaml
 // deploy/istio-workspace/role_binding.yaml
 package assets
@@ -163,22 +164,42 @@ func deployIstioWorkspaceRoleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8f\xb1\x4e\xc4\x30\x10\x44\x7b\x7f\xc5\x7e\x41\x50\x3a\xe4\x16\x3a\x10\x05\x48\xf4\x7b\xc9\x72\xac\xce\xb1\x57\x9e\x75\x84\x84\xf8\x77\xe4\xe4\xe0\x52\xfa\xcd\x78\x66\x87\x4d\xdf\xa5\x42\x4b\x8e\xc4\xa6\xf2\xe5\x92\xfb\x0b\xc3\xe5\x1e\x83\x96\xbb\x75\x3c\x89\xf3\x18\x2e\x9a\xe7\x48\x0f\x0d\x5e\x96\x57\x41\x69\x75\x92\x47\xf9\xd0\xac\xae\x25\x87\x45\x9c\x67\x76\x8e\x81\x28\xf3\x22\x91\x20\xd8\x83\x16\x56\x78\xe5\x41\x4b\x80\xc9\xd4\x1d\xe7\x5a\x9a\x45\x3a\x28\xfb\x2f\x74\x91\x68\xef\x7a\xdb\x03\x36\x92\x14\xfe\x74\xa4\xcf\x0a\xdf\x14\x4b\xad\x72\xba\xd5\x6d\x10\x9a\xcf\x2d\x71\xfd\xc7\x81\x08\x53\x31\x89\xf4\xd2\x6b\x8c\x27\x99\x03\xd1\xfa\x37\x7d\x1d\x39\xd9\x27\x8f\xdd\xd7\x4e\xf5\xba\xef\x7a\x0e\x9c\xbd\x21\xd2\xf7\x4f\xf8\x0d\x00\x00\xff\xff\x22\x41\x9e\x9e\x2f\x01\x00\x00")
+var _deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2c\x8b\xc1\x0d\xc2\x30\x10\x04\xff\xae\xe2\x1a\x30\x28\x5f\xb7\x81\xc4\x7f\x85\x17\x62\x48\xce\x96\xef\x12\x89\xee\x91\x49\x7e\xab\x9d\x19\xb4\x72\x67\xb7\x52\x35\xc9\x8a\x62\xde\x71\x29\xf5\xba\x4f\x58\xda\x8c\x29\x7c\x8a\xe6\x24\x37\xda\x50\xc2\x4a\x47\x86\x23\x05\x11\xc5\xca\x24\x4e\xf3\x68\x27\xb6\xc6\xc7\x40\xbd\x6e\xce\x31\x44\xfc\xdb\x98\x64\x26\x32\xfb\xff\x38\x32\x6a\x8e\x9b\x9d\xd7\x8e\x65\x63\x92\x37\xac\xea\xa8\xf9\x3c\xda\x78\xca\x1d\x5e\xf4\x65\x71\x9f\xc2\x2f\x00\x00\xff\xff\x83\x49\x12\xb0\xaf\x00\x00\x00")
 
-func deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYamlBytes() ([]byte, error) {
+func deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYamlBytes() ([]byte, error) {
 	return bindataRead(
-		_deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYaml,
-		"deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml",
+		_deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYaml,
+		"deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml",
 	)
 }
 
-func deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYaml() (*asset, error) {
-	bytes, err := deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYamlBytes()
+func deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYaml() (*asset, error) {
+	bytes, err := deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml", size: 303, mode: os.FileMode(436), modTime: time.Unix(1568823866, 0)}
+	info := bindataFileInfo{name: "deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml", size: 175, mode: os.FileMode(436), modTime: time.Unix(1593601479, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8f\xb1\x4e\xc4\x30\x10\x44\x7b\x7f\xc5\x7e\x41\x50\x3a\xe4\x16\x3a\x10\x05\x48\xf4\x7b\xc9\x72\xac\xce\xb1\x57\x9e\x75\x84\x84\xf8\x77\xe4\xe4\xe0\x52\xfa\xcd\x78\x66\x87\x4d\xdf\xa5\x42\x4b\x8e\xc4\xa6\xf2\xe5\x92\xfb\x0b\xc3\xe5\x1e\x83\x96\xbb\x75\x3c\x89\xf3\x18\x2e\x9a\xe7\x48\x0f\x0d\x5e\x96\x57\x41\x69\x75\x92\x47\xf9\xd0\xac\xae\x25\x87\x45\x9c\x67\x76\x8e\x81\x28\xf3\x22\x91\x20\xd8\x83\x16\x56\x78\xe5\x41\x4b\x80\xc9\xd4\x1d\xe7\x5a\x9a\x45\x3a\x28\xfb\x2f\x74\x91\x68\xef\x7a\xdb\x03\x36\x92\x14\xfe\x74\xa4\xcf\x0a\xdf\x14\x4b\xad\x72\xba\xd5\x6d\x10\x9a\xcf\x2d\x71\xfd\xc7\x81\x08\x53\x31\x89\xf4\xd2\x6b\x8c\x27\x99\x03\xd1\xfa\x37\x7d\x1d\x39\xd9\x27\x8f\xdd\xd7\x4e\xf5\xba\xef\x7a\x0e\x9c\xbd\x21\xd2\xf7\x4f\xf8\x0d\x00\x00\xff\xff\x22\x41\x9e\x9e\x2f\x01\x00\x00")
+
+func deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYamlBytes() ([]byte, error) {
+	return bindataRead(
+		_deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYaml,
+		"deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml",
+	)
+}
+
+func deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYaml() (*asset, error) {
+	bytes, err := deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml", size: 303, mode: os.FileMode(436), modTime: time.Unix(1593601479, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -275,13 +296,14 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"deploy/istio-workspace/role_binding_local.yaml":              deployIstioWorkspaceRole_binding_localYaml,
-	"deploy/istio-workspace/service_account.yaml":                 deployIstioWorkspaceService_accountYaml,
-	"deploy/istio-workspace/operator.yaml":                        deployIstioWorkspaceOperatorYaml,
-	"deploy/istio-workspace/role.yaml":                            deployIstioWorkspaceRoleYaml,
-	"deploy/istio-workspace/crds/istio_v1alpha1_session_crd.yaml": deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYaml,
-	"deploy/istio-workspace/role_local.yaml":                      deployIstioWorkspaceRole_localYaml,
-	"deploy/istio-workspace/role_binding.yaml":                    deployIstioWorkspaceRole_bindingYaml,
+	"deploy/istio-workspace/role_binding_local.yaml":                deployIstioWorkspaceRole_binding_localYaml,
+	"deploy/istio-workspace/service_account.yaml":                   deployIstioWorkspaceService_accountYaml,
+	"deploy/istio-workspace/operator.yaml":                          deployIstioWorkspaceOperatorYaml,
+	"deploy/istio-workspace/role.yaml":                              deployIstioWorkspaceRoleYaml,
+	"deploy/istio-workspace/crds/maistra_v1alpha1_session_cr.yaml":  deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYaml,
+	"deploy/istio-workspace/crds/maistra_v1alpha1_session_crd.yaml": deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYaml,
+	"deploy/istio-workspace/role_local.yaml":                        deployIstioWorkspaceRole_localYaml,
+	"deploy/istio-workspace/role_binding.yaml":                      deployIstioWorkspaceRole_bindingYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -328,7 +350,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"deploy": &bintree{nil, map[string]*bintree{
 		"istio-workspace": &bintree{nil, map[string]*bintree{
 			"crds": &bintree{nil, map[string]*bintree{
-				"istio_v1alpha1_session_crd.yaml": &bintree{deployIstioWorkspaceCrdsIstio_v1alpha1_session_crdYaml, map[string]*bintree{}},
+				"maistra_v1alpha1_session_cr.yaml":  &bintree{deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crYaml, map[string]*bintree{}},
+				"maistra_v1alpha1_session_crd.yaml": &bintree{deployIstioWorkspaceCrdsMaistra_v1alpha1_session_crdYaml, map[string]*bintree{}},
 			}},
 			"operator.yaml":           &bintree{deployIstioWorkspaceOperatorYaml, map[string]*bintree{}},
 			"role.yaml":               &bintree{deployIstioWorkspaceRoleYaml, map[string]*bintree{}},
