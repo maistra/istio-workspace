@@ -11,14 +11,14 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/log" //nolint:depguard //reason registers wrapper as logger
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-// Log is the central logger for this program
+// Log is the central logger for this program.
 var Log = zapr2.NewLogger(zap.New(zapcore.NewNopCore()))
 
-// SetLogger sets the central logger to use
+// SetLogger sets the central logger to use.
 func SetLogger(logger logr.Logger) {
 	Log = logger
 	logf.SetLogger(logger)
