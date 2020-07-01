@@ -13,6 +13,7 @@ BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 ASSETS:=pkg/assets/isto-workspace-deploy.go
 ASSET_SRCS=$(shell find ./deploy/istio-workspace -name "*.yaml")
+MANIFEST_DIR:=$(PROJECT_DIR)/deploy/istio-workspace
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
@@ -72,7 +73,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) $(MANIFEST_DIR)/operator.tpl.yaml ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
@@ -81,6 +82,7 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Ge
 		$(PACKAGE_NAME)/pkg/apis \
 		"istio:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
+	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --deploy-dir $(MANIFEST_DIR) --csv-version $(IKE_VERSION:v%=%)
 
 # ##########################################################################
 # Build configuration
@@ -152,8 +154,9 @@ tools: install-dep ## Installs required go tools
 	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
 	GO111MODULE=on go get -u github.com/go-bindata/go-bindata/...@v3.1.2
 	GO111MODULE=on go get -u github.com/golang/protobuf/protoc-gen-go
+	GO111MODULE=on go get github.com/mikefarah/yq/v3
 
-EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go
+EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: check-tools
@@ -183,6 +186,10 @@ $(PROJECT_DIR)/bin/protoc:
 $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
 	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
+
+$(MANIFEST_DIR)/operator.yaml: $(MANIFEST_DIR)/operator.tpl.yaml
+	$(call header,"Updates operator.yaml")
+	$(call process_template,$(MANIFEST_DIR)/operator.tpl.yaml) | yq r - 'items[0]' > $(MANIFEST_DIR)/operator.yaml
 
 # ##########################################################################
 ##@ Docker
@@ -290,6 +297,7 @@ define process_template # params: template location
 		-o yaml \
 		--ignore-unknown-parameters=true \
 		--local \
+		-p IKE_VERSION=$(IKE_VERSION) \
 		-p IKE_DOCKER_REGISTRY=$(IKE_DOCKER_REGISTRY) \
 		-p IKE_DOCKER_REPOSITORY=$(IKE_DOCKER_REPOSITORY) \
 		-p IKE_IMAGE_NAME=$(IKE_IMAGE_NAME) \
