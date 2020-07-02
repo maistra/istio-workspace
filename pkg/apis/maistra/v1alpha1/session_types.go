@@ -12,6 +12,7 @@ type SessionSpec struct {
 	Refs  []Ref `json:"ref,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // Ref defines the desired state for a single reference within the Session.
 type Ref struct {
 	Name     string            `json:"name,omitempty"`

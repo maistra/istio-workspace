@@ -4,7 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
-  name: istio-workspace.v0.0.3-next-b1d67d2-dirty-next-b1d67d2-dirty
+  name: istio-workspace.v0.0.3-next-a78f4eb-dirty
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -145,5 +145,5 @@ spec:
     name: Bartosz Majsak
   maturity: alpha
   provider: {}
-  replaces: istio-workspace.v0.0.3-next-b1d67d2-dirty
-  version: 0.0.3-next-b1d67d2-dirty-next-b1d67d2-dirty
+  replaces: istio-workspace.v0.0.3-next-a78f4eb
+  version: 0.0.3-next-a78f4eb-dirty
