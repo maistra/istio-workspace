@@ -80,7 +80,7 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) $(MAN
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
-		"istio:v1alpha1" \
+		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --deploy-dir $(MANIFEST_DIR) --csv-version $(IKE_VERSION:v%=%)
 

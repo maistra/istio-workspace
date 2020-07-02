@@ -5,7 +5,7 @@ package versioned
 import (
 	"fmt"
 
-	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
+	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
