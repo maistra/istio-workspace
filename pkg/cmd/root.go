@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
@@ -17,7 +18,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var logger = log.Log.WithValues("type", "root")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "root")
+}
 
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -30,6 +33,10 @@ func NewCmd() *cobra.Command {
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if json, _ := cmd.Flags().GetBool("json"); json {
+				log.SetLogger(log.NilLog)
+				cmd.SilenceErrors = true
+			}
 			if v.Released() {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
@@ -60,7 +67,7 @@ func NewCmd() *cobra.Command {
 				timer := time.NewTimer(2 * time.Second)
 				select {
 				case release := <-releaseInfo:
-					logger.Info(release)
+					logger().Info(release)
 				case <-timer.C:
 					// do nothing, just timeout
 				}
@@ -73,9 +80,10 @@ func NewCmd() *cobra.Command {
 		StringVarP(&configFile, "config", "c", ".ike.config.yaml",
 			fmt.Sprintf("config file (supported formats: %s)", strings.Join(config.SupportedExtensions(), ", ")))
 	rootCmd.Flags().Bool("version", false, "prints the version number of ike cli")
+	//rootCmd.PersistentFlags().Bool("silent", false, "silences the logger")
 	rootCmd.PersistentFlags().String("help-format", "standard", "prints help in asciidoc table")
 	if err := rootCmd.PersistentFlags().MarkHidden("help-format"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
 
 	config.SetupConfig()

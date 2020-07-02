@@ -1,14 +1,19 @@
 package create
 
 import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
-
 	"github.com/spf13/cobra"
 )
 
-var logger = log.Log.WithValues("type", "create")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "create")
+}
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -16,11 +21,22 @@ func NewCmd() *cobra.Command {
 		Use:          "create",
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			/*
+				if json, _ := cmd.Flags().GetBool("json"); json {
+					cmd.Flags().Set("silent", "true")
+				}
+			*/
+		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, _, _, err := internal.Sessions(cmd)
+			state, _, _, err := internal.Sessions(cmd)
+			if outputJSON, _ := cmd.Flags().GetBool("json"); outputJSON {
+				b, _ := json.MarshalIndent(&state.Session, "", "  ")
+				fmt.Println(string(b))
+			}
 			return err
 		},
 	}
@@ -34,8 +50,9 @@ func NewCmd() *cobra.Command {
 		"(defaults to default for the current context)")
 	createCmd.Flags().Bool("offline", false, "avoid calling external sources")
 	if err := createCmd.Flags().MarkHidden("offline"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
+	createCmd.Flags().Bool("json", false, "return result in json")
 
 	createCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(createCmd))
 
