@@ -8,6 +8,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	"github.com/go-logr/logr"
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
@@ -16,7 +17,9 @@ import (
 )
 
 var (
-	logger = log.Log.WithValues("type", "session")
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "session")
+	}
 )
 
 // Options holds the variables used by the Session Handler.
@@ -31,7 +34,8 @@ type Options struct {
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
-	DeploymentName string // name of the resource to target within the cloned route.
+	DeploymentName string                // name of the resource to target within the cloned route.
+	Session        istiov1alpha1.Session // the current session object
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -86,24 +90,25 @@ func CreateOrJoinHandler(opts Options) (State, func(), error) {
 	h := &handler{c: client,
 		opts: opts}
 
-	serviceName, err := h.createOrJoinSession()
+	session, serviceName, err := h.createOrJoinSession()
 	if err != nil {
 		return State{}, func() {}, err
 	}
 	return State{
 			DeploymentName: serviceName,
+			Session:        *session,
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
-func (h *handler) createOrJoinSession() (string, error) {
+func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
-		err = h.createSession()
+		session, err = h.createSession()
 		if err != nil {
-			return "", err
+			return session, "", err
 		}
 		return h.removeSessionIfDeploymentNotFound()
 	}
@@ -114,7 +119,7 @@ func (h *handler) createOrJoinSession() (string, error) {
 			session.Spec.Refs[i] = ref
 			err = h.c.Update(session)
 			if err != nil {
-				return "", err
+				return session, "", err
 			}
 			return h.removeSessionIfDeploymentNotFound()
 		}
@@ -123,23 +128,23 @@ func (h *handler) createOrJoinSession() (string, error) {
 	session.Spec.Refs = append(session.Spec.Refs, ref)
 	err = h.c.Update(session)
 	if err != nil {
-		return "", err
+		return session, "", err
 	}
 	return h.removeSessionIfDeploymentNotFound()
 }
 
-func (h *handler) removeSessionIfDeploymentNotFound() (string, error) {
-	result, err := h.waitForRefToComplete()
+func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, string, error) {
+	session, result, err := h.waitForRefToComplete()
 	if _, deploymentNotFound := err.(DeploymentNotFoundError); deploymentNotFound {
 		h.removeOrLeaveSession()
 	}
-	return result, err
+	return session, result, err
 }
 
-func (h *handler) createSession() error {
+func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 	r, err := ParseRoute(h.opts.RouteExp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	session := istiov1alpha1.Session{
 		TypeMeta: metav1.TypeMeta{
@@ -159,13 +164,15 @@ func (h *handler) createSession() error {
 	if r != nil {
 		session.Spec.Route = *r
 	}
-	return h.c.Create(&session)
+	return &session, h.c.Create(&session)
 }
 
-func (h *handler) waitForRefToComplete() (string, error) {
+func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
 	var name string
-	err := wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
-		sessionStatus, err := h.c.Get(h.opts.SessionName)
+	var err error
+	var sessionStatus *istiov1alpha1.Session
+	err = wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
+		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
 		}
@@ -174,7 +181,7 @@ func (h *handler) waitForRefToComplete() (string, error) {
 				for _, res := range refs.Resources {
 					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
 						name = *res.Name
-						fmt.Printf("found %s\n", name)
+						logger().Info("target found", *res.Kind, name)
 						return true, nil
 					}
 				}
@@ -183,16 +190,16 @@ func (h *handler) waitForRefToComplete() (string, error) {
 		return false, nil
 	})
 	if err != nil {
-		logger.Error(err, "failed waiting for deployment to create")
-		return name, DeploymentNotFoundError{name: h.opts.DeploymentName}
+		logger().Error(err, "failed waiting for deployment to create")
+		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
-	return name, nil
+	return sessionStatus, name, nil
 }
 
 func (h *handler) removeOrLeaveSession() {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
-		logger.Error(err, "failed removing or leaving session")
+		logger().Error(err, "failed removing or leaving session")
 		return // assume missing, nothing to clean?
 	}
 	// more than one participant, update session

@@ -8,12 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	gocmd "github.com/go-cmd/cmd"
 )
 
-var logger = log.Log.WithValues("type", "shell")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "shell")
+}
 
 // StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
 var StreamOutput = gocmd.Options{
@@ -32,7 +35,7 @@ var BufferAndStreamOutput = gocmd.Options{
 // done channel passed as argument.
 func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	cmd.Env = os.Environ()
-	logger.V(1).Info("starting command",
+	logger().V(1).Info("starting command",
 		"cmd", cmd.Name,
 		"args", fmt.Sprint(cmd.Args),
 	)
@@ -79,14 +82,14 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 					break OutOfLoop
 				}
 				if _, err := fmt.Fprintln(stdoutDest, line); err != nil {
-					logger.Error(err, fmt.Sprintf("%s failed executing", src.Name))
+					logger().Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
 			case line, ok := <-src.Stderr:
 				if !ok {
 					break OutOfLoop
 				}
 				if _, err := fmt.Fprintln(stderrDest, line); err != nil {
-					logger.Error(err, fmt.Sprintf("%s failed executing", src.Name))
+					logger().Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
 			case <-done:
 				break OutOfLoop
@@ -109,12 +112,12 @@ func CurrentDir() string {
 func BinaryExists(binName, hint string) bool {
 	path, err := exec.LookPath(binName)
 	if err != nil {
-		logger.Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))
+		logger().Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))
 		return false
 	}
 
-	logger.V(1).Info(fmt.Sprintf("Found '%s' executable in '%s'.", binName, path))
-	logger.V(1).Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
+	logger().V(1).Info(fmt.Sprintf("Found '%s' executable in '%s'.", binName, path))
+	logger().V(1).Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
 	return true
 }

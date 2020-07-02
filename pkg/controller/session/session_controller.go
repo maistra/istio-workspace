@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
@@ -28,7 +29,9 @@ const (
 )
 
 var (
-	logger = log.Log.WithValues("type", "controller")
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "controller")
+	}
 )
 
 // DefaultManipulators contains the default config for the reconciler.
@@ -111,7 +114,7 @@ type ReconcileSession struct {
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
 func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := logger.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
 	// Fetch the Session instance

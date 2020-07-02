@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/assets"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
@@ -17,7 +18,9 @@ const (
 )
 
 var (
-	logger     = log.Log.WithValues("type", "handler")
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "handler")
+	}
 	Parameters []openshiftApi.Parameter
 )
 
@@ -30,12 +33,12 @@ func init() {
 func collectTplParams(resource string) {
 	tpl, err := parser.Load(resource)
 	if err != nil {
-		logger.Error(err, "failed parsing "+resource+"template")
+		logger().Error(err, "failed parsing "+resource+"template")
 	}
 
 	tplParams, err := parser.ParseParameters(tpl)
 	if err != nil {
-		logger.Error(err, "failed parsing parameters in the template "+resource)
+		logger().Error(err, "failed parsing parameters in the template "+resource)
 	}
 	Parameters = append(Parameters, tplParams...)
 }

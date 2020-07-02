@@ -3,6 +3,7 @@ package watch
 import (
 	"strings"
 
+	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
@@ -15,7 +16,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logger = log.Log.WithValues("type", "watch")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "watch")
+}
 
 // NewCmd creates watch command which observes file system changes in the defined set of directories
 // and re-runs build and run command when they occur.
@@ -38,7 +41,7 @@ func NewCmd() *cobra.Command {
 	watchCmd.Flags().StringSlice("exclude", develop.DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := watchCmd.Flags().MarkHidden("interval"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
 
 	return watchCmd

@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
@@ -22,7 +23,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
-var logger = log.Log.WithValues("type", "serve")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "serve")
+}
 
 var (
 	metricsHost       = "0.0.0.0"
@@ -43,14 +46,14 @@ func NewCmd() *cobra.Command {
 func startOperator(cmd *cobra.Command, args []string) error {
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		logger.Error(err, "Failed to get watch namespace")
+		logger().Error(err, "Failed to get watch namespace")
 		return err
 	}
 
 	// Get a config to talk to the apiserver
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
-		logger.Error(err, "")
+		logger().Error(err, "")
 		return err
 	}
 
@@ -58,7 +61,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 	// Become the leader before proceeding
 	if e := leader.Become(ctx, "istio-workspace-lock"); e != nil {
-		logger.Error(e, "")
+		logger().Error(e, "")
 		return e
 	}
 
@@ -68,21 +71,21 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
-		logger.Error(err, "")
+		logger().Error(err, "")
 		return err
 	}
 
-	logger.Info("Registering Components.")
+	logger().Info("Registering Components.")
 
 	// Setup Scheme for all resources
 	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
-		logger.Error(err, "")
+		logger().Error(err, "")
 		return nil
 	}
 
 	// Setup all Controllers
 	if err = controller.AddToManager(mgr); err != nil {
-		logger.Error(err, "")
+		logger().Error(err, "")
 		return err
 	}
 
@@ -94,15 +97,15 @@ func startOperator(cmd *cobra.Command, args []string) error {
 			TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 	}
 	if _, err = metrics.CreateMetricsService(ctx, cfg, servicePorts); err != nil {
-		logger.Info(err.Error())
+		logger().Info(err.Error())
 	}
 
-	logger.Info("Starting the operator.")
+	logger().Info("Starting the operator.")
 	version.LogVersion()
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		logger.Error(err, "Manager exited non-zero")
+		logger().Error(err, "Manager exited non-zero")
 		return err
 	}
 
