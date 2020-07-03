@@ -21,13 +21,6 @@ func NewCmd() *cobra.Command {
 		Use:          "create",
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			/*
-				if json, _ := cmd.Flags().GetBool("json"); json {
-					cmd.Flags().Set("silent", "true")
-				}
-			*/
-		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
@@ -53,6 +46,7 @@ func NewCmd() *cobra.Command {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
 	createCmd.Flags().Bool("json", false, "return result in json")
+	createCmd.Flag("json").Annotations["silent"] = []string{"true"}
 
 	createCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(createCmd))
 

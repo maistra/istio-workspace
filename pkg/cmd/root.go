@@ -15,6 +15,7 @@ import (
 	v "github.com/maistra/istio-workspace/version"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -33,10 +34,14 @@ func NewCmd() *cobra.Command {
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if json, _ := cmd.Flags().GetBool("json"); json {
-				log.SetLogger(log.NilLog)
-				cmd.SilenceErrors = true
-			}
+
+			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
+					log.SetLogger(log.NilLog)
+					cmd.SilenceErrors = true
+				}
+			})
+
 			if v.Released() {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
