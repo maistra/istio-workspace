@@ -3,7 +3,6 @@ package watch
 import (
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 )
 

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-logr/logr"
 	ignore "github.com/sabhiram/go-gitignore"
 )
 

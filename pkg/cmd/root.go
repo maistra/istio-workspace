@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
@@ -14,6 +13,7 @@ import (
 
 	v "github.com/maistra/istio-workspace/version"
 
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -34,7 +34,6 @@ func NewCmd() *cobra.Command {
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-
 			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
 					log.SetLogger(log.NilLog)

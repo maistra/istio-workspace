@@ -5,24 +5,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-logr/logr"
+	"github.com/maistra/istio-workspace/pkg/client/dynclient"
 	"github.com/maistra/istio-workspace/pkg/log"
-
-	"k8s.io/client-go/tools/clientcmd"
-
+	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 	"github.com/maistra/istio-workspace/version"
 
-	"github.com/maistra/istio-workspace/pkg/openshift/parser"
-
-	"k8s.io/apimachinery/pkg/runtime"
-
-	"k8s.io/apimachinery/pkg/api/meta"
-
-	"github.com/maistra/istio-workspace/pkg/client/dynclient"
-
+	"github.com/go-logr/logr"
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var logger = func() logr.Logger {

@@ -5,25 +5,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-logr/logr"
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
-
 	"github.com/maistra/istio-workspace/pkg/log"
-
+	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
-
-	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
-
-	"github.com/spf13/pflag"
-
-	"github.com/maistra/istio-workspace/pkg/shell"
-
-	"github.com/maistra/istio-workspace/pkg/cmd/config"
-
 	gocmd "github.com/go-cmd/cmd"
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 var logger = func() logr.Logger {

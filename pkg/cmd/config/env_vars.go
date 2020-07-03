@@ -1,11 +1,11 @@
 package config
 
 import (
-	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/assets"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 
+	"github.com/go-logr/logr"
 	openshiftApi "github.com/openshift/api/template/v1"
 )
 

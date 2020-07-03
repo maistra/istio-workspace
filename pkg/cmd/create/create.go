@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 )
 
