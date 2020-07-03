@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   labels:
     app: istio-workspace
-    version: v0.0.3-next-acb68bd-dirty
+    version: v0.0.3-next-927afd5-dirty
   name: istio-workspace
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: istio-workspace
-      version: v0.0.3-next-acb68bd-dirty
+      version: v0.0.3-next-927afd5-dirty
   template:
     metadata:
       labels:
         app: istio-workspace
-        version: v0.0.3-next-acb68bd-dirty
+        version: v0.0.3-next-927afd5-dirty
       name: istio-workspace
     spec:
       containers:
@@ -32,7 +32,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: istio-workspace
-          image: quay.io/maistra/istio-workspace:v0.0.3-next-acb68bd-dirty
+          image: quay.io/maistra/istio-workspace:v0.0.3-next-927afd5-dirty
           imagePullPolicy: Always
           name: istio-workspace
       serviceAccountName: istio-workspace

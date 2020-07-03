@@ -25,7 +25,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: istio-workspace.v0.0.3-next-3dc4262
+  name: istio-workspace.v0.0.3-next-927afd5-dirty
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -41,6 +41,75 @@ spec:
     mediatype: ""
   install:
     spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps.openshift.io
+          resources:
+          - deploymentconfigs
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - istio.openshift.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - networking.istio.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - maistra.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resourceNames:
+          - istio-workspace
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        serviceAccountName: istio-workspace
       deployments:
       - name: istio-workspace
         spec:
@@ -48,13 +117,13 @@ spec:
           selector:
             matchLabels:
               app: istio-workspace
-              version: v0.0.3-next-acb68bd-dirty
+              version: v0.0.3-next-927afd5-dirty
           strategy: {}
           template:
             metadata:
               labels:
                 app: istio-workspace
-                version: v0.0.3-next-acb68bd-dirty
+                version: v0.0.3-next-927afd5-dirty
               name: istio-workspace
             spec:
               containers:
@@ -73,7 +142,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: istio-workspace
-                image: quay.io/maistra/istio-workspace:v0.0.3-next-acb68bd-dirty
+                image: quay.io/maistra/istio-workspace:v0.0.3-next-927afd5-dirty
                 imagePullPolicy: Always
                 name: istio-workspace
                 resources: {}
@@ -177,5 +246,5 @@ spec:
     name: Bartosz Majsak
   maturity: alpha
   provider: {}
-  replaces: istio-workspace.v0.0.3-next-57b0865-dirty
-  version: 0.0.3-next-3dc4262
+  replaces: istio-workspace.v0.0.3
+  version: 0.0.3-next-927afd5-dirty

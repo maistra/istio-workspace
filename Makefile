@@ -49,7 +49,7 @@ endif
 
 IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
-GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
+GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
 	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
 	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next-$(COMMIT)
