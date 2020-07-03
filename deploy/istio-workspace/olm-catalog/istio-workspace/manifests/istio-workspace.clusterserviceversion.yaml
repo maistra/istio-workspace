@@ -2,15 +2,39 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: '[]'
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "maistra.io/v1alpha1",
+          "kind": "Session",
+          "metadata": {
+            "name": "test-session"
+          },
+          "spec": {
+            "ref": [
+              {
+                "name": "ratings-v1"
+              }
+            ],
+            "route": {
+              "name": "end-user",
+              "type": "header",
+              "value": "jason"
+            }
+          }
+        }
+      ]
     capabilities: Basic Install
-  name: istio-workspace.v0.0.3-next-a78f4eb-dirty
+  name: istio-workspace.v0.0.3-next-446276f-dirty
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
-  customresourcedefinitions: {}
-  description: Safely develop and test on any kubernetes cluster without distracting
-    others
+  customresourcedefinitions:
+    owned:
+    - description: Session is the Schema for the sessions API.
+      kind: Session
+      name: sessions.maistra.io
+      version: v1alpha1
   displayName: Istio Workspace
   icon:
   - base64data: ""
@@ -145,5 +169,4 @@ spec:
     name: Bartosz Majsak
   maturity: alpha
   provider: {}
-  replaces: istio-workspace.v0.0.3-next-a78f4eb
-  version: 0.0.3-next-a78f4eb-dirty
+  version: 0.0.3-next-446276f-dirty
