@@ -25,7 +25,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: istio-workspace.v0.0.3-next-1426c4e
+  name: istio-workspace.v0.0.3-next-3dc4262
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -79,6 +79,14 @@ spec:
                 resources: {}
               serviceAccountName: istio-workspace
       permissions:
+      - rules:
+        - apiGroups:
+          - maistra.io
+          resources:
+          - sessions
+          verbs:
+          - '*'
+        serviceAccountName: sessions
       - rules:
         - apiGroups:
           - ""
@@ -169,5 +177,5 @@ spec:
     name: Bartosz Majsak
   maturity: alpha
   provider: {}
-  replaces: istio-workspace.v0.0.3-next-446276f-dirty
-  version: 0.0.3-next-1426c4e
+  replaces: istio-workspace.v0.0.3-next-57b0865-dirty
+  version: 0.0.3-next-3dc4262
