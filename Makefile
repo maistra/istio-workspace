@@ -31,6 +31,38 @@ endef
 .PHONY: all
 all: deps format lint compile test ## Runs 'deps format lint test compile' targets
 
+# ##########################################################################
+# Build configuration
+# ##########################################################################
+
+OS:=$(shell uname -s)
+export OS
+GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
+GOARCH:= amd64
+
+BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
+GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
+COMMIT:=$(shell git rev-parse --short HEAD)
+ifneq ($(GITUNTRACKEDCHANGES),)
+	COMMIT:=$(COMMIT)-dirty
+endif
+
+IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
+GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
+ifneq ($(GIT_TAG),0)
+	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
+	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next-$(COMMIT)
+else ifneq ($(GITUNTRACKEDCHANGES),)
+	IKE_VERSION:=$(IKE_VERSION)-dirty
+endif
+
+GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
+RELEASE?=false
+LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
+SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
+
+
 ##@ Build
 
 .PHONY: build-ci
@@ -73,7 +105,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) $(MANIFEST_DIR)/operator.yaml ## Generates operator-sdk code and bundles packages using go-bindata
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) operator-tpl ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
@@ -83,40 +115,11 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) $(MAN
 		$(PACKAGE_NAME)/pkg/apis \
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --deploy-dir $(MANIFEST_DIR) --csv-version $(IKE_VERSION:v%=%)
-
-# ##########################################################################
-# Build configuration
-# ##########################################################################
-
-OS:=$(shell uname -s)
-export OS
-GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
-GOARCH:= amd64
-
-BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
-GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
-COMMIT:=$(shell git rev-parse --short HEAD)
-ifneq ($(GITUNTRACKEDCHANGES),)
-	COMMIT:=$(COMMIT)-dirty
-endif
-
-IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-GIT_TAG:=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
-ifneq ($(GIT_TAG),0)
-	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
-else ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_VERSION:=$(IKE_VERSION)-dirty
-endif
+	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --csv-version $(OPERATOR_VERSION)
 
 .PHONY: version
 version:
 	@echo $(IKE_VERSION)
-
-GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
-RELEASE?=false
-LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
-SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
 
 $(BINARY_DIR):
 	[ -d $@ ] || mkdir -p $@
@@ -188,7 +191,8 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
 	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
 
-$(MANIFEST_DIR)/operator.yaml: $(MANIFEST_DIR)/operator.tpl.yaml
+.PHONY: operator-tpl
+operator-tpl:
 	$(call header,"Updates operator.yaml")
 	$(call process_template,$(MANIFEST_DIR)/operator.tpl.yaml) | yq r - 'items[0]' > $(MANIFEST_DIR)/operator.yaml
 
