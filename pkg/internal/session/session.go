@@ -34,8 +34,8 @@ type Options struct {
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
-	DeploymentName string                // name of the resource to target within the cloned route.
-	Session        istiov1alpha1.Session // the current session object
+	DeploymentName string                  // name of the resource to target within the cloned route.
+	RefStatus      istiov1alpha1.RefStatus // the current ref status object
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -96,10 +96,19 @@ func CreateOrJoinHandler(opts Options) (State, func(), error) {
 	}
 	return State{
 			DeploymentName: serviceName,
-			Session:        *session,
+			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil
+}
+
+func getCurrentRef(deploymentName string, session istiov1alpha1.Session) istiov1alpha1.RefStatus {
+	for _, ref := range session.Status.Refs {
+		if ref.Name == deploymentName {
+			return *ref
+		}
+	}
+	return istiov1alpha1.RefStatus{}
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.

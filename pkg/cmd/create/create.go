@@ -27,7 +27,7 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			state, _, _, err := internal.Sessions(cmd)
 			if outputJSON, _ := cmd.Flags().GetBool("json"); outputJSON {
-				b, _ := json.MarshalIndent(&state.Session, "", "  ")
+				b, _ := json.MarshalIndent(&state.RefStatus, "", "  ")
 				fmt.Println(string(b))
 			}
 			return err
@@ -46,7 +46,11 @@ func NewCmd() *cobra.Command {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
 	createCmd.Flags().Bool("json", false, "return result in json")
-	createCmd.Flag("json").Annotations["silent"] = []string{"true"}
+	jsonFlag := createCmd.Flag("json")
+	if jsonFlag.Annotations == nil {
+		jsonFlag.Annotations = map[string][]string{}
+	}
+	jsonFlag.Annotations["silent"] = []string{"true"}
 
 	createCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(createCmd))
 
