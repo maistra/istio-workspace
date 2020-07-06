@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	logger = log.CreateOperatorAwareLogger("session").WithValues("type", "controller")
+	logger = log.Log.WithValues("type", "controller")
 )
 
 // DefaultManipulators contains the default config for the reconciler.

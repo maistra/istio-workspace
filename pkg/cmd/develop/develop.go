@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var logger = log.CreateOperatorAwareLogger("cmd").WithValues("type", "develop")
+var logger = log.Log.WithValues("type", "develop")
 
 const urlHint = `Knowing your application url you can now access your new version by using
 

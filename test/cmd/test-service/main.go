@@ -14,8 +14,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	logf "sigs.k8s.io/controller-runtime/pkg/log" //nolint:depguard //reason registers wrapper as logger
 )
 
 const (
@@ -42,10 +40,8 @@ type Config struct {
 	Call []*url.URL
 }
 
-var logger = log.CreateOperatorAwareLogger("test").WithValues("type", "test-service")
-
 func main() {
-	logf.SetLogger(logger)
+	log.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "test-service"))
 
 	c := Config{}
 	if v, b := os.LookupEnv(EnvServiceName); b {
@@ -76,7 +72,7 @@ func main() {
 		grpcAdr = v
 	}
 
-	logger := logf.Log.WithName("service").WithValues("name", c.Name)
+	logger := log.Log.WithName("service").WithValues("name", c.Name)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {
