@@ -15,7 +15,7 @@ import (
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-// NilLog is an non logger logger.
+// NilLog is a no-op logger.
 var NilLog = zapr2.NewLogger(zap.New(zapcore.NewNopCore()))
 
 // Log is the central logger for this program.
