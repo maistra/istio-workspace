@@ -17,7 +17,7 @@ func LatestRelease() (string, error) {
 	latestRelease, _, err := client.Repositories.
 		GetLatestRelease(context.Background(), "maistra", "istio-workspace")
 	if err != nil {
-		logger.Error(err, "unable to determine latest released version")
+		logger().Error(err, "unable to determine latest released version")
 		return "", err
 	}
 	return *latestRelease.Name, nil

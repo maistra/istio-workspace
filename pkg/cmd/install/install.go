@@ -5,26 +5,23 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/client/dynclient"
 	"github.com/maistra/istio-workspace/pkg/log"
-
-	"k8s.io/client-go/tools/clientcmd"
-
+	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 	"github.com/maistra/istio-workspace/version"
 
-	"github.com/maistra/istio-workspace/pkg/openshift/parser"
-
-	"k8s.io/apimachinery/pkg/runtime"
-
-	"k8s.io/apimachinery/pkg/api/meta"
-
-	"github.com/maistra/istio-workspace/pkg/client/dynclient"
-
+	"github.com/go-logr/logr"
 	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
-var logger = log.Log.WithValues("type", "install")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "install")
+}
 
 // NewCmd takes care of deploying server-side components of istio-workspace.
 func NewCmd() *cobra.Command {
@@ -64,7 +61,7 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		)
 
 		if namespace, _, err = kubeCfg.Namespace(); err != nil {
-			logger.Error(err, fmt.Sprintf("failed to read k8s config file [%s]. "+
+			logger().Error(err, fmt.Sprintf("failed to read k8s config file [%s]. "+
 				"use --namespace to define existing target namespace", kubeCfg.ConfigAccess().GetExplicitFile()))
 			return err
 		}
@@ -114,7 +111,7 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		return err
 	}
 
-	logger.Info("Installing operator", "namespace", os.Getenv("NAMESPACE"),
+	logger().Info("Installing operator", "namespace", os.Getenv("NAMESPACE"),
 		"image", fmt.Sprintf("%s/%s/%s:%s", os.Getenv("IKE_DOCKER_REGISTRY"),
 			os.Getenv("IKE_DOCKER_REPOSITORY"),
 			os.Getenv("IKE_IMAGE_NAME"),
@@ -146,10 +143,10 @@ func apply(a func(path string) error, paths ...string) error {
 	for _, p := range paths {
 		if err := a(p); err != nil {
 			if !errors.IsAlreadyExists(err) {
-				logger.Error(err, "failed creating "+strings.TrimSuffix(p, ".yaml"))
+				logger().Error(err, "failed creating "+strings.TrimSuffix(p, ".yaml"))
 				return err
 			}
-			logger.Info(strings.TrimSuffix(p, ".yaml") + " already exists")
+			logger().Info(strings.TrimSuffix(p, ".yaml") + " already exists")
 		}
 	}
 	return nil
@@ -165,7 +162,7 @@ func (app *applier) applyResource(resourcePath string) error {
 		return err
 	}
 	kind := crd.GetObjectKind()
-	logger.Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]",
+	logger().Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]",
 		strings.TrimSuffix(resourcePath, ".yaml"),
 		app.c.Namespace,
 		name(crd, resourcePath),
@@ -200,7 +197,7 @@ func (app *applier) applyTemplate(templatePath string) error {
 		if err != nil {
 			return err
 		}
-		logger.Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]", strings.TrimSuffix(templatePath, ".yaml"),
+		logger().Info(fmt.Sprintf("Applying '%s' in namespace '%s' [Name: %s; Kind: %s]", strings.TrimSuffix(templatePath, ".yaml"),
 			app.c.Namespace,
 			name(object, templatePath),
 			gav.Kind))

@@ -5,10 +5,13 @@ import (
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 )
 
-var logger = log.Log.WithValues("type", "delete")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "delete")
+}
 
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -34,7 +37,7 @@ func NewCmd() *cobra.Command {
 		"(defaults to default for the current context)")
 	deleteCmd.Flags().Bool("offline", false, "avoid calling external sources")
 	if err := deleteCmd.Flags().MarkHidden("offline"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
 
 	deleteCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(deleteCmd))

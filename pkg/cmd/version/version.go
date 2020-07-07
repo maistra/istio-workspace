@@ -7,11 +7,14 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/version"
 
+	"github.com/go-logr/logr"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
 )
 
-var logger = log.Log.WithValues("type", "version")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "version")
+}
 
 // NewCmd creates version cmd which prints version and Build details of the executed binary.
 func NewCmd() *cobra.Command {
@@ -39,14 +42,14 @@ func NewCmd() *cobra.Command {
 }
 
 func logShortVersion() {
-	logger.Info(version.Version)
+	logger().Info(version.Version)
 }
 
 func LogVersion() {
-	logger.Info(fmt.Sprintf("Ike Version: %s", version.Version))
-	logger.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
-	logger.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
-	logger.Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
-	logger.Info(fmt.Sprintf("Build Commit: %v", version.Commit))
-	logger.Info(fmt.Sprintf("Build Time: %v", version.BuildTime))
+	logger().Info(fmt.Sprintf("Ike Version: %s", version.Version))
+	logger().Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
+	logger().Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
+	logger().Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
+	logger().Info(fmt.Sprintf("Build Commit: %v", version.Commit))
+	logger().Info(fmt.Sprintf("Build Time: %v", version.BuildTime))
 }

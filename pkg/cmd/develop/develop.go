@@ -5,27 +5,23 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/config"
+	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
-
 	"github.com/maistra/istio-workspace/pkg/log"
-
+	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
-
-	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
-
-	"github.com/spf13/pflag"
-
-	"github.com/maistra/istio-workspace/pkg/shell"
-
-	"github.com/maistra/istio-workspace/pkg/cmd/config"
-
 	gocmd "github.com/go-cmd/cmd"
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
-var logger = log.Log.WithValues("type", "develop")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "develop")
+}
 
 const urlHint = `Knowing your application url you can now access your new version by using
 
@@ -81,7 +77,7 @@ func NewCmd() *cobra.Command {
 			}()
 
 			if route, _ := session.ParseRoute(options.RouteExp); route != nil {
-				logger.Info(fmt.Sprintf(urlHint, route.Name, route.Value))
+				logger().Info(fmt.Sprintf(urlHint, route.Name, route.Value))
 			}
 
 			finalStatus := <-done
@@ -99,11 +95,11 @@ func NewCmd() *cobra.Command {
 	developCmd.Flags().StringSlice("watch-exclude", DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
 	developCmd.Flags().Bool("offline", false, "avoid calling external sources")
 	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
-		logger.Error(err, "failed while trying to hide a flag")
+		logger().Error(err, "failed while trying to hide a flag")
 	}
 	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
 	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
