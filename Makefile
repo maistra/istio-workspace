@@ -375,8 +375,8 @@ deploy-test-%:
 	oc new-project $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE)
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE)
-	oc apply -n $(TEST_NAMESPACE) -f deploy/examples/bookinfo/session_role.yaml
-	oc apply -n $(TEST_NAMESPACE) -f deploy/examples/bookinfo/session_rolebinding.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
+	oc apply -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
 
 	go run ./test/cmd/test-scenario/ $(scenario) | oc apply -n $(TEST_NAMESPACE) -f -
 
@@ -385,8 +385,8 @@ undeploy-test-%:
 	$(call header,"Undeploying bookinfo $(scenario) app from $(TEST_NAMESPACE)")
 
 	go run ./test/cmd/test-scenario/ $(scenario) | oc delete -n $(TEST_NAMESPACE) -f -
-	oc delete -n $(TEST_NAMESPACE) -f deploy/examples/bookinfo/session_rolebinding.yaml
-	oc delete -n $(TEST_NAMESPACE) -f deploy/examples/bookinfo/session_role.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
+	oc delete -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
 
 ##@ Helpers
 
