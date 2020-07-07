@@ -32,7 +32,8 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	rootCmd := cmd.NewCmd()
-	rootCmd.AddCommand(version.NewCmd(),
+	rootCmd.AddCommand(
+		version.NewCmd(),
 		create.NewCmd(),
 		delete.NewCmd(),
 		develop.NewCmd(),

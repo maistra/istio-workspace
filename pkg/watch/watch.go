@@ -10,10 +10,13 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-logr/logr"
 	ignore "github.com/sabhiram/go-gitignore"
 )
 
-var logger = log.Log.WithValues("type", "watch")
+var logger = func() logr.Logger {
+	return log.Log.WithValues("type", "watch")
+}
 
 // Handler allows to define how to react on file changes event.
 type Handler func(events []fsnotify.Event) error
@@ -43,25 +46,25 @@ func (w *Watch) Start() {
 					return
 				}
 				if w.Excluded(event.Name) {
-					logger.V(1).Info("file excluded. skipping change handling", "file", event.Name)
+					logger().V(1).Info("file excluded. skipping change handling", "file", event.Name)
 					continue
 				}
-				logger.V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
+				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
 					return
 				}
-				logger.Error(err, "failed while watching")
+				logger().Error(err, "failed while watching")
 			case <-tick.C:
 				if len(events) == 0 {
 					continue
 				}
-				logger.V(1).Info("firing change event")
+				logger().V(1).Info("firing change event")
 				changes := extractEvents(events)
 				for _, handler := range w.handlers {
 					if err := handler(changes); err != nil {
-						logger.Error(err, "failed to handle file change!")
+						logger().Error(err, "failed to handle file change!")
 					}
 				}
 				events = make(map[string]fsnotify.Event)
@@ -96,7 +99,7 @@ func (w *Watch) Excluded(path string) bool {
 func (w *Watch) Close() {
 	w.done <- struct{}{}
 	if e := w.watcher.Close(); e != nil {
-		logger.Error(e, "failed closing watch")
+		logger().Error(e, "failed closing watch")
 	}
 }
 
@@ -129,7 +132,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 	}
 
 	for _, v := range folders {
-		logger.V(1).Info(fmt.Sprintf("adding watch on filePath %s", v))
+		logger().V(1).Info(fmt.Sprintf("adding watch on filePath %s", v))
 		err = w.addPath(v)
 		if err != nil {
 			// "no space left on device" issues are usually resolved via
