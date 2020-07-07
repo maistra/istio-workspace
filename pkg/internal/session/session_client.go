@@ -8,23 +8,24 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-type client struct {
+// Client interacts with the k8s api server
+type Client struct {
 	versioned.Interface
 	namespace string
 }
 
 // NewClient creates client to handle Session resources based on passed config.
-func NewClient(c versioned.Interface, namespace string) (*client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
-	return &client{namespace: namespace, Interface: c}, nil
+func NewClient(c versioned.Interface, namespace string) (*Client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
+	return &Client{namespace: namespace, Interface: c}, nil
 }
 
-var defaultClient *client
+var defaultClient *Client
 
 // DefaultClient creates a client based on existing kube config.
 // The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
 // If namespace parameter is empty default one from the current context is used.
-func DefaultClient(namespace string) (*client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
+func DefaultClient(namespace string) (*Client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
 	if defaultClient == nil {
 		c2, err2 := createDefaultClient(namespace)
 		if err2 != nil {
@@ -34,7 +35,7 @@ func DefaultClient(namespace string) (*client, error) { //nolint:golint //reason
 	return defaultClient, nil
 }
 
-func createDefaultClient(namespace string) (*client, error) {
+func createDefaultClient(namespace string) (*Client, error) {
 	kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		clientcmd.NewDefaultClientConfigLoadingRules(),
 		&clientcmd.ConfigOverrides{},
@@ -68,7 +69,7 @@ func createDefaultClient(namespace string) (*client, error) {
 }
 
 // Create creates a session instance in a cluster.
-func (c *client) Create(session *istiov1alpha1.Session) error {
+func (c *Client) Create(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Create(session); err != nil {
 		return err
 	}
@@ -76,7 +77,7 @@ func (c *client) Create(session *istiov1alpha1.Session) error {
 }
 
 // Update updates a session instance in a cluster.
-func (c *client) Update(session *istiov1alpha1.Session) error {
+func (c *Client) Update(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Update(session); err != nil {
 		return err
 	}
@@ -84,12 +85,12 @@ func (c *client) Update(session *istiov1alpha1.Session) error {
 }
 
 // Delete deletes a session instance in a cluster.
-func (c *client) Delete(session *istiov1alpha1.Session) error {
+func (c *Client) Delete(session *istiov1alpha1.Session) error {
 	return c.MaistraV1alpha1().Sessions(c.namespace).Delete(session.Name, &metav1.DeleteOptions{})
 }
 
 // Get retrieves details of the Session instance matching passed name.
-func (c *client) Get(sessionName string) (*istiov1alpha1.Session, error) {
+func (c *Client) Get(sessionName string) (*istiov1alpha1.Session, error) {
 	session, err := c.MaistraV1alpha1().Sessions(c.namespace).Get(sessionName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err

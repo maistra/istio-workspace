@@ -29,6 +29,8 @@ type Options struct {
 	RouteExp       string            // expression of how to route the traffic to the target resource
 	Strategy       string            // name of the strategy to use for the target resource
 	StrategyArgs   map[string]string // additional arguments for the strategy
+	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
+	Client         *Client           // Alternative client to be used. If nil a DefaultClient is created
 }
 
 // State holds the new variables as presented by the creation of the session.
@@ -47,8 +49,9 @@ func Offline(opts Options) (State, func(), error) {
 
 // handler wraps the session client and required metadata used to manipulate the resources.
 type handler struct {
-	c    *client
-	opts Options
+	c             *Client
+	opts          Options
+	previousState istiov1alpha1.Ref // holds the previous Ref if replaced. Used to Revert back to old state on remove.
 }
 
 // RemoveHandler provides the option to delete an existing sessions if found.
@@ -56,10 +59,15 @@ type handler struct {
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session.
 func RemoveHandler(opts Options) (State, func(), error) {
-	client, err := DefaultClient(opts.NamespaceName)
-
-	if err != nil {
-		return State{}, func() {}, err
+	var client *Client
+	if opts.Client != nil {
+		client = opts.Client
+	} else {
+		c, err := DefaultClient(opts.NamespaceName)
+		if err != nil {
+			return State{}, func() {}, err
+		}
+		client = c
 	}
 
 	h := &handler{c: client,
@@ -77,14 +85,19 @@ func RemoveHandler(opts Options) (State, func(), error) {
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options) (State, func(), error) {
+	var client *Client
+	if opts.Client != nil {
+		client = opts.Client
+	} else {
+		c, err := DefaultClient(opts.NamespaceName)
+		if err != nil {
+			return State{}, func() {}, err
+		}
+		client = c
+	}
+
 	sessionName := getOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
-
-	client, err := DefaultClient(opts.NamespaceName)
-
-	if err != nil {
-		return State{}, func() {}, err
-	}
 
 	h := &handler{c: client,
 		opts: opts}
@@ -124,6 +137,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 	// update ref in session
 	for i, r := range session.Spec.Refs {
 		if r.Name == h.opts.DeploymentName {
+			h.previousState = session.Spec.Refs[i]
 			session.Spec.Refs[i] = ref
 			err = h.c.Update(session)
 			if err != nil {
@@ -213,7 +227,11 @@ func (h *handler) removeOrLeaveSession() {
 	// more than one participant, update session
 	for i, r := range session.Spec.Refs {
 		if r.Name == h.opts.DeploymentName {
-			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
+			if h.opts.Revert {
+				session.Spec.Refs[i] = h.previousState
+			} else {
+				session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
+			}
 		}
 	}
 	if len(session.Spec.Refs) == 0 {

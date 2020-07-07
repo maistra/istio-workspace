@@ -18,7 +18,7 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 		sessionHandler = session.CreateOrJoinHandler
 	}
 
-	options, err := ToOptions(cmd.Flags())
+	options, err := ToOptions(cmd.Name(), cmd.Flags())
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
@@ -42,7 +42,7 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 const telepresenceStrategy = "telepresence"
 
 // ToOptions converts between FlagSet to a Handler Options.
-func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
+func ToOptions(commandName string, flags *pflag.FlagSet) (session.Options, error) {
 	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
 
@@ -79,6 +79,7 @@ func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 	}
 
 	return session.Options{
+		Revert:         commandName == "develop",
 		NamespaceName:  n,
 		DeploymentName: d,
 		SessionName:    s,
