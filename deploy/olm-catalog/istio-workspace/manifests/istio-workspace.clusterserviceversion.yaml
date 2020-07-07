@@ -35,6 +35,8 @@ spec:
       kind: Session
       name: sessions.maistra.io
       version: v1alpha1
+  description: Safely develop and test on any kubernetes cluster without distracting
+    others.
   displayName: Istio Workspace
   icon:
   - base64data: ""
@@ -245,6 +247,7 @@ spec:
   - email: bartosz@redhat.com
     name: Bartosz Majsak
   maturity: alpha
-  provider: {}
+  provider:
+    name: Red Hat, Inc.
   replaces: istio-workspace.v0.0.3-next-2da62b2-dirty
   version: 0.0.3
