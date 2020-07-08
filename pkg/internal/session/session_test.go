@@ -16,6 +16,10 @@ import (
 
 var _ = Describe("Session operations", func() {
 
+	const (
+		telepresence  = "telepresence"
+		preparedImage = "prepared-image"
+	)
 	Context("handlers", func() {
 		var (
 			objects       []runtime.Object
@@ -28,7 +32,7 @@ var _ = Describe("Session operations", func() {
 				NamespaceName:  "test-namespace",
 				SessionName:    "test-session",
 				DeploymentName: "test-deployment",
-				Strategy:       "prepared-image",
+				Strategy:       preparedImage,
 			}
 		})
 		JustBeforeEach(func() {
@@ -95,7 +99,7 @@ var _ = Describe("Session operations", func() {
 				// when - update the existing ref with telepresence
 				opts.Revert = true
 				opts.DeploymentName = opts.DeploymentName + "-1"
-				opts.Strategy = "telepresence"
+				opts.Strategy = telepresence
 
 				_, remove, err := session.CreateOrJoinHandler(opts)
 				Expect(err).ToNot(HaveOccurred())
@@ -105,7 +109,7 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(sess.Spec.Refs).To(HaveLen(1))
-				Expect(sess.Spec.Refs[0].Strategy).To(Equal("telepresence"))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal(telepresence))
 
 				// when - the ref take over is removed
 				remove()
@@ -115,7 +119,7 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(sess.Spec.Refs).To(HaveLen(1))
-				Expect(sess.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal(preparedImage))
 			})
 
 			It("should not revert if ref was never updated", func() {
@@ -123,7 +127,7 @@ var _ = Describe("Session operations", func() {
 
 				// when - update the existing ref with telepresence
 				opts.Revert = true
-				opts.Strategy = "telepresence"
+				opts.Strategy = telepresence
 
 				_, remove, err := session.CreateOrJoinHandler(opts)
 				Expect(err).ToNot(HaveOccurred())
@@ -142,7 +146,7 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(sess.Spec.Refs).To(HaveLen(1))
-				Expect(sess.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal(preparedImage))
 			})
 		})
 		Context("remove", func() {
@@ -214,7 +218,7 @@ var _ = Describe("Session operations", func() {
 	})
 })
 
-// helper function to mimic the server side reacting to the session object
+// helper function to mimic the server side reacting to the session object.
 func addSessionRefStatus(c *session.Client, sessionName string) func() {
 	done := false
 	go func() {
