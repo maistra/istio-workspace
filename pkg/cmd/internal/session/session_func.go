@@ -78,8 +78,9 @@ func ToOptions(commandName string, flags *pflag.FlagSet) (session.Options, error
 		}
 	}
 
+	revert := commandName == "develop"
 	return session.Options{
-		Revert:         commandName == "develop",
+		Revert:         revert,
 		NamespaceName:  n,
 		DeploymentName: d,
 		SessionName:    s,
