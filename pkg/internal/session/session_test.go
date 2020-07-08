@@ -6,6 +6,7 @@ import (
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
 	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -41,10 +42,10 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// then - a session should exist
-				session, err := client.Get(opts.SessionName)
+				sess, err := client.Get(opts.SessionName)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(session.Spec.Refs).To(HaveLen(1))
+				Expect(sess.Spec.Refs).To(HaveLen(1))
 			})
 		})
 		Context("join", func() {
@@ -75,10 +76,10 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// then - expect there to be two refs
-				session, err := client.Get(opts.SessionName)
+				sess, err := client.Get(opts.SessionName)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(session.Spec.Refs).To(HaveLen(2))
+				Expect(sess.Spec.Refs).To(HaveLen(2))
 			})
 
 			It("should revert ref to previous state on remove", func() {
@@ -93,21 +94,21 @@ var _ = Describe("Session operations", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				// then - expect the strategy to be updated
-				session, err := client.Get(opts.SessionName)
+				sess, err := client.Get(opts.SessionName)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(session.Spec.Refs).To(HaveLen(1))
-				Expect(session.Spec.Refs[0].Strategy).To(Equal("telepresence"))
+				Expect(sess.Spec.Refs).To(HaveLen(1))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal("telepresence"))
 
 				// when - the ref take over is removed
 				remove()
 
 				// then - expect the ref to be back to prepared-image
-				session, err = client.Get(opts.SessionName)
+				sess, err = client.Get(opts.SessionName)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(session.Spec.Refs).To(HaveLen(1))
-				Expect(session.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
+				Expect(sess.Spec.Refs).To(HaveLen(1))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
 			})
 		})
 	})
@@ -146,16 +147,16 @@ var _ = Describe("Session operations", func() {
 
 func addSessionRefStatus(c *session.Client, sessionName string) {
 	for {
-		session, err := c.Get(sessionName)
+		sess, err := c.Get(sessionName)
 		if err != nil {
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
-		for _, ref := range session.Spec.Refs {
+		for _, ref := range sess.Spec.Refs {
 			kind := "Deployment"
 			name := "test-deployment-clone"
 			action := "created"
-			session.Status.Refs = append(session.Status.Refs, &istiov1alpha1.RefStatus{
+			sess.Status.Refs = append(sess.Status.Refs, &istiov1alpha1.RefStatus{
 				Ref: istiov1alpha1.Ref{
 					Name: ref.Name,
 				},
@@ -168,7 +169,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) {
 				},
 			})
 		}
-		c.Update(session)
+		c.Update(sess)
 		break
 	}
 }

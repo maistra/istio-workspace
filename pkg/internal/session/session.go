@@ -136,15 +136,16 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
 	// update ref in session
 	for i, r := range session.Spec.Refs {
-		if r.Name == h.opts.DeploymentName {
-			h.previousState = session.Spec.Refs[i]
-			session.Spec.Refs[i] = ref
-			err = h.c.Update(session)
-			if err != nil {
-				return session, "", err
-			}
-			return h.removeSessionIfDeploymentNotFound()
+		if r.Name != h.opts.DeploymentName {
+			continue
 		}
+		h.previousState = session.Spec.Refs[i]
+		session.Spec.Refs[i] = ref
+		err = h.c.Update(session)
+		if err != nil {
+			return session, "", err
+		}
+		return h.removeSessionIfDeploymentNotFound()
 	}
 	// join session
 	session.Spec.Refs = append(session.Spec.Refs, ref)

@@ -8,14 +8,14 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// Client interacts with the k8s api server
+// Client interacts with the k8s api server.
 type Client struct {
 	versioned.Interface
 	namespace string
 }
 
 // NewClient creates client to handle Session resources based on passed config.
-func NewClient(c versioned.Interface, namespace string) (*Client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
+func NewClient(c versioned.Interface, namespace string) (*Client, error) {
 	return &Client{namespace: namespace, Interface: c}, nil
 }
 
@@ -25,7 +25,7 @@ var defaultClient *Client
 // The instance is created lazily only once and shared among all the callers
 // While resolving configuration we look for .kube/config file unless KUBECONFIG env variable is set
 // If namespace parameter is empty default one from the current context is used.
-func DefaultClient(namespace string) (*Client, error) { //nolint:golint //reason otherwise it complaint about annoying client type to use
+func DefaultClient(namespace string) (*Client, error) {
 	if defaultClient == nil {
 		c2, err2 := createDefaultClient(namespace)
 		if err2 != nil {
