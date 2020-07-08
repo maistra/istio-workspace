@@ -51,7 +51,7 @@ func Offline(opts Options) (State, func(), error) {
 type handler struct {
 	c             *Client
 	opts          Options
-	previousState istiov1alpha1.Ref // holds the previous Ref if replaced. Used to Revert back to old state on remove.
+	previousState *istiov1alpha1.Ref // holds the previous Ref if replaced. Used to Revert back to old state on remove.
 }
 
 // RemoveHandler provides the option to delete an existing sessions if found.
@@ -139,7 +139,8 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		if r.Name != h.opts.DeploymentName {
 			continue
 		}
-		h.previousState = session.Spec.Refs[i]
+		prev := session.Spec.Refs[i]
+		h.previousState = &prev // point to a variable, not a array index
 		session.Spec.Refs[i] = ref
 		err = h.c.Update(session)
 		if err != nil {
@@ -228,8 +229,8 @@ func (h *handler) removeOrLeaveSession() {
 	// more than one participant, update session
 	for i, r := range session.Spec.Refs {
 		if r.Name == h.opts.DeploymentName {
-			if h.opts.Revert {
-				session.Spec.Refs[i] = h.previousState
+			if h.opts.Revert && h.previousState != nil {
+				session.Spec.Refs[i] = *h.previousState
 			} else {
 				session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
 			}

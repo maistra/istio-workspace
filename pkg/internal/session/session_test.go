@@ -18,19 +18,26 @@ var _ = Describe("Session operations", func() {
 
 	Context("handlers", func() {
 		var (
-			objects []runtime.Object
-			client  *session.Client
-			opts    = session.Options{
+			objects       []runtime.Object
+			client        *session.Client
+			opts          session.Options
+			updateRemover func()
+		)
+		BeforeEach(func() {
+			opts = session.Options{
 				NamespaceName:  "test-namespace",
 				SessionName:    "test-session",
 				DeploymentName: "test-deployment",
 				Strategy:       "prepared-image",
 			}
-		)
+		})
 		JustBeforeEach(func() {
 			client, _ = session.NewClient(testclient.NewSimpleClientset(objects...), "test-namespace")
 			opts.Client = client
-			go addSessionRefStatus(client, opts.SessionName)
+			updateRemover = addSessionRefStatus(client, opts.SessionName)
+		})
+		AfterEach(func() {
+			updateRemover()
 		})
 		Context("create", func() {
 
@@ -110,6 +117,68 @@ var _ = Describe("Session operations", func() {
 				Expect(sess.Spec.Refs).To(HaveLen(1))
 				Expect(sess.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
 			})
+
+			It("should not revert if ref was never updated", func() {
+				// given - an existing ref of prepared-image
+
+				// when - update the existing ref with telepresence
+				opts.Revert = true
+				opts.Strategy = "telepresence"
+
+				_, remove, err := session.CreateOrJoinHandler(opts)
+				Expect(err).ToNot(HaveOccurred())
+
+				// then - expect another ref to have been added
+				sess, err := client.Get(opts.SessionName)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(sess.Spec.Refs).To(HaveLen(2))
+
+				// when - the ref is removed
+				remove()
+
+				// then - expect the only ref to be prepared-image
+				sess, err = client.Get(opts.SessionName)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(sess.Spec.Refs).To(HaveLen(1))
+				Expect(sess.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
+			})
+		})
+		Context("remove", func() {
+			BeforeEach(func() {
+				objects = []runtime.Object{
+					&istiov1alpha1.Session{
+						TypeMeta: metav1.TypeMeta{
+							APIVersion: "maistra.io/v1alpha1",
+							Kind:       "Session",
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      opts.SessionName,
+							Namespace: opts.NamespaceName,
+						},
+						Spec: istiov1alpha1.SessionSpec{
+							Refs: []istiov1alpha1.Ref{
+								{Name: opts.DeploymentName + "-1", Strategy: opts.Strategy, Args: opts.StrategyArgs},
+							},
+						},
+					}}
+			})
+
+			It("should join a session if existing name found", func() {
+				// given - an existing session
+				opts.DeploymentName = opts.DeploymentName + "-1"
+
+				// when - removing a ref from a session
+				_, remove, err := session.RemoveHandler(opts)
+				Expect(err).ToNot(HaveOccurred())
+
+				remove()
+
+				// then - expect there to be no session
+				_, err = client.Get(opts.SessionName)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 
@@ -145,31 +214,49 @@ var _ = Describe("Session operations", func() {
 	})
 })
 
-func addSessionRefStatus(c *session.Client, sessionName string) {
-	for {
-		sess, err := c.Get(sessionName)
-		if err != nil {
+// helper function to mimic the server side reacting to the session object
+func addSessionRefStatus(c *session.Client, sessionName string) func() {
+	done := false
+	go func() {
+		for {
+			if done {
+				break
+			}
 			time.Sleep(100 * time.Millisecond)
-			continue
-		}
-		for _, ref := range sess.Spec.Refs {
-			kind := "Deployment"
-			name := "test-deployment-clone"
-			action := "created"
-			sess.Status.Refs = append(sess.Status.Refs, &istiov1alpha1.RefStatus{
-				Ref: istiov1alpha1.Ref{
-					Name: ref.Name,
-				},
-				Resources: []*istiov1alpha1.RefResource{
-					&istiov1alpha1.RefResource{
-						Kind:   &kind,
-						Name:   &name,
-						Action: &action,
+			sess, err := c.Get(sessionName)
+			if err != nil {
+				continue
+			}
+			for _, ref := range sess.Spec.Refs {
+				found := false
+				for _, status := range sess.Status.Refs {
+					if status.Name == ref.Name {
+						found = true
+					}
+				}
+				if found {
+					continue
+				}
+				kind := "Deployment"
+				name := "test-deployment-clone"
+				action := "created"
+				sess.Status.Refs = append(sess.Status.Refs, &istiov1alpha1.RefStatus{
+					Ref: istiov1alpha1.Ref{
+						Name: ref.Name,
 					},
-				},
-			})
+					Resources: []*istiov1alpha1.RefResource{
+						&istiov1alpha1.RefResource{
+							Kind:   &kind,
+							Name:   &name,
+							Action: &action,
+						},
+					},
+				})
+			}
+			c.Update(sess)
 		}
-		c.Update(sess)
-		break
+	}()
+	return func() {
+		done = true
 	}
 }
