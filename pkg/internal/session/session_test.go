@@ -34,10 +34,13 @@ var _ = Describe("Session operations", func() {
 		Context("create", func() {
 
 			It("should create a new session if non found", func() {
+				// given - no exiting sessions
+				// when - adding a ref to a session
 				_, remove, err := session.CreateOrJoinHandler(opts)
 				defer remove()
 				Expect(err).ToNot(HaveOccurred())
 
+				// then - a session should exist
 				session, err := client.Get(opts.SessionName)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -64,7 +67,21 @@ var _ = Describe("Session operations", func() {
 					}}
 			})
 
-			It("should join a session if exists found", func() {
+			It("should join a session if existing name found", func() {
+				// given - an existing session
+				// when - adding a ref to a session with the same name
+				_, remove, err := session.CreateOrJoinHandler(opts)
+				defer remove()
+				Expect(err).ToNot(HaveOccurred())
+
+				// then - expect there to be two refs
+				session, err := client.Get(opts.SessionName)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(session.Spec.Refs).To(HaveLen(2))
+			})
+
+			It("should revert ref to previous state on remove", func() {
 				// given - an existing ref of prepared-image
 
 				// when - update the existing ref with telepresence
@@ -91,17 +108,6 @@ var _ = Describe("Session operations", func() {
 
 				Expect(session.Spec.Refs).To(HaveLen(1))
 				Expect(session.Spec.Refs[0].Strategy).To(Equal("prepared-image"))
-			})
-
-			It("should revert to previous", func() {
-				_, remove, err := session.CreateOrJoinHandler(opts)
-				defer remove()
-				Expect(err).ToNot(HaveOccurred())
-
-				session, err := client.Get(opts.SessionName)
-				Expect(err).ToNot(HaveOccurred())
-
-				Expect(session.Spec.Refs).To(HaveLen(2))
 			})
 		})
 	})
