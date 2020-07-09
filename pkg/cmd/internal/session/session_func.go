@@ -13,19 +13,20 @@ import (
 // otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
-
-	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
-		sessionHandler = session.CreateOrJoinHandler
-	}
+	var client *session.Client = nil
 
 	options, err := ToOptions(cmd.Annotations, cmd.Flags())
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
 
-	client, err := session.DefaultClient(options.NamespaceName)
-	if err != nil {
-		return session.State{}, options, func() {}, err
+	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
+		sessionHandler = session.CreateOrJoinHandler
+		c, err := session.DefaultClient(options.NamespaceName)
+		if err != nil {
+			return session.State{}, options, func() {}, err
+		}
+		client = c
 	}
 
 	state, f, err := sessionHandler(options, client)
