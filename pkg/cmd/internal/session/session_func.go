@@ -20,11 +20,11 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 		return session.State{}, options, nil, err
 	}
 
-	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
+	if offline, e := cmd.Flags().GetBool("offline"); e == nil && !offline {
 		sessionHandler = session.CreateOrJoinHandler
-		c, err := session.DefaultClient(options.NamespaceName)
+		c, e2 := session.DefaultClient(options.NamespaceName)
 		if err != nil {
-			return session.State{}, options, func() {}, err
+			return session.State{}, options, func() {}, e2
 		}
 		client = c
 	}
