@@ -29,6 +29,8 @@ type Options struct {
 	RouteExp       string            // expression of how to route the traffic to the target resource
 	Strategy       string            // name of the strategy to use for the target resource
 	StrategyArgs   map[string]string // additional arguments for the strategy
+	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
+	Duration       *time.Duration    // Duration defines the interval used to check for changes to the session object
 }
 
 // State holds the new variables as presented by the creation of the session.
@@ -38,30 +40,25 @@ type State struct {
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
-type Handler func(opts Options) (State, func(), error)
+type Handler func(opts Options, client *Client) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing.
-func Offline(opts Options) (State, func(), error) {
+func Offline(opts Options, client *Client) (State, func(), error) {
 	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
 // handler wraps the session client and required metadata used to manipulate the resources.
 type handler struct {
-	c    *client
-	opts Options
+	c             *Client
+	opts          Options
+	previousState *istiov1alpha1.Ref // holds the previous Ref if replaced. Used to Revert back to old state on remove.
 }
 
 // RemoveHandler provides the option to delete an existing sessions if found.
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session.
-func RemoveHandler(opts Options) (State, func(), error) {
-	client, err := DefaultClient(opts.NamespaceName)
-
-	if err != nil {
-		return State{}, func() {}, err
-	}
-
+func RemoveHandler(opts Options, client *Client) (State, func(), error) {
 	h := &handler{c: client,
 		opts: opts}
 
@@ -76,15 +73,9 @@ func RemoveHandler(opts Options) (State, func(), error) {
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
-func CreateOrJoinHandler(opts Options) (State, func(), error) {
+func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	sessionName := getOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
-
-	client, err := DefaultClient(opts.NamespaceName)
-
-	if err != nil {
-		return State{}, func() {}, err
-	}
 
 	h := &handler{c: client,
 		opts: opts}
@@ -123,14 +114,17 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
 	// update ref in session
 	for i, r := range session.Spec.Refs {
-		if r.Name == h.opts.DeploymentName {
-			session.Spec.Refs[i] = ref
-			err = h.c.Update(session)
-			if err != nil {
-				return session, "", err
-			}
-			return h.removeSessionIfDeploymentNotFound()
+		if r.Name != h.opts.DeploymentName {
+			continue
 		}
+		prev := session.Spec.Refs[i]
+		h.previousState = &prev // point to a variable, not a array index
+		session.Spec.Refs[i] = ref
+		err = h.c.Update(session)
+		if err != nil {
+			return session, "", err
+		}
+		return h.removeSessionIfDeploymentNotFound()
 	}
 	// join session
 	session.Spec.Refs = append(session.Spec.Refs, ref)
@@ -179,7 +173,11 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
-	err = wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
+	duration := 1 * time.Second
+	if h.opts.Duration != nil {
+		duration = *h.opts.Duration
+	}
+	err = wait.Poll(duration, 10*time.Second, func() (bool, error) {
 		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
@@ -213,7 +211,11 @@ func (h *handler) removeOrLeaveSession() {
 	// more than one participant, update session
 	for i, r := range session.Spec.Refs {
 		if r.Name == h.opts.DeploymentName {
-			session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
+			if h.opts.Revert && h.previousState != nil {
+				session.Spec.Refs[i] = *h.previousState
+			} else {
+				session.Spec.Refs = append(session.Spec.Refs[:i], session.Spec.Refs[i+1:]...)
+			}
 		}
 	}
 	if len(session.Spec.Refs) == 0 {

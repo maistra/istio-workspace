@@ -13,17 +13,23 @@ import (
 // otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
+	var client *session.Client = nil
 
-	if offline, err := cmd.Flags().GetBool("offline"); err == nil && !offline {
-		sessionHandler = session.CreateOrJoinHandler
-	}
-
-	options, err := ToOptions(cmd.Flags())
+	options, err := ToOptions(cmd.Annotations, cmd.Flags())
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
 
-	state, f, err := sessionHandler(options)
+	if offline, e := cmd.Flags().GetBool("offline"); e == nil && !offline {
+		sessionHandler = session.CreateOrJoinHandler
+		c, e2 := session.DefaultClient(options.NamespaceName)
+		if err != nil {
+			return session.State{}, options, func() {}, e2
+		}
+		client = c
+	}
+
+	state, f, err := sessionHandler(options, client)
 
 	return state, options, f, err
 }
@@ -36,13 +42,22 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	if err != nil {
 		return session.State{}, nil, err
 	}
-	return session.RemoveHandler(options)
+	client, err := session.DefaultClient(options.NamespaceName)
+	if err != nil {
+		return session.State{}, func() {}, err
+	}
+
+	return session.RemoveHandler(options, client)
 }
 
-const telepresenceStrategy = "telepresence"
+const (
+	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag
+	AnnotationRevert     = "revert"
+	telepresenceStrategy = "telepresence"
+)
 
 // ToOptions converts between FlagSet to a Handler Options.
-func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
+func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Options, error) {
 	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
 
@@ -77,8 +92,12 @@ func ToOptions(flags *pflag.FlagSet) (session.Options, error) {
 			return session.Options{}, err
 		}
 	}
-
+	revert := false
+	if val, found := annotations[AnnotationRevert]; found && val == "true" {
+		revert = true
+	}
 	return session.Options{
+		Revert:         revert,
 		NamespaceName:  n,
 		DeploymentName: d,
 		SessionName:    s,

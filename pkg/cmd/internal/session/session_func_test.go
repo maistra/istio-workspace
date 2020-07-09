@@ -31,25 +31,25 @@ var _ = Describe("Usage of session func", func() {
 		})
 
 		It("should fail if namespace is not defined", func() {
-			_, err := internal.ToOptions(removeFlagFromSet(command.Flags(), "namespace"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "namespace"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("namespace"))
 		})
 
 		It("should fail if deployment is not defined", func() {
-			_, err := internal.ToOptions(removeFlagFromSet(command.Flags(), "deployment"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "deployment"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("deployment"))
 		})
 
 		It("should fail if session is not defined", func() {
-			_, err := internal.ToOptions(removeFlagFromSet(command.Flags(), "session"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "session"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("session"))
 		})
 
 		It("should fail if route is not defined", func() {
-			_, err := internal.ToOptions(removeFlagFromSet(command.Flags(), "route"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "route"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("route"))
 		})
@@ -65,7 +65,7 @@ var _ = Describe("Usage of session func", func() {
 
 		It("should convert namespace if set", func() {
 			Expect(command.Flags().Set("namespace", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.NamespaceName).To(Equal("TEST"))
@@ -73,7 +73,7 @@ var _ = Describe("Usage of session func", func() {
 
 		It("should convert deployment if set", func() {
 			Expect(command.Flags().Set("deployment", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.DeploymentName).To(Equal("TEST"))
@@ -81,7 +81,7 @@ var _ = Describe("Usage of session func", func() {
 
 		It("should convert session if set", func() {
 			Expect(command.Flags().Set("session", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.SessionName).To(Equal("TEST"))
@@ -90,14 +90,38 @@ var _ = Describe("Usage of session func", func() {
 		It("should convert route if set", func() {
 			// RouteExp Parser not tested here, see session/session_test
 			Expect(command.Flags().Set("route", "header:name=value")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.RouteExp).To(Equal("header:name=value"))
 		})
 
+		It("should set Revert if command is develop", func() {
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(opts.Revert).To(BeTrue())
+		})
+
+		It("should set Revert if command has revert annotation", func() {
+			annotations := map[string]string{
+				internal.AnnotationRevert: "true",
+			}
+			opts, err := internal.ToOptions(annotations, command.Flags())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(opts.Revert).To(BeTrue())
+		})
+
+		It("should not set Revert if command is not develop", func() {
+			annotations := map[string]string{
+				internal.AnnotationRevert: "false",
+			}
+			opts, err := internal.ToOptions(annotations, command.Flags())
+			Expect(err).ToNot(HaveOccurred())
+			Expect(opts.Revert).To(BeFalse())
+		})
+
 		It("should default to empty", func() {
-			opts, err := internal.ToOptions(command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, command.Flags())
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.NamespaceName).To(Equal(""))
