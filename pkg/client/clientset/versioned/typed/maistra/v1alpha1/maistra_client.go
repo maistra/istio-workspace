@@ -3,7 +3,7 @@
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/maistra/istio-workspace/pkg/apis/istio/v1alpha1"
+	v1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )

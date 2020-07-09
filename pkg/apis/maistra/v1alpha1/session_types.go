@@ -12,6 +12,7 @@ type SessionSpec struct {
 	Refs  []Ref `json:"ref,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // Ref defines the desired state for a single reference within the Session.
 type Ref struct {
 	Name     string            `json:"name,omitempty"`
@@ -19,6 +20,7 @@ type Ref struct {
 	Args     map[string]string `json:"args,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // Route defines the strategy for how the traffic is routed to the Ref.
 type Route struct {
 	Type  string `json:"type,omitempty"`
@@ -26,12 +28,14 @@ type Route struct {
 	Value string `json:"value,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // SessionStatus defines the observed state of Session.
 type SessionStatus struct {
 	State *string      `json:"state,omitempty"`
 	Refs  []*RefStatus `json:"refs,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // RefStatus defines the observed state of the individual Ref.
 type RefStatus struct {
 	Ref       `json:",inline"`
@@ -39,6 +43,7 @@ type RefStatus struct {
 	Resources []*RefResource        `json:"resources,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // RefResource defines the observed resources mutated/created as part of the Ref.
 type RefResource struct {
 	Kind   *string           `json:"kind,omitempty"`
@@ -47,6 +52,7 @@ type RefResource struct {
 	Prop   map[string]string `json:"prop,omitempty"`
 }
 
+// +k8s:openapi-gen=true
 // LabeledRefResource is a RefResource with Labels.
 type LabeledRefResource struct {
 	RefResource `json:",inline"`
@@ -56,6 +62,8 @@ type LabeledRefResource struct {
 // +genclient
 // +genclient:noStatus
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=sessions,scope=Namespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Session is the Schema for the sessions API.

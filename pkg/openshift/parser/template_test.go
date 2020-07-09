@@ -21,7 +21,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
+			yaml, err := ProcessTemplate("deploy/cluster_role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -37,7 +37,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", map[string]string{"IKE_VERSION": version.Version})
+			yaml, err := ProcessTemplate("deploy/operator.tpl.yaml", map[string]string{"IKE_VERSION": version.Version})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -54,7 +54,7 @@ var _ = Describe("template processing", func() {
 			var yaml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/istio-workspace/operator.yaml", templateValues)
+			yaml, err := ProcessTemplate("deploy/operator.tpl.yaml", templateValues)
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
@@ -74,7 +74,7 @@ var _ = Describe("template processing", func() {
 				var yaml []byte
 
 				// when
-				yaml, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+				yaml, err := ProcessTemplateUsingEnvVars("deploy/operator.tpl.yaml")
 				Expect(err).ToNot(HaveOccurred())
 
 				// then
@@ -88,7 +88,7 @@ var _ = Describe("template processing", func() {
 		It("should process yaml to Openshift Template", func() {
 
 			// when
-			rawTemplate, err := ProcessTemplateUsingEnvVars("deploy/istio-workspace/operator.yaml")
+			rawTemplate, err := ProcessTemplateUsingEnvVars("deploy/operator.tpl.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
 			raw, err := Parse(rawTemplate)
@@ -119,6 +119,10 @@ parameters:
     value: istio-workspace
   - name: IKE_IMAGE_TAG
     description: "The tag of the image to be used"
+    required: true
+    value: latest
+  - name: IKE_VERSION
+    description: "The version of the binary"
     required: true
     value: latest
   - name: WATCH_NAMESPACE

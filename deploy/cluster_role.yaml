@@ -7,6 +7,12 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
       - pods
       - services
       - endpoints
@@ -16,12 +22,6 @@ rules:
       - secrets
     verbs:
       - '*'
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    verbs:
-      - get
   - apiGroups:
       - apps
     resources:
