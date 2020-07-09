@@ -28,11 +28,13 @@ var _ = Describe("Session operations", func() {
 			updateRemover func()
 		)
 		BeforeEach(func() {
+			duration := 10 * time.Millisecond
 			opts = session.Options{
 				NamespaceName:  "test-namespace",
 				SessionName:    "test-session",
 				DeploymentName: "test-deployment",
 				Strategy:       preparedImage,
+				Duration:       &duration,
 			}
 		})
 		JustBeforeEach(func() {
@@ -225,7 +227,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 			if done {
 				break
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			sess, err := c.Get(sessionName)
 			if err != nil {
 				continue

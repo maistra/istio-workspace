@@ -30,6 +30,7 @@ type Options struct {
 	Strategy       string            // name of the strategy to use for the target resource
 	StrategyArgs   map[string]string // additional arguments for the strategy
 	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
+	Duration       *time.Duration    // Duration defines the interval used to check for changes to the session object
 }
 
 // State holds the new variables as presented by the creation of the session.
@@ -172,7 +173,11 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
-	err = wait.Poll(1*time.Second, 10*time.Second, func() (bool, error) {
+	duration := 1 * time.Second
+	if h.opts.Duration != nil {
+		duration = *h.opts.Duration
+	}
+	err = wait.Poll(duration, 10*time.Second, func() (bool, error) {
 		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
