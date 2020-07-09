@@ -1,0 +1,253 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "maistra.io/v1alpha1",
+          "kind": "Session",
+          "metadata": {
+            "name": "test-session"
+          },
+          "spec": {
+            "ref": [
+              {
+                "name": "ratings-v1"
+              }
+            ],
+            "route": {
+              "name": "end-user",
+              "type": "header",
+              "value": "jason"
+            }
+          }
+        }
+      ]
+    capabilities: Basic Install
+  name: istio-workspace.v0.0.3
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Session is the Schema for the sessions API.
+      kind: Session
+      name: sessions.maistra.io
+      version: v1alpha1
+  description: Safely develop and test on any kubernetes cluster without distracting
+    others.
+  displayName: Istio Workspace
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps.openshift.io
+          resources:
+          - deploymentconfigs
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - istio.openshift.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - networking.istio.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - maistra.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resourceNames:
+          - istio-workspace
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        serviceAccountName: istio-workspace
+      deployments:
+      - name: istio-workspace
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: istio-workspace
+              version: v0.0.3-dirty
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                app: istio-workspace
+                version: v0.0.3-dirty
+              name: istio-workspace
+            spec:
+              containers:
+              - args:
+                - serve
+                command:
+                - ike
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: istio-workspace
+                image: quay.io/maistra/istio-workspace:v0.0.3-dirty
+                imagePullPolicy: Always
+                name: istio-workspace
+                resources: {}
+              serviceAccountName: istio-workspace
+      permissions:
+      - rules:
+        - apiGroups:
+          - maistra.io
+          resources:
+          - sessions
+          verbs:
+          - '*'
+        serviceAccountName: sessions
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - '*'
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps.openshift.io
+          resources:
+          - deploymentconfigs
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - istio.openshift.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - networking.istio.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - maistra.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resourceNames:
+          - istio-workspace
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        serviceAccountName: istio-workspace
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - istio
+  - telepresence
+  - local development
+  - testing
+  maintainers:
+  - email: aslak@redhat.com
+    name: Aslak Knutsen
+  - email: bartosz@redhat.com
+    name: Bartosz Majsak
+  maturity: alpha
+  provider:
+    name: Red Hat, Inc.
+  replaces: istio-workspace.v0.0.3-next-c19d0d8-dirty
+  version: 0.0.3

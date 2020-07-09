@@ -4,8 +4,8 @@ package fake
 
 import (
 	clientset "github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
-	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1"
-	fakemaistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/istio/v1alpha1/fake"
+	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
+	fakemaistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
