@@ -18,7 +18,7 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 		sessionHandler = session.CreateOrJoinHandler
 	}
 
-	options, err := ToOptions(cmd.Name(), cmd.Flags())
+	options, err := ToOptions(cmd.Annotations, cmd.Flags())
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
@@ -49,10 +49,14 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	return session.RemoveHandler(options, client)
 }
 
-const telepresenceStrategy = "telepresence"
+const (
+	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag
+	AnnotationRevert     = "revert"
+	telepresenceStrategy = "telepresence"
+)
 
 // ToOptions converts between FlagSet to a Handler Options.
-func ToOptions(commandName string, flags *pflag.FlagSet) (session.Options, error) {
+func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Options, error) {
 	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
 
@@ -87,8 +91,10 @@ func ToOptions(commandName string, flags *pflag.FlagSet) (session.Options, error
 			return session.Options{}, err
 		}
 	}
-
-	revert := commandName == "develop"
+	revert := false
+	if val, found := annotations[AnnotationRevert]; found && val == "true" {
+		revert = true
+	}
 	return session.Options{
 		Revert:         revert,
 		NamespaceName:  n,

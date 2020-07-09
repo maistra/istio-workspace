@@ -84,6 +84,10 @@ func NewCmd() *cobra.Command {
 			return finalStatus.Error
 		},
 	}
+	if developCmd.Annotations == nil {
+		developCmd.Annotations = map[string]string{}
+	}
+	developCmd.Annotations[internal.AnnotationRevert] = "true"
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().StringSliceP("port", "p", []string{}, "list of ports to be exposed in format local[:remote].")
