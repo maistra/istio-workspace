@@ -37,7 +37,6 @@ var _ = Describe("Session operations", func() {
 		})
 		JustBeforeEach(func() {
 			client, _ = session.NewClient(testclient.NewSimpleClientset(objects...), "test-namespace")
-			opts.Client = client
 			updateRemover = addSessionRefStatus(client, opts.SessionName)
 		})
 		AfterEach(func() {
@@ -48,7 +47,7 @@ var _ = Describe("Session operations", func() {
 			It("should create a new session if non found", func() {
 				// given - no exiting sessions
 				// when - adding a ref to a session
-				_, remove, err := session.CreateOrJoinHandler(opts)
+				_, remove, err := session.CreateOrJoinHandler(opts, client)
 				defer remove()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -82,7 +81,7 @@ var _ = Describe("Session operations", func() {
 			It("should join a session if existing name found", func() {
 				// given - an existing session
 				// when - adding a ref to a session with the same name
-				_, remove, err := session.CreateOrJoinHandler(opts)
+				_, remove, err := session.CreateOrJoinHandler(opts, client)
 				defer remove()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -101,7 +100,7 @@ var _ = Describe("Session operations", func() {
 				opts.DeploymentName = opts.DeploymentName + "-1"
 				opts.Strategy = telepresence
 
-				_, remove, err := session.CreateOrJoinHandler(opts)
+				_, remove, err := session.CreateOrJoinHandler(opts, client)
 				Expect(err).ToNot(HaveOccurred())
 
 				// then - expect the strategy to be updated
@@ -129,7 +128,7 @@ var _ = Describe("Session operations", func() {
 				opts.Revert = true
 				opts.Strategy = telepresence
 
-				_, remove, err := session.CreateOrJoinHandler(opts)
+				_, remove, err := session.CreateOrJoinHandler(opts, client)
 				Expect(err).ToNot(HaveOccurred())
 
 				// then - expect another ref to have been added
@@ -174,7 +173,7 @@ var _ = Describe("Session operations", func() {
 				opts.DeploymentName = opts.DeploymentName + "-1"
 
 				// when - removing a ref from a session
-				_, remove, err := session.RemoveHandler(opts)
+				_, remove, err := session.RemoveHandler(opts, client)
 				Expect(err).ToNot(HaveOccurred())
 
 				remove()

@@ -30,7 +30,6 @@ type Options struct {
 	Strategy       string            // name of the strategy to use for the target resource
 	StrategyArgs   map[string]string // additional arguments for the strategy
 	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
-	Client         *Client           // Alternative client to be used. If nil a DefaultClient is created
 }
 
 // State holds the new variables as presented by the creation of the session.
@@ -40,10 +39,10 @@ type State struct {
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
-type Handler func(opts Options) (State, func(), error)
+type Handler func(opts Options, client *Client) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing.
-func Offline(opts Options) (State, func(), error) {
+func Offline(opts Options, client *Client) (State, func(), error) {
 	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
@@ -58,18 +57,7 @@ type handler struct {
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session.
-func RemoveHandler(opts Options) (State, func(), error) {
-	var client *Client
-	if opts.Client != nil {
-		client = opts.Client
-	} else {
-		c, err := DefaultClient(opts.NamespaceName)
-		if err != nil {
-			return State{}, func() {}, err
-		}
-		client = c
-	}
-
+func RemoveHandler(opts Options, client *Client) (State, func(), error) {
 	h := &handler{c: client,
 		opts: opts}
 
@@ -84,18 +72,7 @@ func RemoveHandler(opts Options) (State, func(), error) {
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
-func CreateOrJoinHandler(opts Options) (State, func(), error) {
-	var client *Client
-	if opts.Client != nil {
-		client = opts.Client
-	} else {
-		c, err := DefaultClient(opts.NamespaceName)
-		if err != nil {
-			return State{}, func() {}, err
-		}
-		client = c
-	}
-
+func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	sessionName := getOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
 

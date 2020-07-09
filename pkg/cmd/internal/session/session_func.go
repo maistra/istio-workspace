@@ -23,7 +23,12 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 		return session.State{}, options, nil, err
 	}
 
-	state, f, err := sessionHandler(options)
+	client, err := session.DefaultClient(options.NamespaceName)
+	if err != nil {
+		return session.State{}, options, func() {}, err
+	}
+
+	state, f, err := sessionHandler(options, client)
 
 	return state, options, f, err
 }
@@ -36,7 +41,12 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	if err != nil {
 		return session.State{}, nil, err
 	}
-	return session.RemoveHandler(options)
+	client, err := session.DefaultClient(options.NamespaceName)
+	if err != nil {
+		return session.State{}, func() {}, err
+	}
+
+	return session.RemoveHandler(options, client)
 }
 
 const telepresenceStrategy = "telepresence"
