@@ -92,11 +92,11 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 	if err != nil {
 		return err
 	}
-	resources := []string{"crds/maistra_v1alpha1_session_crd.yaml", "service_account.yaml", "cluster_role.yaml"}
+	resources := []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "cluster_role.yaml"}
 	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml"}
 
 	if local {
-		resources = []string{"crds/maistra_v1alpha1_session_crd.yaml", "service_account.yaml", "role.yaml"}
+		resources = []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "role.yaml"}
 		templates = []string{"role_binding.yaml", "operator.tpl.yaml"}
 
 		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {
@@ -153,7 +153,7 @@ func apply(a func(path string) error, paths ...string) error {
 }
 
 func (app *applier) applyResource(resourcePath string) error {
-	rawCrd, err := parser.Load("deploy/istio-workspace/" + resourcePath)
+	rawCrd, err := parser.Load("deploy/" + resourcePath)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func name(object runtime.Object, fallback string) (name string) {
 }
 
 func (app *applier) applyTemplate(templatePath string) error {
-	yaml, err := parser.ProcessTemplateUsingEnvVars("deploy/istio-workspace/" + templatePath)
+	yaml, err := parser.ProcessTemplateUsingEnvVars("deploy/" + templatePath)
 	if err != nil {
 		return err
 	}
