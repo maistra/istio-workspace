@@ -249,5 +249,4 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat, Inc.
-  replaces: istio-workspace.v0.0.3-next-c19d0d8-dirty
   version: 0.0.3
