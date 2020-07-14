@@ -119,13 +119,13 @@ spec:
           selector:
             matchLabels:
               app: istio-workspace
-              version: v0.0.3-dirty
+              version: v0.0.3
           strategy: {}
           template:
             metadata:
               labels:
                 app: istio-workspace
-                version: v0.0.3-dirty
+                version: v0.0.3
               name: istio-workspace
             spec:
               containers:
@@ -144,7 +144,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: istio-workspace
-                image: quay.io/maistra/istio-workspace:v0.0.3-dirty
+                image: quay.io/maistra/istio-workspace:v0.0.3
                 imagePullPolicy: Always
                 name: istio-workspace
                 resources: {}
