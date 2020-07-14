@@ -88,7 +88,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
 
-		switch resource.Action {
+		switch resource.Action { //nolint:exhaustive //reason only these cases are relevant
 		case model.ActionModified:
 			mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
 			err = ctx.Client.Update(ctx, &mutatedVs)
