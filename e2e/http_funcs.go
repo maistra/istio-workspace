@@ -1,13 +1,14 @@
 package e2e
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 )
 
 // GetBodyWithHeaders calls GET on a given URL with a specific set request headers and returns its body or error in case there's one.
 func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
-	req, err := http.NewRequest("GET", rawURL, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", rawURL, nil)
 	if err != nil {
 		return "", err
 	}

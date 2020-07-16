@@ -9,7 +9,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     env:
-      REPOSITORY: maistra/istio-workspace # ${{ github.repository }} has uppercase Maistra causing unused linter to produce false positives
+      REPOSITORY: ${{ github.repository }}
     steps:
       - name: Set up Go 1.14.4
         uses: actions/setup-go@v2
@@ -39,5 +39,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v1
         with:
-          version: v1.27
+          version: v1.28
           working-directory: ${{ env.GOPATH }}/src/github.com/${{ env.REPOSITORY }}

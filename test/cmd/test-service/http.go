@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -66,7 +67,7 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 }
 
 func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]string) *CallStack {
-	request, err := http.NewRequest("GET", target.String(), nil)
+	request, err := http.NewRequestWithContext(context.Background(), "GET", target.String(), nil)
 	if err != nil {
 		log.Error(err, "Failed to create request", "target", target)
 		return nil
