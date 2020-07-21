@@ -8,4 +8,5 @@ var propagationHeaders = []string{
 	"x-b3-sampled",
 	"x-b3-flags",
 	"x-ot-span-context",
-	"x-test-suite"}
+	"x-test-suite",
+	"x-workspace-route"}
