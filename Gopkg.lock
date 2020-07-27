@@ -598,14 +598,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:55c4954e067ee3af105f3aa1eff58609d2731ed336d6b8f0a67691d52b2e16d5"
+  digest = "1:a0c9bc7c7bef222cfb2f75ef0111373c945aa800aa64645d0dc193396ba317f7"
   name = "go.uber.org/goleak"
   packages = [
     ".",
     "internal/stack",
   ]
   pruneopts = "NT"
-  revision = "4eaa85786836010ae0ce079fa5a4d45cb737f146"
+  revision = "100c34bdc9d6d857d19358de2904f6e67b2bba50"
 
 [[projects]]
   digest = "1:6c5dc8e692b52738b7f672b08660cf081460ac04487c0fe4ae4fe3acd1acc8fd"
