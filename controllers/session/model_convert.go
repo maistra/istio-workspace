@@ -97,12 +97,22 @@ func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) model.Ref 
 	return model.Ref{Name: ref.Name, Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
 }
 
+// ConvertModelRouteToAPIRoute returns Model route as a session Route.
+func ConvertModelRouteToAPIRoute(route model.Route) *istiov1alpha1.Route {
+	return &istiov1alpha1.Route{
+		Type:  route.Type,
+		Name:  route.Name,
+		Value: route.Value,
+	}
+}
+
 // ConvertAPIRouteToModelRoute returns the defined route from the session or the Default.
 func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 	if session.Spec.Route.Type == "" {
 		return model.Route{
-			Type:  RouteStrategyHeader,
-			Name:  DefaultRouteHeaderName,
+			Type: RouteStrategyHeader,
+			Name: DefaultRouteHeaderName,
+			//Value: uuid.New().String(),
 			Value: session.Name,
 		}
 	}

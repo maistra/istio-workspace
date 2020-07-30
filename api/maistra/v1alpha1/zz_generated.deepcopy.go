@@ -233,6 +233,11 @@ func (in *SessionStatus) DeepCopyInto(out *SessionStatus) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.Route != nil {
+		in, out := &in.Route, &out.Route
+		*out = new(Route)
+		**out = **in
+	}
 	if in.Refs != nil {
 		in, out := &in.Refs, &out.Refs
 		*out = make([]*RefStatus, len(*in))

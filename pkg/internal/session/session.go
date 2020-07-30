@@ -51,6 +51,7 @@ func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
 type State struct {
 	DeploymentName string                  // name of the resource to target within the cloned route.
 	RefStatus      istiov1alpha1.RefStatus // the current ref status object
+	Route          istiov1alpha1.Route     // the curret route configuration
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -101,6 +102,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	return State{
 			DeploymentName: serviceName,
 			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
+			Route:          *session.Status.Route,
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil

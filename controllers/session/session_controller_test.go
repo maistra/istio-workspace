@@ -2,6 +2,7 @@ package session_test
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
@@ -143,6 +144,17 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Refs).To(HaveLen(1))
 				Expect(modified.Status.Refs[0].Name).To(Equal("details"))
+			})
+			It("status is updated with route", func() {
+				res, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
+
+				modified := GetSession("test", "test-session")
+				fmt.Println(modified.Status.Route)
+				Expect(modified.Status.Route).ToNot(BeNil())
+				Expect(modified.Status.Route.Type).To(Equal(session.RouteStrategyHeader))
+				Expect(modified.Status.Route.Name).To(Equal(session.DefaultRouteHeaderName))
 			})
 		})
 	})

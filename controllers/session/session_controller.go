@@ -150,13 +150,20 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		return reconcile.Result{}, err
 	}
 
+	route := ConvertAPIRouteToModelRoute(session)
 	ctx := model.SessionContext{
 		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
-		Route:     ConvertAPIRouteToModelRoute(session),
+		Route:     route,
 		Log:       reqLogger,
 		Client:    r.client,
+	}
+
+	// update session.status.Route if it was not provided
+	session.Status.Route = ConvertModelRouteToAPIRoute(route)
+	if err := r.client.Status().Update(ctx, session); err != nil {
+		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
 
 	deleted := session.DeletionTimestamp != nil

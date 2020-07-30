@@ -120,6 +120,17 @@ spec:
                       type: array
                   type: object
                 type: array
+              route:
+                description: Route defines the strategy for how the traffic is routed
+                  to the Ref.
+                properties:
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  value:
+                    type: string
+                type: object
               state:
                 type: string
             type: object

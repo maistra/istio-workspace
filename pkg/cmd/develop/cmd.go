@@ -9,7 +9,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
-	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
@@ -41,7 +40,7 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sessionState, options, sessionClose, err := internal.Sessions(cmd)
+			sessionState, _, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
 				return err
 			}
@@ -65,8 +64,7 @@ func NewCmd() *cobra.Command {
 				shell.Start(tp, done)
 			}()
 
-			routeExp, _ := session.ParseRoute(options.RouteExp)
-			if hint, err := Hint(&sessionState.RefStatus, routeExp); err == nil {
+			if hint, err := Hint(&sessionState.RefStatus, &sessionState.Route); err == nil {
 				logger().Info(hint)
 			}
 
