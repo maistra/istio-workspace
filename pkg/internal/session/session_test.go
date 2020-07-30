@@ -232,6 +232,11 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 			if err != nil {
 				continue
 			}
+			sess.Status.Route = &istiov1alpha1.Route{
+				Type:  "header",
+				Name:  "x-workspace-route",
+				Value: "xxxx",
+			}
 			for _, ref := range sess.Spec.Refs {
 				found := false
 				for _, status := range sess.Status.Refs {

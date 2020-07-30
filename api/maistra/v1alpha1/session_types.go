@@ -46,6 +46,7 @@ type Route struct {
 // SessionStatus defines the observed state of Session.
 type SessionStatus struct {
 	State *string      `json:"state,omitempty"`
+	Route *Route       `json:"route,omitempty"`
 	Refs  []*RefStatus `json:"refs,omitempty"`
 }
 
