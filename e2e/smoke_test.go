@@ -199,9 +199,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
+				ChangeNamespace(namespace)
+
 				EnsureAllPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-
 				// given we have details code locally
 				CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
 
