@@ -16,8 +16,9 @@ func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
 	setTestNamespace(ImageRepo)
 	registry = setDockerRegistryExternal()
-
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	if RunsAgainstOpenshift {
+		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
 	return
 }
@@ -29,8 +30,9 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 	registry = setDockerRegistryExternal()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
-
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	if RunsAgainstOpenshift {
+		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
 	return
 }
@@ -40,24 +42,29 @@ func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
 	setDockerRegistryInternal()
 	setDockerEnvForTestServiceDeploy(namespace)
-
-	<-shell.ExecuteInDir(".", "bash", "-c",
-		`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
-	gomega.Eventually(func() string {
-		return GetProjectLabels(namespace)
-	}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
+	if RunsAgainstOpenshift {
+		<-shell.ExecuteInDir(".", "bash", "-c",
+			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
+		gomega.Eventually(func() string {
+			return GetProjectLabels(namespace)
+		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
+	} else {
+		<-shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled").Done()
+	}
 	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
 }
 
 func CleanupTestScenario(namespace string) {
-	removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
-	patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
-	<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
+	if RunsAgainstOpenshift {
+		removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
+		patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
+		<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()
+	}
 }
 
 // GetProjectLabels returns labels for a given namespace as a string.
 func GetProjectLabels(namespace string) string {
-	cmd := shell.ExecuteInDir(".", "bash", "-c", "oc get project "+namespace+" -o jsonpath={.metadata.labels}")
+	cmd := shell.ExecuteInDir(".", "bash", "-c", "kubectl get namespace "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }

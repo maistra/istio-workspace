@@ -25,7 +25,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: istio-workspace.v0.0.3
+  name: istio-workspace.v0.0.3-next-554fd4f-dirty-next-554fd4f-dirty
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -119,13 +119,13 @@ spec:
           selector:
             matchLabels:
               app: istio-workspace
-              version: v0.0.3
+              version: v0.0.3-next-554fd4f-dirty-next-554fd4f-dirty
           strategy: {}
           template:
             metadata:
               labels:
                 app: istio-workspace
-                version: v0.0.3
+                version: v0.0.3-next-554fd4f-dirty-next-554fd4f-dirty
               name: istio-workspace
             spec:
               containers:
@@ -144,7 +144,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: istio-workspace
-                image: quay.io/maistra/istio-workspace:v0.0.3
+                image: localhost:32000/istio-workspace-images/istio-workspace:latest
                 imagePullPolicy: Always
                 name: istio-workspace
                 resources: {}
@@ -249,4 +249,5 @@ spec:
   maturity: alpha
   provider:
     name: Red Hat, Inc.
-  version: 0.0.3
+  replaces: istio-workspace.v0.0.3-next-554fd4f-dirty
+  version: 0.0.3-next-554fd4f-dirty-next-554fd4f-dirty

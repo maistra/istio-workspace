@@ -28,7 +28,7 @@ func AllPodsReady(ns string) func() bool {
 // GetAllPods returns names of all pods from a given namespace.
 func GetAllPods(ns string) []string {
 	podsCmd := shell.ExecuteInDir(".",
-		"oc", "get", "pod",
+		"kubectl", "get", "pod",
 		"-n", ns,
 		"-o", "jsonpath={.items[*].metadata.name}")
 	<-podsCmd.Done()
@@ -37,20 +37,20 @@ func GetAllPods(ns string) []string {
 
 // StateOf returns state of the pod.
 func StateOf(ns, pod string) {
-	state := shell.Execute("oc get pod " + pod + " -n " + ns + " -o yaml")
+	state := shell.Execute("kubectl get pod " + pod + " -n " + ns + " -o yaml")
 	<-state.Done()
 }
 
 // LogsOf returns logs of all containers in the pod.
 func LogsOf(ns, pod string) string {
-	logs := shell.Execute("oc logs " + pod + " -n " + ns + " --all-containers=true")
+	logs := shell.Execute("kubectl logs " + pod + " -n " + ns + " --all-containers=true")
 	<-logs.Done()
 	return fmt.Sprintf("%s", logs.Status().Stdout)
 }
 
 func isPodInStatus(pod, ns, status string) bool {
 	podStatus := shell.ExecuteInDir(".",
-		"oc", "get",
+		"kubectl", "get",
 		"pod", pod,
 		"-n", ns,
 		"-o", `jsonpath={.status.conditions[?(@.type=="`+status+`")].status}`,

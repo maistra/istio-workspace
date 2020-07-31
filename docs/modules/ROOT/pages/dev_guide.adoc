@@ -22,10 +22,10 @@ For example, commenting `{cmd-changelog} {sample-version}` will trigger changelo
 
 Such a comment results in adding commits to created PR which consists of:
 
-* changelog based on all PRs since the last release, which will be appended to release highlights submitted as part of this PR
+* changelog based on all PRs since the last release, which will be appended to release highlights submitted as part of this PR.
 * "version commit" (e.g. `release: {sample-version}`) which consist of documentation version lock to `{sample-version}` and special `/tag` directive in the message. 
-This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch
-* commit which reverts documentation version lock back to `latest`
+This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch.
+* commit which reverts documentation version lock back to `latest`.
 
 Changelog generation job performs validation and will fail if one of the issues listed below occurs:
 

@@ -112,7 +112,9 @@ func CurrentDir() string {
 func BinaryExists(binName, hint string) bool {
 	path, err := exec.LookPath(binName)
 	if err != nil {
-		logger().Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))
+		if hint != "" {
+			logger().Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))
+		}
 		return false
 	}
 

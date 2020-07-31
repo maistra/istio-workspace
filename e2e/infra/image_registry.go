@@ -12,6 +12,9 @@ const ImageRepo = "istio-workspace-images"
 
 func setDockerRegistryExternal() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
+	if externalRegistry, found := os.LookupEnv("IKE_EXTERNAL_DOCKER_REGISTRY"); found {
+		registry = externalRegistry
+	}
 	setDockerRegistry(registry)
 	return registry
 }
@@ -32,5 +35,8 @@ func setDockerRepository(namespace string) {
 
 // GetDockerRegistryInternal returns the internal address for the docker registry.
 func GetDockerRegistryInternal() string {
+	if internalRegistry, found := os.LookupEnv("IKE_INTERNAL_DOCKER_REGISTRY"); found {
+		return internalRegistry
+	}
 	return "image-registry.openshift-image-registry.svc:5000"
 }
