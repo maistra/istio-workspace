@@ -46,5 +46,4 @@ func DeployHelloWorldCmd(name, ns string) []string {
 			" --image=datawire/hello-world" +
 			" --namespace " + ns,
 	}
-
 }
