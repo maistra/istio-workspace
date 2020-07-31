@@ -299,7 +299,11 @@ docker-push-test-prepared:
 ##@ Cluster deployments
 # ##########################################################################
 
+k8s:=kubectl
 
+ ifneq (, $(shell which oc))
+ 	k8s=oc
+ endif
 
 define process_template # params: template location
 	@oc process -f $(1) \
@@ -317,40 +321,40 @@ endef
 deploy-operator: ## Deploys istio-workspace operator resources to defined OPERATOR_NAMESPACE
 	$(call header,"Deploying operator to $(OPERATOR_NAMESPACE)")
 	oc new-project $(OPERATOR_NAMESPACE) || true
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/cluster_role.yaml
-	$(call process_template,deploy/cluster_role_binding.yaml) | kubectl apply -n $(OPERATOR_NAMESPACE) -f -
-	$(call process_template,deploy/operator.tpl.yaml) | kubectl apply -n $(OPERATOR_NAMESPACE) -f -
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/cluster_role.yaml
+	$(call process_template,deploy/cluster_role_binding.yaml) | $(k8s) apply -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/operator.tpl.yaml) | $(k8s) apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator
 undeploy-operator: ## Undeploys istio-workspace operator resources from defined OPERATOR_NAMESPACE
 	$(call header,"Undeploying operator from $(OPERATOR_NAMESPACE)")
 	$(call process_template,deploy/operator.tpl.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
 	$(call process_template,deploy/cluster_role_binding.yaml) | oc delete -n $(OPERATOR_NAMESPACE) -f -
-	kubectl delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
-	kubectl delete -n $(OPERATOR_NAMESPACE) -f deploy/cluster_role.yaml
-	kubectl delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
+	$(k8s) delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	$(k8s) delete -n $(OPERATOR_NAMESPACE) -f deploy/cluster_role.yaml
+	$(k8s) delete -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
 
 .PHONY: deploy-operator-local
 deploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
 deploy-operator-local: ## Deploys istio-workspace operator resources to a single Namespace defined by OPERATOR_NAMESPACE
 	$(call header,"Deploying local operator to $(OPERATOR_NAMESPACE)")
 	oc new-project $(OPERATOR_NAMESPACE) || true
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
-	kubectl apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
-	$(call process_template,deploy/role_binding.yaml) | kubectl apply -n $(OPERATOR_NAMESPACE) -f -
-	$(call process_template,deploy/operator.tpl.yaml) | kubectl apply -n $(OPERATOR_NAMESPACE) -f -
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/crds/maistra.io_sessions_crd.yaml
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	$(k8s) apply -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
+	$(call process_template,deploy/role_binding.yaml) | $(k8s) apply -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/operator.tpl.yaml) | $(k8s) apply -n $(OPERATOR_NAMESPACE) -f -
 
 .PHONY: undeploy-operator-local
 undeploy-operator-local: export OPERATOR_WATCH_NAMESPACE=$(OPERATOR_NAMESPACE)
 undeploy-operator-local: ## Undeploys istio-workspace operator resources from a single Namespace defined by OPERATOR_NAMESPACE
 	$(call header,"Undeploying local operator from $(OPERATOR_NAMESPACE)")
-	$(call process_template,deploy/operator.tpl.yaml) | kubectl delete -n $(OPERATOR_NAMESPACE) -f -
-	$(call process_template,deploy/role_binding.yaml) | kubectl delete -n $(OPERATOR_NAMESPACE) -f -
-	kubectl delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
-	kubectl delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
+	$(call process_template,deploy/operator.tpl.yaml) | $(k8s) delete -n $(OPERATOR_NAMESPACE) -f -
+	$(call process_template,deploy/role_binding.yaml) | $(k8s) delete -n $(OPERATOR_NAMESPACE) -f -
+	$(k8s) delete -n $(OPERATOR_NAMESPACE) -f deploy/role.yaml
+	$(k8s) delete -n $(OPERATOR_NAMESPACE) -f deploy/service_account.yaml
 
 # ##########################################################################
 ##@ Istio-workspace example deployment
@@ -359,12 +363,12 @@ undeploy-operator-local: ## Undeploys istio-workspace operator resources from a 
 .PHONY: deploy-example
 deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
 	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
-	kubectl apply -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
+	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
 
 .PHONY: undeploy-example
 undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
 	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
-	kubectl delete -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
+	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
 
 # ##########################################################################
 # Istio test application deployment
@@ -374,21 +378,21 @@ deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
-	kubectl create namespace $(TEST_NAMESPACE) || true
+	$(k8s) create namespace $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
-	kubectl apply -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
-	kubectl apply -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
+	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
+	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
 
-	go run ./test/cmd/test-scenario/ $(scenario) | kubectl apply -n $(TEST_NAMESPACE) -f -
+	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
 	$(eval scenario:=$(subst undeploy-test-,,$@))
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
-	go run ./test/cmd/test-scenario/ $(scenario) | kubectl delete -n $(TEST_NAMESPACE) -f -
-	kubectl delete -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
-	kubectl delete -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
+	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
+	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
+	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
 
 ##@ Helpers
 
