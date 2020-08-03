@@ -20,7 +20,7 @@ Check https://microk8s.io/docs[official docs] to see how you can install it on y
 +
 [source,bash]
 ----
-microk8s.enable dns dashboard metrics-server istio registry 
+microk8s.enable dns registry istio 
 ----
 
 . Point `kubectl` to `microk8s` instance, for example:
