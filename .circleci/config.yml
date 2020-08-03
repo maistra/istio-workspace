@@ -146,7 +146,6 @@ jobs:
   ## End-to-end testing using single-node microk8s cluster
   e2e_tests_microk8s:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
-#    machine: true
     machine:
       <<: *machine-conf
     environment:
