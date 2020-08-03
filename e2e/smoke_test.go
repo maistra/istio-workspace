@@ -193,7 +193,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			BeforeEach(func() {
 				if !RunsAgainstOpenshift {
-					Skip("tests are not performed against OpenShift cluster")
+					Skip("DeploymentConfig is Openshift-specific resource and it won't work against plain k8s. " +
+						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
 				scenario = "scenario-2"
 			})

@@ -58,7 +58,8 @@ var _ = Describe("Bash Completion Tests", func() {
 
 		It("should show available deployments for current namespace (datawire-project)", func() {
 			if !RunsAgainstOpenshift {
-				Skip("OpenShift specific test assuming current namespace is set and oc available")
+				Skip("This is OpenShift specific test which assumes current namespace/project is set and oc available. " +
+					"Completion for specified namespace is covered in the follow-up test.")
 			}
 			<-shell.Execute("oc project " + CompletionProject1).Done()
 			Expect(completionFor("ike develop -d ")).To(ConsistOf("my-datawire-deployment"))

@@ -56,7 +56,8 @@ var _ = Describe("Operator Installation Tests", func() {
 
 		It("should install into current namespace", func() {
 			if !RunsAgainstOpenshift {
-				Skip("OpenShift specific test assuming current namespace is set and oc available")
+				Skip("This is OpenShift specific test which assumes current namespace/project is set and oc available." +
+					"We also cover installation to specific namespace with -n flag (see test above).")
 			}
 
 			// given
