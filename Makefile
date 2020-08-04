@@ -105,7 +105,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) operator-tpl ## Generates operator-sdk code and bundles packages using go-bindata
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
@@ -115,6 +115,10 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) opera
 		$(PACKAGE_NAME)/pkg/apis \
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
+
+.PHONY: csv-codegen
+csv-codegen: $(PROJECT_DIR)/bin/operator-sdk operator-tpl operator-codegen ## Generates operator-sdk CSV and related manifests
+	$(call header,"Generates operator-sdk CSV manifests")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --csv-version $(OPERATOR_VERSION)
 
 .PHONY: version
