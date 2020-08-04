@@ -55,6 +55,14 @@ var _ = Describe("Operator Installation Tests", func() {
 		})
 
 		It("should install into current namespace", func() {
+			if !RunsAgainstOpenshift {
+				Skip("This is OpenShift specific test which assumes current namespace/project is set and oc available." +
+					"We also cover installation to specific namespace with -n flag (see test above).")
+			}
+
+			// given
+			ChangeNamespace(projectName)
+
 			// when
 			<-testshell.Execute("ike install-operator --local").Done()
 
@@ -69,7 +77,7 @@ var _ = Describe("Operator Installation Tests", func() {
 })
 
 func ensureOperatorPodIsRunning(operatorPodName, projectName string) {
-	podDetails := testshell.Execute("oc get pod " + operatorPodName + " -o yaml")
+	podDetails := testshell.Execute("kubectl get pod " + operatorPodName + " -n " + projectName + " -o yaml")
 	<-podDetails.Done()
 
 	detailsYaml := strings.Join(podDetails.Status().Stdout, "\n")

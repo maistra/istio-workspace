@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/onsi/gomega"
@@ -29,16 +28,22 @@ func DeleteFile(filePath string) {
 }
 
 func NewProjectCmd(name string) string {
-	return fmt.Sprintf(`oc new-project %s --description "%s"`, name, "istio-workspace test project")
+	return "kubectl create namespace " + name
 }
 
 func DeleteProjectCmd(name string) string {
-	return fmt.Sprintf(`oc delete project %s`, name)
+	return "kubectl delete namespace " + name + " --wait=false"
 }
 
-func DeployHelloWorldCmd(name, ns string) string {
-	return "oc new-app --docker-image datawire/hello-world " +
-		"--name " + name + " " +
-		"--namespace " + ns + " " +
-		"--allow-missing-images"
+func DeployHelloWorldCmd(name, ns string) []string {
+	return []string{
+		"kubectl run " + name +
+			" --image=datawire/hello-world" +
+			" --port 8000" +
+			" --expose" +
+			" --namespace " + ns,
+		"kubectl create deployment " + name +
+			" --image=datawire/hello-world" +
+			" --namespace " + ns,
+	}
 }

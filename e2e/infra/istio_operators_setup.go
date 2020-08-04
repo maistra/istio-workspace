@@ -17,7 +17,9 @@ func BuildOperator() (registry string) {
 	setDockerRepository(ImageRepo)
 	<-shell.Execute(NewProjectCmd(namespace)).Done()
 	EnablePullingImages(namespace)
-	<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	if RunsAgainstOpenshift {
+		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
 	return
 }
@@ -49,12 +51,17 @@ func GetIstioNamespace() string {
 }
 
 func GetIstioIngressHostname() string {
-	cmd := shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get svc istio-ingressgateway -n %v -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'", GetIstioNamespace()))
+	if istioIngress, found := os.LookupEnv("IKE_ISTIO_INGRESS"); found {
+		return istioIngress
+	}
+
+	cmd := shell.ExecuteInDir(".", "bash", "-c",
+		fmt.Sprintf("kubectl get svc istio-ingressgateway -n %v -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'", GetIstioNamespace()))
 	<-cmd.Done()
 	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
 		return "http://" + cmd.Status().Stdout[0]
 	}
-	cmd = shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("oc get route istio-ingressgateway -n %v -o jsonpath='{.spec.host}'", GetIstioNamespace()))
+	cmd = shell.ExecuteInDir(".", "bash", "-c", fmt.Sprintf("kubectl get route istio-ingressgateway -n %v -o jsonpath='{.spec.host}'", GetIstioNamespace()))
 	<-cmd.Done()
 	if cmd.Status().Exit == 0 && len(cmd.Status().Stdout) > 0 {
 		return "http://" + cmd.Status().Stdout[0]
