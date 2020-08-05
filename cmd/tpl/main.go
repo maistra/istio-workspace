@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/ghodss/yaml"
-	"github.com/maistra/istio-workspace/pkg/openshift/parser"
-	openshiftApi "github.com/openshift/api/template/v1"
 	"os"
+
+	openshiftApi "github.com/openshift/api/template/v1"
+
+	"github.com/maistra/istio-workspace/pkg/openshift/parser"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Process openshift template provided as path in the first argument.
@@ -34,5 +37,4 @@ func main() {
 		fmt.Println(string(yml))
 		fmt.Println("---")
 	}
-
 }

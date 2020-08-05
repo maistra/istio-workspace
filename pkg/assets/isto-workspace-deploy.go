@@ -204,7 +204,7 @@ func deployCrdsMaistraIo_sessions_crdYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_crd.yaml", size: 4428, mode: os.FileMode(436), modTime: time.Unix(1596634346, 0)}
+	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_crd.yaml", size: 4428, mode: os.FileMode(436), modTime: time.Unix(1596637204, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
