@@ -106,7 +106,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) operator-tpl ## Generates operator-sdk code and bundles packages using go-bindata
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
