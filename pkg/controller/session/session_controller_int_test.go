@@ -234,6 +234,51 @@ var _ = Describe("Complete session manipulation", func() {
 				gw = get.Gateway("test", "test-gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 			})
+
+			It("should mutate all refs added to Session", func() {
+				req1 := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+				// Given - create first ref
+				res1, err := controller.Reconcile(req1)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				session := get.Session("test", "test-session1")
+
+				session.Spec.Refs = append(session.Spec.Refs,
+					v1alpha1.Ref{
+						Name:     "reviews-v1",
+						Strategy: "prepared-image",
+						Args: map[string]string{
+							"image": "x:x:x",
+						},
+					},
+				)
+				c.Update(context.Background(), &session)
+
+				// Given - create second ref
+				res2, err := controller.Reconcile(req1)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res2.Requeue).To(BeFalse())
+
+				// Then - all mutations should be successful
+				session = get.Session("test", "test-session1")
+
+				Expect(session.Status.Refs).To(HaveLen(2))
+
+				Expect(session.Status.Refs[0].Resources).To(HaveLen(5))
+				for _, res := range session.Status.Refs[0].Resources {
+					Expect(*res.Action).ToNot(Equal("failed"))
+				}
+				Expect(session.Status.Refs[1].Resources).To(HaveLen(5))
+				for _, res := range session.Status.Refs[1].Resources {
+					Expect(*res.Action).ToNot(Equal("failed"))
+				}
+			})
 		})
 	})
 })
