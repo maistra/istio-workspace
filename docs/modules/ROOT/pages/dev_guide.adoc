@@ -6,6 +6,58 @@
 
 = Development Guide
 
+== Local Development
+
+=== Using MicroK8s
+
+MicroK8s is a lightweight, upstream Kubernetes distribution which you can run on your machine to develop and test changes. 
+
+Check https://microk8s.io/docs[official docs] to see how you can install it on your OS.
+
+==== Needed customizations
+
+. Enable following services:
++
+[source,bash]
+----
+microk8s.enable dns registry istio 
+----
+
+. Point `kubectl` to `microk8s` instance, for example:
++
+[source,bash]
+----
+sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
+export KUBECONFIG=/tmp/kubeconfig
+----
+
+[NOTE]
+You might end up with Istio unable reach outside networks. 
+See this https://github.com/ubuntu/microk8s/issues/316[thread] and the solution specific for https://github.com/ubuntu/microk8s/issues/408[Fedora].
+
+==== Running end-to-end tests
+
+To run the tests against local `microk8s` instance you have to set few environment variables which you can pass as `ENV_FILE` and execute:
+
+[source,bash]
+----
+ENV_FILE=microk8s.env make test-e2e
+----
+
+[source,.env]
+.microk8s.env
+----
+IKE_E2E_MANAGE_CLUSTER=false
+ISTIO_NS=istio-system
+IKE_IMAGE_TAG=latest
+TELEPRESENCE_VERSION=0.105
+IKE_CLUSTER_HOST=localhost
+IKE_ISTIO_INGRESS=http://localhost:31380
+IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000
+IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
+----
+
+
 == Release
 
 == Release automation driven by Pull Request
@@ -22,10 +74,10 @@ For example, commenting `{cmd-changelog} {sample-version}` will trigger changelo
 
 Such a comment results in adding commits to created PR which consists of:
 
-* changelog based on all PRs since the last release, which will be appended to release highlights submitted as part of this PR
+* changelog based on all PRs since the last release, which will be appended to release highlights submitted as part of this PR.
 * "version commit" (e.g. `release: {sample-version}`) which consist of documentation version lock to `{sample-version}` and special `/tag` directive in the message. 
-This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch
-* commit which reverts documentation version lock back to `latest`
+This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch.
+* commit which reverts documentation version lock back to `latest`.
 
 Changelog generation job performs validation and will fail if one of the issues listed below occurs:
 

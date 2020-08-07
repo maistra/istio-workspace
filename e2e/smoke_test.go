@@ -26,9 +26,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		var (
 			namespace,
+			registry,
+			scenario,
+			sessionName,
 			tmpDir string
-			scenario    string
-			sessionName string
 		)
 
 		JustBeforeEach(func() {
@@ -37,8 +38,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
-			UpdateSecurityConstraintsFor(namespace)
-			EnablePullingImages(namespace)
+			if RunsAgainstOpenshift {
+				UpdateSecurityConstraintsFor(namespace)
+				EnablePullingImages(namespace)
+			}
+
 			InstallLocalOperator(namespace)
 			DeployTestScenario(scenario, namespace)
 			sessionName = GenerateSessionName()
@@ -57,6 +61,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 				BeforeEach(func() {
 					scenario = "scenario-1"
+					registry = GetDockerRegistryInternal()
 				})
 
 				Context("basic deployment modifications", func() {
@@ -76,39 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--run", "ruby ratings.rb 9080",
 							"--route", "header:x-test-suite=smoke",
 							"--session", sessionName,
-						)
-						EnsureAllPodsAreReady(namespace)
-						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
-
-						// then modify the service
-						modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
-						CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
-
-						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
-
-						Stop(ike)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-					})
-
-					It("should watch for changes in ratings service in specified namespace and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-
-						// given oc context is a different namespace
-						ChangeNamespace("default")
-
-						// given we have details code locally
-						CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
-
-						ike := RunIke(tmpDir, "develop",
 							"--namespace", namespace,
-							"--deployment", "ratings-v1",
-							"--port", "9080",
-							"--method", "inject-tcp",
-							"--watch",
-							"--run", "ruby ratings.rb 9080",
-							"--route", "header:x-test-suite=smoke",
-							"--session", sessionName,
 						)
 						EnsureAllPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
@@ -125,7 +98,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				})
 
 				Context("deployment create/delete operations", func() {
-					registry := GetDockerRegistryInternal()
 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllPodsAreReady(namespace)
@@ -204,6 +176,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--run", "go run ./test/cmd/test-service -serviceName=PublisherA",
 							"--route", "header:x-test-suite=smoke",
 							"--session", sessionName,
+							"--namespace", namespace,
 						)
 						EnsureAllPodsAreReady(namespace)
 
@@ -219,10 +192,15 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		Context("openshift deploymentconfig", func() {
 
 			BeforeEach(func() {
+				if !RunsAgainstOpenshift {
+					Skip("DeploymentConfig is Openshift-specific resource and it won't work against plain k8s. " +
+						"Tests for regular k8s deployment can be found in the same test suite.")
+				}
 				scenario = "scenario-2"
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
+				ChangeNamespace(namespace)
 				EnsureAllPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
@@ -251,6 +229,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 			})
 		})
+
 	})
 })
 
@@ -296,8 +275,11 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ..
 }
 
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike.
+// That only works for oc cli, as kubectl by default uses `default` namespace.
 func ChangeNamespace(namespace string) {
-	<-testshell.Execute("oc project default").Done()
+	if RunsAgainstOpenshift {
+		<-testshell.Execute("oc project " + namespace).Done()
+	}
 }
 
 // RunIke runs the ike cli in the given dir.
@@ -343,7 +325,7 @@ func cleanupNamespace(namespace string) {
 		}
 	}
 	CleanupTestScenario(namespace)
-	<-testshell.Execute("oc delete project " + namespace).Done()
+	<-testshell.Execute("kubectl delete namespace " + namespace + " --wait=false").Done()
 }
 
 func call(routeURL string, headers map[string]string) func() (string, error) {

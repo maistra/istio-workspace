@@ -186,12 +186,12 @@ func (app *applier) applyTemplate(templatePath string) error {
 		return err
 	}
 
-	rawRoleBinding, err := parser.Parse(yaml)
+	tpl, err := parser.Parse(yaml)
 	if err != nil {
 		return err
 	}
 
-	r := rawRoleBinding.(*openshiftApi.Template)
+	r := tpl.(*openshiftApi.Template)
 	for _, obj := range r.Objects {
 		object, gav, err := app.d(obj.Raw, nil, nil)
 		if err != nil {
