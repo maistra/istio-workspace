@@ -7,8 +7,6 @@
 // deploy/role.yaml
 // deploy/crds/maistra.io_sessions_crd.yaml
 // deploy/crds/maistra.io_sessions_cr.yaml
-// deploy/examples/session_role.yaml
-// deploy/examples/session_rolebinding.yaml
 // deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml
 // deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml
 // deploy/role_binding.yaml
@@ -104,7 +102,7 @@ func deployCluster_roleYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/cluster_role.yaml", size: 1180, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/cluster_role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -124,7 +122,7 @@ func deployService_accountYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/service_account.yaml", size: 70, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/service_account.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -144,7 +142,7 @@ func deployOperatorYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/operator.yaml", size: 977, mode: os.FileMode(436), modTime: time.Unix(1596630130, 0)}
+	info := bindataFileInfo{name: "deploy/operator.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -164,7 +162,7 @@ func deployOperatorTplYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/operator.tpl.yaml", size: 1944, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/operator.tpl.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -184,7 +182,7 @@ func deployRoleYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/role.yaml", size: 1173, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -204,7 +202,7 @@ func deployCrdsMaistraIo_sessions_crdYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_crd.yaml", size: 4428, mode: os.FileMode(436), modTime: time.Unix(1596637204, 0)}
+	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_crd.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -224,47 +222,7 @@ func deployCrdsMaistraIo_sessions_crYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_cr.yaml", size: 175, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _deployExamplesSession_roleYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8c\xb1\xaa\xc3\x30\x0c\x45\x77\x7f\x85\xb6\xc0\x83\xf8\xd1\xad\xf8\x07\xba\x77\xe8\x7e\x93\x08\x2a\x92\x58\x46\xb2\x33\xf4\xeb\x8b\x33\x94\x68\x3b\x47\x97\x83\x22\x2f\x36\x17\xcd\x89\x6c\xc2\x1c\xd1\xea\x5b\x4d\x3e\xa8\xa2\x39\xae\x77\x8f\xa2\xff\xc7\x2d\xac\x92\x97\x44\x4f\xdd\x38\xec\x5c\xb1\xa0\x22\x05\xa2\x8c\x9d\x13\x39\x7b\x4f\x78\xb0\xb6\xb1\x77\x3f\x12\x8a\x3c\x4c\x5b\x39\xb1\xdf\x48\x3b\xc4\xab\x21\x8a\x9e\xca\xd8\xb5\xd9\xcc\x97\xc5\x2f\xd4\xf1\x60\x9b\x2e\xbf\xe1\x6f\x08\xdf\x00\x00\x00\xff\xff\xe9\xef\x57\x37\xaf\x00\x00\x00")
-
-func deployExamplesSession_roleYamlBytes() ([]byte, error) {
-	return bindataRead(
-		_deployExamplesSession_roleYaml,
-		"deploy/examples/session_role.yaml",
-	)
-}
-
-func deployExamplesSession_roleYaml() (*asset, error) {
-	bytes, err := deployExamplesSession_roleYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "deploy/examples/session_role.yaml", size: 175, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _deployExamplesSession_rolebindingYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xce\xb1\xae\xc2\x30\x0c\x85\xe1\x3d\x4f\xe1\x17\xb8\xbd\x62\x43\x19\x59\xd8\x2b\xc1\x8a\xdc\xe6\x00\xa6\x6d\x1c\xd9\x69\x07\x9e\x1e\x55\x08\x55\x62\x60\xff\xfd\xf9\x70\x91\x33\xcc\x45\x73\x24\xeb\xb8\x6f\x78\xae\x77\x35\x79\x72\x15\xcd\xcd\xb0\xf7\x46\xf4\x7f\xd9\x85\x41\x72\x8a\xd4\xea\x88\x83\xe4\x24\xf9\x16\x26\x54\x4e\x5c\x39\x06\xa2\xcc\x13\x22\x39\x7c\x95\x2e\x09\x0b\x46\x2d\xb0\xe0\x73\xf7\x40\x5f\x7d\x6d\xfe\xe8\x6d\x9c\x1c\x16\x88\x3e\x47\x5b\x6c\x3a\xa2\xc5\x75\x6d\xb7\x6f\xdf\xb8\x07\x22\x2e\x72\x34\x9d\xcb\x8f\xc9\xaf\x00\x00\x00\xff\xff\xa2\x4b\x32\x0d\xd8\x00\x00\x00")
-
-func deployExamplesSession_rolebindingYamlBytes() ([]byte, error) {
-	return bindataRead(
-		_deployExamplesSession_rolebindingYaml,
-		"deploy/examples/session_rolebinding.yaml",
-	)
-}
-
-func deployExamplesSession_rolebindingYaml() (*asset, error) {
-	bytes, err := deployExamplesSession_rolebindingYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "deploy/examples/session_rolebinding.yaml", size: 216, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/crds/maistra.io_sessions_cr.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -284,7 +242,7 @@ func deployOlmCatalogIstioWorkspaceManifestsIstioWorkspaceClusterserviceversionY
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml", size: 5810, mode: os.FileMode(436), modTime: time.Unix(1596540139, 0)}
+	info := bindataFileInfo{name: "deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -304,7 +262,7 @@ func deployOlmCatalogIstioWorkspaceManifestsMaistraIo_sessions_crdYaml() (*asset
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml", size: 4428, mode: os.FileMode(436), modTime: time.Unix(1596540067, 0)}
+	info := bindataFileInfo{name: "deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -324,7 +282,7 @@ func deployRole_bindingYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/role_binding.yaml", size: 539, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/role_binding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -344,7 +302,7 @@ func deployCluster_role_bindingYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "deploy/cluster_role_binding.yaml", size: 553, mode: os.FileMode(436), modTime: time.Unix(1594369188, 0)}
+	info := bindataFileInfo{name: "deploy/cluster_role_binding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -401,19 +359,17 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"deploy/cluster_role.yaml":                                                                deployCluster_roleYaml,
-	"deploy/service_account.yaml":                                                             deployService_accountYaml,
-	"deploy/operator.yaml":                                                                    deployOperatorYaml,
-	"deploy/operator.tpl.yaml":                                                                deployOperatorTplYaml,
-	"deploy/role.yaml":                                                                        deployRoleYaml,
-	"deploy/crds/maistra.io_sessions_crd.yaml":                                                deployCrdsMaistraIo_sessions_crdYaml,
-	"deploy/crds/maistra.io_sessions_cr.yaml":                                                 deployCrdsMaistraIo_sessions_crYaml,
-	"deploy/examples/session_role.yaml":                                                       deployExamplesSession_roleYaml,
-	"deploy/examples/session_rolebinding.yaml":                                                deployExamplesSession_rolebindingYaml,
+	"deploy/cluster_role.yaml":                 deployCluster_roleYaml,
+	"deploy/service_account.yaml":              deployService_accountYaml,
+	"deploy/operator.yaml":                     deployOperatorYaml,
+	"deploy/operator.tpl.yaml":                 deployOperatorTplYaml,
+	"deploy/role.yaml":                         deployRoleYaml,
+	"deploy/crds/maistra.io_sessions_crd.yaml": deployCrdsMaistraIo_sessions_crdYaml,
+	"deploy/crds/maistra.io_sessions_cr.yaml":  deployCrdsMaistraIo_sessions_crYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml": deployOlmCatalogIstioWorkspaceManifestsIstioWorkspaceClusterserviceversionYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml":               deployOlmCatalogIstioWorkspaceManifestsMaistraIo_sessions_crdYaml,
-	"deploy/role_binding.yaml":                                                                deployRole_bindingYaml,
-	"deploy/cluster_role_binding.yaml":                                                        deployCluster_role_bindingYaml,
+	"deploy/role_binding.yaml":         deployRole_bindingYaml,
+	"deploy/cluster_role_binding.yaml": deployCluster_role_bindingYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -463,10 +419,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"crds": &bintree{nil, map[string]*bintree{
 			"maistra.io_sessions_cr.yaml":  &bintree{deployCrdsMaistraIo_sessions_crYaml, map[string]*bintree{}},
 			"maistra.io_sessions_crd.yaml": &bintree{deployCrdsMaistraIo_sessions_crdYaml, map[string]*bintree{}},
-		}},
-		"examples": &bintree{nil, map[string]*bintree{
-			"session_role.yaml":        &bintree{deployExamplesSession_roleYaml, map[string]*bintree{}},
-			"session_rolebinding.yaml": &bintree{deployExamplesSession_rolebindingYaml, map[string]*bintree{}},
 		}},
 		"olm-catalog": &bintree{nil, map[string]*bintree{
 			"istio-workspace": &bintree{nil, map[string]*bintree{

@@ -30,7 +30,7 @@ endef
 ##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
-all: deps format lint compile test ## Runs 'deps format lint test compile' targets
+all: deps operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
 # ##########################################################################
 # Build configuration
@@ -63,7 +63,6 @@ RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
 
-
 ##@ Build
 
 .PHONY: build-ci
@@ -92,7 +91,7 @@ deps: check-tools ## Fetches all dependencies
 	dep ensure -v
 
 .PHONY: format
-format: ## Removes unneeded imports and formats source code
+format: $(SRCS) ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
 	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
@@ -106,7 +105,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code and bundles packages using go-bindata
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code
 	$(call header,"Generates operator-sdk code")
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
@@ -198,7 +197,7 @@ $(PROJECT_DIR)/bin/protoc:
 
 $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
-	go-bindata -o $(ASSETS) -pkg assets -ignore 'example.yaml' $(ASSET_SRCS)
+	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 .PHONY: operator-tpl
 operator-tpl: $(BINARY_DIR)/$(TPL_BINARY_NAME)

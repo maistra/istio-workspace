@@ -48,7 +48,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			<-testshell.Execute("ike install-operator -l -n " + projectName).Done()
 
 			// then
-			Eventually(AllPodsReady(projectName), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
 			operatorPodName := GetAllPods(projectName)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, projectName)
@@ -67,7 +67,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			<-testshell.Execute("ike install-operator --local").Done()
 
 			// then
-			Eventually(AllPodsReady(projectName), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
 			operatorPodName := GetAllPods(projectName)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, projectName)
