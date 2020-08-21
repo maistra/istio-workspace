@@ -21,7 +21,7 @@ We would love to see a pull request from, even if it's a typo.
 
 There are not many strict rules or guidelines to follow, as we strive to automate as much as possible, however, if your work is non trivial please make sure there's associated issue with it. This will help us preparing release notes.
 
-So if you don't know where to start - have a look at https://github.com/Maistra/istio-workspace/labels/good%20first%20issue[good first issues].
+If you don't know where to start - have a look at https://github.com/Maistra/istio-workspace/labels/good%20first%20issue[good first issues].
 
 == Development
 
