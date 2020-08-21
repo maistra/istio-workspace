@@ -3,9 +3,9 @@ defaults:
     name: "Install latest Golang"
     command: |
       sudo rm -rf /usr/local/go
-      sudo circleci-install golang 1.14.7
+      sudo circleci-install golang 1.15
   docker:
-    - image: &golang-img circleci/golang:1.14.7
+    - image: &golang-img circleci/golang:1.15
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
