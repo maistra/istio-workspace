@@ -73,6 +73,33 @@ var _ = Describe("Operations for istio gateway kind", func() {
 							},
 						},
 					},
+					&istionetwork.Gateway{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "gateway-mutated",
+							Namespace: "test",
+							Annotations: map[string]string{
+								istio.LabelIkeHosts: "test.domain.com",
+							},
+						},
+						Spec: v1alpha3.Gateway{
+							Selector: map[string]string{
+								"istio": "ingressgateway",
+							},
+							Servers: []*v1alpha3.Server{
+								{
+									Port: &v1alpha3.Port{
+										Protocol: "HTTP",
+										Name:     "http",
+										Number:   80,
+									},
+									Hosts: []string{
+										"domain.com",
+										"test.domain.com",
+									},
+								},
+							},
+						},
+					},
 				}
 				ref = &model.Ref{
 					Name: "customer-v1",
@@ -142,6 +169,21 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
+			})
+
+			It("should only return added hosts once", func() {
+				ref.Targets = []model.LocatedResourceStatus{
+					model.NewLocatedResource("Gateway", "gateway-mutated", nil),
+				}
+
+				err := istio.GatewayMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				statuss := ref.GetResources(model.Kind(istio.GatewayKind))
+				Expect(statuss).To(HaveLen(1))
+
+				status := statuss[0]
+				Expect(status.Prop["hosts"]).To(Equal("test.domain.com"))
 			})
 		})
 
