@@ -4,16 +4,16 @@ First and foremost thank you very much for your interest in our project and will
 
 Before we dive into technicalities on how to build and run it let's emphasize that there are other means of contributing which we value as much.
 
-* Issues and feature requests
-* Documentation improvements
-* Blogging
-* Spreading the word on conferences and user groups
+* Issues and feature requests.
+* Documentation improvements.
+* Blogging.
+* Spreading the word on conferences and user groups.
 
 == Reporting issues
 
 It's important to us that the tool we are building gives our users smooth and enjoyable experience.
 
-Filing issues is extremely valuable contribution and to make it easier for you (but also maintainers) we prepared a template which will guide you through this process.
+Filing issues is extremely valuable contribution and to make it easier for you we prepared a template which will guide you through this process.
 
 == Pull Requests
 
@@ -21,7 +21,7 @@ We would love to see a pull request from, even if it's a typo.
 
 There are not many strict rules or guidelines to follow, as we strive to automate as much as possible, however, if your work is non trivial please make sure there's associated issue with it. This will help us preparing release notes.
 
-And if you don't know where to start - have a look at https://github.com/Maistra/istio-workspace/labels/good%20first%20issue[good first issues].
+If you don't know where to start - have a look at https://github.com/Maistra/istio-workspace/labels/good%20first%20issue[good first issues].
 
 == Development
 
@@ -39,15 +39,13 @@ and management of different versions of Go.
 
 We rely on following tools:
 
-* https://golang.github.io/dep/[`dep`] for dependency management
-* https://github.com/golangci/golangci-lint[`golang-ci`] linter
-* https://github.com/onsi/ginkgo[`ginkgo`] for testing
-* https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting
-* https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation
+* https://golang.github.io/dep/[`dep`] for dependency management,
+* https://github.com/golangci/golangci-lint[`golang-ci`] linter,
+* https://github.com/onsi/ginkgo[`ginkgo`] for testing,
+* https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting,
+* https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation.
 
-but from now on you are ready to hack - invoking `make` will check if those binaries are available and install if there are some missing.
-
-Run `make help` to see what targets are available, but you will use `make` most often.
+Build process takes care of installing those binaries on your behalf. You can also run `make tools` to install them.
 
 === Coding
 
@@ -62,6 +60,8 @@ Unit tests are executed when using default `make` target. When developing you ca
 We also have end-to-end tests (`make test-e2e`) for which you need to have Kubernetes cluster with Istio installed. 
 
 In our CI we rely on https://maistra.io/[Maistra] which bundles OpenShift and Istio. Visit their https://maistra.io/docs/getting_started/install/[installation guide] to see how else you can enable Istio in your cluster.
+
+TIP: Check our xref:dev_guide.adoc[Development Guide] for more details!
 
 
 
