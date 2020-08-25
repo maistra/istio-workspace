@@ -10,7 +10,7 @@ import (
 
 const ImageRepo = "istio-workspace-images"
 
-func setDockerRegistryExternal() string {
+func SetDockerRegistryExternal() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
 	if externalRegistry, found := os.LookupEnv("IKE_EXTERNAL_DOCKER_REGISTRY"); found {
 		registry = externalRegistry
@@ -19,7 +19,7 @@ func setDockerRegistryExternal() string {
 	return registry
 }
 
-func setDockerRegistryInternal() {
+func SetDockerRegistryInternal() {
 	setDockerRegistry(GetDockerRegistryInternal())
 }
 

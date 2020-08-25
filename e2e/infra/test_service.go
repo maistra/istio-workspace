@@ -15,7 +15,7 @@ import (
 func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
 	setTestNamespace(ImageRepo)
-	registry = setDockerRegistryExternal()
+	registry = SetDockerRegistryExternal()
 	if RunsAgainstOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
@@ -27,7 +27,7 @@ func BuildTestService() (registry string) {
 func BuildTestServicePreparedImage(callerName string) (registry string) {
 	projectDir := shell.GetProjectDir()
 	setTestNamespace(ImageRepo)
-	registry = setDockerRegistryExternal()
+	registry = SetDockerRegistryExternal()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 	if RunsAgainstOpenshift {
@@ -40,7 +40,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 // DeployTestScenario deploys a test scenario into the specified namespace.
 func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
-	setDockerRegistryInternal()
+	SetDockerRegistryInternal()
 	setDockerEnvForTestServiceDeploy(namespace)
 	if RunsAgainstOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c",
