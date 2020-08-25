@@ -13,7 +13,7 @@ import (
 func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
 	namespace := setOperatorNamespace()
-	registry = setDockerRegistryExternal()
+	registry = SetDockerRegistryExternal()
 	setDockerRepository(ImageRepo)
 	<-shell.Execute(NewProjectCmd(namespace)).Done()
 	EnablePullingImages(namespace)
@@ -25,7 +25,7 @@ func BuildOperator() (registry string) {
 }
 
 func InstallLocalOperator(namespace string) {
-	setDockerRegistryInternal()
+	SetDockerRegistryInternal()
 	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
 }
 

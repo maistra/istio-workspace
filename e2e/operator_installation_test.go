@@ -25,6 +25,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			projectName = strings.ReplaceAll(projectName, "should", "ike")
 			<-testshell.Execute(NewProjectCmd(projectName)).Done()
 			EnablePullingImages(projectName)
+			SetDockerRegistryInternal()
 		})
 
 		AfterEach(func() {
