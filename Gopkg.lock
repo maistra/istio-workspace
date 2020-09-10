@@ -598,14 +598,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a0c9bc7c7bef222cfb2f75ef0111373c945aa800aa64645d0dc193396ba317f7"
+  digest = "1:ec7903ac9ef2593754a5db4c3d18218cf38e1abac35b2cb778ff20b43b05fd81"
   name = "go.uber.org/goleak"
   packages = [
     ".",
     "internal/stack",
   ]
   pruneopts = "NT"
-  revision = "100c34bdc9d6d857d19358de2904f6e67b2bba50"
+  revision = "89d54f0adef2491e157717f756bf7f918943f3cc"
 
 [[projects]]
   digest = "1:6c5dc8e692b52738b7f672b08660cf081460ac04487c0fe4ae4fe3acd1acc8fd"
@@ -646,17 +646,6 @@
   ]
   pruneopts = "NT"
   revision = "70a84ac30bf957c7df57edd1935d2081871515e1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:a6f90342617aea2c27659663e7d0afd570a844ff8e5066ffd66b943378e972b6"
-  name = "golang.org/x/lint"
-  packages = [
-    ".",
-    "golint",
-  ]
-  pruneopts = "NT"
-  revision = "738671d3881b9731cc63024d5d88cf28db875626"
 
 [[projects]]
   digest = "1:0d196acbb5ca160f6a3f59caf0b9cf8377815be6e4281fb8e935014555c28f19"
@@ -764,9 +753,6 @@
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
-    "go/gcexportdata",
-    "go/internal/gcimporter",
-    "go/types/typeutil",
     "imports",
     "internal/event",
     "internal/event/core",
