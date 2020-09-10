@@ -91,6 +91,8 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 			if !existInList(existingHosts, host) && !existInList(existingHosts, newHost) {
 				existingHosts = append(existingHosts, newHost)
 				hosts = append(hosts, newHost)
+			}
+			if existInList(existingHosts, newHost) {
 				addedHosts = append(addedHosts, newHost)
 			}
 		}

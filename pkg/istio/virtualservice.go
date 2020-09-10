@@ -53,8 +53,10 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 			if created {
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil {
-					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
-					return err
+					if !errors.IsAlreadyExists(err) {
+						ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
+						return err
+					}
 				}
 
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionCreated})

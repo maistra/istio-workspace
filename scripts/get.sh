@@ -102,7 +102,13 @@ test -z "$version" && version="$(last_version)"
 test -z "$version" && {
   die "Unable to get ike version. You can still try to download it manually from $RELEASES_URL."
 }
-test -z "$dir" &&  dir="$(mktemp -d --suffix=-ike-${version})"
+test -z "$dir" && {
+  if [ "$(uname)" == "Darwin" ]; then
+    dir="$(mktemp -d -t ike-${version}-)"
+  else
+    dir="$(mktemp -d --suffix=-ike-${version})"
+  fi
+}
 
 download "${version}"
 tar -C "$dir" -xzf "$TAR_FILE" ike

@@ -71,7 +71,7 @@ required = [
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
-  version = "=1.14.0"
+  version = "=1.14.1"
 
 [[constraint]]
   name = "github.com/joho/godotenv"
