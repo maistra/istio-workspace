@@ -181,12 +181,12 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:787186d209c8593b2b5973a7fd5da8b19efb0c481e646baf5530eb9de52c2f3c"
+  digest = "1:979d8b7370931b6ea6e8f8c6496a464fd258d0772421143d176d3a172cd2497e"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "NT"
-  revision = "a86f060e61d0ec7318f2a2ce843a7b9dbdbdf615"
-  version = "v32.0.0"
+  revision = "e881974953e6ab6d1a6a1610e98ed6401a3aa1ba"
+  version = "v32.1.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
