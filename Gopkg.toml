@@ -103,7 +103,7 @@ required = [
 
 [[constraint]]
   name = "github.com/google/go-github"
-  version = "=v32.0.0"
+  version = "=v32.1.0"
 
 # Overrides
 [[override]]
