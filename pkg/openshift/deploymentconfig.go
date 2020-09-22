@@ -60,6 +60,10 @@ func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
 	}
 	ctx.Log.Info("Found DeploymentConfig", "name", deployment.Name)
 
+	if ref.Strategy == model.StrategyExisting {
+		return nil
+	}
+
 	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)

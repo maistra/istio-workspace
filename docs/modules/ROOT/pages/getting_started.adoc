@@ -23,7 +23,7 @@ include::cmd:curl[flags='-sL http://git.io/get-ike | bash -s -- --help',block=tr
 
 Before you can start using CLI we have to add few backend bits to the cluster, so that we can safely swap services you will work on.
 
-The simples way is to run built-in command which should take care of all the steps.
+The simplest way is to run built-in command which should take care of all the steps.
 
 If you want to install the operator cluster wide run:
 
