@@ -23,14 +23,30 @@ var (
 
 // Options holds the variables used by the Session Handler.
 type Options struct {
-	NamespaceName  string            // name of the namespace for target resource
-	DeploymentName string            // name of the initial resource to target
-	SessionName    string            // name of the session create or join if exist
-	RouteExp       string            // expression of how to route the traffic to the target resource
-	Strategy       string            // name of the strategy to use for the target resource
-	StrategyArgs   map[string]string // additional arguments for the strategy
-	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
-	Duration       *time.Duration    // Duration defines the interval used to check for changes to the session object
+	NamespaceName  string                                // name of the namespace for target resource
+	DeploymentName string                                // name of the initial resource to target
+	SessionName    string                                // name of the session create or join if exist
+	RouteExp       string                                // expression of how to route the traffic to the target resource
+	Strategy       string                                // name of the strategy to use for the target resource
+	StrategyArgs   map[string]string                     // additional arguments for the strategy
+	Revert         bool                                  // Revert back to previous known value if join/leave a existing session with a known ref
+	Duration       *time.Duration                        // Duration defines the interval used to check for changes to the session object
+	WaitCondition  func(*istiov1alpha1.RefResource) bool // WaitCondition should return true when session is in a state to move on
+}
+
+// ConditionFound returns true if the RefResource is in a done state based on the WaitCondition. Defaults to defaultWaitCondition.
+func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
+	if o.WaitCondition == nil {
+		o.WaitCondition = defaultWaitCondition
+	}
+	return o.WaitCondition(res)
+}
+
+func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
+	if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
+		return true
+	}
+	return false
 }
 
 // State holds the new variables as presented by the creation of the session.
@@ -185,7 +201,7 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		for _, refs := range sessionStatus.Status.Refs {
 			if refs.Name == h.opts.DeploymentName {
 				for _, res := range refs.Resources {
-					if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
+					if h.opts.ConditionFound(res) {
 						name = *res.Name
 						logger().Info("target found", *res.Kind, name)
 						return true, nil
