@@ -71,7 +71,7 @@ required = [
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
-  version = "=1.14.0"
+  version = "=1.14.1"
 
 [[constraint]]
   name = "github.com/joho/godotenv"
@@ -103,7 +103,7 @@ required = [
 
 [[constraint]]
   name = "github.com/google/go-github"
-  version = "=v32.0.0"
+  version = "=v32.1.0"
 
 # Overrides
 [[override]]

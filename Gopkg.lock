@@ -181,12 +181,12 @@
   version = "v0.4.1"
 
 [[projects]]
-  digest = "1:787186d209c8593b2b5973a7fd5da8b19efb0c481e646baf5530eb9de52c2f3c"
+  digest = "1:979d8b7370931b6ea6e8f8c6496a464fd258d0772421143d176d3a172cd2497e"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "NT"
-  revision = "a86f060e61d0ec7318f2a2ce843a7b9dbdbdf615"
-  version = "v32.0.0"
+  revision = "e881974953e6ab6d1a6a1610e98ed6401a3aa1ba"
+  version = "v32.1.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -385,7 +385,7 @@
   version = "v1.4.4"
 
 [[projects]]
-  digest = "1:dfc3a67a1ce7eb779d73ede8989615f3256dc5f2d8242e44cdd0e88286efcaf9"
+  digest = "1:9e2f44db9574560b63a8dba54e9bdb1d3a1e5cd7ac1be925b619ed597ed4453c"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -409,8 +409,8 @@
     "types",
   ]
   pruneopts = "NT"
-  revision = "9c254cb251dc962dc20ca91d0279c870095cfcf9"
-  version = "v1.14.0"
+  revision = "6d83527acb3f6cda405ce47a475d480117098381"
+  version = "v1.14.1"
 
 [[projects]]
   digest = "1:14e8f5bdfecd4f99ed49e40b1df75875d7e45a57cb38c8452a2b25d8465e6ea7"
@@ -598,14 +598,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a0c9bc7c7bef222cfb2f75ef0111373c945aa800aa64645d0dc193396ba317f7"
+  digest = "1:ec7903ac9ef2593754a5db4c3d18218cf38e1abac35b2cb778ff20b43b05fd81"
   name = "go.uber.org/goleak"
   packages = [
     ".",
     "internal/stack",
   ]
   pruneopts = "NT"
-  revision = "100c34bdc9d6d857d19358de2904f6e67b2bba50"
+  revision = "89d54f0adef2491e157717f756bf7f918943f3cc"
 
 [[projects]]
   digest = "1:6c5dc8e692b52738b7f672b08660cf081460ac04487c0fe4ae4fe3acd1acc8fd"
@@ -646,17 +646,6 @@
   ]
   pruneopts = "NT"
   revision = "70a84ac30bf957c7df57edd1935d2081871515e1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:a6f90342617aea2c27659663e7d0afd570a844ff8e5066ffd66b943378e972b6"
-  name = "golang.org/x/lint"
-  packages = [
-    ".",
-    "golint",
-  ]
-  pruneopts = "NT"
-  revision = "738671d3881b9731cc63024d5d88cf28db875626"
 
 [[projects]]
   digest = "1:0d196acbb5ca160f6a3f59caf0b9cf8377815be6e4281fb8e935014555c28f19"
@@ -764,9 +753,6 @@
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
-    "go/gcexportdata",
-    "go/internal/gcimporter",
-    "go/types/typeutil",
     "imports",
     "internal/event",
     "internal/event/core",

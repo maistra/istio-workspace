@@ -8,6 +8,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	// StrategyExisting holds the name of the existing strategy
+	StrategyExisting = "existing"
+)
+
 // SessionContext holds the context for a single session object, giving access to key things like REST Client and target Namespace.
 type SessionContext struct {
 	context.Context

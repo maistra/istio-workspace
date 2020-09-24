@@ -185,7 +185,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
-		Context("telepresence mutations", func() {
+		Context("telepresence mutation strategy", func() {
 
 			It("should change container to telepresence", func() {
 				ref := CreateTestRef()
@@ -206,6 +206,21 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
 
+		})
+
+		Context("existing mutation strategy", func() {
+
+			It("should not create a clone", func() {
+				ref := CreateTestRef()
+				ref.Strategy = model.StrategyExisting
+
+				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+				Expect(mutatorErr).ToNot(HaveOccurred())
+
+				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+				Expect(err).To(HaveOccurred())
+				Expect(errors.IsNotFound(err)).To(BeTrue())
+			})
 		})
 
 	})
