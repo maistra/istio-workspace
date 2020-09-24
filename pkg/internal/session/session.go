@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 
-	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -43,7 +44,7 @@ func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
 }
 
 func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
-	return *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" 
+	return *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig"
 }
 
 // State holds the new variables as presented by the creation of the session.
