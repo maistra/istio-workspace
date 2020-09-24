@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/model"
+
+	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+
 	admission "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -37,15 +39,15 @@ func (d *data) Namespace() string {
 }
 
 func Hook(review admission.AdmissionReview) admission.AdmissionReview {
-
 	// if review.Request.DryRun don't do stuff with sideeffects....
 
-	data, err := parseRequest(review.Request)
+	// TODO: validate correct review kind/group. Allow true / ignore ?
+	d, err := parseRequest(review.Request)
 	if err != nil {
-		// TODO: createErrorReview
+		return createErrorReview(review, err)
 	}
 
-	if !data.IsIkeable() {
+	if !d.IsIkeable() {
 		review.Response = &admission.AdmissionResponse{
 			UID:     review.Request.UID,
 			Allowed: true,
@@ -53,12 +55,12 @@ func Hook(review admission.AdmissionReview) admission.AdmissionReview {
 		return review
 	}
 
-	session, err := createSessionAndWait(data)
+	sess, err := createSessionAndWait(d)
 	if err != nil {
-		// TODO: createErrorReview
+		return createErrorReview(review, err)
 	}
 
-	patch := createLabelsPatch(session)
+	patch := createLabelsPatch(findLables(sess))
 
 	patchType := admission.PatchTypeJSONPatch
 	review.Response = &admission.AdmissionResponse{
@@ -68,6 +70,18 @@ func Hook(review admission.AdmissionReview) admission.AdmissionReview {
 		Patch:     []byte(patch),
 	}
 	return review
+}
+
+// TODO: should we Allow failing Deployments?
+// TODO: how to report error message if we do?
+func createErrorReview(request admission.AdmissionReview, err error) (review admission.AdmissionReview) {
+
+	review.Response = &admission.AdmissionResponse{
+		UID:     review.Request.UID,
+		Allowed: true,
+	}
+
+	return
 }
 
 func parseRequest(request *admission.AdmissionRequest) (data, error) {
@@ -107,7 +121,11 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 	return &state.RefStatus, nil
 }
 
-func createLabelsPatch(ref *istiov1alpha1.RefStatus) string {
-	// for each Resource, if Deployment, Make label path
+func findLables(ref *istiov1alpha1.RefStatus) map[string]string {
+	// for each Resource, if Deployment, Make label patch
+	return map[string]string{}
+}
+func createLabelsPatch(lables map[string]string) string {
+	// Template.DefaultEngine().("lables").. ?
 	return ""
 }
