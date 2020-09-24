@@ -43,10 +43,7 @@ func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
 }
 
 func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
-	if *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" {
-		return true
-	}
-	return false
+	return *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig" 
 }
 
 // State holds the new variables as presented by the creation of the session.
