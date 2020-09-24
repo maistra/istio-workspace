@@ -104,7 +104,9 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 		NamespaceName:  d.Namespace(),
 		Strategy:       model.StrategyExisting,
 		Duration:       &checkDuration,
-		// TODO: add support for what to wait for WaitExpression: FoundDeployment
+		WaitCondition: func(ref *istiov1alpha1.RefResource) bool {
+			return false
+		},
 	}
 
 	c, err := session.DefaultClient(options.NamespaceName)
