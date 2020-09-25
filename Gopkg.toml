@@ -125,7 +125,7 @@ required = [
 
 [[override]]
   name = "k8s.io/klog"
-  version = "v1.0.0"
+  version = "v2.3.0"
 
 [[override]]
   name = "k8s.io/gengo"
