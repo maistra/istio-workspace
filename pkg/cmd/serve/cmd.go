@@ -3,12 +3,12 @@ package serve
 import (
 	"context"
 	"fmt"
+	"os"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
@@ -22,6 +22,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+)
+
+const (
+	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
 )
 
 var logger = func() logr.Logger {
@@ -45,7 +49,7 @@ func NewCmd() *cobra.Command {
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {
-	namespace, err := k8sutil.GetWatchNamespace()
+	namespace, err := getWatchNamespace()
 	if err != nil {
 		logger().Error(err, "Failed to get watch namespace")
 		return err
@@ -124,3 +128,13 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+// ggetWatchNamespace returns the namespace the operator should be watching for changes
+func getWatchNamespace() (string, error) {
+	ns, found := os.LookupEnv(WatchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", WatchNamespaceEnvVar)
+	}
+	return ns, nil
+}
+
