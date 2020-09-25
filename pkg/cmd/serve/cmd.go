@@ -34,7 +34,7 @@ var logger = func() logr.Logger {
 
 var (
 	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8383
+	metricsPort int32 = 8080
 )
 
 // NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
