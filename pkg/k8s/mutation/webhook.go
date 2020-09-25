@@ -1,7 +1,9 @@
-package webhook
+package mutation
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/maistra/istio-workspace/pkg/internal/session"
@@ -9,8 +11,10 @@ import (
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 
-	admission "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 type data struct {
@@ -38,62 +42,52 @@ func (d *data) Namespace() string {
 	return d.Object.Namespace
 }
 
-func Hook(review admission.AdmissionReview) admission.AdmissionReview {
+// Webhook to mutate Deployments with ike.target annotations to setup routing to existing pods
+type Webhook struct {
+	Client  client.Client
+	decoder *admission.Decoder
+}
+
+var _ admission.DecoderInjector = &Webhook{}
+
+// Handle will create a Session with a "existing" strategy to setup a route to the upcoming deployment.
+// The deployment will be injected the correct labels to get the prod route
+func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.Response {
 	// if review.Request.DryRun don't do stuff with sideeffects....
 
-	// TODO: validate correct review kind/group. Allow true / ignore ?
-	d, err := parseRequest(review.Request)
+	deployment := &appsv1.Deployment{}
+	err := w.decoder.Decode(req, deployment)
 	if err != nil {
-		return createErrorReview(review, err)
+		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
+	d := data{Object: *deployment}
 	if !d.IsIkeable() {
-		review.Response = &admission.AdmissionResponse{
-			UID:     review.Request.UID,
-			Allowed: true,
-		}
-		return review
+		return admission.Allowed("not ikable, move on")
 	}
 
 	sess, err := createSessionAndWait(d)
 	if err != nil {
-		return createErrorReview(review, err)
+		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	patch := createLabelsPatch(findLables(sess))
-
-	patchType := admission.PatchTypeJSONPatch
-	review.Response = &admission.AdmissionResponse{
-		UID:       review.Request.UID,
-		Allowed:   true,
-		PatchType: &patchType,
-		Patch:     []byte(patch),
-	}
-	return review
-}
-
-// TODO: should we Allow failing Deployments?
-// TODO: how to report error message if we do?
-func createErrorReview(request admission.AdmissionReview, err error) (review admission.AdmissionReview) {
-
-	review.Response = &admission.AdmissionResponse{
-		UID:     review.Request.UID,
-		Allowed: true,
+	lables := findLables(sess)
+	for k, v := range lables {
+		deployment.Labels[k] = v
 	}
 
-	return
-}
-
-func parseRequest(request *admission.AdmissionRequest) (data, error) {
-	var dep appsv1.Deployment
-
-	err := json.Unmarshal(request.Object.Raw, &dep)
+	marshaledDeployment, err := json.Marshal(deployment)
 	if err != nil {
-		return data{}, err
+		return admission.Errored(http.StatusInternalServerError, err)
 	}
-	return data{
-		Object: dep,
-	}, nil
+
+	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledDeployment)
+}
+
+// InjectDecoder injects the decoder.
+func (w *Webhook) InjectDecoder(d *admission.Decoder) error {
+	w.decoder = d
+	return nil
 }
 
 func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
@@ -126,8 +120,4 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 func findLables(ref *istiov1alpha1.RefStatus) map[string]string {
 	// for each Resource, if Deployment, Make label patch
 	return map[string]string{}
-}
-func createLabelsPatch(lables map[string]string) string {
-	// Template.DefaultEngine().("lables").. ?
-	return ""
 }

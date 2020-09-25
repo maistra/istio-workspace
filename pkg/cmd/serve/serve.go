@@ -15,6 +15,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/apis"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/controller"
+	"github.com/maistra/istio-workspace/pkg/k8s/mutation"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/spf13/cobra"
@@ -22,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
 var logger = func() logr.Logger {
@@ -90,6 +92,12 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		logger().Error(err, "")
 		return err
 	}
+
+	logger().Info("Setting up webhook server.")
+	hookServer := mgr.GetWebhookServer()
+
+	logger().Info("Registering webhooks to the webhook server.")
+	hookServer.Register("/deployment-mutation", &webhook.Admission{Handler: mutation.Webhook{Client: mgr.GetClient()}})
 
 	// Create Service object to expose the metrics port.
 	servicePorts := []v1.ServicePort{
