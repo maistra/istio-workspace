@@ -25,11 +25,6 @@ func (d *data) IsIkeable() bool {
 	return d.Object.Labels["ike.target"] != ""
 }
 
-func (d *data) Join() bool {
-	_, ok := d.Object.Labels["ike.session"]
-	return ok
-}
-
 func (d *data) Target() string {
 	return d.Object.Labels["ike.target"]
 }
@@ -42,17 +37,18 @@ func (d *data) Namespace() string {
 	return d.Object.Namespace
 }
 
-// Webhook to mutate Deployments with ike.target annotations to setup routing to existing pods
+// Webhook to mutate Deployments with ike.target annotations to setup routing to existing pods.
 type Webhook struct {
 	Client  client.Client
 	decoder *admission.Decoder
 }
 
 var _ admission.DecoderInjector = &Webhook{}
+var _ admission.Handler = &Webhook{}
 
 // Handle will create a Session with a "existing" strategy to setup a route to the upcoming deployment.
-// The deployment will be injected the correct labels to get the prod route
-func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.Response {
+// The deployment will be injected the correct labels to get the prod route.
+func (w Webhook) Handle(ctx context.Context, req admission.Request) admission.Response {
 	// if review.Request.DryRun don't do stuff with sideeffects....
 
 	deployment := &appsv1.Deployment{}
