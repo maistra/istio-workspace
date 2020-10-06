@@ -15,7 +15,7 @@ var _ = Describe("Bash Completion Tests", func() {
 
 		It("should show all visible main commands", func() {
 			completionResults := completionFor("ike ")
-			Expect(completionResults).To(ConsistOf("completion", "develop", "install-operator", "serve", "version", "create", "delete"))
+			Expect(completionResults).To(ConsistOf("completion", "develop", "install", "serve", "version", "create", "delete"))
 		})
 
 		Context("develop", func() {
@@ -33,14 +33,14 @@ var _ = Describe("Bash Completion Tests", func() {
 			})
 		})
 
-		Context("install-operator", func() {
+		Context("install", func() {
 
 			It("should show matching command", func() {
-				Expect(completionFor("ike install-")).To(ConsistOf("install-operator"))
+				Expect(completionFor("ike ins")).To(ConsistOf("install"))
 			})
 
 			It("should show all flags inherited from root", func() {
-				Expect(completionFor("ike install-operator -")).To(ConsistOf(
+				Expect(completionFor("ike install -")).To(ConsistOf(
 					"--config", "--config=", "-c", "--local", "-l", "--namespace", "--namespace=", "-n"))
 			})
 		})

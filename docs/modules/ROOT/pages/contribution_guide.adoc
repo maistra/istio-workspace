@@ -55,7 +55,7 @@ TIP: Run `make help` to see what other targets are available.
 
 === Testing
 
-Unit tests are executed when using default `make` target. When developing you can also use https://onsi.github.io/ginkgo/#watching-for-changes[`ginkgo watch`] so they are ran whenever the change in the code occur. This makes feedback loop faster.
+The default `make` target executes unit tests. When developing you can also use https://onsi.github.io/ginkgo/#watching-for-changes[`ginkgo watch`] so they are ran whenever the change in the code occur. This makes feedback loop faster.
 
 We also have end-to-end tests (`make test-e2e`) for which you need to have Kubernetes cluster with Istio installed. 
 

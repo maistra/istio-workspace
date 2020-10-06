@@ -26,7 +26,7 @@ var logger = func() logr.Logger {
 // NewCmd takes care of deploying server-side components of istio-workspace.
 func NewCmd() *cobra.Command {
 	installCmd := &cobra.Command{
-		Use:          "install-operator",
+		Use:          "install",
 		Short:        "Takes care of deploying server-side components of istio-workspace",
 		SilenceUsage: true,
 		RunE:         installOperator,
