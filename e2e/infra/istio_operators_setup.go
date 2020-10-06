@@ -26,7 +26,7 @@ func BuildOperator() (registry string) {
 
 func InstallLocalOperator(namespace string) {
 	SetDockerRegistryInternal()
-	<-shell.Execute("ike install-operator -l -n " + namespace).Done()
+	<-shell.Execute("ike install -l -n " + namespace).Done()
 }
 
 func setOperatorNamespace() (namespace string) {

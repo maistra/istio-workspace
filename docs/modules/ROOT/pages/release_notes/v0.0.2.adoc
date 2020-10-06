@@ -18,7 +18,7 @@ a companion command `delete` to clean up when e.g. PR is merged.
 
 Now you also can deploy operator to your local namespace, so where your project lives. This way only your namespace is watched.
 
-Simply invoke `ike install-operator -l`
+Simply invoke `ike install -l`
 
 To learn more head over to the https://istio-workspace-docs.netlify.com/istio-workspace/v0.0.2/index.html[official docs].
 

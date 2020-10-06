@@ -43,14 +43,14 @@ When logged in to the cluster run the following for a cluster wide operator:
 
 [source,bash]
 ----
-ike install-operator
+ike install
 ----
 
 or if you only want to install the operator for a single namespace run:
 
 [source,bash]
 ----
-ike install-operator -l
+ike install -l
 ----
 
 And you are all set!

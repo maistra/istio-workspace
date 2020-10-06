@@ -46,7 +46,7 @@ var _ = Describe("Operator Installation Tests", func() {
 
 		It("should install into specified namespace", func() {
 			// when
-			<-testshell.Execute("ike install-operator -l -n " + projectName).Done()
+			<-testshell.Execute("ike install -l -n " + projectName).Done()
 
 			// then
 			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
@@ -65,7 +65,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			ChangeNamespace(projectName)
 
 			// when
-			<-testshell.Execute("ike install-operator --local").Done()
+			<-testshell.Execute("ike install --local").Done()
 
 			// then
 			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
