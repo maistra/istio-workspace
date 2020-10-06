@@ -193,13 +193,13 @@ jobs:
       - run:
           name: Install official kubectl
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.19.0-rc.4/bin/linux/amd64/kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.9/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
           name: Launch Microk8s
           command: |
-            sudo snap install microk8s --classic --channel 1.19/stable
+            sudo snap install microk8s --classic --channel 1.18/stable
 
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
