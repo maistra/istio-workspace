@@ -82,13 +82,18 @@ func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.R
 	deployment := &appsv1.Deployment{}
 
 	if req.Operation == admissionv1beta1.Delete {
-		w.decoder.DecodeRaw(req.OldObject, deployment)
+		err := w.decoder.DecodeRaw(req.OldObject, deployment)
+		if err != nil {
+			logger().Error(err, "problems decoding delete request", "deployment", deployment.Name)
+			return admission.Allowed(err.Error())
+		}
 		d := data{Object: *deployment}
 		if d.IsIkeable() {
 			logger().Info("Removing session", "deployment", req.Name)
 			err := removeSession(d)
 			if err != nil {
 				logger().Error(err, "problems removing session", "deployment", deployment.Name)
+				return admission.Allowed(err.Error())
 			}
 		}
 		return admission.Allowed("") // TODO: impl delete behavior
@@ -196,7 +201,7 @@ func findLables(ref *istiov1alpha1.RefStatus) map[string]string {
 	for _, target := range ref.Targets {
 		if *target.Kind == "Deployment" || *target.Kind == "DeploymentConfig" {
 			lables := target.Labels
-			lables["version"] = lables["version"] + "-test" // TODO: dynamically lookup all target labels
+			lables["version"] += "-test" // TODO: dynamically lookup all target labels
 			return lables
 		}
 	}
