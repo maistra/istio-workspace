@@ -1,6 +1,7 @@
 package dynclient
 
 import (
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -76,6 +77,7 @@ func (c *Client) Create(obj runtime.Object) error {
 	case *v1beta1.CustomResourceDefinition:
 	case *rbacV1.ClusterRole:
 	case *rbacV1.ClusterRoleBinding:
+	case *admissionregistrationv1.MutatingWebhookConfiguration:
 	default:
 		// For all the other types we should create resources in the desired namespace
 		resourceInterface = nsResourceInterface.Namespace(c.Namespace)

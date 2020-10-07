@@ -6,15 +6,25 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/internal/session"
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/go-logr/logr"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 
+	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+)
+
+var (
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "controller")
+	}
 )
 
 type data struct {
@@ -22,19 +32,37 @@ type data struct {
 }
 
 func (d *data) IsIkeable() bool {
-	return d.Object.Labels["ike.target"] != ""
+	//return d.Object.Labels["ike.target"] != ""
+	return d.Object.Spec.Selector.MatchLabels["deployment"] == "workspace"
 }
 
 func (d *data) Target() string {
-	return d.Object.Labels["ike.target"]
+	t := d.Object.Labels["ike.target"]
+	if t != "" {
+		return t
+	}
+	return "preference-v1"
 }
 
 func (d *data) Session() string {
-	return d.Object.Labels["ike.session"]
+	s := d.Object.Labels["ike.session"]
+	if s != "" {
+		return s
+	}
+	//return strings.ReplaceAll(d.Object.Name, ".", "-")
+	return "test"
 }
 
 func (d *data) Namespace() string {
 	return d.Object.Namespace
+}
+
+func (d *data) Route() string {
+	r := d.Object.Labels["ike.route"]
+	if r != "" {
+		return r
+	}
+	return "header:ike-session-id=feature-y"
 }
 
 // Webhook to mutate Deployments with ike.target annotations to setup routing to existing pods.
@@ -48,10 +76,24 @@ var _ admission.Handler = &Webhook{}
 
 // Handle will create a Session with a "existing" strategy to setup a route to the upcoming deployment.
 // The deployment will be injected the correct labels to get the prod route.
-func (w Webhook) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.Response {
 	// if review.Request.DryRun don't do stuff with sideeffects....
 
 	deployment := &appsv1.Deployment{}
+
+	if req.Operation == admissionv1beta1.Delete {
+		w.decoder.DecodeRaw(req.OldObject, deployment)
+		d := data{Object: *deployment}
+		if d.IsIkeable() {
+			logger().Info("Removing session", "deployment", req.Name)
+			err := removeSession(d)
+			if err != nil {
+				logger().Error(err, "problems removing session", "deployment", deployment.Name)
+			}
+		}
+		return admission.Allowed("") // TODO: impl delete behavior
+	}
+
 	err := w.decoder.Decode(req, deployment)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
@@ -62,14 +104,28 @@ func (w Webhook) Handle(ctx context.Context, req admission.Request) admission.Re
 		return admission.Allowed("not ikable, move on")
 	}
 
-	sess, err := createSessionAndWait(d)
+	logger().Info("Creating session", "deployment", req.Name)
+	refStatus, err := createSessionAndWait(d)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	lables := findLables(sess)
+	logger().Info("Session created", "deployment", req.Name)
+
+	lables := findLables(refStatus)
 	for k, v := range lables {
-		deployment.Labels[k] = v
+		logger().Info("Label added", "deployemnt", req.Name, k, v)
+		deployment.Spec.Template.Labels[k] = v
+	}
+
+	targetHost := findGwHost(refStatus)
+	if targetHost != "" {
+		for i := 0; i < len(deployment.Spec.Template.Spec.Containers); i++ {
+			c := deployment.Spec.Template.Spec.Containers[i]
+			logger().Info("Env added", "deployemnt", req.Name, "container", c.Name, "IKE_HOST", targetHost)
+			c.Env = append(c.Env, corev1.EnvVar{Name: "IKE_HOST", Value: targetHost})
+			deployment.Spec.Template.Spec.Containers[i] = c
+		}
 	}
 
 	marshaledDeployment, err := json.Marshal(deployment)
@@ -77,6 +133,7 @@ func (w Webhook) Handle(ctx context.Context, req admission.Request) admission.Re
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
+	logger().Info("Patch response sent", "deployemnt", req.Name)
 	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledDeployment)
 }
 
@@ -93,9 +150,10 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 		SessionName:    d.Session(),
 		NamespaceName:  d.Namespace(),
 		Strategy:       model.StrategyExisting,
+		RouteExp:       d.Route(),
 		Duration:       &checkDuration,
 		WaitCondition: func(ref *istiov1alpha1.RefResource) bool {
-			return false
+			return true // TODO: valid wait
 		},
 	}
 
@@ -113,7 +171,43 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 	return &state.RefStatus, nil
 }
 
+func removeSession(d data) error {
+	options := session.Options{
+		DeploymentName: d.Target(),
+		SessionName:    d.Session(),
+		NamespaceName:  d.Namespace(),
+	}
+
+	c, err := session.DefaultClient(options.NamespaceName)
+	if err != nil {
+		return err
+	}
+
+	_, remove, err := session.RemoveHandler(options, c)
+	if err != nil {
+		return err
+	}
+	remove()
+
+	return nil
+}
+
 func findLables(ref *istiov1alpha1.RefStatus) map[string]string {
-	// for each Resource, if Deployment, Make label patch
+	for _, target := range ref.Targets {
+		if *target.Kind == "Deployment" || *target.Kind == "DeploymentConfig" {
+			lables := target.Labels
+			lables["version"] = lables["version"] + "-test" // TODO: dynamically lookup all target labels
+			return lables
+		}
+	}
 	return map[string]string{}
+}
+
+func findGwHost(ref *istiov1alpha1.RefStatus) string {
+	for _, target := range ref.Resources {
+		if *target.Kind == "Gateway" {
+			return target.Prop["hosts"]
+		}
+	}
+	return ""
 }

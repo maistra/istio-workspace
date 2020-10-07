@@ -1,0 +1,64 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+parameters:
+  - name: NAMESPACE
+    description: "Target namespace for which role binding should be defined"
+    required: true
+    value: istio-workspace-operator
+objects:
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      name: istio-workspace
+      annotations:
+        service.beta.openshift.io/serving-cert-secret-name: istio-workspace
+      labels:
+        app: istio-workspace
+    spec:
+      ports:
+        - port: 443
+          targetPort: 8443
+      selector:
+        app: istio-workspace
+  - kind: MutatingWebhookConfiguration
+    apiVersion: admissionregistration.k8s.io/v1
+    metadata:
+      name: istio-workspace
+      annotations:
+        service.beta.openshift.io/inject-cabundle: "true"
+      labels:
+        app: istio-workspace
+    webhooks:
+      - name: istio-workspace.${NAMESPACE}.svc.cluster.local
+        admissionReviewVersions: ["v1beta1"]
+        matchPolicy: Equivalent
+        clientConfig:
+          service:
+            name: istio-workspace
+            namespace: ${NAMESPACE}
+            path: "/deployment-mutation"
+            port: 443
+            caBundle: <CA_BUNDLE>
+        rules:
+          - operations: ["CREATE", "UPDATE", "DELETE"]
+            apiGroups: ["apps"]
+            apiVersions: ["v1"]
+            resources: ["deployments"]
+            scope: Namespaced
+        sideEffects: NoneOnDryRun
+        timeoutSeconds: 5
+        failurePolicy: Fail
+  - kind: NetworkPolicy
+    apiVersion: networking.k8s.io/v1
+    metadata:
+      labels:
+        app: istio-workspace
+      name: istio-workspace
+    spec:
+      ingress:
+      - {}
+      podSelector:
+        matchLabels:
+          app: istio-workspace
+      policyTypes:
+      - Ingress

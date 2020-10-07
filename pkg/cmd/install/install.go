@@ -93,11 +93,11 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		return err
 	}
 	resources := []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "cluster_role.yaml"}
-	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml"}
+	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml", "mutation.yaml"}
 
 	if local {
 		resources = []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "role.yaml"}
-		templates = []string{"role_binding.yaml", "operator.tpl.yaml"}
+		templates = []string{"role_binding.yaml", "operator.tpl.yaml", "mutation.yaml"}
 
 		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {
 			return envErr
@@ -201,8 +201,9 @@ func (app *applier) applyTemplate(templatePath string) error {
 			app.c.Namespace,
 			name(object, templatePath),
 			gav.Kind))
+
 		err = app.c.Create(object)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			return err
 		}
 	}
