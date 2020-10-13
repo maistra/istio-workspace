@@ -2,8 +2,8 @@
 
 In this section you will learn about:
 
-* [x] ways to configure `ike` (through flags, files et al)
-* [x] complete list of commands and their available flags
+* [x] ways to configure `ike` (through flags, files et al.)
+* [x] complete list of commands, and their available flags
 
 [#completion]
 == Autocomplete
@@ -50,23 +50,24 @@ Main command, which holds global flags and prints the overall usage of the tool.
 
 include::cmd:ike[flags='--help --help-format=adoc']
 
-[#ike-install-operator]
-=== `ike install-operator`
+[#ike-install]
+=== `ike install`
 
-Simple installation process of the operator in the cluster. 
+Simple installation process of the istio-workspace in the cluster. 
 
 IMPORTANT: Connection configuration is taken from `KUBECONFIG` context. 
 It's important to have user with sufficient privileges. 
 In case of OpenShift you can add `cluster-user` role for your user by executing 
 `oc adm policy add-cluster-role-to-user cluster-admin USER`. 
 
-include::cmd:ike[flags='install-operator --help --help-format=adoc']
+include::cmd:ike[flags='install --help --help-format=adoc']
 
 [#ike-serve]
 === `ike serve`
 
-Starts the operator in the cluster.
-// TODO brief mention about operator and how it works + link to the dedicated docs
+Starts the controller in the cluster.
+
+// TODO briefly mention operator and how it works + link to the dedicated docs
 
 include::cmd:ike[flags='serve --help --help-format=adoc']
 

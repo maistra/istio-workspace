@@ -13,7 +13,7 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 
 Run `curl -sL http://git.io/get-ike | bash` to get latest `ike` binary.
 
-TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.1 --dir=/usr/bin`
+TIP: You can also specify the version and directory before downloading `curl -sL http://git.io/get-ike | bash -s \-- --version=v0.0.3 --dir=/usr/bin`
 
 Here are all available flags of this installation script
 
@@ -29,14 +29,14 @@ If you want to install the operator cluster wide run:
 
 [source,bash]
 ----
-ike install-operator
+ike install
 ----
 
-Or if you only want to install it for a single Namespace:
+Or if you only want to install it for a single NAMESPACE:
 
 [source,bash]
 ----
-ike install-operator -l
+ike install -l -n NAMESPACE
 ----
 
 NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags 
@@ -57,13 +57,13 @@ Now you have process based on your local code base which proxies connections fro
 
 Let's break it down to see what is going on under the hood:
 
-<1> Name of the `Deployment` or `DeploymentConfig` you want to work with
-<2> exposed port of the service
-<3> whether to watch changes in the file system and re-run the process when they occur
-<4> command to run 
-<5> route differentiation based on which the traffic will be directed to your forked service
+<1> Name of the `Deployment` or `DeploymentConfig` you want to work with.
+<2> Exposed port of the service.
+<3> Whether to watch changes in the file system and re-run the process when they occur.
+<4> Command to run. 
+<5> Route differentiation based on which the traffic will be directed to your forked service.
 
-// TIP: All command line flags can also be persisted in the configuration file and shared in the project. For more details jump to configuration section.
+TIP: All command line flags can also be persisted in the configuration file and shared as part of the project. Jump to xref:cli_reference.adoc#configuration[configuration section] for more details.
 
 
 // TODO add screencast showing the basic flow
