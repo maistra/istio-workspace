@@ -258,7 +258,8 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 					},
 				})
 			}
-			c.Update(sess)
+			updateErr := c.Update(sess)
+			Expect(updateErr).ToNot(HaveOccurred())
 		}
 	}()
 	return func() {

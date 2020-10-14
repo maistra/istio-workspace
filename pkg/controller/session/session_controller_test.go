@@ -337,7 +337,8 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the strategy differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(req)
+					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("details", GetSession("test", "test-session"))
 					Expect(modified).ToNot(BeNil())
@@ -348,7 +349,8 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the args differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(req)
+					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("ratings", GetSession("test", "test-session"))
 					Expect(modified).ToNot(BeNil())
@@ -359,7 +361,8 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the same args differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(req)
+					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
 					Expect(modified).ToNot(BeNil())
@@ -372,7 +375,8 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when any change happen", func() {
 					locator.Action = foundTestLocatorTarget("test-a", "test-b")
 					revertor.Action = noOp
-					controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(req)
+					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
 					Expect(modified).ToNot(BeNil())
