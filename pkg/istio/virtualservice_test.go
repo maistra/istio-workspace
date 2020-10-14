@@ -57,16 +57,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Spec: istionetworkv1alpha3.VirtualService{
 							Hosts: []string{"details"},
 							Http: []*istionetworkv1alpha3.HTTPRoute{
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v1",
 											},
 											Weight: 50,
 										},
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v2",
@@ -75,10 +75,10 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										},
 									},
 									Match: []*istionetworkv1alpha3.HTTPMatchRequest{
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Uri: &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Prefix{Prefix: "/a"}},
 										},
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Uri: &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Prefix{Prefix: "/b"}},
 										},
 									},
@@ -90,9 +90,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										Uri: "/redirected",
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v4",
@@ -100,9 +100,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										},
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v5",
@@ -110,16 +110,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										},
 									},
 									Match: []*istionetworkv1alpha3.HTTPMatchRequest{
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Headers: map[string]*istionetworkv1alpha3.StringMatch{
-												"request-id": &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "test"}},
+												"request-id": {MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "test"}},
 											},
 										},
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host: "x",
 											},
@@ -334,9 +334,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Spec: istionetworkv1alpha3.VirtualService{
 							Hosts: []string{"details"},
 							Http: []*istionetworkv1alpha3.HTTPRoute{
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v1-vs-test",
@@ -344,16 +344,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										},
 									},
 									Match: []*istionetworkv1alpha3.HTTPMatchRequest{
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Headers: map[string]*istionetworkv1alpha3.StringMatch{
-												"x-test-suite": &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "feature-x"}},
+												"x-test-suite": {MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "feature-x"}},
 											},
 										},
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v1-vs-test",
@@ -361,12 +361,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										},
 									},
 									Match: []*istionetworkv1alpha3.HTTPMatchRequest{
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Headers: map[string]*istionetworkv1alpha3.StringMatch{
-												"x-test-suite": &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "feature-x"}},
+												"x-test-suite": {MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "feature-x"}},
 											},
 										},
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Uri: &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "/test-service"}},
 										},
 									},
@@ -374,16 +374,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										Uri: "/",
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host: "details",
 											},
 										},
 									},
 									Match: []*istionetworkv1alpha3.HTTPMatchRequest{
-										&istionetworkv1alpha3.HTTPMatchRequest{
+										{
 											Uri: &istionetworkv1alpha3.StringMatch{MatchType: &istionetworkv1alpha3.StringMatch_Exact{Exact: "/test-service"}},
 										},
 									},
@@ -391,9 +391,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										Uri: "/",
 									},
 								},
-								&istionetworkv1alpha3.HTTPRoute{
+								{
 									Route: []*istionetworkv1alpha3.HTTPRouteDestination{
-										&istionetworkv1alpha3.HTTPRouteDestination{
+										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
 												Subset: "v1",
@@ -422,7 +422,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 							model.NewLocatedResource("Service", "details", map[string]string{}),
 						},
 						ResourceStatuses: []model.ResourceStatus{
-							model.ResourceStatus{Kind: VirtualServiceKind, Name: "details", Action: model.ActionModified},
+							{Kind: VirtualServiceKind, Name: "details", Action: model.ActionModified},
 						},
 					}
 

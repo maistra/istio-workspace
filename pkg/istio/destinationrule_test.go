@@ -39,7 +39,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Spec: istionetworkv1alpha3.DestinationRule{
 					Host: "customer-mutate",
 					Subsets: []*istionetworkv1alpha3.Subset{
-						&istionetworkv1alpha3.Subset{
+						{
 							Name: "v1",
 							Labels: map[string]string{
 								"version": "v1",
@@ -56,13 +56,13 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Spec: istionetworkv1alpha3.DestinationRule{
 					Host: "customer-revert",
 					Subsets: []*istionetworkv1alpha3.Subset{
-						&istionetworkv1alpha3.Subset{
+						{
 							Name: "v1",
 							Labels: map[string]string{
 								"version": "v1",
 							},
 						},
-						&istionetworkv1alpha3.Subset{
+						{
 							Name: "dr-test",
 							Labels: map[string]string{
 								"version": "dr-test",
