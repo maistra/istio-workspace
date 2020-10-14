@@ -210,7 +210,7 @@ func connectedToGateway(vs istionetwork.VirtualService) ([]string, bool) {
 }
 
 func findRoutes(vs *istionetwork.VirtualService, host model.HostName, subset string) []*v1alpha3.HTTPRoute {
-	routes := []*v1alpha3.HTTPRoute{}
+	var routes []*v1alpha3.HTTPRoute
 	for _, h := range vs.Spec.Http {
 		for _, r := range h.Route {
 			if r.Destination != nil && host.Match(r.Destination.Host) {
@@ -286,7 +286,7 @@ func removeWeight(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
 }
 
 func getHostsFromRef(ctx model.SessionContext, gateways []string, ref *model.Ref) []string {
-	hosts := []string{}
+	var hosts []string
 	for _, gateway := range gateways {
 		for _, gwTarget := range ref.GetTargets(model.All(model.Kind(GatewayKind), model.Name(gateway))) {
 			for _, host := range strings.Split(gwTarget.Labels[LabelIkeHosts], ",") {

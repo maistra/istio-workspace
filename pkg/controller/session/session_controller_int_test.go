@@ -292,7 +292,7 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 	scenarioGenerator(buf)
 	filecontent := buf.String()
 
-	objects := []runtime.Object{}
+	var objects []runtime.Object
 
 	filechunks := strings.Split(filecontent, "---")
 	for _, filechuck := range filechunks {

@@ -56,8 +56,9 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 
 // ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list.
 func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
-	refs := []*model.Ref{}
-	for _, statusRef := range session.Status.Refs {
+	refStatuses := session.Status.Refs
+	refs := make([]*model.Ref, 0, len(refStatuses))
+	for _, statusRef := range refStatuses {
 		r := &model.Ref{
 			Name:      statusRef.Name,
 			Namespace: session.Namespace,

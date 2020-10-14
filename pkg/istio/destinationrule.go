@@ -112,7 +112,7 @@ func getDestinationRule(ctx model.SessionContext, namespace, name string) (*isti
 }
 
 func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostName model.HostName) ([]*istionetwork.DestinationRule, error) {
-	matches := []*istionetwork.DestinationRule{}
+	var matches []*istionetwork.DestinationRule
 
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))

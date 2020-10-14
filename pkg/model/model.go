@@ -90,7 +90,7 @@ func Name(name string) Predicate {
 
 // AnyKind is a shortcut Predicate for Any and Kind from strings.
 func AnyKind(kinds ...string) Predicate {
-	pred := []Predicate{}
+	pred := make([]Predicate, 0, len(kinds))
 	for _, kind := range kinds {
 		pred = append(pred, Kind(kind))
 	}
@@ -99,7 +99,7 @@ func AnyKind(kinds ...string) Predicate {
 
 // GetTargets use a Predicate to filter the LocatedResourceStatus.
 func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
-	targets := []LocatedResourceStatus{}
+	var targets []LocatedResourceStatus
 	for _, target := range r.Targets {
 		if predicate(target.ResourceStatus) {
 			targets = append(targets, target)
@@ -117,8 +117,9 @@ func (h *HostName) Match(name string) bool {
 
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.
 func (r *Ref) GetTargetHostNames() []HostName {
-	hosts := []HostName{}
-	for _, service := range r.GetTargets(Kind("Service")) {
+	targets := r.GetTargets(Kind("Service"))
+	hosts := make([]HostName, 0, len(targets))
+	for _, service := range targets {
 		hosts = append(hosts, HostName{Name: service.Name, Namespace: r.Namespace})
 	}
 
@@ -180,7 +181,7 @@ func (r *Ref) RemoveResourceStatus(ref ResourceStatus) {
 
 // GetResources use a Predicate to filter the ResourceStatus.
 func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
-	refs := []ResourceStatus{}
+	var refs []ResourceStatus
 	for _, status := range r.ResourceStatuses {
 		if predicate(status) {
 			refs = append(refs, status)

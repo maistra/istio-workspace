@@ -92,7 +92,7 @@ func (s *Session) AddFinalizer(finalizer string) {
 
 // RemoveFinalizer removes given finalizer.
 func (s *Session) RemoveFinalizer(finalizer string) {
-	finalizers := []string{}
+	var finalizers []string
 	for _, f := range s.Finalizers {
 		if f != finalizer {
 			finalizers = append(finalizers, f)
