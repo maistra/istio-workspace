@@ -30,12 +30,12 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref *model.Ref) bool
 					continue
 				}
 
-				existingHosts := []string{}
+				var existingHosts []string
 				if hosts := gw.Annotations[LabelIkeHosts]; hosts != "" {
 					existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
 				}
 
-				hosts := []string{}
+				var hosts []string
 				for _, server := range gw.Spec.Servers {
 					for _, host := range server.Hosts {
 						if !existInList(existingHosts, host) {

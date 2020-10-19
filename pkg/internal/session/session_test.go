@@ -250,7 +250,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 						Name: ref.Name,
 					},
 					Resources: []*istiov1alpha1.RefResource{
-						&istiov1alpha1.RefResource{
+						{
 							Kind:   &kind,
 							Name:   &name,
 							Action: &action,
@@ -258,7 +258,8 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 					},
 				})
 			}
-			c.Update(sess)
+			updateErr := c.Update(sess)
+			Expect(updateErr).ToNot(HaveOccurred())
 		}
 	}()
 	return func() {

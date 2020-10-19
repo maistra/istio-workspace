@@ -99,8 +99,8 @@ func main() {
 }
 
 func parseURL(value string) ([]*url.URL, error) {
-	urls := []*url.URL{}
 	vs := strings.Split(value, ",")
+	urls := make([]*url.URL, 0, len(vs))
 	for _, v := range vs {
 		u, err := url.Parse(v)
 		if err != nil {

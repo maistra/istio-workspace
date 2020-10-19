@@ -221,7 +221,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				ref = &model.Ref{
 					Name: "customer-v1",
 					ResourceStatuses: []model.ResourceStatus{
-						model.ResourceStatus{Kind: "Gateway", Name: "gateway", Action: model.ActionModified},
+						{Kind: "Gateway", Name: "gateway", Action: model.ActionModified},
 					},
 				}
 			})

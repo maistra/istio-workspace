@@ -60,7 +60,7 @@ func gRPCRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 }
 
 func mapToArray(m map[string]string) []string {
-	s := []string{}
+	s := make([]string, 0, len(m))
 	for k, v := range m {
 		s = append(s, k, v)
 	}

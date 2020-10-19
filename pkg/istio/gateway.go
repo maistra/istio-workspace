@@ -80,7 +80,7 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 		source.Annotations = map[string]string{}
 	}
 	addedHosts = []string{}
-	existingHosts := []string{}
+	var existingHosts []string
 	if hosts := source.Annotations[LabelIkeHosts]; hosts != "" {
 		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
 	}
@@ -106,7 +106,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
-	existingHosts := []string{}
+	var existingHosts []string
 	if hosts := source.Annotations[LabelIkeHosts]; hosts != "" {
 		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
 	}

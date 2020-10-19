@@ -163,7 +163,9 @@ var _ = Describe("Complete session manipulation", func() {
 				session := get.Session("test", "test-session1")
 				now := metav1.Now()
 				session.DeletionTimestamp = &now
-				c.Update(context.Background(), &session)
+
+				updateErr := c.Update(context.Background(), &session)
+				Expect(updateErr).ToNot(HaveOccurred())
 
 				res1, err = controller.Reconcile(req1)
 				Expect(err).ToNot(HaveOccurred())
@@ -203,7 +205,8 @@ var _ = Describe("Complete session manipulation", func() {
 						},
 					},
 				)
-				c.Update(context.Background(), &session)
+				updateErr := c.Update(context.Background(), &session)
+				Expect(updateErr).ToNot(HaveOccurred())
 
 				// Given - create second ref
 				res2, err := controller.Reconcile(req1)
@@ -220,7 +223,9 @@ var _ = Describe("Complete session manipulation", func() {
 				// When - delete first ref
 				session = get.Session("test", "test-session1")
 				session.Spec.Refs = []v1alpha1.Ref{session.Spec.Refs[1]}
-				c.Update(context.Background(), &session)
+
+				updateErr = c.Update(context.Background(), &session)
+				Expect(updateErr).ToNot(HaveOccurred())
 
 				res1, err = controller.Reconcile(req1)
 				Expect(err).ToNot(HaveOccurred())
@@ -258,7 +263,8 @@ var _ = Describe("Complete session manipulation", func() {
 						},
 					},
 				)
-				c.Update(context.Background(), &session)
+				updateErr := c.Update(context.Background(), &session)
+				Expect(updateErr).ToNot(HaveOccurred())
 
 				// Given - create second ref
 				res2, err := controller.Reconcile(req1)
@@ -292,7 +298,7 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 	scenarioGenerator(buf)
 	filecontent := buf.String()
 
-	objects := []runtime.Object{}
+	var objects []runtime.Object
 
 	filechunks := strings.Split(filecontent, "---")
 	for _, filechuck := range filechunks {
