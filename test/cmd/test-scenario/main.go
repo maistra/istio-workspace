@@ -28,6 +28,7 @@ func main() {
 		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
 		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,
 		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"scenario-che": generator.TestScenarioMutationHookChe,
 		"demo":         generator.DemoScenario,
 	}
 	scenario := os.Args[1]

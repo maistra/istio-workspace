@@ -50,34 +50,49 @@ type Modifier func(service Entry, object runtime.Object)
 // Generate runs and prints the full test scenario generation to sysout.
 func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
-	modify := func(service Entry, object runtime.Object) {
-		for _, modifier := range modifiers {
-			modifier(service, object)
-		}
-	}
-	printObj := func(object runtime.Object) {
-		b, err := yaml.Marshal(object)
-		if err != nil {
-			_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
-		}
-		_, _ = out.Write(b)
-		_, _ = io.WriteString(out, "---\n")
-	}
 	for _, service := range services {
 		func(service Entry) {
 			for _, subGenerator := range sub {
-				object := subGenerator(service)
-				if object == nil {
-					continue
-				}
-				modify(service, object)
-				printObj(object)
+				Do(out, service, subGenerator, modifiers...)
 			}
 		}(service)
 	}
 	gw := Gateway()
-	modify(Entry{Name: "gateway"}, gw)
-	printObj(gw)
+	modify(Entry{Name: "gateway"}, gw, modifiers...)
+	printObj(out, gw)
+}
+
+// Do executes the SubGenerator and applies the Modifiers and prints the object to the io.Writer
+func Do(out io.Writer, service Entry, generator SubGenerator, modifiers ...Modifier) {
+	object := gen(service, generator)
+	if object == nil {
+		return
+	}
+	modify(service, object, modifiers...)
+	printObj(out, object)
+}
+
+func gen(service Entry, generator SubGenerator) runtime.Object {
+	object := generator(service)
+	if object == nil {
+		return nil
+	}
+	return object
+}
+
+func modify(service Entry, object runtime.Object, modifiers ...Modifier) {
+	for _, modifier := range modifiers {
+		modifier(service, object)
+	}
+}
+
+func printObj(out io.Writer, object runtime.Object) {
+	b, err := yaml.Marshal(object)
+	if err != nil {
+		_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
+	}
+	_, _ = out.Write(b)
+	_, _ = io.WriteString(out, "---\n")
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.
