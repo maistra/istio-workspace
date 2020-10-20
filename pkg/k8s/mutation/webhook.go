@@ -32,12 +32,12 @@ type data struct {
 }
 
 func (d *data) IsIkeable() bool {
-	//return d.Object.Labels["ike.target"] != ""
-	return d.Object.Spec.Selector.MatchLabels["deployment"] == "workspace"
+	return d.Object.Annotations["ike.target"] != ""
+	//return d.Object.Spec.Selector.MatchLabels["deployment"] == "workspace"
 }
 
 func (d *data) Target() string {
-	t := d.Object.Labels["ike.target"]
+	t := d.Object.Annotations["ike.target"]
 	if t != "" {
 		return t
 	}
@@ -45,7 +45,7 @@ func (d *data) Target() string {
 }
 
 func (d *data) Session() string {
-	s := d.Object.Labels["ike.session"]
+	s := d.Object.Annotations["ike.session"]
 	if s != "" {
 		return s
 	}
@@ -58,7 +58,7 @@ func (d *data) Namespace() string {
 }
 
 func (d *data) Route() string {
-	r := d.Object.Labels["ike.route"]
+	r := d.Object.Annotations["ike.route"]
 	if r != "" {
 		return r
 	}
@@ -121,6 +121,7 @@ func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.R
 	for k, v := range lables {
 		logger().Info("Label added", "deployemnt", req.Name, k, v)
 		deployment.Spec.Template.Labels[k] = v
+		deployment.Spec.Selector.MatchLabels[k] = v // TODO: hmm, should we update the slector? In our test case scenario we have app=che-worksapce where the 'updated labels' become app=reviews
 	}
 
 	targetHost := findGwHost(refStatus)

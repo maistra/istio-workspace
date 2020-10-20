@@ -42,6 +42,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			InstallLocalOperator(namespace)
 			DeployTestScenario(scenario, namespace)
+		})
+
+		BeforeEach(func() {
 			sessionName = GenerateSessionName()
 		})
 
@@ -227,6 +230,36 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 		})
 
+		Context("che deployment", func() {
+			var tmpRemove func()
+
+			BeforeEach(func() {
+				scenario = "scenario-che"
+				tmpRemove = test.TemporaryEnvVars(
+					"IKE_SESSION", sessionName,
+					"IKE_ROUTE", "header:x-test-suite=smoke")
+			})
+
+			AfterEach(func() {
+				tmpRemove()
+			})
+
+			It("should watch for changes in ratings service in specified namespace and serve it", func() {
+				ChangeNamespace(namespace)
+				EnsureAllPodsAreReady(namespace)
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+
+				// given the mutation hook has kicked in
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("che-workspace"))
+
+				// when the mutated deployment is cleaned up
+				testshell.ExecuteInDir(tmpDir, "oc delete deployment che-workspace")
+
+				// then the session should no longer be available
+				EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring("che-workspace")))
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+			})
+		})
 	})
 })
 

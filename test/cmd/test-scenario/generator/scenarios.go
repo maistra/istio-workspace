@@ -2,6 +2,7 @@ package generator
 
 import (
 	"io"
+	"os"
 )
 
 var (
@@ -80,7 +81,23 @@ func TestScenarioMutationHookChe(out io.Writer) {
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
-	Do(out, che, Deployment, WithAnnotations(map[string]string{"ike.target": "reviews-v1"}))
+	Do(out, che, Deployment, WithAnnotations(map[string]string{
+		"ike.target":  "reviews-v1",
+		"ike.session": os.Getenv("IKE_SESSION"),
+		"ike.route":   os.Getenv("IKE_SESSION")}))
+}
+
+// TestScenarioMutationHookCheOnly is a basic test setup with a
+// few services calling each other in a chain. Similar to the original bookinfo example setup
+// and a single Deployment simulating a Che Deployment which should trigger the WebHook.
+// Using Deployment.
+func TestScenarioMutationHookCheOnly(out io.Writer) {
+	che := Entry{"che-workspace", "Deployment", Namespace}
+
+	Do(out, che, Deployment, WithAnnotations(map[string]string{
+		"ike.target":  "reviews-v1",
+		"ike.session": os.Getenv("IKE_SESSION"),
+		"ike.route":   os.Getenv("IKE_SESSION")}))
 }
 
 // DemoScenario is a simple setup for demo purposes.
