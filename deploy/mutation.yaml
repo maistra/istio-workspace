@@ -23,7 +23,7 @@ objects:
   - kind: MutatingWebhookConfiguration
     apiVersion: admissionregistration.k8s.io/v1
     metadata:
-      name: istio-workspace
+      name: istio-workspace${NAMESPACE}
       annotations:
         service.beta.openshift.io/inject-cabundle: "true"
       labels:
@@ -48,6 +48,12 @@ objects:
         sideEffects: NoneOnDryRun
         timeoutSeconds: 5
         failurePolicy: Fail
+        namespaceSelector:
+          matchExpressions:
+            - key: ike.namespace
+              operator: In
+              values:
+                - ${NAMESPACE}
   - kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:

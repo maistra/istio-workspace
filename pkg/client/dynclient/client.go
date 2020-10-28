@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/restmapper"
@@ -91,6 +92,16 @@ func (c *Client) Create(obj runtime.Object) error {
 	_, err = resourceInterface.Create(&unstructured.Unstructured{Object: unstructuredObj}, metav1.CreateOptions{})
 
 	return err
+}
+
+func (c *Client) PatchNamespace(name string, patch []byte) error {
+	_, err := c.clientset.CoreV1().Namespaces().Patch(name, types.JSONPatchType, patch)
+	return err
+}
+
+// GetNamespace return the namespace object for the current namespace
+func (c *Client) GetNamespace() (*coreV1.Namespace, error) {
+	return c.clientset.CoreV1().Namespaces().Get(c.Namespace, metav1.GetOptions{})
 }
 
 func (c *Client) createNamespaceIfNotExists() error {
