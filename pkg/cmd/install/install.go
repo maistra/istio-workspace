@@ -103,7 +103,7 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 
 	if local {
 		resources = []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "role.yaml"}
-		templates = []string{"role_binding.yaml", "operator.tpl.yaml", "mutation.yaml"}
+		templates = []string{"mutation.yaml", "role_binding.yaml", "operator.tpl.yaml"}
 
 		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {
 			return envErr
