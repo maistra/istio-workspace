@@ -84,7 +84,7 @@ func TestScenarioMutationHookChe(out io.Writer) {
 	Do(out, che, Deployment, WithAnnotations(map[string]string{
 		"ike.target":  "reviews-v1",
 		"ike.session": os.Getenv("IKE_SESSION"),
-		"ike.route":   os.Getenv("IKE_SESSION")}))
+		"ike.route":   "header:x-test-suite=smoke"}))
 }
 
 // TestScenarioMutationHookCheOnly is a basic test setup with a
@@ -97,7 +97,7 @@ func TestScenarioMutationHookCheOnly(out io.Writer) {
 	Do(out, che, Deployment, WithAnnotations(map[string]string{
 		"ike.target":  "reviews-v1",
 		"ike.session": os.Getenv("IKE_SESSION"),
-		"ike.route":   os.Getenv("IKE_SESSION")}))
+		"ike.route":   "header:x-test-suite=smoke"}))
 }
 
 // DemoScenario is a simple setup for demo purposes.
