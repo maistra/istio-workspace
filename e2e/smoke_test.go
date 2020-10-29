@@ -41,7 +41,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
-			AllPodsReady(namespace)
 			DeployTestScenario(scenario, namespace)
 		})
 
