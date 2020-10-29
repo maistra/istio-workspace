@@ -81,10 +81,15 @@ func TestScenarioMutationHookChe(out io.Writer) {
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
-	Do(out, che, Deployment, WithAnnotations(map[string]string{
-		"ike.target":  "reviews-v1",
-		"ike.session": os.Getenv("IKE_SESSION"),
-		"ike.route":   "header:x-test-suite=smoke"}))
+	Do(out, che, Deployment,
+		WithAnnotations(map[string]string{
+			"ike.target":  "reviews-v1",
+			"ike.session": os.Getenv("IKE_SESSION"),
+			"ike.route":   "header:x-test-suite=smoke"}),
+		WithLables(map[string]string{
+			"ike.able": "true",
+		}),
+	)
 }
 
 // TestScenarioMutationHookCheOnly is a basic test setup with a
@@ -94,10 +99,15 @@ func TestScenarioMutationHookChe(out io.Writer) {
 func TestScenarioMutationHookCheOnly(out io.Writer) {
 	che := Entry{"che-workspace", "Deployment", Namespace}
 
-	Do(out, che, Deployment, WithAnnotations(map[string]string{
-		"ike.target":  "reviews-v1",
-		"ike.session": os.Getenv("IKE_SESSION"),
-		"ike.route":   "header:x-test-suite=smoke"}))
+	Do(out, che, Deployment,
+		WithAnnotations(map[string]string{
+			"ike.target":  "reviews-v1",
+			"ike.session": os.Getenv("IKE_SESSION"),
+			"ike.route":   "header:x-test-suite=smoke"})
+		WithLables(map[string]string{
+			"ike.able": "true",
+		}),
+	)
 }
 
 // DemoScenario is a simple setup for demo purposes.

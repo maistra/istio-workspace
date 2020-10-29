@@ -48,6 +48,9 @@ objects:
         sideEffects: NoneOnDryRun
         timeoutSeconds: 5
         failurePolicy: Fail
+        objectSelector:
+          matchLabels:
+            ike.able: true
         namespaceSelector:
           matchExpressions:
             - key: ike.namespace
