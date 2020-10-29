@@ -23,8 +23,11 @@ func AllDeploymentsReady(ns string) func() bool {
 			"-n", ns,
 			"-o", "jsonpath=\"{.items[?(@.status.replicas != @.status.readyReplicas)].metadata.name}\"")
 		<-deploymentCmd.Done()
-
+		fmt.Println("[" + deploymentCmd.Status().Stdout[0] + "]")
 		if len(deploymentCmd.Status().Stdout) == 0 {
+			return true
+		}
+		if deploymentCmd.Status().Stdout[0] == "\"\"" {
 			return true
 		}
 
