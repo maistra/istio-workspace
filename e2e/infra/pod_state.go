@@ -17,17 +17,18 @@ func AllDeploymentsAndPodsReady(ns string) func() bool {
 // AllDeploymentsReady checks whether all the deployments in the given namespace have the same replicas and readyReplicas count.
 func AllDeploymentsReady(ns string) func() bool {
 	return func() bool {
-		//oc get deployments -o "
+		countCmd := shell.ExecuteInDir(".",
+			"kubectl", "get", "deployment",
+			"-n", ns)
+		<-countCmd.Done()
+		count := len(countCmd.Status().Stdout) - 1
+
 		deploymentCmd := shell.ExecuteInDir(".",
 			"kubectl", "get", "deployment",
 			"-n", ns,
-			"-o", "jsonpath=\"{.items[?(@.status.replicas != @.status.readyReplicas)].metadata.name}\"")
+			"-o", "jsonpath={.items[?(@.status.replicas == @.status.readyReplicas)].metadata.name}\n")
 		<-deploymentCmd.Done()
-		fmt.Println("[" + deploymentCmd.Status().Stdout[0] + "]")
-		if len(deploymentCmd.Status().Stdout) == 0 {
-			return true
-		}
-		if deploymentCmd.Status().Stdout[0] == "\"\"" {
+		if len(deploymentCmd.Status().Stdout) == count {
 			return true
 		}
 
