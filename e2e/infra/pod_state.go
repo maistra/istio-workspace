@@ -21,13 +21,25 @@ func AllDeploymentsReady(ns string) func() bool {
 			"kubectl", "get", "deployment",
 			"-n", ns)
 		<-countCmd.Done()
-		count := len(countCmd.Status().Stdout) - 1
-
+		count := len(countCmd.Status().Stdout)
+		// if deployments are found then there is a HEADER
+		if count > 1 {
+			count--
+		}
+		// if nothing is written to stdout it's an error of none found
+		if count == 0 {
+			return true
+		}
 		deploymentCmd := shell.ExecuteInDir(".",
 			"kubectl", "get", "deployment",
 			"-n", ns,
 			"-o", "jsonpath={.items[?(@.status.replicas == @.status.readyReplicas)].metadata.name}\n")
 		<-deploymentCmd.Done()
+
+		// returning nothing at this point means no deployments are in ready state, but some should be
+		if len(deploymentCmd.Status().Stdout) > 0 && deploymentCmd.Status().Stdout[0] == "" {
+			return false
+		}
 		if len(deploymentCmd.Status().Stdout) == count {
 			return true
 		}
