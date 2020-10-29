@@ -32,6 +32,9 @@ func GetAllPods(ns string) []string {
 		"-n", ns,
 		"-o", "jsonpath={.items[*].metadata.name}")
 	<-podsCmd.Done()
+	if len(podsCmd.Status().Stdout) == 0 {
+		return []string{}
+	}
 	return strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
 }
 
