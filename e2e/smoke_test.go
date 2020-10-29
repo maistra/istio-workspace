@@ -41,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
-			Eventually(AllPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
 		})
 
@@ -266,7 +266,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 // EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllPodsAreReady(namespace string) {
-	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+	Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.

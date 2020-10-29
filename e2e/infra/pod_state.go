@@ -7,6 +7,31 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
+// AllDeploymentsAndPodsReady checks if both AllDeploymentsReady and AllPodsReady return true
+func AllDeploymentsAndPodsReady(ns string) func() bool {
+	return func() bool {
+		return AllDeploymentsReady(ns)() && AllPodsReady(ns)()
+	}
+}
+
+// AllDeploymentsReady checks whether all the deployments in the given namespace have the same replicas and readyReplicas count.
+func AllDeploymentsReady(ns string) func() bool {
+	return func() bool {
+		//oc get deployments -o "
+		deploymentCmd := shell.ExecuteInDir(".",
+			"kubectl", "get", "deployment",
+			"-n", ns,
+			"-o", "jsonpath=\"{.items[?(@.status.replicas != @.status.readyReplicas)].metadata.name}\"")
+		<-deploymentCmd.Done()
+
+		if len(deploymentCmd.Status().Stdout) == 0 {
+			return true
+		}
+
+		return false
+	}
+}
+
 // AllPodsReady checks whether all the pods (and their containers) in the given namespace are in Ready state.
 func AllPodsReady(ns string) func() bool {
 	return func() bool {

@@ -40,7 +40,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 			PrepareEnv(namespace)
 			InstallLocalOperator(namespace)
-			Eventually(AllPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
 		})
 
 		AfterEach(func() {
