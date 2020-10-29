@@ -33,15 +33,17 @@ func AllDeploymentsReady(ns string) func() bool {
 		deploymentCmd := shell.ExecuteInDir(".",
 			"kubectl", "get", "deployment",
 			"-n", ns,
-			"-o", "jsonpath={.items[?(@.status.replicas == @.status.readyReplicas)].metadata.name}\n")
+			"-o", "jsonpath={.items[?(@.status.replicas == @.status.readyReplicas)].metadata.name}")
 		<-deploymentCmd.Done()
 
 		// returning nothing at this point means no deployments are in ready state, but some should be
-		if len(deploymentCmd.Status().Stdout) > 0 && deploymentCmd.Status().Stdout[0] == "" {
-			return false
-		}
-		if len(deploymentCmd.Status().Stdout) == count {
-			return true
+		if len(deploymentCmd.Status().Stdout) > 0 {
+			if deploymentCmd.Status().Stdout[0] == "" {
+				return false
+			}
+			if len(strings.Split(deploymentCmd.Status().Stdout[0], " ")) == count {
+				return true
+			}
 		}
 
 		return false
