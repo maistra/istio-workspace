@@ -118,7 +118,9 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 	}
 
 	if local {
-		app.applyLocalMutationSelectorToNamespace()
+		if err := app.applyLocalMutationSelectorToNamespace(); err != nil {
+			return err
+		}
 	}
 
 	logger().Info("Installing operator", "namespace", os.Getenv("NAMESPACE"),
@@ -221,7 +223,6 @@ func (app *applier) applyTemplate(templatePath string) error {
 }
 
 func (app *applier) applyLocalMutationSelectorToNamespace() error {
-
 	origin, err := app.c.GetNamespace()
 	if err != nil {
 		return err

@@ -103,7 +103,7 @@ func TestScenarioMutationHookCheOnly(out io.Writer) {
 		WithAnnotations(map[string]string{
 			"ike.target":  "reviews-v1",
 			"ike.session": os.Getenv("IKE_SESSION"),
-			"ike.route":   "header:x-test-suite=smoke"})
+			"ike.route":   "header:x-test-suite=smoke"}),
 		WithLables(map[string]string{
 			"ike.able": "true",
 		}),

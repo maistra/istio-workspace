@@ -62,7 +62,7 @@ func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
 	printObj(out, gw)
 }
 
-// Do executes the SubGenerator and applies the Modifiers and prints the object to the io.Writer
+// Do executes the SubGenerator and applies the Modifiers and prints the object to the io.Writer.
 func Do(out io.Writer, service Entry, generator SubGenerator, modifiers ...Modifier) {
 	object := gen(service, generator)
 	if object == nil {

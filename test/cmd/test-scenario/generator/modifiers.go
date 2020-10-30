@@ -154,7 +154,7 @@ func WithVersion(version string) Modifier {
 	}
 }
 
-// WithAnnotations adds Annotations to any object. Annotations are overwritten
+// WithAnnotations adds Annotations to any object. Annotations are overwritten.
 func WithAnnotations(annotations map[string]string) Modifier {
 	return func(service Entry, object runtime.Object) {
 		k8sObjValue := reflect.ValueOf(object).Elem()
@@ -171,7 +171,7 @@ func WithAnnotations(annotations map[string]string) Modifier {
 	}
 }
 
-// WithLables adds Labels to any object. Lables are overwritten
+// WithLables adds Labels to any object. Lables are overwritten.
 func WithLables(lables map[string]string) Modifier {
 	return func(service Entry, object runtime.Object) {
 		k8sObjValue := reflect.ValueOf(object).Elem()
