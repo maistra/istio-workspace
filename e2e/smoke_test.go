@@ -30,6 +30,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			scenario,
 			sessionName,
 			tmpDir string
+			readyStatusFunc func(ns string) bool
 		)
 
 		JustBeforeEach(func() {
@@ -41,7 +42,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
-			Eventually(AllDeploymentsAndPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(readyStatusFunc(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
 		})
 
@@ -63,6 +64,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				BeforeEach(func() {
 					scenario = "scenario-1"
 					registry = GetDockerRegistryInternal()
+					readyStatusFunc = AllDeploymentsAndPodsReady
 				})
 
 				Context("basic deployment modifications", func() {
@@ -163,6 +165,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Context("grpc protocol", func() {
 				BeforeEach(func() {
 					scenario = "scenario-1.1"
+					readyStatusFunc = AllDeploymentsAndPodsReady
 				})
 
 				Context("basic deployment modifications", func() {
@@ -198,6 +201,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
 				scenario = "scenario-2"
+				readyStatusFunc = AllDeploymentConfigsAndPodsReady
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
@@ -239,6 +243,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				tmpRemove = test.TemporaryEnvVars(
 					"IKE_SESSION", sessionName,
 					"IKE_ROUTE", "header:x-test-suite=smoke")
+				readyStatusFunc = AllDeploymentsAndPodsReady
 			})
 
 			AfterEach(func() {

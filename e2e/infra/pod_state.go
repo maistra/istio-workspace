@@ -7,18 +7,25 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// AllDeploymentsAndPodsReady checks if both AllDeploymentsReady and AllPodsReady return true
+// AllDeploymentsAndPodsReady checks if both AllDeploymentsReady(Deployment) and AllPodsReady return true
 func AllDeploymentsAndPodsReady(ns string) func() bool {
 	return func() bool {
-		return AllDeploymentsReady(ns)() && AllPodsReady(ns)()
+		return AllDeploymentsReady("deployment", ns)() && AllPodsReady(ns)()
 	}
 }
 
-// AllDeploymentsReady checks whether all the deployments in the given namespace have the same replicas and readyReplicas count.
-func AllDeploymentsReady(ns string) func() bool {
+// AllDeploymentConfigsAndPodsReady checks if both AllDeploymentsReady(DeploymentConfig) and AllPodsReady return true
+func AllDeploymentConfigsAndPodsReady(ns string) func() bool {
+	return func() bool {
+		return AllDeploymentsReady("deploymentconfig", ns)() && AllPodsReady(ns)()
+	}
+}
+
+// AllDeploymentsReady checks whether all the deploymentType(deployment or deploymentconfig) in the given namespace have the same replicas and readyReplicas count.
+func AllDeploymentsReady(deploymentType, ns string) func() bool {
 	return func() bool {
 		countCmd := shell.ExecuteInDir(".",
-			"kubectl", "get", "deployment",
+			"kubectl", "get", deploymentType,
 			"-n", ns)
 		<-countCmd.Done()
 		count := len(countCmd.Status().Stdout)
@@ -31,7 +38,7 @@ func AllDeploymentsReady(ns string) func() bool {
 			return true
 		}
 		deploymentCmd := shell.ExecuteInDir(".",
-			"kubectl", "get", "deployment",
+			"kubectl", "get", deploymentType,
 			"-n", ns,
 			"-o", "jsonpath={.items[?(@.status.replicas == @.status.readyReplicas)].metadata.name}")
 		<-deploymentCmd.Done()
