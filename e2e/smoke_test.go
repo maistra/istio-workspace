@@ -30,7 +30,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			scenario,
 			sessionName,
 			tmpDir string
-			readyStatusFunc func(ns string) bool
+			readyStatusFunc func(ns string) func() bool
 		)
 
 		JustBeforeEach(func() {
