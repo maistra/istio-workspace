@@ -27,17 +27,23 @@ var (
 	}
 )
 
+const (
+	IkeTarget  = "ike.target"
+	IkeSession = "ike.session"
+	IkeRoute   = "ike.route"
+)
+
 type data struct {
 	Object appsv1.Deployment
 }
 
 func (d *data) IsIkeable() bool {
-	return d.Object.Annotations["ike.target"] != ""
+	return d.Object.Annotations[IkeTarget] != ""
 	//return d.Object.Spec.Selector.MatchLabels["deployment"] == "workspace"
 }
 
 func (d *data) Target() string {
-	t := d.Object.Annotations["ike.target"]
+	t := d.Object.Annotations[IkeTarget]
 	if t != "" {
 		return t
 	}
@@ -45,12 +51,7 @@ func (d *data) Target() string {
 }
 
 func (d *data) Session() string {
-	s := d.Object.Annotations["ike.session"]
-	if s != "" {
-		return s
-	}
-	//return strings.ReplaceAll(d.Object.Name, ".", "-")
-	return "test"
+	return session.GetOrCreateSessionName(d.Object.Annotations[IkeSession])
 }
 
 func (d *data) Namespace() string {
@@ -58,11 +59,11 @@ func (d *data) Namespace() string {
 }
 
 func (d *data) Route() string {
-	r := d.Object.Annotations["ike.route"]
+	r := d.Object.Annotations[IkeRoute]
 	if r != "" {
 		return r
 	}
-	return "header:ike-session-id=feature-y"
+	return "header:ike-session-id=feature-y" // TODO: should return empty to default
 }
 
 // Webhook to mutate Deployments with ike.target annotations to setup routing to existing pods.
@@ -110,12 +111,14 @@ func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.R
 	}
 
 	logger().Info("Creating session", "deployment", req.Name)
-	refStatus, err := createSessionAndWait(d)
+	sessionName, refStatus, err := createSessionAndWait(d)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
 	logger().Info("Session created", "deployment", req.Name)
+
+	deployment.Annotations[IkeSession] = sessionName
 
 	lables := findLables(refStatus)
 	for k, v := range lables {
@@ -149,7 +152,7 @@ func (w *Webhook) InjectDecoder(d *admission.Decoder) error {
 	return nil
 }
 
-func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
+func createSessionAndWait(d data) (string, *istiov1alpha1.RefStatus, error) {
 	checkDuration := time.Millisecond * 100
 	options := session.Options{
 		DeploymentName: d.Target(),
@@ -165,22 +168,22 @@ func createSessionAndWait(d data) (*istiov1alpha1.RefStatus, error) {
 
 	c, err := session.DefaultClient(options.NamespaceName)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	state, remove, err := session.CreateOrJoinHandler(options, c)
 	if err != nil {
 		remove()
-		return nil, err
+		return "", nil, err
 	}
 
-	return &state.RefStatus, nil
+	return state.SessionName, &state.RefStatus, nil
 }
 
 func removeSession(d data) error {
 	options := session.Options{
-		DeploymentName: d.Target(),
 		SessionName:    d.Session(),
+		DeploymentName: d.Target(),
 		NamespaceName:  d.Namespace(),
 	}
 
