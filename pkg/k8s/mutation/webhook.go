@@ -121,6 +121,8 @@ func (w *Webhook) Handle(ctx context.Context, req admission.Request) admission.R
 	deployment.Annotations[IkeSession] = sessionName
 
 	lables := findLables(refStatus)
+	lables["version"] += "-" + sessionName
+
 	for k, v := range lables {
 		logger().Info("Label added", "deployemnt", req.Name, k, v)
 		deployment.Spec.Template.Labels[k] = v
@@ -205,7 +207,6 @@ func findLables(ref *istiov1alpha1.RefStatus) map[string]string {
 	for _, target := range ref.Targets {
 		if *target.Kind == "Deployment" || *target.Kind == "DeploymentConfig" {
 			lables := target.Labels
-			lables["version"] += "-test" // TODO: dynamically lookup all target labels
 			return lables
 		}
 	}
