@@ -2,22 +2,6 @@
 
 
 [[projects]]
-  digest = "1:0a111edd8693fd977f42a0c4f199a0efb13c20aec9da99ad8830c7bb6a87e8d6"
-  name = "github.com/PuerkitoBio/purell"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "44968752391892e1b0d0b821ee79e9a85fa13049"
-  version = "v1.1.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:8098cd40cd09879efbf12e33bcd51ead4a66006ac802cd563a66c4f3373b9727"
-  name = "github.com/PuerkitoBio/urlesc"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "de5bf2ad457846296e2031421a34e2568e304e35"
-
-[[projects]]
   digest = "1:c819830f4f5ef85874a90ac3cbcc96cd322c715f5c96fbe4722eacd3dafbaa07"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -26,17 +10,15 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:221a3d12fab137988ce057aabf120f77bc90e6e6a3ae6e5805f8be4534bd8024"
+  digest = "1:6432bbe4bf43101a5ffa025ef045465b3737123b9f972aa2d0acdf66e5be5a74"
   name = "github.com/coreos/prometheus-operator"
   packages = [
-    "pkg/apis/monitoring",
     "pkg/apis/monitoring/v1",
-    "pkg/client/versioned/scheme",
     "pkg/client/versioned/typed/monitoring/v1",
   ]
   pruneopts = "NT"
-  revision = "8d44e0990230144177f97cf62ae4f43b1c4e3168"
-  version = "v0.34.0"
+  revision = "5871079854c0c9db963f953a4c690e09a4b4bb0a"
+  version = "v0.43.1"
 
 [[projects]]
   digest = "1:4b8b5811da6970495e04d1f4e98bb89518cc3cfc3b3f456bdb876ed7b6c74049"
@@ -45,17 +27,6 @@
   pruneopts = "NT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
-
-[[projects]]
-  digest = "1:0fa622e31f2b737c28b6420523156f0d9930429ac8d0f19d211739a27ae93d60"
-  name = "github.com/emicklei/go-restful"
-  packages = [
-    ".",
-    "log",
-  ]
-  pruneopts = "NT"
-  revision = "7c2556bbbff7dc38dc0673ce61902903671c0b55"
-  version = "v2.12.0"
 
 [[projects]]
   digest = "1:216a3c4863ae7b4065aea3731084ff0c65fb2839dd1393ff3886b15544f2cbaa"
@@ -96,38 +67,6 @@
   pruneopts = "NT"
   revision = "03f06a783fbb7dfaf3f629c7825480e43a7105e6"
   version = "v0.1.1"
-
-[[projects]]
-  digest = "1:3758c86e787dfe5792a23430f34636106a16da914446724399c9c12f121a225d"
-  name = "github.com/go-openapi/jsonpointer"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "ed123515f087412cd7ef02e49b0b0a5e6a79a360"
-  version = "v0.19.3"
-
-[[projects]]
-  digest = "1:98abd61947ff5c7c6fcfec5473d02a4821ed3a2dd99a4fbfdb7925b0dd745546"
-  name = "github.com/go-openapi/jsonreference"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "82f31475a8f7a12bc26962f6e26ceade8ea6f66a"
-  version = "v0.19.3"
-
-[[projects]]
-  digest = "1:f2b0d8f80e685a259d98ac64994d3d4a6b9b858c4c76fee0ab8cac1b7b78923a"
-  name = "github.com/go-openapi/spec"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "1a91a85df30408d932152159dc7aac569a39cac9"
-  version = "v0.19.8"
-
-[[projects]]
-  digest = "1:b8bae5ae3c3ccc79b8af1cf6658aa8255711b7eb4eabfb3a3ac785129a372b0c"
-  name = "github.com/go-openapi/swag"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "ab98f8e6456407f6afd63e441c5304d6ef60cb7f"
-  version = "v0.19.9"
 
 [[projects]]
   digest = "1:c3050a9f4b141fcc3ef805c8b3e8e8242676557755ffb9d2707c26530cd71c9d"
@@ -327,18 +266,6 @@
   version = "v1.8.1"
 
 [[projects]]
-  digest = "1:ff4217ea2d8eda002341ab1ec43c137a789399b6a30aaabbaef59464e09bedfd"
-  name = "github.com/mailru/easyjson"
-  packages = [
-    "buffer",
-    "jlexer",
-    "jwriter",
-  ]
-  pruneopts = "NT"
-  revision = "8edcc4e51f39ddbd3505a3386aff3f435a7fd028"
-  version = "v0.7.1"
-
-[[projects]]
   digest = "1:ea1db000388d88b31db7531c83016bef0d6db0d908a07794bfc36aca16fbf935"
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
@@ -476,6 +403,19 @@
   pruneopts = "NT"
   revision = "614d223910a179a466c1767a985424175c39b465"
   version = "v0.9.1"
+
+[[projects]]
+  digest = "1:6432bbe4bf43101a5ffa025ef045465b3737123b9f972aa2d0acdf66e5be5a74"
+  name = "github.com/prometheus-operator/prometheus-operator"
+  packages = [
+    "pkg/apis/monitoring",
+    "pkg/apis/monitoring/v1",
+    "pkg/apis/monitoring/v1alpha1",
+    "pkg/client/versioned/scheme",
+  ]
+  pruneopts = "NT"
+  revision = "5871079854c0c9db963f953a4c690e09a4b4bb0a"
+  version = "v0.43.1"
 
 [[projects]]
   digest = "1:ac48997e3abc92d938efd4bc22dd38762ddd2a639e99f57c9eee989f435014cc"
@@ -733,7 +673,6 @@
     "unicode/cldr",
     "unicode/norm",
     "unicode/rangetable",
-    "width",
   ]
   pruneopts = "NT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
@@ -1222,10 +1161,7 @@
   branch = "release-1.16"
   digest = "1:0566e47e3fb5b6e3c7700d70c340150e391cd7ad21dfb800503ad226f443af89"
   name = "k8s.io/kube-openapi"
-  packages = [
-    "pkg/common",
-    "pkg/util/proto",
-  ]
+  packages = ["pkg/util/proto"]
   pruneopts = "NT"
   revision = "594e756bea31230c255b8e9009a5562dfeb32cff"
 
