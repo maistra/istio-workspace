@@ -359,17 +359,17 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"deploy/cluster_role.yaml":                 deployCluster_roleYaml,
-	"deploy/service_account.yaml":              deployService_accountYaml,
-	"deploy/operator.yaml":                     deployOperatorYaml,
-	"deploy/operator.tpl.yaml":                 deployOperatorTplYaml,
-	"deploy/role.yaml":                         deployRoleYaml,
-	"deploy/crds/maistra.io_sessions_crd.yaml": deployCrdsMaistraIo_sessions_crdYaml,
-	"deploy/crds/maistra.io_sessions_cr.yaml":  deployCrdsMaistraIo_sessions_crYaml,
+	"deploy/cluster_role.yaml":                                                                deployCluster_roleYaml,
+	"deploy/service_account.yaml":                                                             deployService_accountYaml,
+	"deploy/operator.yaml":                                                                    deployOperatorYaml,
+	"deploy/operator.tpl.yaml":                                                                deployOperatorTplYaml,
+	"deploy/role.yaml":                                                                        deployRoleYaml,
+	"deploy/crds/maistra.io_sessions_crd.yaml":                                                deployCrdsMaistraIo_sessions_crdYaml,
+	"deploy/crds/maistra.io_sessions_cr.yaml":                                                 deployCrdsMaistraIo_sessions_crYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml": deployOlmCatalogIstioWorkspaceManifestsIstioWorkspaceClusterserviceversionYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml":               deployOlmCatalogIstioWorkspaceManifestsMaistraIo_sessions_crdYaml,
-	"deploy/role_binding.yaml":         deployRole_bindingYaml,
-	"deploy/cluster_role_binding.yaml": deployCluster_role_bindingYaml,
+	"deploy/role_binding.yaml":                                                                deployRole_bindingYaml,
+	"deploy/cluster_role_binding.yaml":                                                        deployCluster_role_bindingYaml,
 }
 
 // AssetDir returns the file names below a certain
