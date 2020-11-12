@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    reviewers:
+      - bartoszmajsak
+
+  - package-ecosystem: "docker"
+    directory: "/build"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    reviewers:
+      - bartoszmajsak
+
+  - package-ecosystem: "github-actions"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    reviewers:
+      - bartoszmajsak
+
