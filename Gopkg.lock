@@ -897,15 +897,6 @@
   version = "v1.24.0"
 
 [[projects]]
-  digest = "1:0914bf7efc3e3052163e92b859a89f3b407ad353d7c3b7f59a1bbb4fd05bb25d"
-  name = "gopkg.in/fsnotify.v1"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "45d7d09e39ef4ac08d493309fa031790c15bfe8a"
-  source = "https://github.com/fsnotify/fsnotify.git"
-  version = "v1.4.9"
-
-[[projects]]
   digest = "1:721323966f12bfa5186e02ad807424f78a28b04606970105dbf6a5e9b62205e7"
   name = "gopkg.in/h2non/gock.v1"
   packages = ["."]
@@ -1063,6 +1054,7 @@
     "pkg/util/mergepatch",
     "pkg/util/naming",
     "pkg/util/net",
+    "pkg/util/rand",
     "pkg/util/runtime",
     "pkg/util/sets",
     "pkg/util/strategicpatch",
@@ -1242,7 +1234,7 @@
   revision = "5770800c2500f42361fa90f2d5df947d2c5db138"
 
 [[projects]]
-  digest = "1:62b418ddcfcd7c74ee071481125a62131a54634b05a48c58da85e8919aec150c"
+  digest = "1:717d16b56a78f356a82d0bf802c356648fa234b920f260f8271db09db47e247d"
   name = "sigs.k8s.io/controller-runtime"
   packages = [
     "pkg/cache",
@@ -1267,6 +1259,7 @@
     "pkg/manager/signals",
     "pkg/metrics",
     "pkg/predicate",
+    "pkg/ratelimiter",
     "pkg/reconcile",
     "pkg/recorder",
     "pkg/runtime/inject",
@@ -1279,8 +1272,8 @@
     "pkg/webhook/internal/metrics",
   ]
   pruneopts = "NT"
-  revision = "0fcf28efebc9a977c954f00d40af966d6a4aeae3"
-  version = "v0.5.0"
+  revision = "ac380d61764a160b32946e606b0c9ecd2834e3e8"
+  version = "v0.6.3"
 
 [[projects]]
   digest = "1:5fdf0517a870044f13def5f9f2dc75eb8cfb88baf7862eaf9884a06152f9391b"
