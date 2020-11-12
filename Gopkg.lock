@@ -1211,12 +1211,12 @@
   revision = "793b05dca9b871fdc15aeaff1f201e141ef5afa7"
 
 [[projects]]
-  digest = "1:2c76089e62b6a1c8a48e87f47f7ac3069962a520e553db28d458d3e75d5fed3f"
+  digest = "1:ee72504e29fe1e1a0e4f58079beeef6c3559b2996354e5edf36ca7f630821c8c"
   name = "k8s.io/klog"
   packages = ["."]
   pruneopts = "NT"
-  revision = "2ca9ad30301bf30a8a6e0fa2110db6b8df699a91"
-  version = "v1.0.0"
+  revision = "52c62e3b70a9a46101f33ebaf0b100ec55099975"
+  version = "v2.4.0"
 
 [[projects]]
   branch = "release-1.16"
