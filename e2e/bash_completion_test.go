@@ -15,7 +15,7 @@ var _ = Describe("Bash Completion Tests", func() {
 
 		It("should show all visible main commands", func() {
 			completionResults := completionFor("ike ")
-			Expect(completionResults).To(ConsistOf("completion", "develop", "install", "serve", "version", "create", "delete"))
+			Expect(completionResults).To(ConsistOf("help", "completion", "develop", "install", "serve", "version", "create", "delete"))
 		})
 
 		Context("develop", func() {
