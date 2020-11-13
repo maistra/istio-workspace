@@ -259,7 +259,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("che-workspace"))
 
 				// when the mutated deployment is cleaned up
-				testshell.ExecuteInDir(tmpDir, "oc delete deployment che-workspace")
+				testshell.ExecuteInDir(tmpDir, "oc", "delete", "deployment", "che-workspace", "-n", namespace)
 
 				// then the session should no longer be available
 				EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring("che-workspace")))
