@@ -89,7 +89,8 @@ clean: ## Removes build artifacts
 .PHONY: deps
 deps: check-tools ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
-	dep ensure -v
+	go mod download
+	go mod vendor
 
 .PHONY: format
 format: $(SRCS) ## Removes unneeded imports and formats source code
@@ -111,6 +112,7 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Ge
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
+	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
@@ -154,12 +156,9 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 ##@ Setup
 
-.PHONY: install-dep
-install-dep:
-	go get -u github.com/golang/dep/cmd/dep
 
 .PHONY: tools
-tools: install-dep ## Installs required go tools
+tools: ## Installs required go tools
 	$(call header,"Installing required tools")
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.3
 	go get -u golang.org/x/tools/cmd/goimports
@@ -169,7 +168,7 @@ tools: install-dep ## Installs required go tools
 	go get -u github.com/golang/protobuf/protoc-gen-go
 	go get github.com/mikefarah/yq/v3
 
-EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: check-tools
@@ -186,7 +185,7 @@ OPERATOR_ARCH:=$(shell uname -m)
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	mkdir -p $(PROJECT_DIR)/bin/
-	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
+	$(eval OPERATOR_SDK_VERSION:=$(shell go mod graph | grep operator-sdk | head -n 1 | cut -d'@' -f 2))
 	wget -q --show-progress -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
