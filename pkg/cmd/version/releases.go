@@ -5,7 +5,7 @@ import (
 
 	"github.com/maistra/istio-workspace/version"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v32/github"
 	"golang.org/x/net/context"
 )
 
