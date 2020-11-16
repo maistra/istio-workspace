@@ -7,6 +7,7 @@ TEST_NAMESPACE?=bookinfo
 
 PROJECT_DIR:=$(shell pwd)
 export PROJECT_DIR
+export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
 BINARY_DIR:=$(PROJECT_DIR)/dist
 BINARY_NAME:=ike
@@ -39,7 +40,7 @@ all: deps operator-codegen format lint compile test ## Runs 'deps operator-codeg
 OS:=$(shell uname -s)
 export OS
 GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
-GOARCH:= amd64
+GOARCH:=amd64
 
 BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
@@ -160,13 +161,13 @@ install-dep:
 .PHONY: tools
 tools: install-dep ## Installs required go tools
 	$(call header,"Installing required tools")
-	GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.3
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.3
 	go get -u golang.org/x/tools/cmd/goimports
-	$(eval GINKGO_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/onsi/ginkgo"}}{{.Version}}{{end}}'))
-	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
-	GO111MODULE=on go get -u github.com/go-bindata/go-bindata/...@v3.1.2
-	GO111MODULE=on go get -u github.com/golang/protobuf/protoc-gen-go
-	GO111MODULE=on go get github.com/mikefarah/yq/v3
+	$(eval GINKGO_VERSION:=$(shell go mod graph | grep ginkgo | head -n 1 | cut -d'@' -f 2))
+	go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
+	go get -u github.com/go-bindata/go-bindata/...@v3.1.2
+	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get github.com/mikefarah/yq/v3
 
 EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
