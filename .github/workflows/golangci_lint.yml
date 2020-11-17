@@ -21,10 +21,10 @@ jobs:
           path: go/src/github.com/${{ env.REPOSITORY }}
       - name: Prepare codebase for linter (generates deps, stubs)
         run: |
-          cd $GOPATH/src/github.com/${{ env.REPOSITORY }}
+          cd go/src/github.com/${{ env.REPOSITORY }}
           make lint-prepare
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.28
-          working-directory: ${{ env.GOPATH }}/src/github.com/${{ env.REPOSITORY }}
+          working-directory: go/src/github.com/${{ env.REPOSITORY }}
