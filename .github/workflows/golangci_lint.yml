@@ -23,6 +23,8 @@ jobs:
         run: |
           cd go/src/github.com/${{ env.REPOSITORY }}
           make lint-prepare
+          echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
+          echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
