@@ -31,7 +31,7 @@ endef
 ##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
-all: deps operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
+all: deps tools operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
 # ##########################################################################
 # Build configuration
@@ -67,7 +67,7 @@ SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell f
 ##@ Build
 
 .PHONY: build-ci
-build-ci: deps format compile test # Like 'all', but without linter which is executed as separated PR check
+build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
 compile: operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
@@ -84,10 +84,10 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ .vendor-new/ Gopkg.lock
+	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ .vendor-new/
 
 .PHONY: deps
-deps: check-tools ## Fetches all dependencies
+deps: ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
 	go mod download
 	go mod vendor
@@ -160,13 +160,13 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.3
-	go get -u golang.org/x/tools/cmd/goimports
-	$(eval GINKGO_VERSION:=$(shell go mod graph | grep ginkgo | head -n 1 | cut -d'@' -f 2))
-	go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
-	go get -u github.com/go-bindata/go-bindata/...@v3.1.2
-	go get -u github.com/golang/protobuf/protoc-gen-go
-	go get github.com/mikefarah/yq/v3
+	go install golang.org/x/tools/cmd/goimports
+	go install github.com/onsi/ginkgo/ginkgo
+	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/mikefarah/yq/v3
+	go get -u github.com/go-bindata/go-bindata/...
+	# go get causes problems and is not recommended by the creators. installing binary instead
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 
 EXECUTABLES:=golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
