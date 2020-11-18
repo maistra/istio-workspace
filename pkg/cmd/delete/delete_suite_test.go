@@ -25,7 +25,7 @@ var _ = AfterSuite(func() {
 	CleanUpTmpFiles(GinkgoT())
 	gexec.CleanupBuildArtifacts()
 	goleak.VerifyNone(GinkgoT(),
-		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/k8s.io/klog.(*loggingT).flushDaemon"),
-		goleak.IgnoreTopFunction("github.com/maistra/istio-workspace/vendor/github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
+		goleak.IgnoreTopFunction("k8s.io/klog.(*loggingT).flushDaemon"),
+		goleak.IgnoreTopFunction("github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
 	)
 })

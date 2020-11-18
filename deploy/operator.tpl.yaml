@@ -64,3 +64,15 @@ objects:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: "istio-workspace"
+              readinessProbe:
+                httpGet:
+                  path: /readyz
+                  port: 8282
+                initialDelaySeconds: 1
+                periodSeconds: 20
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8282
+                initialDelaySeconds: 1
+                periodSeconds: 5

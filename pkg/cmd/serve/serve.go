@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
@@ -67,8 +68,9 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 	// Create a new Cmd to provide shared dependencies and Start components
 	mgr, err := manager.New(cfg, manager.Options{
-		Namespace:          namespace,
-		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+		Namespace:              namespace,
+		MetricsBindAddress:     fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+		HealthProbeBindAddress: "0.0.0.0:8282",
 	})
 	if err != nil {
 		logger().Error(err, "")
@@ -97,7 +99,18 @@ func startOperator(cmd *cobra.Command, args []string) error {
 			TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 	}
 	if _, err = metrics.CreateMetricsService(ctx, cfg, servicePorts); err != nil {
-		logger().Info(err.Error())
+		logger().Error(err, "Could not create metrics service")
+	}
+
+	// Add readiness and health
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		logger().Error(err, "Could not add healthz check")
+		return err
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		logger().Error(err, "Could not add readyz check")
+		return err
 	}
 
 	logger().Info("Starting the operator.")
