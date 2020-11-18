@@ -22,9 +22,9 @@ jobs:
       - name: Prepare codebase for linter (generates deps, stubs)
         run: |
           cd go/src/github.com/${{ env.REPOSITORY }}
-          make lint-prepare
           echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
           echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
+          make lint-prepare
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
