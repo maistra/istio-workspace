@@ -7,6 +7,7 @@ TEST_NAMESPACE?=bookinfo
 
 PROJECT_DIR:=$(shell pwd)
 export PROJECT_DIR
+export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
 BINARY_DIR:=$(PROJECT_DIR)/dist
 BINARY_NAME:=ike
@@ -30,7 +31,7 @@ endef
 ##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
-all: deps operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
+all: deps tools operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
 # ##########################################################################
 # Build configuration
@@ -39,7 +40,7 @@ all: deps operator-codegen format lint compile test ## Runs 'deps operator-codeg
 OS:=$(shell uname -s)
 export OS
 GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
-GOARCH:= amd64
+GOARCH:=amd64
 
 BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
@@ -66,7 +67,7 @@ SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell f
 ##@ Build
 
 .PHONY: build-ci
-build-ci: deps format compile test # Like 'all', but without linter which is executed as separated PR check
+build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
 compile: operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
@@ -83,12 +84,13 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ .vendor-new/ Gopkg.lock
+	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/
 
 .PHONY: deps
-deps: check-tools ## Fetches all dependencies
+deps: ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
-	dep ensure -v
+	go mod download
+	go mod vendor
 
 .PHONY: format
 format: $(SRCS) ## Removes unneeded imports and formats source code
@@ -110,6 +112,7 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Ge
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
 	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
 	$(call header,"Generates clientset code")
+	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/pkg/apis \
@@ -153,22 +156,19 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 
 ##@ Setup
 
-.PHONY: install-dep
-install-dep:
-	go get -u github.com/golang/dep/cmd/dep
 
 .PHONY: tools
-tools: install-dep ## Installs required go tools
+tools: ## Installs required go tools
 	$(call header,"Installing required tools")
-	GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.28.3
-	go get -u golang.org/x/tools/cmd/goimports
-	$(eval GINKGO_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/onsi/ginkgo"}}{{.Version}}{{end}}'))
-	GO111MODULE=on go get -u github.com/onsi/ginkgo/ginkgo@$(GINKGO_VERSION)
-	GO111MODULE=on go get -u github.com/go-bindata/go-bindata/...@v3.1.2
-	GO111MODULE=on go get -u github.com/golang/protobuf/protoc-gen-go
-	GO111MODULE=on go get github.com/mikefarah/yq/v3
+	go install golang.org/x/tools/cmd/goimports
+	go install github.com/onsi/ginkgo/ginkgo
+	go install github.com/golang/protobuf/protoc-gen-go
+	go install github.com/mikefarah/yq/v3
+	go get -u github.com/go-bindata/go-bindata/...
+	# go get causes problems and is not recommended by the creators. installing binary instead
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 
-EXECUTABLES:=dep golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: check-tools
@@ -185,7 +185,7 @@ OPERATOR_ARCH:=$(shell uname -m)
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	mkdir -p $(PROJECT_DIR)/bin/
-	$(eval OPERATOR_SDK_VERSION:=$(shell dep status -f='{{if eq .ProjectRoot "github.com/operator-framework/operator-sdk"}}{{.Version}}{{end}}'))
+	$(eval OPERATOR_SDK_VERSION:=$(shell go mod graph | grep operator-sdk | head -n 1 | cut -d'@' -f 2))
 	wget -q --show-progress -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
