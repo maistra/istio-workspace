@@ -11,10 +11,10 @@ jobs:
     env:
       REPOSITORY: ${{ github.repository }}
     steps:
-      - name: Set up Go 1.14.4
+      - name: Set up Go 1.15.2
         uses: actions/setup-go@v2
         with:
-          go-version: 1.14.4
+          go-version: 1.15.2
       - name: Set $GOPATH
         run: |
           echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
@@ -37,7 +37,7 @@ jobs:
           cd $GOPATH/src/github.com/${{ env.REPOSITORY }}
           make lint-prepare
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v1
+        uses: golangci/golangci-lint-action@v2
         with:
           version: v1.28
           working-directory: ${{ env.GOPATH }}/src/github.com/${{ env.REPOSITORY }}
