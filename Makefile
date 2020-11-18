@@ -84,7 +84,7 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ .vendor-new/
+	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/
 
 .PHONY: deps
 deps: ## Fetches all dependencies
