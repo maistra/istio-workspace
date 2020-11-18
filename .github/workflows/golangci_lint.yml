@@ -19,12 +19,16 @@ jobs:
         with:
           fetch-depth: 1
           path: go/src/github.com/${{ env.REPOSITORY }}
+      - name: Set $GOPATH
+        run: |
+          echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
+          echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
+        shell: bash
       - name: Prepare codebase for linter (generates deps, stubs)
         run: |
           cd go/src/github.com/${{ env.REPOSITORY }}
-          echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
-          echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
           make lint-prepare
+        shell: bash
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
