@@ -30,7 +30,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			scenario,
 			sessionName,
 			tmpDir string
-			readyStatusFunc func(ns string) func() bool
 		)
 
 		JustBeforeEach(func() {
@@ -42,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
-			Eventually(readyStatusFunc(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
 		})
 
@@ -64,13 +63,12 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				BeforeEach(func() {
 					scenario = "scenario-1"
 					registry = GetDockerRegistryInternal()
-					readyStatusFunc = AllDeploymentsAndPodsReady
 				})
 
 				Context("basic deployment modifications", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						// given we have details code locally
@@ -86,7 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
@@ -103,7 +101,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Context("deployment create/delete operations", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
 						ChangeNamespace("default")
@@ -119,7 +117,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						// check original response
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
@@ -165,12 +163,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Context("grpc protocol", func() {
 				BeforeEach(func() {
 					scenario = "scenario-1.1"
-					readyStatusFunc = AllDeploymentsAndPodsReady
 				})
 
 				Context("basic deployment modifications", func() {
 					It("should take over ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						ike := RunIke(testshell.GetProjectDir(), "develop",
@@ -182,7 +179,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
@@ -201,12 +198,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
 				scenario = "scenario-2"
-				readyStatusFunc = AllDeploymentConfigsAndPodsReady
 			})
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
 				ChangeNamespace(namespace)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 				// given we have details code locally
@@ -221,7 +217,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 				)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 				// then modify the service
@@ -243,7 +239,6 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				tmpRemove = test.TemporaryEnvVars(
 					"IKE_SESSION", sessionName,
 					"IKE_ROUTE", "header:x-test-suite=smoke")
-				readyStatusFunc = AllDeploymentsAndPodsReady
 			})
 
 			AfterEach(func() {
@@ -252,7 +247,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			It("should create session on deployment creation and remove on delete", func() {
 				ChangeNamespace(namespace)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 				// given the mutation hook has kicked in
@@ -269,9 +264,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 	})
 })
 
-// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
-func EnsureAllPodsAreReady(namespace string) {
+// EnsureAllDeploymentPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentPodsAreReady(namespace string) {
 	Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+}
+
+// EnsureAllDeploymentConfigPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentConfigPodsAreReady(namespace string) {
+	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.
