@@ -286,9 +286,9 @@ var testDeployment = `
                                 "value": "http://reviews:9080/"
                             }
                         ],
-						"image": "docker.io/aslakknutsen/istio-workspace-test:latest",
-						"command": "COMMAND",
-						"args": ["ARGS"],
+                        "image": "docker.io/aslakknutsen/istio-workspace-test:latest",
+                        "command": "COMMAND",
+                        "args": ["ARGS"],
                         "imagePullPolicy": "Always",
                         "livenessProbe": {
                             "failureThreshold": 3,
