@@ -1,10 +1,13 @@
 package parser_test
 
 import (
-	"github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/version"
+	"strings"
+
+	"github.com/goccy/go-yaml"
 
 	. "github.com/maistra/istio-workspace/pkg/openshift/parser"
+	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/version"
 
 	openshiftApi "github.com/openshift/api/template/v1"
 
@@ -18,30 +21,31 @@ var _ = Describe("template processing", func() {
 
 		It("should process role biding template using defaults", func() {
 			// given
-			var yaml []byte
+			var yml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/cluster_role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
+			yml, err := ProcessTemplate("deploy/cluster_role_binding.yaml", map[string]string{"NAMESPACE": "custom-namespace"})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
-			Expect(string(yaml)).To(ContainSubstring(
-				`    subjects:
-      - kind: ServiceAccount
-        name: istio-workspace
-        namespace: custom-namespace`))
+			subjects := extractPath(yml, "$.objects[0].subjects[0]")
+			Expect(subjects).To(Equal(map[string]interface{}{
+				"kind":      "ServiceAccount",
+				"name":      "istio-workspace",
+				"namespace": "custom-namespace",
+			}))
 		})
 
 		It("should process operator template using defaults", func() {
 			// given
-			var yaml []byte
+			var yml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/operator.tpl.yaml", map[string]string{"IKE_VERSION": version.Version})
+			yml, err := ProcessTemplate("deploy/operator.tpl.yaml", map[string]string{"IKE_VERSION": version.Version})
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
-			Expect(string(yaml)).To(Equal(processedOperatorTmplWithDefaults))
+			Expect(string(yml)).To(MatchYAML(processedOperatorTmplWithDefaults))
 		})
 
 		It("should process operator template using defaults and custom values", func() {
@@ -51,14 +55,15 @@ var _ = Describe("template processing", func() {
 				"IKE_DOCKER_REPOSITORY": "ikey",
 				"IKE_IMAGE_TAG":         "b1f1faf1",
 			}
-			var yaml []byte
+			var yml []byte
 
 			// when
-			yaml, err := ProcessTemplate("deploy/operator.tpl.yaml", templateValues)
+			yml, err := ProcessTemplate("deploy/operator.tpl.yaml", templateValues)
 			Expect(err).ToNot(HaveOccurred())
+			image := extractPath(yml, "$.objects[0].spec.template.spec.containers[0].image")
 
 			// then
-			Expect(string(yaml)).To(ContainSubstring("image: localhost:5000/ikey/istio-workspace:b1f1faf1"))
+			Expect(image).To(Equal("localhost:5000/ikey/istio-workspace:b1f1faf1"))
 		})
 
 		Context("substituting environment variables", func() {
@@ -71,14 +76,15 @@ var _ = Describe("template processing", func() {
 					"IKE_IMAGE_TAG", "latest")
 				defer restoreEnvVars()
 
-				var yaml []byte
+				var yml []byte
 
 				// when
-				yaml, err := ProcessTemplateUsingEnvVars("deploy/operator.tpl.yaml")
+				yml, err := ProcessTemplateUsingEnvVars("deploy/operator.tpl.yaml")
 				Expect(err).ToNot(HaveOccurred())
+				image := extractPath(yml, "$.objects[0].spec.template.spec.containers[0].image")
 
 				// then
-				Expect(string(yaml)).To(ContainSubstring("image: quay.io/istio-workspace/ike-cli:latest"))
+				Expect(image).To(Equal("quay.io/istio-workspace/ike-cli:latest"))
 			})
 		})
 	})
@@ -101,6 +107,17 @@ var _ = Describe("template processing", func() {
 
 	})
 })
+
+func extractPath(yml []byte, path string) interface{} {
+	p, err := yaml.PathString(path)
+	Expect(err).ToNot(HaveOccurred())
+
+	var sub interface{}
+	err = p.Read(strings.NewReader(string(yml)), &sub)
+	Expect(err).ToNot(HaveOccurred())
+
+	return sub
+}
 
 var processedOperatorTmplWithDefaults = `kind: Template
 apiVersion: template.openshift.io/v1
