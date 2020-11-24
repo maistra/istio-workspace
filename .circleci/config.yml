@@ -32,12 +32,16 @@ jobs:
       - image: *golang-img
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -46,7 +50,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_SHA1}" > ${CIRCLE_JOB}.githash
+              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
       - run:
           name: "Run the build"
@@ -56,7 +60,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -68,9 +72,13 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
       - restore_cache:
           keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -79,7 +87,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_JOB}" > ${CIRCLE_JOB}.githash
+              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
       - run:
           <<: *golang-install
@@ -108,7 +116,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -121,9 +129,13 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
       - restore_cache:
           keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -132,7 +144,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_SHA1}" > ${CIRCLE_JOB}.githash
+              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
 
       - run:
@@ -183,7 +195,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -196,9 +208,13 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
+      - run:
+          name: "Obtain git tree hash"
+          command: |
+            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
       - restore_cache:
           keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -207,7 +223,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_SHA1}" > ${CIRCLE_JOB}.githash
+              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
 
       - run:
@@ -300,7 +316,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
