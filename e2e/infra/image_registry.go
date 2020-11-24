@@ -8,7 +8,14 @@ import (
 	"github.com/onsi/gomega"
 )
 
-const ImageRepo = "istio-workspace-images"
+// GetRepositoryName returns the name of the repository http://host/repository-name/image-name:tag
+func GetRepositoryName() string {
+	if UsePrebuiltImages() {
+		return os.Getenv("IKE_DOCKER_REPOSITORY")
+	}
+	// used to reuse images pushed to a single namespace to avoid rebuilding pr test
+	return "istio-workspace-images"
+}
 
 func SetDockerRegistryExternal() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
