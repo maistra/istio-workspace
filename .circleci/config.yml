@@ -284,9 +284,11 @@ jobs:
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
             IKE_CLUSTER_HOST=localhost \
+            PRE_BUILT_IMAGES=true\
             IKE_ISTIO_INGRESS=http://localhost:31380 \
-            IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
-            IKE_EXTERNAL_DOCKER_REGISTRY=IKE_INTERNAL_DOCKER_REGISTRY \
+            IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
+            IKE_INTERNAL_DOCKER_REGISTRY=IKE_INTERNAL_DOCKER_REGISTRY \
+            IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" \
             make deps tools test-e2e
       - save_cache:
           key: golang-deps-e2e-cache-{{ checksum "go.sum" }}
