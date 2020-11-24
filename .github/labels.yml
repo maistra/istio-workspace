@@ -51,3 +51,6 @@
 - name: upstream
   color: 1fddb7
   description: "Requires changes in the upstream dependency"
+- name: images-built
+  color: 1ab2ff
+  description: "Indicates that images have been successfully built for this PR"
