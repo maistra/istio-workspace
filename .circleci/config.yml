@@ -103,7 +103,7 @@ jobs:
       - run:
           name: "Removes images-available label"
           command: |
-            curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST}/labels/images-available
+            curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/labels/images-available
 
       - run:
           name: "Push istio-workspace images"
@@ -115,7 +115,7 @@ jobs:
       - run:
           name: "Adds images-available label"
           command: |
-            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" -d "{\"labels\": [\"images-available\"]}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST}/labels
+            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" -d "{\"labels\": [\"images-available\"]}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/labels
       - save_cache:
           key: golang-image-deps-cache-{{ checksum "go.sum" }}
           paths:
