@@ -14,7 +14,7 @@ func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
 	namespace := setOperatorNamespace()
 	registry = SetDockerRegistryExternal()
-	setDockerRepository(ImageRepo)
+	setDockerRepository(GetRepositoryName())
 	<-shell.Execute(NewProjectCmd(namespace)).Done()
 	EnablePullingImages(namespace)
 	if RunsAgainstOpenshift {

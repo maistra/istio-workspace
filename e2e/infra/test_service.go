@@ -14,7 +14,7 @@ import (
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry.
 func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
-	setTestNamespace(ImageRepo)
+	setTestNamespace(GetRepositoryName())
 	registry = SetDockerRegistryExternal()
 	if RunsAgainstOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
@@ -26,7 +26,7 @@ func BuildTestService() (registry string) {
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry.
 func BuildTestServicePreparedImage(callerName string) (registry string) {
 	projectDir := shell.GetProjectDir()
-	setTestNamespace(ImageRepo)
+	setTestNamespace(GetRepositoryName())
 	registry = SetDockerRegistryExternal()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
