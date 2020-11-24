@@ -16,6 +16,28 @@ defaults:
         echo "/skip-e2e directive detected. Explictly stopping e2e tests."
         circleci step halt
       fi
+  obtain-tree-hash: &obtain-tree-hash
+    name: "Obtain git tree hash"
+    command: |
+      echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+      echo ${TREE_SHA1} > /tmp/tree.sha1
+  restore-tree-hash: &restore-tree-hash
+      keys:
+        - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }} # workaround for https://discuss.circleci.com/t/cannot-use-circle-yml-environment-variables-in-cache-keys/10994/20
+  check-if-build-executed: &check-if-build-executed
+    name: "Check if build with this content was already executed"
+    command: |
+      if [[ -f ${CIRCLE_JOB}.githash ]]; then
+        echo "This exact code base has been successfully built"
+        circleci step halt
+      else
+        echo "New build - if succeeds build git hash will be cached"
+        echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
+      fi
+  save-tree-hash: &save-tree-hash
+    key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
+    paths:
+      - ./${CIRCLE_JOB}.githash
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
@@ -33,25 +55,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+          << : *obtain-tree-hash
+      - restore_cache:
+          << : *restore-tree-hash
+      - run:
+          << : *check-if-build-executed
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "go.sum" }}
-      - restore_cache:
-          keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
-      - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f ${CIRCLE_JOB}.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
-            fi
       - run:
           name: "Run the build"
           command: make build-ci
@@ -60,9 +71,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
-          paths:
-            - ./${CIRCLE_JOB}.githash
+          << : *save-tree-hash
 
   images:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -73,22 +82,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+          <<: *obtain-tree-hash
       - restore_cache:
-          keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
+          <<: *restore-tree-hash
       - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f ${CIRCLE_JOB}.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
-            fi
+          <<: *check-if-build-executed
       - run:
           <<: *golang-install
       - restore_cache:
@@ -116,9 +114,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
-          paths:
-            - ./${CIRCLE_JOB}.githash
+          <<: *save-tree-hash
 
   ## End-to-end testing involving OpenShift cluster with Istio (Maistra disitribution) running remotely
   e2e_tests_remote_openshift_4:
@@ -130,23 +126,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+          << : *obtain-tree-hash
       - restore_cache:
-          keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
+          << : *restore-tree-hash
       - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f ${CIRCLE_JOB}.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
-            fi
-
+          << : *check-if-build-executed
       - run:
           <<: *skip-e2e-check
       - run:
@@ -195,9 +179,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
-          paths:
-            - ./${CIRCLE_JOB}.githash
+          <<: *save-tree-hash
 
   ## End-to-end testing using single-node microk8s cluster
   e2e_tests_microk8s:
@@ -209,23 +191,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+          <<: *obtain-tree-hash
       - restore_cache:
-          keys:
-            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
+          <<: *restore-tree-hash
       - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f ${CIRCLE_JOB}.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
-            fi
-
+          <<: *check-if-build-executed
       - run:
           <<: *skip-e2e-check
       - run:
@@ -316,9 +286,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.TREE_SHA1 }}
-          paths:
-            - ./${CIRCLE_JOB}.githash
+          <<: *save-tree-hash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
