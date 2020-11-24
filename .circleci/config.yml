@@ -37,7 +37,7 @@ jobs:
             - golang-deps-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -56,7 +56,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -70,7 +70,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -106,7 +106,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -121,7 +121,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -181,7 +181,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -196,7 +196,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -298,7 +298,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: {{ .Environment.CIRCLE_JOB }}-build-cache-{{ .Environment.CIRCLE_SHA1 }}
+          key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
