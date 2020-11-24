@@ -41,7 +41,7 @@ jobs:
             - golang-deps-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - build-cache-{{ checksum "/tmp/${CIRCLE_JOB}.githash" }}
+            - build-cache-{{ checksum "/tmp/{{ .Environment.CIRCLE_JOB }}.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -60,14 +60,16 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "${CIRCLE_JOB}.githash" }}
+          key: build-cache-{{ checksum "{{ .Environment.CIRCLE_JOB }}.githash" }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
   images:
-    working_directory: /go/src/github.com/maistra/istio-workspace
-    docker:
-      - image: *golang-img
+    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
+    machine:
+      <<: *machine-conf
+    environment:
+      <<: *env-vars
     steps:
       - checkout
       - run:
@@ -79,7 +81,7 @@ jobs:
             - golang-deps-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - build-cache-{{ checksum "/tmp/${CIRCLE_JOB}.githash" }}
+            - build-cache-{{ checksum "/tmp/{{ .Environment.CIRCLE_JOB }}.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -112,7 +114,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "${CIRCLE_JOB}.githash" }}
+          key: build-cache-{{ checksum "{{ .Environment.CIRCLE_JOB }}.githash" }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -131,7 +133,7 @@ jobs:
             git rev-parse HEAD: > /tmp/${CIRCLE_JOB}.githash
       - restore_cache:
           keys:
-            - e2e-cache-{{ checksum "/tmp/${CIRCLE_JOB}.githash" }}
+            - e2e-cache-{{ checksum "/tmp/{{ .Environment.CIRCLE_JOB }}.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -191,7 +193,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: e2e-cache-{{ checksum "${CIRCLE_JOB}.githash" }}
+          key: e2e-cache-{{ checksum "{{ .Environment.CIRCLE_JOB }}.githash" }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
@@ -210,7 +212,7 @@ jobs:
             git rev-parse HEAD: > /tmp/${CIRCLE_JOB}.githash
       - restore_cache:
           keys:
-            - e2e-cache-{{ checksum "/tmp/${CIRCLE_JOB}.githash" }}
+            - e2e-cache-{{ checksum "/tmp/{{ .Environment.CIRCLE_JOB }}.githash" }}
       - run:
           name: "Check if build with this content was already executed"
           command: |
@@ -312,7 +314,7 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: e2e-cache-{{ checksum "${CIRCLE_JOB}.githash" }}
+          key: e2e-cache-{{ checksum "{{ .Environment.CIRCLE_JOB }}.githash" }}
           paths:
             - ./${CIRCLE_JOB}.githash
 
