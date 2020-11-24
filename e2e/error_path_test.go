@@ -38,10 +38,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
-			if RunsAgainstOpenshift {
-				UpdateSecurityConstraintsFor(namespace)
-				EnablePullingImages(namespace)
-			}
+			PrepareEnv(namespace)
 			InstallLocalOperator(namespace)
 		})
 

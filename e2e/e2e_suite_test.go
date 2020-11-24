@@ -47,18 +47,24 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		if RunsAgainstOpenshift {
 			LoginAsTestPowerUser()
 
-			fmt.Printf("\nExposing Docker Registry\n")
-			<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
+			// Don't setup shared image namespace if we're not building the images as part of the test flow
+			if !UsePrebuiltImages() {
+				fmt.Printf("\nExposing Docker Registry\n")
 
-			<-testshell.Execute(NewProjectCmd(ImageRepo)).Done()
+				<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 
-			UpdateSecurityConstraintsFor(ImageRepo)
+				<-testshell.Execute(NewProjectCmd(GetRepositoryName())).Done()
+				UpdateSecurityConstraintsFor(GetRepositoryName())
+			}
 		}
 
-		BuildOperator()
-		BuildTestService()
-		BuildTestServicePreparedImage(PreparedImageV1)
-		BuildTestServicePreparedImage(PreparedImageV2)
+		// Assume images are built by some external means
+		if !UsePrebuiltImages() {
+			BuildOperator()
+			BuildTestService()
+			BuildTestServicePreparedImage(PreparedImageV1)
+			BuildTestServicePreparedImage(PreparedImageV2)
+		}
 		createProjectsForCompletionTests()
 	})
 
