@@ -46,7 +46,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_SHA1} > ${CIRCLE_JOB}.githash
+              echo "${CIRCLE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
       - run:
           name: "Run the build"
@@ -83,7 +83,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - golang-deps-cache-{{ checksum "go.sum" }}
+            - golang-image-deps-cache-{{ checksum "go.sum" }}
       - run:
           name: "Sets up Quay.io"
           command: |
@@ -102,7 +102,7 @@ jobs:
           name: "Run the build"
           command: make build-ci
       - save_cache:
-          key: golang-deps-cache-{{ checksum "go.sum" }}
+          key: golang-image-deps-cache-{{ checksum "go.sum" }}
           paths:
             - ./vendor
       - save_cache:
@@ -130,7 +130,7 @@ jobs:
               circleci step halt
             else
               echo "New build - if suceeds build git hash will be cached"
-              echo "${CIRCLE_SHA1} > ${CIRCLE_JOB}.githash
+              echo "${CIRCLE_SHA1}" > ${CIRCLE_JOB}.githash
             fi
 
       - run:
