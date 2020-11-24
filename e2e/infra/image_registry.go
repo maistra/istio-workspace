@@ -17,6 +17,15 @@ func GetRepositoryName() string {
 	return "istio-workspace-images"
 }
 
+// GetImageTag returns image tag if defined in IKE_IMAGE_TAG variable or "latest" otherwise.
+func GetImageTag() string {
+	if imageTag, found := os.LookupEnv("IKE_IMAGE_TAG"); found {
+		return imageTag
+	}
+
+	return "latest"
+}
+
 func SetDockerRegistryExternal() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
 	if externalRegistry, found := os.LookupEnv("IKE_EXTERNAL_DOCKER_REGISTRY"); found {

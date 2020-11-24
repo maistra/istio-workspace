@@ -24,8 +24,10 @@ func TestE2e(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "End To End Test Suite")
 }
 
-const PreparedImageV1 = "prepared-image"
-const PreparedImageV2 = "image-prepared"
+const (
+	PreparedImageV1 = "prepared-image"
+	PreparedImageV2 = "image-prepared"
+)
 
 var tmpClusterDir string
 
