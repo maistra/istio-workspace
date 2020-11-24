@@ -286,7 +286,7 @@ jobs:
             IKE_CLUSTER_HOST=localhost \
             IKE_ISTIO_INGRESS=http://localhost:31380 \
             PRE_BUILT_IMAGES=true\
-            IKE_DOCKER_REPOSITORY=quay.io \
+            IKE_DOCKER_REPOSITORY=maistra \
             IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
             IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
             IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" \
