@@ -81,6 +81,8 @@ jobs:
               echo "New build - if suceeds build git hash will be cached"
               echo "${CIRCLE_JOB}" > ${CIRCLE_JOB}.githash
             fi
+      - run:
+          <<: *golang-install
       - restore_cache:
           keys:
             - golang-image-deps-cache-{{ checksum "go.sum" }}
