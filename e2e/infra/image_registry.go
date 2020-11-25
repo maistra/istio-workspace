@@ -3,6 +3,8 @@ package infra
 import (
 	"os"
 
+	"github.com/onsi/ginkgo"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 
 	"github.com/onsi/gomega"
@@ -11,7 +13,11 @@ import (
 // GetRepositoryName returns the name of the repository http://host/repository-name/image-name:tag
 func GetRepositoryName() string {
 	if UsePrebuiltImages() {
-		return os.Getenv("IKE_DOCKER_REPOSITORY")
+		if dockerRegistry, found := os.LookupEnv("IKE_DOCKER_REPOSITORY"); !found {
+			ginkgo.Fail("\"IKE_DOCKER_REPOSITORY\" env variable not set")
+		} else {
+			return dockerRegistry
+		}
 	}
 	// used to reuse images pushed to a single namespace to avoid rebuilding pr test
 	return "istio-workspace-images"
