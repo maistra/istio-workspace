@@ -14,6 +14,6 @@ jobs:
         run: |
           curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace/tag/PR-${{ github.event.number }}
           curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace-test/tag/PR-${{ github.event.number }}
-          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/ istio-workspace-test-prepared-image-prepared/tag/PR-${{ github.event.number }}
+          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace-test-prepared-image-prepared/tag/PR-${{ github.event.number }}
           curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/stio-workspace-test-prepared-prepared-image/tag/PR-${{ github.event.number }}
         shell: bash
