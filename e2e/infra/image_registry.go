@@ -10,13 +10,13 @@ import (
 	"github.com/onsi/gomega"
 )
 
-// GetRepositoryName returns the name of the repository http://host/repository-name/image-name:tag
+// GetRepositoryName returns the name of the repository.
 func GetRepositoryName() string {
 	if UsePrebuiltImages() {
-		if dockerRegistry, found := os.LookupEnv("IKE_DOCKER_REPOSITORY"); !found {
+		if repository, found := os.LookupEnv("IKE_DOCKER_REPOSITORY"); !found {
 			ginkgo.Fail("\"IKE_DOCKER_REPOSITORY\" env variable not set")
 		} else {
-			return dockerRegistry
+			return repository
 		}
 	}
 	// used to reuse images pushed to a single namespace to avoid rebuilding pr test
