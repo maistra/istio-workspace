@@ -101,21 +101,12 @@ jobs:
             echo $QUAY_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
-          name: "Removes images-available label"
-          command: |
-            curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/labels/images-available
-
-      - run:
           name: "Push istio-workspace images"
           command: |
             IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" make deps docker-build docker-push-versioned
             IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" make docker-build-test docker-push-test
             IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
             IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
-      - run:
-          name: "Adds images-available label"
-          command: |
-            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" -d "{\"labels\": [\"images-available\"]}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${CIRCLE_PULL_REQUEST##*/}/labels
       - save_cache:
           key: golang-image-deps-cache-{{ checksum "go.sum" }}
           paths:
