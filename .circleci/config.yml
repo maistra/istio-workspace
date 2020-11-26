@@ -89,6 +89,8 @@ jobs:
       - run:
           <<: *check-if-build-executed
       - run:
+          <<: *skip-e2e-check
+      - run:
           <<: *golang-install
       - restore_cache:
           keys:
