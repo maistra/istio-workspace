@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
 	github.com/goccy/go-yaml v1.8.4
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
