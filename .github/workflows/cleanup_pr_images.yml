@@ -1,4 +1,4 @@
-name: cleanup-images
+name: Clean up images from PR testing
 on:
   pull_request:
     types: closed
