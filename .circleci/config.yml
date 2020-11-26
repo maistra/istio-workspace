@@ -89,6 +89,8 @@ jobs:
       - run:
           <<: *check-if-build-executed
       - run:
+          <<: *skip-e2e-check
+      - run:
           <<: *golang-install
       - restore_cache:
           keys:
@@ -118,72 +120,6 @@ jobs:
             - ./vendor
       - save_cache:
           <<: *save-tree-hash
-
-  ## End-to-end testing involving OpenShift cluster with Istio (Maistra disitribution) running remotely
-  e2e_tests_remote_openshift_4:
-    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
-    machine:
-      <<: *machine-conf
-    environment:
-      <<: *env-vars
-    steps:
-      - checkout
-      - run:
-          << : *obtain-tree-hash
-      - restore_cache:
-          << : *restore-tree-hash
-      - run:
-          << : *check-if-build-executed
-      - run:
-          <<: *skip-e2e-check
-      - run:
-          <<: *golang-install
-      - run:
-          name: "Install telepresence"
-          command: |
-            cd ~
-            pyenv global 3.5.2
-            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends telepresence
-            telepresence --version
-      - run:
-          name: "Configure Docker daemon with insecure-registry"
-          command: |
-            json=`mktemp`
-            echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80", "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"] }' > ${json}
-            sudo mv ${json} /etc/docker/daemon.json
-            sudo service docker restart
-            echo "Configured Docker daemon with insecure-registry"
-      - run:
-          name: "Install Openshift and k8s client tools"
-          command: |
-            cd ~
-            wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.5.5/openshift-client-linux-4.5.5.tar.gz" -O "oc.tar.gz"
-            tar xzfv oc.tar.gz
-            sudo mv $PWD/oc /usr/local/bin/
-            echo "Installed oc\n$(oc version)\n"
-            chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-            echo "Installed kubectl\n$(kubectl version)\n"
-      - restore_cache:
-          keys:
-            - golang-deps-e2e-cache-{{ checksum "go.sum" }}
-      - run:
-          name: "Run end-to-end tests"
-          command: |
-            oc login $QE_CLUSTER_ADDRESS -u $QE_IKE_CLUSTER_USER -p $QE_IKE_CLUSTER_PWD --insecure-skip-tls-verify=true
-            IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
-            IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
-            IKE_CLUSTER_HOST=$QE_IKE_CLUSTER_HOST \
-            ISTIO_NS=$QE_ISTIO_NS \
-            IKE_CLUSTER_ADDRESS=$QE_CLUSTER_ADDRESS \
-            make deps tools test-e2e
-      - save_cache:
-          key: golang-deps-e2e-cache-{{ checksum "go.sum" }}
-          paths:
-            - ./vendor
-      - save_cache:
-          <<: *save-tree-hash
-
   ## End-to-end testing using single-node microk8s cluster
   e2e_tests_microk8s:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -338,9 +274,6 @@ workflows:
     jobs:
       - images
       - e2e_tests_microk8s:
-          requires:
-            - images
-      - e2e_tests_remote_openshift_4:
           requires:
             - images
   circleci_release:
