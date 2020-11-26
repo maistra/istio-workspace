@@ -103,10 +103,15 @@ jobs:
       - run:
           name: "Push istio-workspace images"
           command: |
-            IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" make deps docker-build docker-push-versioned
-            IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" make docker-build-test docker-push-test
-            IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
-            IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}" IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
+            if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
+              export IKE_IMAGE_TAG=latest
+            else
+              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
+            fi
+            make deps docker-build docker-push-versioned
+            make docker-build-test docker-push-test
+            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
+            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
       - save_cache:
           key: golang-image-deps-cache-{{ checksum "go.sum" }}
           paths:
