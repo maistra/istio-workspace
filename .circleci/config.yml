@@ -220,7 +220,7 @@ jobs:
             export PRE_BUILT_IMAGES=true \
             export IKE_DOCKER_REPOSITORY=maistra \
             export IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
-            export IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
+            export IKE_INTERNAL_DOCKER_REGISTRY=quay.io
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG=latest
             else
