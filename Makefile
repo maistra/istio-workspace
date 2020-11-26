@@ -33,9 +33,9 @@ endef
 .PHONY: all
 all: deps tools operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
-# ##########################################################################
+###########################################################################
 # Build configuration
-# ##########################################################################
+###########################################################################
 
 OS:=$(shell uname -s)
 export OS
@@ -64,7 +64,9 @@ RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
 SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
 
+###########################################################################
 ##@ Build
+###########################################################################
 
 .PHONY: build-ci
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
@@ -154,8 +156,9 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
 
+###########################################################################
 ##@ Setup
-
+###########################################################################
 
 .PHONY: tools
 tools: ## Installs required go tools
@@ -213,9 +216,9 @@ operator-tpl: $(BINARY_DIR)/$(TPL_BINARY_NAME)
 	$(BINARY_DIR)/$(TPL_BINARY_NAME) \
 	$(MANIFEST_DIR)/operator.tpl.yaml >> $(MANIFEST_DIR)/operator.yaml
 
-# ##########################################################################
+###########################################################################
 ##@ Docker
-# ##########################################################################
+###########################################################################
 
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
@@ -249,7 +252,7 @@ docker-build: compile ## Builds the docker image
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 .PHONY: docker-push
-docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry
+docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry (latest and versioned)
 
 docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
 
@@ -313,28 +316,15 @@ docker-push-test-prepared:
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
 	docker push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
-# ##########################################################################
-##@ Istio-workspace sample project deployment
-# ##########################################################################
+###########################################################################
+# Istio test application deployment
+###########################################################################
+
 k8s:=kubectl
 
  ifneq (, $(shell which oc))
  	k8s=oc
  endif
-
-.PHONY: deploy-example
-deploy-example: ## Deploys istio-workspace specific resources to defined TEST_NAMESPACE
-	$(call header,"Deploying session custom resource to $(TEST_NAMESPACE)")
-	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
-
-.PHONY: undeploy-example
-undeploy-example: ## Undeploys istio-workspace specific resources from defined TEST_NAMESPACE
-	$(call header,"Undeploying session custom resource to $(TEST_NAMESPACE)")
-	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/crds/maistra.io_sessions_cr.yaml
-
-# ##########################################################################
-# Istio test application deployment
-# ##########################################################################
 
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
