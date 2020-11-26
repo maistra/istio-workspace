@@ -11,9 +11,12 @@ jobs:
       - name: Delete PR-related images
         env:
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
+          REPOSITORY: "https://quay.io/api/v1/repository/maistra"
+          TAG: "PR-${{ github.event.number }}"
         run: |
-          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace/tag/PR-${{ github.event.number }}
-          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace-test/tag/PR-${{ github.event.number }}
-          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/istio-workspace-test-prepared-image-prepared/tag/PR-${{ github.event.number }}
-          curl -H "Authorization: Bearer ${QUAY_OAUTH_TOKEN}" -X DELETE https://quay.io/api/v1/repository/maistra/stio-workspace-test-prepared-prepared-image/tag/PR-${{ github.event.number }}
+          HEADER_TOKEN="Authorization: Bearer ${QUAY_OAUTH_TOKEN}"
+          curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace/tag/${TAG}
+          curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test/tag/${TAG}
+          curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test-prepared-image-prepared/tag/${TAG}
+          curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test-prepared-prepared-image/tag/${TAG}
         shell: bash
