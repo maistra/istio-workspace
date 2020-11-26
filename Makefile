@@ -241,6 +241,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
+		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
 	docker tag \
@@ -270,6 +271,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
+		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
@@ -297,6 +299,7 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--build-arg name=$(IKE_TEST_PREPARED_NAME) \
+		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
 

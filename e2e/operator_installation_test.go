@@ -18,41 +18,41 @@ var _ = Describe("Operator Installation Tests", func() {
 
 	Context("local ike operator installation", func() {
 
-		var projectName string
+		var namespace string
 
 		BeforeEach(func() {
-			projectName = strings.ReplaceAll(CurrentGinkgoTestDescription().TestText, " ", "-") + "-" + naming.RandName(16)
-			projectName = strings.ReplaceAll(projectName, "should", "ike")
-			<-testshell.Execute(NewProjectCmd(projectName)).Done()
-			EnablePullingImages(projectName)
+			namespace = strings.ReplaceAll(CurrentGinkgoTestDescription().TestText, " ", "-") + "-" + naming.RandName(16)
+			namespace = strings.ReplaceAll(namespace, "should", "ike")
+			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+			PrepareEnv(namespace)
 			SetDockerRegistryInternal()
 		})
 
 		AfterEach(func() {
 			if CurrentGinkgoTestDescription().Failed {
-				pods := GetAllPods(projectName)
+				pods := GetAllPods(namespace)
 				for _, pod := range pods {
 					printBanner()
 					fmt.Println("Logs of " + pod)
-					fmt.Println(LogsOf(projectName, pod))
+					fmt.Println(LogsOf(namespace, pod))
 					printBanner()
-					StateOf(projectName, pod)
+					StateOf(namespace, pod)
 					printBanner()
 				}
-				GetEvents(projectName)
+				GetEvents(namespace)
 			}
-			<-testshell.Execute(DeleteProjectCmd(projectName)).Done()
+			<-testshell.Execute(DeleteProjectCmd(namespace)).Done()
 		})
 
 		It("should install into specified namespace", func() {
 			// when
-			<-testshell.Execute("ike install -l -n " + projectName).Done()
+			<-testshell.Execute("ike install -l -n " + namespace).Done()
 
 			// then
-			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
-			operatorPodName := GetAllPods(projectName)[0]
+			Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			operatorPodName := GetAllPods(namespace)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
-			ensureOperatorPodIsRunning(operatorPodName, projectName)
+			ensureOperatorPodIsRunning(operatorPodName, namespace)
 		})
 
 		It("should install into current namespace", func() {
@@ -62,23 +62,23 @@ var _ = Describe("Operator Installation Tests", func() {
 			}
 
 			// given
-			ChangeNamespace(projectName)
+			ChangeNamespace(namespace)
 
 			// when
 			<-testshell.Execute("ike install --local").Done()
 
 			// then
-			Eventually(AllPodsReady(projectName), 5*time.Minute, 5*time.Second).Should(BeTrue())
-			operatorPodName := GetAllPods(projectName)[0]
+			Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			operatorPodName := GetAllPods(namespace)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
-			ensureOperatorPodIsRunning(operatorPodName, projectName)
+			ensureOperatorPodIsRunning(operatorPodName, namespace)
 		})
 
 	})
 })
 
-func ensureOperatorPodIsRunning(operatorPodName, projectName string) {
-	podDetails := testshell.Execute("kubectl get pod " + operatorPodName + " -n " + projectName + " -o yaml")
+func ensureOperatorPodIsRunning(operatorPodName, namespace string) {
+	podDetails := testshell.Execute("kubectl get pod " + operatorPodName + " -n " + namespace + " -o yaml")
 	<-podDetails.Done()
 
 	detailsYaml := strings.Join(podDetails.Status().Stdout, "\n")
@@ -86,5 +86,5 @@ func ensureOperatorPodIsRunning(operatorPodName, projectName string) {
     - ike
     env:
     - name: WATCH_NAMESPACE
-      value: ` + projectName))
+      value: ` + namespace))
 }

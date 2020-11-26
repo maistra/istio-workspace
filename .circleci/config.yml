@@ -3,9 +3,9 @@ defaults:
     name: "Install latest Golang"
     command: |
       sudo rm -rf /usr/local/go
-      sudo circleci-install golang 1.15
+      sudo circleci-install golang 1.15.5
   docker:
-    - image: &golang-img circleci/golang:1.15
+    - image: &golang-img circleci/golang:1.15.5
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
@@ -16,6 +16,28 @@ defaults:
         echo "/skip-e2e directive detected. Explictly stopping e2e tests."
         circleci step halt
       fi
+  obtain-tree-hash: &obtain-tree-hash
+    name: "Obtain git tree hash"
+    command: |
+      echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+      echo ${TREE_SHA1} > /tmp/tree.sha1
+  restore-tree-hash: &restore-tree-hash
+      keys:
+        - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }} # workaround for https://discuss.circleci.com/t/cannot-use-circle-yml-environment-variables-in-cache-keys/10994/20
+  check-if-build-executed: &check-if-build-executed
+    name: "Check if build with this content was already executed"
+    command: |
+      if [[ -f ${CIRCLE_JOB}.githash ]]; then
+        echo "This exact code base has been successfully built"
+        circleci step halt
+      else
+        echo "New build - if succeeds build git hash will be cached"
+        echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
+      fi
+  save-tree-hash: &save-tree-hash
+    key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
+    paths:
+      - ./${CIRCLE_JOB}.githash
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
@@ -33,25 +55,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            git rev-parse HEAD: > /tmp/build.githash
+          << : *obtain-tree-hash
+      - restore_cache:
+          << : *restore-tree-hash
+      - run:
+          << : *check-if-build-executed
       - restore_cache:
           keys:
             - golang-deps-cache-{{ checksum "go.sum" }}
-      - restore_cache:
-          keys:
-            - build-cache-{{ checksum "/tmp/build.githash" }}
-      - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f build.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              cp /tmp/build.githash build.githash
-            fi
       - run:
           name: "Run the build"
           command: make build-ci
@@ -60,12 +71,10 @@ jobs:
           paths:
             - ./vendor
       - save_cache:
-          key: build-cache-{{ checksum "build.githash" }}
-          paths:
-            - ./build.githash
+          << : *save-tree-hash
 
-  ## End-to-end testing involving OpenShift cluster with Istio (Maistra disitribution) running remotely
-  e2e_tests_remote_openshift_4:
+  ## Builds container images both of the istio-workspace itself as well as utility ones used for testing purposes
+  images:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
@@ -74,75 +83,43 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            git rev-parse HEAD: > /tmp/e2e-openshift-4.githash
+          <<: *obtain-tree-hash
       - restore_cache:
-          keys:
-            - e2e-cache-{{ checksum "/tmp/e2e-openshift-4.githash" }}
+          <<: *restore-tree-hash
       - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f e2e-openshift-4.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              cp /tmp/e2e-openshift-4.githash e2e-openshift-4.githash
-            fi
-
+          <<: *check-if-build-executed
       - run:
           <<: *skip-e2e-check
       - run:
           <<: *golang-install
-      - run:
-          name: "Install telepresence"
-          command: |
-            cd ~
-            pyenv global 3.5.2
-            curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
-            sudo apt install --no-install-recommends telepresence
-            telepresence --version
-      - run:
-          name: "Configure Docker daemon with insecure-registry"
-          command: |
-            json=`mktemp`
-            echo '{ "insecure-registries": [ "172.30.0.0/16", "registry.access.redhat.com", "docker-registry-default.127.0.0.1.nip.io:80", "default-route-openshift-image-registry.apps.yuaxu-maistra-daily.devcluster.openshift.com"] }' > ${json}
-            sudo mv ${json} /etc/docker/daemon.json
-            sudo service docker restart
-            echo "Configured Docker daemon with insecure-registry"
-      - run:
-          name: "Install Openshift and k8s client tools"
-          command: |
-            cd ~
-            wget "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.5.5/openshift-client-linux-4.5.5.tar.gz" -O "oc.tar.gz"
-            tar xzfv oc.tar.gz
-            sudo mv $PWD/oc /usr/local/bin/
-            echo "Installed oc\n$(oc version)\n"
-            chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-            echo "Installed kubectl\n$(kubectl version)\n"
       - restore_cache:
           keys:
-            - golang-deps-e2e-cache-{{ checksum "go.sum" }}
+            - golang-image-deps-cache-{{ checksum "go.sum" }}
       - run:
-          name: "Run end-to-end tests"
+          name: "Sets up Quay.io"
           command: |
-            oc login $QE_CLUSTER_ADDRESS -u $QE_IKE_CLUSTER_USER -p $QE_IKE_CLUSTER_PWD --insecure-skip-tls-verify=true
-            IKE_CLUSTER_USER=$QE_IKE_CLUSTER_USER \
-            IKE_CLUSTER_PWD=$QE_IKE_CLUSTER_PWD \
-            IKE_CLUSTER_HOST=$QE_IKE_CLUSTER_HOST \
-            ISTIO_NS=$QE_ISTIO_NS \
-            IKE_CLUSTER_ADDRESS=$QE_CLUSTER_ADDRESS \
-            make deps tools test-e2e
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
+      - run:
+          name: "Push istio-workspace images"
+          command: |
+            if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
+              export IKE_IMAGE_TAG=latest
+            else
+              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
+            fi
+            make deps docker-build docker-push-versioned
+            make docker-build-test docker-push-test
+            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
+            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
       - save_cache:
-          key: golang-deps-e2e-cache-{{ checksum "go.sum" }}
+          key: golang-image-deps-cache-{{ checksum "go.sum" }}
           paths:
             - ./vendor
       - save_cache:
-          key: e2e-cache-{{ checksum "e2e-openshift-4.githash" }}
-          paths:
-            - ./e2e-openshift-4.githash
-
+          <<: *save-tree-hash
   ## End-to-end testing using single-node microk8s cluster
   e2e_tests_microk8s:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -153,23 +130,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain git tree hash"
-          command: |
-            git rev-parse HEAD: > /tmp/e2e-microk8s.githash
+          <<: *obtain-tree-hash
       - restore_cache:
-          keys:
-            - e2e-cache-{{ checksum "/tmp/e2e-microk8s.githash" }}
+          <<: *restore-tree-hash
       - run:
-          name: "Check if build with this content was already executed"
-          command: |
-            if [[ -f e2e-microk8s.githash ]]; then
-              echo "This exact code base has been successfully built"
-              circleci step halt
-            else
-              echo "New build - if suceeds build git hash will be cached"
-              cp /tmp/e2e-microk8s.githash e2e-microk8s.githash
-            fi
-
+          <<: *check-if-build-executed
       - run:
           <<: *skip-e2e-check
       - run:
@@ -242,7 +207,6 @@ jobs:
             done
             echo "Istio enabled"
 
-
       - restore_cache:
           keys:
             - golang-deps-e2e-cache-{{ checksum "go.sum" }}
@@ -251,19 +215,20 @@ jobs:
           command: |
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
-            IKE_CLUSTER_HOST=localhost \
-            IKE_ISTIO_INGRESS=http://localhost:31380 \
-            IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
-            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000 \
+            export IKE_CLUSTER_HOST=localhost \
+            export IKE_ISTIO_INGRESS=http://localhost:31380 \
+            export PRE_BUILT_IMAGES=true \
+            export IKE_DOCKER_REPOSITORY=maistra \
+            export IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
+            export IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
+            export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
             make deps tools test-e2e
       - save_cache:
           key: golang-deps-e2e-cache-{{ checksum "go.sum" }}
           paths:
             - ./vendor
       - save_cache:
-          key: e2e-cache-{{ checksum "e2e-microk8s.githash" }}
-          paths:
-            - ./e2e-microk8s.githash
+          <<: *save-tree-hash
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -307,8 +272,10 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
-      - e2e_tests_microk8s
-      - e2e_tests_remote_openshift_4
+      - images
+      - e2e_tests_microk8s:
+          requires:
+            - images
   circleci_release:
     jobs:
       - build:

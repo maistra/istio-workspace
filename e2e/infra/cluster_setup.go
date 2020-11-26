@@ -24,8 +24,8 @@ func UpdateSecurityConstraintsFor(namespace string) {
 }
 
 func EnablePullingImages(namespace string) {
-	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n " + ImageRepo).Done()
-	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n " + ImageRepo).Done()
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":default -n " + GetRepositoryName()).Done()
+	<-shell.Execute("oc policy add-role-to-user system:image-puller system:serviceaccount:" + namespace + ":istio-workspace -n " + GetRepositoryName()).Done()
 }
 
 var (
@@ -47,7 +47,7 @@ func LoginAsTestPowerUser() {
 		srv = server
 	}
 
-	<-shell.ExecuteInDir(".", "bash", "-c", "oc login "+srv+" -u "+user+" -p "+pwd+" --insecure-skip-tls-verify=true").Done()
+	<-shell.ExecuteInDir(".", "oc", "login", srv, "-u", user, "-p", pwd, "--insecure-skip-tls-verify=true").Done()
 }
 
 // GetEvents returns all events which occurred for a given namespace.
@@ -67,5 +67,20 @@ func DumpTelepresenceLog(dir string) {
 	_, err = io.Copy(os.Stdout, fh)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+// UsePrebuiltImages returns true if test suite should use images that are built outside of the test execution flow.
+func UsePrebuiltImages() bool {
+	return os.Getenv("PRE_BUILT_IMAGES") != ""
+}
+
+// PrepareEnv sets up a environmental specific things.
+func PrepareEnv(namespace string) {
+	if RunsAgainstOpenshift {
+		UpdateSecurityConstraintsFor(namespace)
+		if !UsePrebuiltImages() {
+			EnablePullingImages(namespace)
+		}
 	}
 }

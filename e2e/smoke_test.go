@@ -38,10 +38,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
-			if RunsAgainstOpenshift {
-				UpdateSecurityConstraintsFor(namespace)
-				EnablePullingImages(namespace)
-			}
+			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
 			DeployTestScenario(scenario, namespace)
@@ -110,7 +107,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV1+":latest",
+							"--image", registry+"/"+GetRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
 							"--session", sessionName,
 						)
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
@@ -130,7 +127,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+ImageRepo+"/istio-workspace-test-prepared-"+PreparedImageV2+":latest",
+							"--image", registry+"/"+GetRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV2+":"+GetImageTag(),
 							"--session", sessionName,
 						)
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
