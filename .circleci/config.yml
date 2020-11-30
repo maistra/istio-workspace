@@ -60,9 +60,6 @@ jobs:
           << : *restore-tree-hash
       - run:
           << : *check-if-build-executed
-      - restore_cache:
-          keys:
-            - golang-deps-cache-{{ checksum "go.sum" }}
       - run:
           name: "Run the build"
           command: make build-ci
