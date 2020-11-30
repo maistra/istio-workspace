@@ -1,3 +1,5 @@
+version: 2.1
+
 defaults:
   golang-install: &golang-install
     name: "Install latest Golang"
@@ -5,7 +7,7 @@ defaults:
       sudo rm -rf /usr/local/go
       sudo circleci-install golang 1.15.5
   docker:
-    - image: &golang-img circleci/golang:1.15.5
+    - image: &golang-img cimg/go:1.15.5
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
@@ -44,7 +46,6 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
 
-version: 2.1
 jobs:
 
   ## Regular build running tests
