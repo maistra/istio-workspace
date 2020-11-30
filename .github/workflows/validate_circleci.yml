@@ -1,8 +1,10 @@
 name: Validates circleci config
-pull_request:
-  types: [opened, reopened, synchronize]
-  paths:
-    - '.circleci/config.yml'
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.circleci/config.yml'
 
 jobs:
   circle-ci-validate:
