@@ -60,6 +60,9 @@ jobs:
           << : *restore-tree-hash
       - run:
           << : *check-if-build-executed
+      - restore_cache:
+          keys:
+            - golang-deps-cache-{{ checksum "go.sum" }}
       - run:
           name: "Run the build"
           command: make build-ci
@@ -170,7 +173,8 @@ jobs:
 
             export IKE_DOCKER_REPOSITORY=maistra \
             IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
-            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000 \
+            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
+            
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG=latest
             else
