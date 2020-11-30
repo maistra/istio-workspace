@@ -50,7 +50,6 @@ jobs:
 
   ## Regular build running tests
   build:
-    working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
       - image: *golang-img
     steps:
