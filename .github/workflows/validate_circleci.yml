@@ -1,0 +1,26 @@
+name: circleci-check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '.circleci/config.yml'
+
+jobs:
+  circle-ci-validate:
+    name: config validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install CircleCI CLI
+        run: |
+          brew install circleci
+        shell: bash
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: go/src/github.com/${{ github.repository }}
+      - name: Validate CircleCI
+        run: |
+          cd go/src/github.com/${{ github.repository }}
+          circleci config validate
+        shell: bash

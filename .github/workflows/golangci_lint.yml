@@ -1,4 +1,4 @@
-name: Golang linters
+name: linters
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   pull_request:
 jobs:
   golangci:
-    name: lint
+    name: golangci-lint
     runs-on: ubuntu-latest
     env:
       REPOSITORY: ${{ github.repository }}
