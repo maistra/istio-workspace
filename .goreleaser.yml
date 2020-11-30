@@ -1,6 +1,6 @@
 before:
   hooks:
-    - make deps codegen
+    - make deps tools codegen
 builds:
 - env:
   - CGO_ENABLED=0
