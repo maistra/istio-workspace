@@ -1,4 +1,4 @@
-name: circleci config validation
+name: circleci-check
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   circle-ci-validate:
-    name: Validates circleci config
+    name: config validation
     runs-on: ubuntu-latest
     steps:
       - name: Install CircleCI CLI
