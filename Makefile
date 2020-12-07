@@ -229,9 +229,9 @@ export IKE_VERSION
 
 docker:=docker
 
-## Prefer to use buildah
- ifneq (, $(shell which buildah))
- 	docker=buildah
+## Prefer to use podman
+ ifneq (, $(shell which podman))
+ 	docker=podman
  endif
 
 .PHONY: docker-build
