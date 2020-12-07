@@ -229,7 +229,8 @@ export IKE_VERSION
 
 docker:=docker
 
- ifeq (, $(shell which buildah))
+## Prefer to use buildah
+ ifneq (, $(shell which buildah))
  	docker=buildah
  endif
 
@@ -237,7 +238,7 @@ docker:=docker
 docker-build: GOOS=linux
 docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
-	$(docker) build \
+	$(DOCKER) build \
 		--label "org.opencontainers.image.title=$(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -250,7 +251,7 @@ docker-build: compile ## Builds the docker image
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
-	$(docker) tag \
+	$(DOCKER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
@@ -262,12 +263,12 @@ docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
 docker-push--%:
 	$(eval image_tag:=$(subst docker-push--,,$@))
 	$(call header,"Pushing docker image $(image_tag)")
-	$(docker) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
+	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
-	$(docker) build \
+	$(DOCKER) build \
 		--label "org.opencontainers.image.title=$(IKE_TEST_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -281,20 +282,20 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
-	$(docker) tag \
+	$(DOCKER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-push-test
 docker-push-test:
 	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
-	$(docker) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	$(docker) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-build-test-prepared
 docker-build-test-prepared:
 	$(call header,"Building docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	$(docker) build \
+	$(DOCKER) build \
 		--label "org.opencontainers.image.title=$(IKE_TEST_PREPARED_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Prepared Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -309,15 +310,15 @@ docker-build-test-prepared:
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
 
-	$(docker) tag \
+	$(DOCKER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 .PHONY: docker-push-test-prepared
 docker-push-test-prepared:
 	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	$(docker) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
-	$(docker) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
+	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 # ##########################################################################
 ##@ Istio-workspace sample project deployment
