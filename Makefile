@@ -227,11 +227,11 @@ IKE_DOCKER_REPOSITORY?=maistra
 export IKE_IMAGE_TAG
 export IKE_VERSION
 
-docker:=docker
+DOCKER:=docker
 
 ## Prefer to use podman
  ifneq (, $(shell which podman))
- 	docker=podman
+ 	DOCKER=podman
  endif
 
 .PHONY: docker-build
