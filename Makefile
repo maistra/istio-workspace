@@ -231,7 +231,7 @@ DOCKER:=docker
 
 ## Prefer to use podman
  ifneq (, $(shell which podman))
- 	DOCKER=podman
+ 	DOCKER="podman --cgroup-manager=cgroupfs"
  endif
 
 .PHONY: docker-build
