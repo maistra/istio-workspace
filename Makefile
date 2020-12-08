@@ -186,7 +186,7 @@ $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(eval OPERATOR_SDK_VERSION:=$(shell go mod graph | grep operator-sdk | head -n 1 | cut -d'@' -f 2))
-	wget -q --show-progress -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
+	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 $(PROJECT_DIR)/bin/protoc:
