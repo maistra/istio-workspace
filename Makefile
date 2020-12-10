@@ -269,6 +269,7 @@ docker-push--%:
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
 	$(DOCKER) build \
+		--no-cache \
 		--label "org.opencontainers.image.title=$(IKE_TEST_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -279,7 +280,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
 	$(DOCKER) tag \
@@ -296,6 +297,8 @@ docker-push-test:
 docker-build-test-prepared:
 	$(call header,"Building docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
 	$(DOCKER) build \
+		--no-cache \
+		--build-arg=name=$(IKE_TEST_PREPARED_NAME) \
 		--label "org.opencontainers.image.title=$(IKE_TEST_PREPARED_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Prepared Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -305,9 +308,8 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
-		--build-arg name=$(IKE_TEST_PREPARED_NAME) \
 		--network=host \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
+		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
 
 	$(DOCKER) tag \
