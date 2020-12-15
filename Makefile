@@ -227,18 +227,18 @@ IKE_DOCKER_REPOSITORY?=maistra
 export IKE_IMAGE_TAG
 export IKE_VERSION
 
-DOCKER:=docker
+IMG_BUILDER:=docker
 
 ## Prefer to use podman
  ifneq (, $(shell which podman))
- 	DOCKER=podman
+	IMG_BUILDER=podman
  endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
 docker-build: compile ## Builds the docker image
 	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
-	$(DOCKER) build \
+	$(IMG_BUILDER) build \
 		--label "org.opencontainers.image.title=$(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -251,7 +251,7 @@ docker-build: compile ## Builds the docker image
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
-	$(DOCKER) tag \
+	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
@@ -263,12 +263,12 @@ docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
 docker-push--%:
 	$(eval image_tag:=$(subst docker-push--,,$@))
 	$(call header,"Pushing docker image $(image_tag)")
-	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
+	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
-	$(DOCKER) build \
+	$(IMG_BUILDER) build \
 		--no-cache \
 		--label "org.opencontainers.image.title=$(IKE_TEST_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
@@ -283,20 +283,20 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
-	$(DOCKER) tag \
+	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-push-test
 docker-push-test:
 	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
-	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-build-test-prepared
 docker-build-test-prepared:
 	$(call header,"Building docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	$(DOCKER) build \
+	$(IMG_BUILDER) build \
 		--no-cache \
 		--build-arg=name=$(IKE_TEST_PREPARED_NAME) \
 		--label "org.opencontainers.image.title=$(IKE_TEST_PREPARED_IMAGE_NAME)" \
@@ -312,19 +312,20 @@ docker-build-test-prepared:
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
 
-	$(DOCKER) tag \
+	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 .PHONY: docker-push-test-prepared
 docker-push-test-prepared:
 	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
-	$(DOCKER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
+	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 # ##########################################################################
 ##@ Istio-workspace sample project deployment
 # ##########################################################################
+
 k8s:=kubectl
 
  ifneq (, $(shell which oc))
