@@ -7,7 +7,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
 	github.com/go-cmd/cmd v1.1.0
-	github.com/go-logr/logr v0.1.0
+	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.1.1
 	github.com/goccy/go-yaml v1.8.4
 	github.com/golang/protobuf v1.4.3
