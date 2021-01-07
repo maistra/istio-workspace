@@ -1,3 +1,5 @@
+version: 2.1
+
 defaults:
   golang-install: &golang-install
     name: "Install latest Golang"
@@ -5,7 +7,7 @@ defaults:
       sudo rm -rf /usr/local/go
       sudo circleci-install golang 1.15.5
   docker:
-    - image: &golang-img circleci/golang:1.15.5
+    - image: &golang-img cimg/go:1.15.5
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
@@ -44,12 +46,10 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
 
-version: 2.1
 jobs:
 
   ## Regular build running tests
   build:
-    working_directory: /go/src/github.com/maistra/istio-workspace
     docker:
       - image: *golang-img
     steps:
@@ -62,64 +62,17 @@ jobs:
           << : *check-if-build-executed
       - restore_cache:
           keys:
-            - golang-deps-cache-{{ checksum "go.sum" }}
+            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
       - run:
           name: "Run the build"
           command: make build-ci
       - save_cache:
-          key: golang-deps-cache-{{ checksum "go.sum" }}
+          key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:
             - ./vendor
       - save_cache:
           << : *save-tree-hash
 
-  ## Builds container images both of the istio-workspace itself as well as utility ones used for testing purposes
-  images:
-    working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
-    machine:
-      <<: *machine-conf
-    environment:
-      <<: *env-vars
-    steps:
-      - checkout
-      - run:
-          <<: *obtain-tree-hash
-      - restore_cache:
-          <<: *restore-tree-hash
-      - run:
-          <<: *check-if-build-executed
-      - run:
-          <<: *skip-e2e-check
-      - run:
-          <<: *golang-install
-      - restore_cache:
-          keys:
-            - golang-image-deps-cache-{{ checksum "go.sum" }}
-      - run:
-          name: "Sets up Quay.io"
-          command: |
-            mkdir -p ~/.docker && chmod 0700 ~/.docker
-            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
-            echo $QUAY_AUTH_JSON > ~/.docker/config.json
-            docker login quay.io
-      - run:
-          name: "Push istio-workspace images"
-          command: |
-            if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
-              export IKE_IMAGE_TAG=latest
-            else
-              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
-            fi
-            make deps docker-build docker-push-versioned
-            make docker-build-test docker-push-test
-            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
-            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
-      - save_cache:
-          key: golang-image-deps-cache-{{ checksum "go.sum" }}
-          paths:
-            - ./vendor
-      - save_cache:
-          <<: *save-tree-hash
   ## End-to-end testing using single-node microk8s cluster
   e2e_tests_microk8s:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
@@ -209,7 +162,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - golang-deps-e2e-cache-{{ checksum "go.sum" }}
+            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
       - run:
           name: "Run end-to-end tests"
           command: |
@@ -217,18 +170,21 @@ jobs:
             export KUBECONFIG=/tmp/kubeconfig
             export IKE_CLUSTER_HOST=localhost \
             export IKE_ISTIO_INGRESS=http://localhost:31380 \
-            export PRE_BUILT_IMAGES=true \
+
             export IKE_DOCKER_REPOSITORY=maistra \
-            export IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
-            export IKE_INTERNAL_DOCKER_REGISTRY=quay.io
+            IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
+            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
+
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG=latest
             else
               export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
             fi
+
+            # actual build
             make deps tools test-e2e
       - save_cache:
-          key: golang-deps-e2e-cache-{{ checksum "go.sum" }}
+          key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:
             - ./vendor
       - save_cache:
@@ -276,10 +232,7 @@ workflows:
       - build
   circleci_e2e_tests:
     jobs:
-      - images
-      - e2e_tests_microk8s:
-          requires:
-            - images
+      - e2e_tests_microk8s
   circleci_release:
     jobs:
       - build:
