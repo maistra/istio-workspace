@@ -29,5 +29,5 @@
   {"op": "remove", "path": "/spec/template/spec/containers/0/command"},
   {{ end }}
 
-    {{ template "_basic-remove" . }}
+  {{ template "_basic-remove" . }}
 ]

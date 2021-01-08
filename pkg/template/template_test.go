@@ -122,7 +122,7 @@ var _ = Describe("Operations for template system", func() {
 			})
 		})
 
-		Context("preparedimage", func() {
+		Context("prepared-image", func() {
 			It("happy, happy, basic DefaultEngine", func() {
 				e := template.NewDefaultEngine()
 

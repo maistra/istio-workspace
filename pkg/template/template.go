@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/maistra/istio-workspace/pkg/assets"
 	"strconv"
 	"strings"
 	"text/template"
@@ -13,34 +14,33 @@ import (
 
 // NewDefaultEngine returns a new Engine with a predefined templates.
 func NewDefaultEngine() *Engine {
-	patches := []Patch{
-		{
-			Name: "prepared-image",
-			Template: []byte(`
-`),
-			Variables: map[string]string{
-				"image": "",
-			},
-		},
-		{
-			Name: "telepresence",
-			Template: []byte(`
-`),
-			Variables: map[string]string{
-				"version": "",
-			},
-		},
-		{
-			Name: "_basic-version",
-			Template: []byte(`
-			`),
-		},
-		{
-			Name: "_basic-remove",
-			Template: []byte(`
-			`),
-		},
+	const tplFolder = "template"
+	tplDir, err := assets.AssetDir(tplFolder)
+	if err != nil {
+		panic(err)
 	}
+	patches := []Patch{}
+	for _, file := range tplDir {
+		if strings.HasSuffix(file, ".tpl") {
+			tplName := strings.Replace(file, ".tpl", "", -1)
+			tpl, err := assets.Asset(tplFolder + "/" + file)
+			if err != nil {
+				panic(err)
+			}
+			patches = append(patches, Patch{
+				Name:      tplName,
+				Template:  tpl,
+				Variables: map[string]string{
+					"image": "",
+					"version": "",
+				},
+			})
+		}
+	}
+
+	// FIXME: func parser.Load is not the right pkg
+	// FIXME: template folder might be something else else
+
 	return NewEngine(patches)
 }
 
