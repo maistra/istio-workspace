@@ -13,39 +13,40 @@ import (
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
-func LoadPatches() []Patch {
-	const tplFolder = "template"
-	tplDir, err := assets.AssetDir(tplFolder)
+func loadPatches() []Patch {
+	const tplFolder = "template/strategies" // FIXME should be env variable / flag ?
+	tplDir, err := assets.LoadDir(tplFolder)
 	if err != nil {
 		panic(err)
 	}
 	patches := []Patch{}
 	for _, file := range tplDir {
-		if strings.HasSuffix(file, ".tpl") {
-			tplName := strings.Replace(file, ".tpl", "", -1)
-			tpl, err := assets.Asset(tplFolder + "/" + file)
-			if err != nil {
-				panic(err)
-			}
-			tplVars := map[string]string{}
-			if tplVarRaw, err := assets.Asset(tplFolder + "/" + tplName + ".var"); err == nil {
-				for _, line := range strings.Split(string(tplVarRaw), "\n") {
-					if line != "" {
-						vars := strings.Split(line, "=")
-						varName := strings.Trim(vars[0], " ")
-						tplVars[varName] = ""
-						if len(vars) == 2 {
-							tplVars[varName] = strings.Trim(vars[1], " ")
-						}
+		if !strings.HasSuffix(file, ".tpl") {
+			continue
+		}
+		tplName := strings.Replace(file, ".tpl", "", -1)
+		tpl, err := assets.Load(tplFolder + "/" + file)
+		if err != nil {
+			panic(err)
+		}
+		tplVars := map[string]string{}
+		if tplVarRaw, err := assets.Load(tplFolder + "/" + tplName + ".var"); err == nil {
+			for _, line := range strings.Split(string(tplVarRaw), "\n") {
+				if line != "" {
+					vars := strings.Split(line, "=")
+					varName := strings.Trim(vars[0], " ")
+					tplVars[varName] = ""
+					if len(vars) == 2 {
+						tplVars[varName] = strings.Trim(vars[1], " ")
 					}
 				}
 			}
-			patches = append(patches, Patch{
-				Name:      tplName,
-				Template:  tpl,
-				Variables: tplVars,
-			})
 		}
+		patches = append(patches, Patch{
+			Name:      tplName,
+			Template:  tpl,
+			Variables: tplVars,
+		})
 	}
 
 	return patches
@@ -53,9 +54,7 @@ func LoadPatches() []Patch {
 
 // NewDefaultEngine returns a new Engine with a predefined templates.
 func NewDefaultEngine() *Engine {
-	// FIXME: template folder might be something else else
-
-	return NewEngine(LoadPatches())
+	return NewEngine(loadPatches())
 }
 
 // NewEngine constructs a new Engine with the given templates.
