@@ -9,6 +9,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/template"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
@@ -34,7 +35,7 @@ var (
 )
 
 // DefaultManipulators contains the default config for the reconciler.
-func DefaultManipulators() Manipulators {
+func DefaultManipulators(engine template.Engine) Manipulators {
 	return Manipulators{
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
@@ -43,8 +44,8 @@ func DefaultManipulators() Manipulators {
 			istio.VirtualServiceGatewayLocator,
 		},
 		Mutators: []model.Mutator{
-			k8s.DeploymentMutator,
-			openshift.DeploymentConfigMutator,
+			k8s.DeploymentMutator(engine),
+			openshift.DeploymentConfigMutator(engine),
 			istio.DestinationRuleMutator,
 			istio.GatewayMutator,
 			istio.VirtualServiceMutator,
@@ -67,7 +68,7 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
+	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators(template.NewDefaultEngine())}
 }
 
 // NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager.

@@ -6,6 +6,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -133,7 +134,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should add suffix to the cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_ = get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -141,7 +142,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should remove liveness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -150,7 +151,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should remove readiness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -159,7 +160,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should update selector", func() {
 			ref := CreateTestRef()
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -169,7 +170,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should only mutate if Target is of kind Deployment", func() {
 			notMatchingRef := model.Ref{Name: "test-ref", Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "test-ref", nil)}}
-			mutatorErr := k8s.DeploymentMutator(ctx, &notMatchingRef)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.Name+"-v1-"+ctx.Name)
@@ -181,7 +182,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should change container to telepresence", func() {
 				ref := CreateTestRef()
-				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+				mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -190,7 +191,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should change add required env variables", func() {
 				ref := CreateTestRef()
-				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+				mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -206,7 +207,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				ref := CreateTestRef()
 				ref.Strategy = model.StrategyExisting
 
-				mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+				mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				_, err := get.DeploymentWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -252,7 +253,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 		It("should revert to original deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := k8s.DeploymentMutator(ctx, &ref)
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)

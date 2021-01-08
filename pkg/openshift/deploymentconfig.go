@@ -23,7 +23,6 @@ const (
 )
 
 var _ model.Locator = DeploymentConfigLocator
-var _ model.Mutator = DeploymentConfigMutator
 var _ model.Revertor = DeploymentConfigRevertor
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
@@ -41,43 +40,45 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 }
 
 // DeploymentConfigMutator attempts to clone the located DeploymentConfig.
-func DeploymentConfigMutator(ctx model.SessionContext, ref *model.Ref) error {
-	if len(ref.GetResources(model.Kind(DeploymentConfigKind))) > 0 {
-		return nil
-	}
-	targets := ref.GetTargets(model.Kind(DeploymentConfigKind))
-	if len(targets) == 0 {
-		return nil
-	}
-	target := targets[0]
-
-	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, target.Name)
-	if err != nil {
-		if errors.IsNotFound(err) {
+func DeploymentConfigMutator(engine template.Engine) model.Mutator {
+	return func(ctx model.SessionContext, ref *model.Ref) error {
+		if len(ref.GetResources(model.Kind(DeploymentConfigKind))) > 0 {
 			return nil
 		}
-		return err
-	}
-	ctx.Log.Info("Found DeploymentConfig", "name", deployment.Name)
+		targets := ref.GetTargets(model.Kind(DeploymentConfigKind))
+		if len(targets) == 0 {
+			return nil
+		}
+		target := targets[0]
 
-	if ref.Strategy == model.StrategyExisting {
+		deployment, err := getDeploymentConfig(ctx, ctx.Namespace, target.Name)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return nil
+			}
+			return err
+		}
+		ctx.Log.Info("Found DeploymentConfig", "name", deployment.Name)
+
+		if ref.Strategy == model.StrategyExisting {
+			return nil
+		}
+
+		deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
+		if err != nil {
+			ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
+			return err
+		}
+		err = ctx.Client.Create(ctx, deploymentClone)
+		if err != nil {
+			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
+			ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionFailed})
+			return err
+		}
+		ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
+		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionCreated})
 		return nil
 	}
-
-	deploymentClone, err := cloneDeployment(deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
-	if err != nil {
-		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
-		return err
-	}
-	err = ctx.Client.Create(ctx, deploymentClone)
-	if err != nil {
-		ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
-		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionFailed})
-		return err
-	}
-	ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
-	ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionCreated})
-	return nil
 }
 
 // DeploymentConfigRevertor attempts to delete the cloned DeploymentConfig.
@@ -102,14 +103,13 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	return nil
 }
 
-func cloneDeployment(deployment *appsv1.DeploymentConfig, ref *model.Ref, version string) (*appsv1.DeploymentConfig, error) {
+func cloneDeployment(engine template.Engine, deployment *appsv1.DeploymentConfig, ref *model.Ref, version string) (*appsv1.DeploymentConfig, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, err
 	}
 
-	e := template.NewDefaultEngine()
-	modifiedDeployment, err := e.Run(ref.Strategy, originalDeployment, version, ref.Args)
+	modifiedDeployment, err := engine.Run(ref.Strategy, originalDeployment, version, ref.Args)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 	"github.com/maistra/istio-workspace/test/testclient"
 
@@ -54,7 +55,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
 		get = testclient.New(c)
-		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
+		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators(template.NewDefaultEngine()))
 	})
 
 	Context("in a complete lifecycle", func() {

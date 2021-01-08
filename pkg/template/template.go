@@ -13,8 +13,7 @@ import (
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
-func loadPatches() []Patch {
-	const tplFolder = "template/strategies" // FIXME should be env variable / flag ?
+func loadPatches(tplFolder string) []Patch {
 	tplDir, err := assets.LoadDir(tplFolder)
 	if err != nil {
 		panic(err)
@@ -53,13 +52,14 @@ func loadPatches() []Patch {
 }
 
 // NewDefaultEngine returns a new Engine with a predefined templates.
-func NewDefaultEngine() *Engine {
-	return NewEngine(loadPatches())
+func NewDefaultEngine() Engine {
+	const tplFolder = "template/strategies" // FIXME should be env variable / flag ?
+	return NewPatchEngine(loadPatches(tplFolder))
 }
 
-// NewEngine constructs a new Engine with the given templates.
-func NewEngine(patches Patches) *Engine {
-	return &Engine{patches: patches}
+// NewPatchEngine constructs a new Engine with the given templates.
+func NewPatchEngine(patches Patches) Engine {
+	return &patchEngine{patches: patches}
 }
 
 // NewJSON constructs a JSON object from a json string.
@@ -89,8 +89,13 @@ type Patch struct {
 // Patches holds all known patch templates for a Engine.
 type Patches []Patch
 
-// Engine is a reusable instance with a configured set of patch templates.
-type Engine struct {
+// Engine is a interface that describes a way to prepare the Deployment for cloning.
+type Engine interface {
+	Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error)
+}
+
+// PatchEngine is a reusable instance with a configured set of patch templates to manipulate the Deployment object via json pathces.
+type patchEngine struct {
 	patches Patches
 }
 
@@ -150,7 +155,7 @@ func (t JSON) Equal(path string, compare interface{}) bool {
 }
 
 // Run performs the template transformation of a given json structure.
-func (e Engine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
+func (e patchEngine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
 	t, err := parseTemplate(e.patches)
 	if err != nil {
 		return nil, err
@@ -203,7 +208,7 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	return modified, nil
 }
 
-func (e Engine) findPatch(name string) *Patch {
+func (e patchEngine) findPatch(name string) *Patch {
 	var patch *Patch
 	for i, p := range e.patches {
 		if p.Name == name {
