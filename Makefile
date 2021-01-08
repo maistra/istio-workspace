@@ -43,9 +43,9 @@ GOOS?=$(shell echo $(OS) | awk '{print tolower($$0)}')
 GOARCH:=amd64
 
 BUILD_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
-GITUNTRACKEDCHANGES:=$(shell git status --porcelain --untracked-files=no)
-COMMIT:=$(shell git rev-parse --short HEAD)
-ifneq ($(GITUNTRACKEDCHANGES),)
+GITUNTRACKEDCHANGES?=$(shell git status --porcelain --untracked-files=no | wc -l)
+COMMIT?=$(shell git rev-parse --short HEAD)
+ifneq ($(GITUNTRACKEDCHANGES),0)
 	COMMIT:=$(COMMIT)-dirty
 endif
 
@@ -230,15 +230,17 @@ export IKE_VERSION
 IMG_BUILDER:=docker
 
 ## Prefer to use podman
- ifneq (, $(shell which podman))
+ifneq (, $(shell which podman))
 	IMG_BUILDER=podman
- endif
+endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
-docker-build: compile ## Builds the docker image
-	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
+docker-build: ## Builds container images
+	$(call header,"Building image $(IKE_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
+		--no-cache \
+		--network=host \
 		--label "org.opencontainers.image.title=$(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -248,28 +250,29 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
-		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
+
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
 .PHONY: docker-push
-docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry
+docker-push: docker-push--latest docker-push-versioned ## Pushes images to the registry
 
 docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
 
 docker-push--%:
 	$(eval image_tag:=$(subst docker-push--,,$@))
-	$(call header,"Pushing docker image $(image_tag)")
+	$(call header,"Pushing image $(image_tag)")
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
 docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
-	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
+	$(call header,"Building image $(IKE_TEST_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--no-cache \
+		--network=host \
 		--label "org.opencontainers.image.title=$(IKE_TEST_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Test Services for end-to-end testing of the $(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
@@ -279,7 +282,6 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
-		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
 
@@ -289,13 +291,13 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 
 .PHONY: docker-push-test
 docker-push-test:
-	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
+	$(call header,"Pushing image $(IKE_TEST_IMAGE_NAME)")
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
 .PHONY: docker-build-test-prepared
 docker-build-test-prepared:
-	$(call header,"Building docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
+	$(call header,"Building image $(IKE_TEST_PREPARED_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--no-cache \
 		--build-arg=name=$(IKE_TEST_PREPARED_NAME) \
@@ -318,7 +320,7 @@ docker-build-test-prepared:
 
 .PHONY: docker-push-test-prepared
 docker-push-test-prepared:
-	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
+	$(call header,"Pushing image $(IKE_TEST_PREPARED_IMAGE_NAME)")
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
