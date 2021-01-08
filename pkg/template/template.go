@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/maistra/istio-workspace/pkg/assets"
 	"strconv"
 	"strings"
 	"text/template"
 
+	"github.com/maistra/istio-workspace/pkg/assets"
+
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
-// NewDefaultEngine returns a new Engine with a predefined templates.
-func NewDefaultEngine() *Engine {
+func LoadPatches() []Patch {
 	const tplFolder = "template"
 	tplDir, err := assets.AssetDir(tplFolder)
 	if err != nil {
@@ -27,21 +27,35 @@ func NewDefaultEngine() *Engine {
 			if err != nil {
 				panic(err)
 			}
+			tplVars := map[string]string{}
+			if tplVarRaw, err := assets.Asset(tplFolder + "/" + tplName + ".var"); err == nil {
+				for _, line := range strings.Split(string(tplVarRaw), "\n") {
+					if line != "" {
+						vars := strings.Split(line, "=")
+						varName := strings.Trim(vars[0], " ")
+						tplVars[varName] = ""
+						if len(vars) == 2 {
+							tplVars[varName] = strings.Trim(vars[1], " ")
+						}
+					}
+				}
+			}
 			patches = append(patches, Patch{
 				Name:      tplName,
 				Template:  tpl,
-				Variables: map[string]string{
-					"image": "",
-					"version": "",
-				},
+				Variables: tplVars,
 			})
 		}
 	}
 
-	// FIXME: func parser.Load is not the right pkg
+	return patches
+}
+
+// NewDefaultEngine returns a new Engine with a predefined templates.
+func NewDefaultEngine() *Engine {
 	// FIXME: template folder might be something else else
 
-	return NewEngine(patches)
+	return NewEngine(LoadPatches())
 }
 
 // NewEngine constructs a new Engine with the given templates.
@@ -138,7 +152,7 @@ func (t JSON) Equal(path string, compare interface{}) bool {
 
 // Run performs the template transformation of a given json structure.
 func (e Engine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
-	t, err := loadTemplate(e.patches)
+	t, err := parseTemplate(e.patches)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +215,7 @@ func (e Engine) findPatch(name string) *Patch {
 	return patch
 }
 
-func loadTemplate(patches Patches) (*template.Template, error) {
+func parseTemplate(patches Patches) (*template.Template, error) {
 	var err error
 	t := template.New("workspace").Funcs(template.FuncMap{
 		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
