@@ -30,12 +30,13 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			return err
 		}
 		for _, dr := range drs {
-			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			newVersion := ref.GetNewVersion(ctx.Name)
 			if alreadyMutated(*dr, newVersion) {
 				continue
 			}
+			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			mutatedDr := mutateDestinationRule(*dr, newVersion)
+			mutatedDr.OwnerReferences = append(mutatedDr.OwnerReferences, ctx.ToOwnerReference())
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -64,6 +65,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
 		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
+		mutatedDr.OwnerReferences = nil
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})

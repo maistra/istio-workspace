@@ -43,13 +43,17 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 			if (!mutationRequired(vs, hostName, targetVersion) && !connected) || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 				continue
 			}
+			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) {
+				continue
+			}
 			ctx.Log.Info("Found VirtualService", "name", vs.Name)
+
 			mutatedVs, created, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
 				return err
 			}
-
+			mutatedVs.OwnerReferences = append(mutatedVs.OwnerReferences, ctx.ToOwnerReference())
 			if created {
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil {
@@ -197,6 +201,19 @@ func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName,
 		for _, route := range http.Route {
 			if route.Destination != nil && targetHost.Match(route.Destination.Host) {
 				if route.Destination.Subset == "" || route.Destination.Subset == targetVersion {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func vsAlreadyMutated(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {
+	for _, http := range vs.Spec.Http {
+		for _, route := range http.Route {
+			if route.Destination != nil && targetHost.Match(route.Destination.Host) {
+				if route.Destination.Subset == targetVersion {
 					return true
 				}
 			}

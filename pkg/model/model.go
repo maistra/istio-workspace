@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -19,9 +21,20 @@ type SessionContext struct {
 
 	Name      string
 	Namespace string
+	UID       types.UID
 	Route     Route
 	Client    client.Client
 	Log       logr.Logger
+}
+
+// ToOwnerReference returns a OwnerReference object that represents this Session
+func (s *SessionContext) ToOwnerReference() metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: "maistra.io/v1alpha1",
+		Kind:       "Session",
+		Name:       s.Name,
+		UID:        s.UID,
+	}
 }
 
 // Route references the strategy used to route to the target Refs.

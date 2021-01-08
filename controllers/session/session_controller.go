@@ -15,8 +15,12 @@ import (
 	"github.com/operator-framework/operator-lib/handler"
 
 	"github.com/go-logr/logr"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
+
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -99,6 +103,33 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// Watch for changes to secondary resources
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &EnqueueRequestForAnnotation{
+		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+	}, predicate.GenerationChangedPredicate{})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &istionetwork.VirtualService{}}, &EnqueueRequestForAnnotation{
+		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+	}, predicate.GenerationChangedPredicate{})
+	if err != nil {
+		return err
+	}
+	err = c.Watch(&source.Kind{Type: &istionetwork.DestinationRule{}}, &EnqueueRequestForAnnotation{
+		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+	}, predicate.GenerationChangedPredicate{})
+	if err != nil {
+		return err
+	}
+	err = c.Watch(&source.Kind{Type: &istionetwork.Gateway{}}, &EnqueueRequestForAnnotation{
+		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+	}, predicate.GenerationChangedPredicate{})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -155,6 +186,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
+		UID:       session.UID,
 		Route:     route,
 		Log:       reqLogger,
 		Client:    r.client,
@@ -274,6 +306,8 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 			if err != nil {
 				ctx.Log.Error(err, "Mutate", "name", ref.Name)
 			}
+			ConvertModelRefToAPIStatus(*ref, session)
+			ctx.Client.Status().Update(ctx, session)
 		}
 	}
 

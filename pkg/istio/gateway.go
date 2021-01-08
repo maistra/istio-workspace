@@ -30,6 +30,9 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
 		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
+
+		mutatedGw.OwnerReferences = append(mutatedGw.OwnerReferences, ctx.ToOwnerReference())
+
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
