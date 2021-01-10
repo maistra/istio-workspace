@@ -1,11 +1,14 @@
 package generator
 
 import (
+	"reflect"
+
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -147,6 +150,40 @@ func WithVersion(version string) Modifier {
 					obj.Spec.Template.Spec.Containers[0].Env[index] = env
 				}
 			}
+		}
+	}
+}
+
+// WithAnnotations adds Annotations to any object. Annotations are overwritten.
+func WithAnnotations(annotations map[string]string) Modifier {
+	return func(service Entry, object runtime.Object) {
+		k8sObjValue := reflect.ValueOf(object).Elem()
+		objectField := k8sObjValue.FieldByName("ObjectMeta")
+		if objMeta, ok := objectField.Interface().(metav1.ObjectMeta); ok {
+			if objMeta.Annotations == nil {
+				objMeta.Annotations = map[string]string{}
+			}
+			for k, v := range annotations {
+				objMeta.Annotations[k] = v
+			}
+			objectField.Set(reflect.ValueOf(objMeta))
+		}
+	}
+}
+
+// WithLables adds Labels to any object. Lables are overwritten.
+func WithLables(lables map[string]string) Modifier {
+	return func(service Entry, object runtime.Object) {
+		k8sObjValue := reflect.ValueOf(object).Elem()
+		objectField := k8sObjValue.FieldByName("ObjectMeta")
+		if objMeta, ok := objectField.Interface().(metav1.ObjectMeta); ok {
+			if objMeta.Labels == nil {
+				objMeta.Labels = map[string]string{}
+			}
+			for k, v := range lables {
+				objMeta.Labels[k] = v
+			}
+			objectField.Set(reflect.ValueOf(objMeta))
 		}
 	}
 }

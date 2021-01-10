@@ -45,6 +45,7 @@ objects:
           labels:
             app: istio-workspace
             version: ${IKE_VERSION}
+            maistra.io/expose-route: "true"
         spec:
           serviceAccountName: istio-workspace
           containers:
@@ -55,6 +56,10 @@ objects:
               args:
                 - serve
               imagePullPolicy: Always
+              volumeMounts:
+                - name: certs
+                  mountPath: /tmp/certs
+                  readOnly: true
               env:
                 - name: WATCH_NAMESPACE
                   value: "${WATCH_NAMESPACE}"
@@ -76,3 +81,7 @@ objects:
                   port: 8282
                 initialDelaySeconds: 1
                 periodSeconds: 5
+          volumes:
+            - name: certs
+              secret:
+                secretName: istio-workspace

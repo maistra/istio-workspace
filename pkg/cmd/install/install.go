@@ -1,6 +1,7 @@
 package install
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
 	"github.com/maistra/istio-workspace/version"
+	"gomodules.xyz/jsonpatch/v2"
 
 	"github.com/go-logr/logr"
 	openshiftApi "github.com/openshift/api/template/v1"
@@ -22,6 +24,10 @@ import (
 var logger = func() logr.Logger {
 	return log.Log.WithValues("type", "install")
 }
+
+const (
+	IkeNamespaceLabel = "ike.namespace"
+)
 
 // NewCmd takes care of deploying server-side components of istio-workspace.
 func NewCmd() *cobra.Command {
@@ -93,11 +99,11 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		return err
 	}
 	resources := []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "cluster_role.yaml"}
-	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml"}
+	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml", "mutation.yaml"}
 
 	if local {
 		resources = []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "role.yaml"}
-		templates = []string{"role_binding.yaml", "operator.tpl.yaml"}
+		templates = []string{"mutation.yaml", "role_binding.yaml", "operator.tpl.yaml"}
 
 		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {
 			return envErr
@@ -109,6 +115,12 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 	}
 	if err := apply(app.applyTemplate, templates...); err != nil {
 		return err
+	}
+
+	if local {
+		if err := app.applyLocalMutationSelectorToNamespace(); err != nil {
+			return err
+		}
 	}
 
 	logger().Info("Installing operator", "namespace", os.Getenv("NAMESPACE"),
@@ -201,10 +213,49 @@ func (app *applier) applyTemplate(templatePath string) error {
 			app.c.Namespace,
 			name(object, templatePath),
 			gav.Kind))
+
 		err = app.c.Create(object)
-		if err != nil {
+		if err != nil && !errors.IsAlreadyExists(err) {
 			return err
 		}
 	}
 	return nil
+}
+
+func (app *applier) applyLocalMutationSelectorToNamespace() error {
+	origin, err := app.c.GetNamespace()
+	if err != nil {
+		return err
+	}
+
+	originB, err := json.Marshal(origin)
+	if err != nil {
+		return err
+	}
+
+	if len(origin.Labels) == 0 {
+		origin.Labels = map[string]string{}
+	}
+	origin.Labels[IkeNamespaceLabel] = app.c.Namespace
+
+	originC, err := json.Marshal(origin)
+	if err != nil {
+		return err
+	}
+
+	operations, err := jsonpatch.CreatePatch(originB, originC)
+	if err != nil {
+		return err
+	}
+
+	operationsB, err := json.Marshal(operations)
+	if err != nil {
+		return err
+	}
+
+	err = app.c.PatchNamespace(app.c.Namespace, operationsB)
+	logger().Info(fmt.Sprintf("Applying label '%s' in namespace '%s'",
+		IkeNamespaceLabel,
+		app.c.Namespace))
+	return err
 }

@@ -41,7 +41,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
+			Eventually(AllDeploymentsAndPodsReady(namespace), 2*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
+		})
+
+		BeforeEach(func() {
 			sessionName = GenerateSessionName()
 		})
 
@@ -64,7 +68,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Context("basic deployment modifications", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						// given we have details code locally
@@ -80,7 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
@@ -97,7 +101,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Context("deployment create/delete operations", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
 						ChangeNamespace("default")
@@ -113,7 +117,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						// check original response
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
@@ -163,7 +167,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 				Context("basic deployment modifications", func() {
 					It("should take over ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						ike := RunIke(testshell.GetProjectDir(), "develop",
@@ -175,7 +179,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
@@ -198,7 +202,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
 				ChangeNamespace(namespace)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 				// given we have details code locally
@@ -213,7 +217,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 				)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 				// then modify the service
@@ -227,12 +231,47 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 		})
 
+		Context("che deployment", func() {
+			var tmpRemove func()
+
+			BeforeEach(func() {
+				scenario = "scenario-che"
+				tmpRemove = test.TemporaryEnvVars(
+					"IKE_SESSION", sessionName,
+					"IKE_ROUTE", "header:x-test-suite=smoke")
+			})
+
+			AfterEach(func() {
+				tmpRemove()
+			})
+
+			It("should create session on deployment creation and remove on delete", func() {
+				ChangeNamespace(namespace)
+				EnsureAllDeploymentPodsAreReady(namespace)
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+
+				// given the mutation hook has kicked in
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("che-workspace"))
+
+				// when the mutated deployment is cleaned up
+				testshell.ExecuteInDir(tmpDir, "oc", "delete", "deployment", "che-workspace", "-n", namespace)
+
+				// then the session should no longer be available
+				EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring("che-workspace")))
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+			})
+		})
 	})
 })
 
-// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
-func EnsureAllPodsAreReady(namespace string) {
-	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+// EnsureAllDeploymentPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentPodsAreReady(namespace string) {
+	Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+}
+
+// EnsureAllDeploymentConfigPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentConfigPodsAreReady(namespace string) {
+	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.

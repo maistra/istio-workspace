@@ -2,6 +2,7 @@ package generator
 
 import (
 	"io"
+	"os"
 )
 
 var (
@@ -57,6 +58,55 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
+	)
+}
+
+// TestScenarioMutationHookChe is a basic test setup with a
+// few services calling each other in a chain. Similar to the original bookinfo example setup
+// and a single Deployment simulating a Che Deployment which should trigger the WebHook.
+// Using Deployment.
+func TestScenarioMutationHookChe(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
+	che := Entry{"che-workspace", "Deployment", Namespace}
+
+	Generate(
+		out,
+		[]Entry{productpage, reviews, ratings},
+		ForService(productpage, WithVersion("v1")),
+		ForService(reviews, WithVersion("v1")),
+		ForService(ratings, WithVersion("v1")),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
+		ForService(reviews, Call(HTTP(), ratings)),
+		GatewayOnHost(GatewayHost),
+	)
+	Do(out, che, Deployment,
+		WithAnnotations(map[string]string{
+			"ike.target":  "reviews-v1",
+			"ike.session": os.Getenv("IKE_SESSION"),
+			"ike.route":   os.Getenv("IKE_ROUTE")}),
+		WithLables(map[string]string{
+			"ike.able": "true",
+		}),
+	)
+}
+
+// TestScenarioMutationHookCheOnly is a basic test setup with a
+// few services calling each other in a chain. Similar to the original bookinfo example setup
+// and a single Deployment simulating a Che Deployment which should trigger the WebHook.
+// Using Deployment.
+func TestScenarioMutationHookCheOnly(out io.Writer) {
+	che := Entry{"che-workspace", "Deployment", Namespace}
+
+	Do(out, che, Deployment,
+		WithAnnotations(map[string]string{
+			"ike.target":  "reviews-v1",
+			"ike.session": os.Getenv("IKE_SESSION"),
+			"ike.route":   os.Getenv("IKE_ROUTE")}),
+		WithLables(map[string]string{
+			"ike.able": "true",
+		}),
 	)
 }
 

@@ -9,16 +9,17 @@ import (
 	"strings"
 	"text/template"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"gopkg.in/yaml.v2"
 
 	"github.com/maistra/istio-workspace/pkg/assets"
 
-	openshiftApi "github.com/openshift/api/template/v1"
+	openshiftTemplateApi "github.com/openshift/api/template/v1"
 
-	"gopkg.in/yaml.v2"
-
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -77,9 +78,9 @@ func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, 
 }
 
 // ParseParameters parses parameters defined in the template.
-func ParseParameters(tpl []byte) ([]openshiftApi.Parameter, error) {
+func ParseParameters(tpl []byte) ([]openshiftTemplateApi.Parameter, error) {
 	var parameters struct {
-		Parameter []openshiftApi.Parameter `yaml:"parameters"`
+		Parameter []openshiftTemplateApi.Parameter `yaml:"parameters"`
 	}
 
 	if err := yaml.Unmarshal(tpl, &parameters); err != nil {
@@ -123,7 +124,7 @@ type DecodeFunc func(data []byte, defaults *schema.GroupVersionKind, into runtim
 // and constructs decode function to be applied on the source YAML.
 func Decoder() (DecodeFunc, error) {
 	s := runtime.NewScheme()
-	if err := openshiftApi.Install(s); err != nil {
+	if err := openshiftTemplateApi.Install(s); err != nil {
 		return nil, err
 	}
 	if err := scheme.AddToScheme(s); err != nil {
@@ -132,7 +133,12 @@ func Decoder() (DecodeFunc, error) {
 	if err := apiextv1beta1.AddToScheme(s); err != nil {
 		return nil, err
 	}
-
+	if err := admissionregistrationv1.AddToScheme(s); err != nil {
+		return nil, err
+	}
+	if err := networkingv1.AddToScheme(s); err != nil {
+		return nil, err
+	}
 	return serializer.NewCodecFactory(s).UniversalDeserializer().Decode, nil
 }
 

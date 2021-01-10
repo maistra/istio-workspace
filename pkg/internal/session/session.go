@@ -49,6 +49,7 @@ func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
+	SessionName    string                  // name of the session
 	DeploymentName string                  // name of the resource to target within the cloned route.
 	RefStatus      istiov1alpha1.RefStatus // the current ref status object
 }
@@ -58,7 +59,7 @@ type Handler func(opts Options, client *Client) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing.
 func Offline(opts Options, client *Client) (State, func(), error) {
-	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
+	return State{SessionName: opts.SessionName, DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
 // handler wraps the session client and required metadata used to manipulate the resources.
@@ -88,7 +89,7 @@ func RemoveHandler(opts Options, client *Client) (State, func(), error) {
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
-	sessionName := getOrCreateSessionName(opts.SessionName)
+	sessionName := GetOrCreateSessionName(opts.SessionName)
 	opts.SessionName = sessionName
 
 	h := &handler{c: client,
@@ -99,6 +100,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 		return State{}, func() {}, err
 	}
 	return State{
+			SessionName:    opts.SessionName,
 			DeploymentName: serviceName,
 			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
 		}, func() {
@@ -239,7 +241,7 @@ func (h *handler) removeOrLeaveSession() {
 	}
 }
 
-func getOrCreateSessionName(sessionName string) string {
+func GetOrCreateSessionName(sessionName string) string {
 	if sessionName != "" {
 		return sessionName
 	}

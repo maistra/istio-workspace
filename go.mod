@@ -42,6 +42,7 @@ require (
 	golang.org/x/sys v0.0.0-20201116194326-cc9327a14d48 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20201117152513-9036a0f9af11
+	gomodules.xyz/jsonpatch/v2 v2.0.1
 	google.golang.org/grpc v1.27.0
 	google.golang.org/protobuf v1.23.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
