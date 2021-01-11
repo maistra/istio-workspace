@@ -53,8 +53,12 @@ func loadPatches(tplFolder string) []Patch {
 
 // NewDefaultEngine returns a new Engine with a predefined templates.
 func NewDefaultEngine() Engine {
-	const tplFolder = "template/strategies" // FIXME should be env variable / flag ?
-	return NewPatchEngine(loadPatches(tplFolder))
+	return NewDefaultPatchEngine("template/strategies")
+}
+
+// NewDefaultPatchEngine returns a new Engine with a predefined templates.
+func NewDefaultPatchEngine(path string) Engine {
+	return NewPatchEngine(loadPatches(path))
 }
 
 // NewPatchEngine constructs a new Engine with the given templates.
