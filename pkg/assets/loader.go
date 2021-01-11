@@ -18,7 +18,7 @@ func Load(filePath string) (data []byte, err error) {
 	return data, err
 }
 
-func LoadDir(path string) ([]string, error) {
+func ListDir(path string) ([]string, error) {
 	if dirExists(path) {
 		dirInfo, e := ioutil.ReadDir(path)
 		if e != nil {

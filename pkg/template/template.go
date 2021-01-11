@@ -14,7 +14,7 @@ import (
 )
 
 func loadPatches(tplFolder string) []Patch {
-	tplDir, err := assets.LoadDir(tplFolder)
+	tplDir, err := assets.ListDir(tplFolder)
 	if err != nil {
 		panic(err)
 	}
