@@ -1,0 +1,80 @@
+== Comparison of ServicePreview vs istio-workspace
+
+
+=== Service Preview
+
+
+“Traffic (aka ServicePreview)” feature require license install, open source license has usage restrictions (at least on the general Ambasador setup, unsure if that affect Traffic)
+
+Edge CI - https://www.getambassador.io/docs/latest/topics/using/edgectl/edge-control-in-ci/[https://www.getambassador.io/docs/latest/topics/using/edgectl/edge-control-in-ci/]
+
+Ambassador injector will modify the deployment and inject the Traffic Agent sidecar, then the sidecar talks to the ‘real service’.  Requires that the Service use targetPort: http so the injector can change which port in the deployment is called http. +
+https://www.getambassador.io/docs/latest/topics/using/edgectl/service-preview-reference/#manual-traffic-agent-sidecar-configuration[https://www.getambassador.io/docs/latest/topics/using/edgectl/service-preview-reference/#manual-traffic-agent-sidecar-configuration]
+
+Currently does not run out of the box on Openshift
+
+Currently does not run with istio.
+
+* Sidecar injection seems a little random who wins?
+
+=== Istio-workspace
+
+
+Require no change to the target deployment. +
+Rely on manipulating istio directly.
+
+Strongest point; deep middleware integration
+
+* Che, odo, IDE extension
+* Cache, Messaging understanding
+* Kiali notations
+
+=== Approaches
+
+==== Istio-workspace
+
+One command drives the entire flow of building and running the service locally and communicating with the cluster to set up corresponding deployment and define routes. Focused on ease of use and integration with existing frameworks.
+
+==== Service Preview
+
+Appears to be intended as a plumbing command. It lets the developer connect service running locally to the Service Preview deployment running in the cluster. Requires more steps to enable the development flow but on the other it's more decoupled. This potentially enables easier integration with 3rd party tooling. Custom solution from a-z.
+
+=== Comparison table
+
+
+|===
+||ServicePreview|istio-workspaces
+
+|License|ASLv2 - runs under a License mgm, require email to get key|ASLv2
+|||
+|Intercept on HTTP Header|Yes|Yes
+|Intercept on HTTP Path|No|No (1)
+|Intercept on gRPC Header|No ? (4)|Yes
+|Intercept on gRPC Path|No|No (1)
+|||
+|Works with istio|No [2]|Yes
+|Works with Openshift|No [3]|Yes
+|||
+|Dev: Mount fs|No|Yes
+|Dev: Mount env variables|No|Yes
+|Dev: Intercept single service|Yes|Yes
+|Dev: Intercept multiple services |Yes|Yes
+|Dev: Local shell like access to the cluster|Yes|No (1)
+|Dev: multi cluster|No|Yes
+|Dev: multi namespace|Yes|Yes
+|||
+|CI: Intercept single service image|No|Yes
+|CI: Intercept multiple service images|No|Yes
+|CI: Multiple CI jobs|Yes|Yes
+|||
+|Console: Route overview|No (5)|Yes (6)
+|k8s cli tooling|No|Yes
+|===
+
+. But possible
+. Seems to be fighting over who will inject the sidecars
+. Not out of the box yet
+. Unclear if gRPC is supported. Mentioned in docs elsewhere but refer to require HTTP in ServicePreview section. 
+. Text representation
+. Fully visual in Kiali
+
