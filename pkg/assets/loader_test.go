@@ -1,11 +1,13 @@
-package assets
+package assets //nolint:testpackage //reason we want to stub go-bindata internal structs
 
 import (
-	"github.com/maistra/istio-workspace/test"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"os"
 	"time"
+
+	"github.com/maistra/istio-workspace/test"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Loading assets", func() {
@@ -49,7 +51,6 @@ var _ = Describe("Loading assets", func() {
 			})
 		})
 	})
-
 
 	Context("built-in assets", func() {
 
@@ -124,8 +125,8 @@ func stubBinDataStructs(tmpDirName, assetName, fileName string) {
 
 // Stubbed asset generation
 
-var _testYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\x2c\x51\x28\xcf\x2f\xca\x2e\x56\x48\xcc\x29\xce\x57\xc8\x48\x2d\x4a\xe5\x02\x04\x00\x00\xff\xff\x26\xff\x91\x56\x13\x00\x00\x00")
-
+var _testYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\x2c\x51\x28\xcf\x2f\xca\x2e\x56\x48\xcc\x29\xce\x57\xc8" +
+	"\x48\x2d\x4a\xe5\x02\x04\x00\x00\xff\xff\x26\xff\x91\x56\x13\x00\x00\x00")
 
 func testYamlBytes(name string) ([]byte, error) {
 	return bindataRead(

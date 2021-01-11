@@ -5,7 +5,6 @@
 // deploy/operator.yaml
 // deploy/operator.tpl.yaml
 // deploy/role.yaml
-// deploy/empty_dir/works.yaml
 // deploy/crds/maistra.io_sessions_crd.yaml
 // deploy/crds/maistra.io_sessions_cr.yaml
 // deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml
@@ -190,26 +189,6 @@ func deployRoleYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "deploy/role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _deployEmpty_dirWorksYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\x2c\x51\x28\xcf\x2f\xca\x2e\x56\x48\xcc\x29\xce\x57\xc8\x48\x2d\x4a\xe5\x02\x04\x00\x00\xff\xff\x26\xff\x91\x56\x13\x00\x00\x00")
-
-func deployEmpty_dirWorksYamlBytes() ([]byte, error) {
-	return bindataRead(
-		_deployEmpty_dirWorksYaml,
-		"deploy/empty_dir/works.yaml",
-	)
-}
-
-func deployEmpty_dirWorksYaml() (*asset, error) {
-	bytes, err := deployEmpty_dirWorksYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "deploy/empty_dir/works.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -506,24 +485,23 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"deploy/cluster_role.yaml":                                                                deployCluster_roleYaml,
-	"deploy/service_account.yaml":                                                             deployService_accountYaml,
-	"deploy/operator.yaml":                                                                    deployOperatorYaml,
-	"deploy/operator.tpl.yaml":                                                                deployOperatorTplYaml,
-	"deploy/role.yaml":                                                                        deployRoleYaml,
-	"deploy/empty_dir/works.yaml":                                                             deployEmpty_dirWorksYaml,
-	"deploy/crds/maistra.io_sessions_crd.yaml":                                                deployCrdsMaistraIo_sessions_crdYaml,
-	"deploy/crds/maistra.io_sessions_cr.yaml":                                                 deployCrdsMaistraIo_sessions_crYaml,
+	"deploy/cluster_role.yaml":                 deployCluster_roleYaml,
+	"deploy/service_account.yaml":              deployService_accountYaml,
+	"deploy/operator.yaml":                     deployOperatorYaml,
+	"deploy/operator.tpl.yaml":                 deployOperatorTplYaml,
+	"deploy/role.yaml":                         deployRoleYaml,
+	"deploy/crds/maistra.io_sessions_crd.yaml": deployCrdsMaistraIo_sessions_crdYaml,
+	"deploy/crds/maistra.io_sessions_cr.yaml":  deployCrdsMaistraIo_sessions_crYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/istio-workspace.clusterserviceversion.yaml": deployOlmCatalogIstioWorkspaceManifestsIstioWorkspaceClusterserviceversionYaml,
 	"deploy/olm-catalog/istio-workspace/manifests/maistra.io_sessions_crd.yaml":               deployOlmCatalogIstioWorkspaceManifestsMaistraIo_sessions_crdYaml,
-	"deploy/role_binding.yaml":                                                                deployRole_bindingYaml,
-	"deploy/cluster_role_binding.yaml":                                                        deployCluster_role_bindingYaml,
-	"template/strategies/telepresence.tpl":                                                    templateStrategiesTelepresenceTpl,
-	"template/strategies/_basic-version.tpl":                                                  templateStrategies_basicVersionTpl,
-	"template/strategies/telepresence.var":                                                    templateStrategiesTelepresenceVar,
-	"template/strategies/_basic-remove.tpl":                                                   templateStrategies_basicRemoveTpl,
-	"template/strategies/prepared-image.tpl":                                                  templateStrategiesPreparedImageTpl,
-	"template/strategies/prepared-image.var":                                                  templateStrategiesPreparedImageVar,
+	"deploy/role_binding.yaml":               deployRole_bindingYaml,
+	"deploy/cluster_role_binding.yaml":       deployCluster_role_bindingYaml,
+	"template/strategies/telepresence.tpl":   templateStrategiesTelepresenceTpl,
+	"template/strategies/_basic-version.tpl": templateStrategies_basicVersionTpl,
+	"template/strategies/telepresence.var":   templateStrategiesTelepresenceVar,
+	"template/strategies/_basic-remove.tpl":  templateStrategies_basicRemoveTpl,
+	"template/strategies/prepared-image.tpl": templateStrategiesPreparedImageTpl,
+	"template/strategies/prepared-image.var": templateStrategiesPreparedImageVar,
 }
 
 // AssetDir returns the file names below a certain
@@ -573,9 +551,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"crds": &bintree{nil, map[string]*bintree{
 			"maistra.io_sessions_cr.yaml":  &bintree{deployCrdsMaistraIo_sessions_crYaml, map[string]*bintree{}},
 			"maistra.io_sessions_crd.yaml": &bintree{deployCrdsMaistraIo_sessions_crdYaml, map[string]*bintree{}},
-		}},
-		"empty_dir": &bintree{nil, map[string]*bintree{
-			"works.yaml": &bintree{deployEmpty_dirWorksYaml, map[string]*bintree{}},
 		}},
 		"olm-catalog": &bintree{nil, map[string]*bintree{
 			"istio-workspace": &bintree{nil, map[string]*bintree{

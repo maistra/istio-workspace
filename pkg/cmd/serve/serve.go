@@ -66,9 +66,6 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return e
 	}
 
-	// FIXME: create tests for LoadDir()
-	// FIXME: review template test for to happy path
-
 	// Create a new Cmd to provide shared dependencies and Start components
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:              namespace,

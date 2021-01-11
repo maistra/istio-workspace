@@ -1,8 +1,9 @@
 package assets_test
 
 import (
-	"go.uber.org/goleak"
 	"testing"
+
+	"go.uber.org/goleak"
 
 	. "github.com/maistra/istio-workspace/test"
 
