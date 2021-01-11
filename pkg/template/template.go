@@ -98,7 +98,7 @@ type Engine interface {
 	Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error)
 }
 
-// PatchEngine is a reusable instance with a configured set of patch templates to manipulate the Deployment object via json pathces.
+// PatchEngine is a reusable instance with a configured set of patch templates to manipulate the Deployment object via json patches.
 type patchEngine struct {
 	patches Patches
 }

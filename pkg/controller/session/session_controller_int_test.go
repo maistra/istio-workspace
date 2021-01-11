@@ -3,13 +3,14 @@ package session_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/template"
+	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 	"github.com/maistra/istio-workspace/test/testclient"
 
@@ -55,7 +56,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		c = fake.NewFakeClientWithScheme(schema, objects...)
 		get = testclient.New(c)
-		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators(template.NewDefaultEngine()))
+		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
 	})
 
 	Context("in a complete lifecycle", func() {
@@ -286,6 +287,70 @@ var _ = Describe("Complete session manipulation", func() {
 					Expect(*res.Action).ToNot(Equal("failed"))
 				}
 			})
+		})
+	})
+	FContext("with dynamically loaded templates", func() {
+		var restoreEnvVars func()
+
+		BeforeEach(func() {
+			println(">>>>>>> oups")
+			scenario = generator.TestScenario1HTTPThreeServicesInSequence
+			objects = []runtime.Object{}
+			objects = append(objects, &v1alpha1.Session{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-session1",
+					Namespace: namespace,
+				},
+				Spec: v1alpha1.SessionSpec{
+					Refs: []v1alpha1.Ref{
+						{
+							Name:     "ratings-v1",
+							Strategy: "telepresence",
+						},
+					},
+				},
+			})
+
+			tmpDir := test.TmpDir(GinkgoT(), "template")
+			test.TmpFile(GinkgoT(), "telepresence.tpl", `
+[
+	{{ if not (.Data.Has "/spec/template/spec/replicas") }}
+	{"op": "add", "path": "/spec/template/spec/replicas", "value": "10"}
+	{{ end }}
+]
+`)
+			restoreEnvVars = test.TemporaryEnvVars("TEMPLATE_PATH", tmpDir)
+		})
+
+		AfterEach(func() {
+			restoreEnvVars()
+			test.CleanUpTmpFiles(GinkgoT())
+		})
+
+		It("", func() {
+			req1 := reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      "test-session1",
+					Namespace: "test",
+				},
+			}
+			// Given - create first ref
+			res1, err := controller.Reconcile(req1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res1.Requeue).To(BeFalse())
+
+			sess := get.Session("test", "test-session1")
+			fmt.Println("targets")
+			for _, r := range sess.Status.Refs[0].Targets {
+				fmt.Printf("%v %v\n", *r.Name, *r.Kind)
+			}
+			fmt.Println("resources")
+			for _, r := range sess.Status.Refs[0].Resources {
+				fmt.Printf("%v %v\n", *r.Name, *r.Kind)
+			}
+
+			dc := get.Deployment("test", "ratings-v1-test-session1")
+			Expect(dc.Spec.Replicas).To(Equal(int32(10)))
 		})
 	})
 })

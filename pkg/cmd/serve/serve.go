@@ -66,7 +66,6 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return e
 	}
 
-	// FIXME: pass in env variable "TEMPLATE_PATH" to controller to loadPatches
 	// FIXME: create tests for LoadDir()
 	// FIXME: review template test for to happy path
 

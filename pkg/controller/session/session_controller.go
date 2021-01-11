@@ -36,7 +36,14 @@ var (
 )
 
 // DefaultManipulators contains the default config for the reconciler.
-func DefaultManipulators(engine template.Engine) Manipulators {
+func DefaultManipulators() Manipulators {
+	var engine template.Engine
+	if path, exists := os.LookupEnv("TEMPLATE_PATH"); exists {
+		engine = template.NewDefaultPatchEngine(path)
+	} else {
+		engine = template.NewDefaultEngine()
+	}
+
 	return Manipulators{
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
@@ -70,14 +77,7 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
-	var engine template.Engine
-	if path, exists := os.LookupEnv("TEMPLATE_PATH"); exists {
-		engine = template.NewDefaultPatchEngine(path)
-	} else {
-		engine = template.NewDefaultEngine()
-	}
-
-	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators(engine)}
+	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
 }
 
 // NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager.
