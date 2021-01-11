@@ -1,7 +1,6 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/controller"
 	"context"
 	"time"
 
@@ -441,25 +440,6 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(modified.ObjectMeta.Finalizers).To(HaveLen(0))
 		})
 	})
-})
-
-Context("", func() {
-
-	It("", func(){
-		// set 'runtime' Object client
-
-
-		// create the template folder
-		// set env var to new template folder
-
-		controller := session.NewStandaloneReconciler(client, session.DefaultManipulators())
-
-		// run, reconsile
-
-		// verify, read runtime object
-
-	})
-
 })
 
 // notFound Action for Locator tracker.

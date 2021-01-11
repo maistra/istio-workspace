@@ -3,7 +3,6 @@ package session_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"strings"
 
@@ -289,11 +288,10 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 		})
 	})
-	FContext("with dynamically loaded templates", func() {
+	Context("with dynamically loaded templates", func() {
 		var restoreEnvVars func()
 
 		BeforeEach(func() {
-			println(">>>>>>> oups")
 			scenario = generator.TestScenario1HTTPThreeServicesInSequence
 			objects = []runtime.Object{}
 			objects = append(objects, &v1alpha1.Session{
@@ -312,11 +310,9 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 
 			tmpDir := test.TmpDir(GinkgoT(), "template")
-			test.TmpFile(GinkgoT(), "telepresence.tpl", `
+			test.TmpFile(GinkgoT(), tmpDir+"/telepresence.tpl", `
 [
-	{{ if not (.Data.Has "/spec/template/spec/replicas") }}
-	{"op": "add", "path": "/spec/template/spec/replicas", "value": "10"}
-	{{ end }}
+	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"}
 ]
 `)
 			restoreEnvVars = test.TemporaryEnvVars("TEMPLATE_PATH", tmpDir)
@@ -327,7 +323,7 @@ var _ = Describe("Complete session manipulation", func() {
 			test.CleanUpTmpFiles(GinkgoT())
 		})
 
-		It("", func() {
+		It("ensure template was called", func() {
 			req1 := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      "test-session1",
@@ -339,18 +335,8 @@ var _ = Describe("Complete session manipulation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res1.Requeue).To(BeFalse())
 
-			sess := get.Session("test", "test-session1")
-			fmt.Println("targets")
-			for _, r := range sess.Status.Refs[0].Targets {
-				fmt.Printf("%v %v\n", *r.Name, *r.Kind)
-			}
-			fmt.Println("resources")
-			for _, r := range sess.Status.Refs[0].Resources {
-				fmt.Printf("%v %v\n", *r.Name, *r.Kind)
-			}
-
-			dc := get.Deployment("test", "ratings-v1-test-session1")
-			Expect(dc.Spec.Replicas).To(Equal(int32(10)))
+			_, err = get.DeploymentWithError("test", "ratings-v1-custom-template")
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })
