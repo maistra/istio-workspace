@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/template"
+
 	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -315,7 +317,7 @@ var _ = Describe("Complete session manipulation", func() {
 	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"}
 ]
 `)
-			restoreEnvVars = test.TemporaryEnvVars("TEMPLATE_PATH", tmpDir)
+			restoreEnvVars = test.TemporaryEnvVars(template.TemplatePath, tmpDir)
 		})
 
 		AfterEach(func() {

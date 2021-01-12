@@ -13,6 +13,8 @@ import (
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
+const TemplatePath = "TEMPLATE_PATH"
+
 func loadPatches(tplFolder string) []Patch {
 	tplDir, err := assets.ListDir(tplFolder)
 	if err != nil {

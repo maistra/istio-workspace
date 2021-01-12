@@ -38,7 +38,7 @@ var (
 // DefaultManipulators contains the default config for the reconciler.
 func DefaultManipulators() Manipulators {
 	var engine template.Engine
-	if path, exists := os.LookupEnv("TEMPLATE_PATH"); exists {
+	if path, exists := os.LookupEnv(template.TemplatePath); exists {
 		engine = template.NewDefaultPatchEngine(path)
 	} else {
 		engine = template.NewDefaultEngine()
