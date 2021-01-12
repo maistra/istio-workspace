@@ -98,7 +98,7 @@ format: $(SRCS) ## Removes unneeded imports and formats source code
 	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
-lint-prepare: deps operator-codegen compile
+lint-prepare: deps tools operator-codegen compile
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
