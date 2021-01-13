@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/assets"
+
 	"github.com/maistra/istio-workspace/pkg/client/dynclient"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/openshift/parser"
@@ -153,7 +155,7 @@ func apply(a func(path string) error, paths ...string) error {
 }
 
 func (app *applier) applyResource(resourcePath string) error {
-	rawCrd, err := parser.Load("deploy/" + resourcePath)
+	rawCrd, err := assets.Load("deploy/" + resourcePath)
 	if err != nil {
 		return err
 	}

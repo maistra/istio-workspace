@@ -31,7 +31,7 @@ func init() {
 }
 
 func collectTplParams(resource string) {
-	tpl, err := parser.Load(resource)
+	tpl, err := assets.Load(resource)
 	if err != nil {
 		logger().Error(err, "failed parsing "+resource+"template")
 	}

@@ -14,7 +14,7 @@ BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 TPL_BINARY_NAME:=tpl
 ASSETS:=pkg/assets/isto-workspace-deploy.go
-ASSET_SRCS=$(shell find ./deploy -name "*.yaml")
+ASSET_SRCS=$(shell find ./deploy ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var")
 MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
@@ -100,7 +100,7 @@ format: $(SRCS) ## Removes unneeded imports and formats source code
 	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
 
 .PHONY: lint-prepare
-lint-prepare: deps operator-codegen compile
+lint-prepare: deps tools operator-codegen compile
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools

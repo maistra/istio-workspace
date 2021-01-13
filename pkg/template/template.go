@@ -8,141 +8,64 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/maistra/istio-workspace/pkg/assets"
+
 	jsonpatch "github.com/evanphx/json-patch"
 )
 
-// NewDefaultEngine returns a new Engine with a predefined templates.
-func NewDefaultEngine() *Engine {
-	patches := []Patch{
-		{
-			Name: "prepared-image",
-			Template: []byte(`[
-					{{ template "_basic-version" . }}
-				{{ if not (.Data.Has "/spec/template/spec/replicas") }}
-				{"op": "add", "path": "/spec/template/spec/replicas", "value": {}},
-				{{ end }}
-				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
-				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "{{.Vars.image}}"},
+const TemplatePath = "TEMPLATE_PATH"
 
-					{{ template "_basic-remove" . }}
-				]`),
-			Variables: map[string]string{
-				"image": "",
-			},
-		},
-		{
-			Name: "telepresence",
-			Template: []byte(`
-{{ failIfVariableDoesNotExist .Vars "version" -}}
-[
-					{{ template "_basic-version" . }}
-				{{ if not (.Data.Has "/spec/template/spec/replicas") }}
-				{"op": "add", "path": "/spec/template/spec/replicas", "value": {}},
-				{{ end }}
-				{"op": "replace", "path": "/spec/template/spec/replicas", "value": "1"},
-				{"op": "add", "path": "/spec/template/metadata/labels/telepresence", "value": "test"},
-				{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "datawire/telepresence-k8s:{{.Vars.version}}"},
-				{{ if not (.Data.Has "/spec/template/spec/containers/0/env") }}
-				{"op": "add", "path": "/spec/template/spec/containers/0/env", "value": []},
-				{{ end }}
-				{"op": "add", "path": "/spec/template/spec/containers/0/env/-", "value": {
-					"name": "TELEPRESENCE_CONTAINER_NAMESPACE",
-					"valueFrom": {
-						"fieldRef": {
-							"apiVersion": "v1",
-							"fieldPath": "metadata.namespace"
-						}
+func loadPatches(tplFolder string) []Patch {
+	tplDir, err := assets.ListDir(tplFolder)
+	if err != nil {
+		panic(err)
+	}
+	patches := []Patch{}
+	for _, file := range tplDir {
+		if !strings.HasSuffix(file, ".tpl") {
+			continue
+		}
+		tplName := strings.Replace(file, ".tpl", "", -1)
+		tpl, err := assets.Load(tplFolder + "/" + file)
+		if err != nil {
+			panic(err)
+		}
+		tplVars := map[string]string{}
+		if tplVarRaw, err := assets.Load(tplFolder + "/" + tplName + ".var"); err == nil {
+			for _, line := range strings.Split(string(tplVarRaw), "\n") {
+				if line != "" {
+					vars := strings.Split(line, "=")
+					varName := strings.Trim(vars[0], " ")
+					tplVars[varName] = ""
+					if len(vars) == 2 {
+						tplVars[varName] = strings.Trim(vars[1], " ")
 					}
 				}
-				},
-				{{ if .Data.Has "/spec/template/spec/containers/0/args" }}
-				{"op": "remove", "path": "/spec/template/spec/containers/0/args"},
-				{{ end }}
-				{{ if .Data.Has "/spec/template/spec/containers/0/command" }}
-				{"op": "remove", "path": "/spec/template/spec/containers/0/command"},
-				{{ end }}
-
-					{{ template "_basic-remove" . }}
-				]
-`),
-			Variables: map[string]string{
-				"version": "",
-			},
-		},
-		{
-			Name: "_basic-version",
-			Template: []byte(`
-				{{ if not (.Data.Has "/spec/template/metadata") }}
-				{"op": "add", "path": "/spec/template/metadata", "value": {}},
-				{{ end }}
-				{{ if not (.Data.Has "/spec/template/metadata/labels") }}
-				{"op": "add", "path": "/spec/template/metadata/labels", "value": {}},
-				{{ end }}
-				{{ if .Data.Has "/spec/template/metadata/labels/version" }}
-				{"op": "copy", "from": "/spec/template/metadata/labels/version", "path": "/spec/template/metadata/labels/version-source"},
-				{"op": "replace", "path": "/spec/template/metadata/labels/version", "value": "{{.NewVersion}}"},
-				{{ end }}
-				{{ if not (.Data.Has "/spec/template/metadata/labels/version") }}
-				{"op": "add", "path": "/spec/template/metadata/labels/version", "value": "{{.NewVersion}}"},
-				{{ end }}
-				{{ if not (.Data.Has "/spec/selector") }}
-				{"op": "add", "path": "/spec/selector", "value": {}},
-				{{ end }}
-				{{ if .Data.Equal "/kind" "Deployment" }}
-					{{ if not (.Data.Has "/spec/selector/matchLabels") }}
-					{"op": "add", "path": "/spec/selector/matchLabels", "value": {}},
-					{{ end }}
-					{{ if .Data.Has "/spec/selector/matchLabels/version" }}
-					{"op": "replace", "path": "/spec/selector/matchLabels/version", "value": "{{.NewVersion}}"},
-					{{ end }}
-					{{ if not (.Data.Has "/spec/selector/matchLabels/version") }}
-					{"op": "add", "path": "/spec/selector/matchLabels/version", "value": "{{.NewVersion}}"},
-					{{ end }}
-				{{ end }}
-				{{ if .Data.Equal "/kind" "DeploymentConfig" }}
-					{{ if .Data.Has "/spec/selector/version" }}
-					{"op": "replace", "path": "/spec/selector/version", "value": "{{.NewVersion}}"},
-					{{ end }}
-					{{ if not (.Data.Has "/spec/selector/version") }}
-					{"op": "add", "path": "/spec/selector/version", "value": "{{.NewVersion}}"},
-					{{ end }}
-				{{ end }}
-				{{ if .Data.Has "/metadata/labels/version" }}
-				{"op": "replace", "path": "/metadata/labels/version", "value": "{{.NewVersion}}"},
-				{{ end }}
-				{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-{{.NewVersion}}"},
-			`),
-		},
-		{
-			Name: "_basic-remove",
-			Template: []byte(`
-				{{ if .Data.Has "/spec/template/spec/containers/0/livenessProbe" }}
-				{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"},
-				{{ end }}
-				{{ if .Data.Has "/spec/template/spec/containers/0/readinessProbe" }}
-				{"op": "remove", "path": "/spec/template/spec/containers/0/readinessProbe"},
-				{{ end }}
-				{{ if .Data.Has "/metadata/resourceVersion" }}
-				{"op": "remove", "path": "/metadata/resourceVersion"},
-				{{ end }}
-				{{ if .Data.Has "/metadata/generation" }}
-				{"op": "remove", "path": "/metadata/generation"},
-				{{ end }}
-				{{ if .Data.Has "/metadata/uid" }}
-				{"op": "remove", "path": "/metadata/uid"},
-				{{ end }}
-				{{ if .Data.Has "/metadata/creationTimestamp" }}
-				{"op": "remove", "path": "/metadata/creationTimestamp"}
-				{{ end }}
-			`),
-		},
+			}
+		}
+		patches = append(patches, Patch{
+			Name:      tplName,
+			Template:  tpl,
+			Variables: tplVars,
+		})
 	}
-	return NewEngine(patches)
+
+	return patches
 }
 
-// NewEngine constructs a new Engine with the given templates.
-func NewEngine(patches Patches) *Engine {
-	return &Engine{patches: patches}
+// NewDefaultEngine returns a new Engine with a predefined templates.
+func NewDefaultEngine() Engine {
+	return NewDefaultPatchEngine("template/strategies")
+}
+
+// NewDefaultPatchEngine returns a new Engine with a predefined templates.
+func NewDefaultPatchEngine(path string) Engine {
+	return NewPatchEngine(loadPatches(path))
+}
+
+// NewPatchEngine constructs a new Engine with the given templates.
+func NewPatchEngine(patches Patches) Engine {
+	return &patchEngine{patches: patches}
 }
 
 // NewJSON constructs a JSON object from a json string.
@@ -172,8 +95,13 @@ type Patch struct {
 // Patches holds all known patch templates for a Engine.
 type Patches []Patch
 
-// Engine is a reusable instance with a configured set of patch templates.
-type Engine struct {
+// Engine is a interface that describes a way to prepare the Deployment for cloning.
+type Engine interface {
+	Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error)
+}
+
+// PatchEngine is a reusable instance with a configured set of patch templates to manipulate the Deployment object via json patches.
+type patchEngine struct {
 	patches Patches
 }
 
@@ -233,8 +161,8 @@ func (t JSON) Equal(path string, compare interface{}) bool {
 }
 
 // Run performs the template transformation of a given json structure.
-func (e Engine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
-	t, err := loadTemplate(e.patches)
+func (e patchEngine) Run(name string, resource []byte, newVersion string, variables map[string]string) ([]byte, error) {
+	t, err := parseTemplate(e.patches)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +214,7 @@ func (e Engine) Run(name string, resource []byte, newVersion string, variables m
 	return modified, nil
 }
 
-func (e Engine) findPatch(name string) *Patch {
+func (e patchEngine) findPatch(name string) *Patch {
 	var patch *Patch
 	for i, p := range e.patches {
 		if p.Name == name {
@@ -297,7 +225,7 @@ func (e Engine) findPatch(name string) *Patch {
 	return patch
 }
 
-func loadTemplate(patches Patches) (*template.Template, error) {
+func parseTemplate(patches Patches) (*template.Template, error) {
 	var err error
 	t := template.New("workspace").Funcs(template.FuncMap{
 		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
