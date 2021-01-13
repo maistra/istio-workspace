@@ -157,7 +157,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2), "Expected process to be restarted.")
 		})
 
-		XIt("should only re-run java process when --no-build flag specified but build defined in config", func() {
+		It("should only re-run java process when --no-build flag specified but build defined in config", func() {
 			// given
 			configFile := TmpFile(GinkgoT(), "config.yaml", `watch:
   run: "java -jar config.jar"

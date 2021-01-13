@@ -8,8 +8,6 @@ import (
 	"syscall"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/pkg/cmd/develop"
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/watch"
@@ -20,8 +18,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	BuildFlagName   = "build"
+	NoBuildFlagName = "no-build"
+	RunFlagName     = "run"
+)
+
+var DefaultExclusions = []string{"*.log", ".git/"}
+
 var logger = func() logr.Logger {
-	return log.Log.WithValues("type", "watch")
+	return log.Log.WithValues("type", "execute")
 }
 
 // NewCmd creates execute command which triggers defined build and/or run script
@@ -39,13 +45,13 @@ func NewCmd() *cobra.Command {
 		RunE: execute,
 	}
 
-	executeCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
-	executeCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
-	executeCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
+	executeCmd.Flags().StringP(BuildFlagName, "b", "", "command to build your application before run")
+	executeCmd.Flags().Bool(NoBuildFlagName, false, "always skips build")
+	executeCmd.Flags().StringP(RunFlagName, "r", "", "command to run your application")
 	// Watch config
 	executeCmd.Flags().Bool("watch", false, "enables watch")
 	executeCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
-	executeCmd.Flags().StringSlice("exclude", develop.DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	executeCmd.Flags().StringSlice("exclude", DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
 	executeCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := executeCmd.Flags().MarkHidden("interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
@@ -61,20 +67,13 @@ func NewCmd() *cobra.Command {
 }
 
 func execute(command *cobra.Command, args []string) error {
-	// build first
-	// execute the --run cmd
-
-	// watch for changes
-	// --> build
-	// -> restart execution of --run
-
 	watcher := func(restart chan int32) (func(), error) {
 		dirs, _ := command.Flags().GetStringSlice("dir")
 		excluded, e := command.Flags().GetStringSlice("exclude")
 		if e != nil {
 			return nil, e
 		}
-		excluded = append(excluded, develop.DefaultExclusions...)
+		excluded = append(excluded, DefaultExclusions...)
 
 		ms, _ := command.Flags().GetInt64("interval")
 		w, err := watch.CreateWatch(ms).
@@ -140,17 +139,6 @@ func execute(command *cobra.Command, args []string) error {
 	kill <- struct{}{}
 
 	return nil
-
-	// RULES
-	// if first --run fails jump out
-	// if first build fails - jump out
-	// if subsequent --run fails ... hangs with watch still being there
-	// if subsequent build fails ... hangs with watch still being there
-
-	// TODO send sth on the kill channel still -> we need to kill build goroutine which was fired first --> restart being a counter
-	// TODO clean up Build.command / string parsing (optional flags --no-build etc)
-	// TODO RULES from above?
-	// TODO clean up the code
 }
 
 type stopper func() error
@@ -158,15 +146,33 @@ type executor func() stopper
 
 func buildExecutor(command *cobra.Command) executor {
 	return func() stopper {
-		buildCmd := command.Flag("build").Value.String() // TODO build-no-build review
+		buildFlag := command.Flag(BuildFlagName)
+
+		skipBuild, _ := command.Flags().GetBool(NoBuildFlagName)
+
+		shouldRunBuild := buildFlag.Changed && !skipBuild
+		if !shouldRunBuild {
+			return func() error { return nil }
+		}
+
+		buildCmd := command.Flag("build").Value.String()
 		buildArgs := strings.Split(buildCmd, " ")
 
 		b := gocmd.NewCmdOptions(shell.StreamOutput, buildArgs[0], buildArgs[1:]...)
+		b.Env = os.Environ()
 		shell.RedirectStreams(b, command.OutOrStdout(), command.OutOrStderr())
-		// FIXME Build auto run and wait while run does not.. smelly? external control?
+		logger().V(1).Info("starting build command",
+			"cmd", b.Name,
+			"args", fmt.Sprint(b.Args),
+		)
+
 		<-b.Start()
 		<-b.Done()
 
+		status := b.Status()
+		if status.Error != nil {
+			logger().Error(status.Error, "failed to run build command")
+		}
 		return b.Stop
 	}
 }
@@ -176,21 +182,31 @@ func runExecutor(command *cobra.Command) executor {
 		runCmd := command.Flag("run").Value.String()
 		runArgs := strings.Split(runCmd, " ")
 		r := gocmd.NewCmdOptions(shell.StreamOutput, runArgs[0], runArgs[1:]...)
+		r.Env = os.Environ()
 		shell.RedirectStreams(r, command.OutOrStdout(), command.OutOrStderr())
+		logger().V(1).Info("starting run command",
+			"cmd", r.Name,
+			"args", fmt.Sprint(r.Args),
+		)
 		r.Start()
-		return r.Stop
+		return func() error {
+			status := r.Status()
+			if status.Error != nil {
+				logger().Error(status.Error, "failed to run run command")
+			}
+			return r.Stop()
+		}
 	}
 }
 
 func buildAndRun(builder, runner executor, kill chan struct{}) {
-	// TODO how do we handle errors / propagate them to owning cmd
 	_ = builder()
 	stopRun := runner()
 
 	<-kill
 
 	if e := stopRun(); e != nil {
-		fmt.Printf("Failed while trying to stop RUN proccess %s", e.Error()) // TODO logger
+		logger().Error(e, "failed while trying to stop RUN process")
 	}
 }
 

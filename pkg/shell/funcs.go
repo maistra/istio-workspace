@@ -41,23 +41,7 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	)
 	status := <-cmd.Start()
 	<-cmd.Done()
-	fmt.Printf("Start done (%v) <- status\n", done)
 	done <- status
-}
-
-func Start2(cmd *gocmd.Cmd) {
-	cmd.Env = os.Environ()
-	logger().V(1).Info("starting command",
-		"cmd", cmd.Name,
-		"args", fmt.Sprint(cmd.Args),
-	)
-	<-cmd.Start()
-	<-cmd.Done()
-	fmt.Printf("starting command %s %s %s %s %s %d\n",
-		"cmd", cmd.Name,
-		"args", fmt.Sprint(cmd.Args),
-		"PID", cmd.Status().PID,
-	)
 }
 
 // ShutdownHookForChildCommand will wait for SIGTERM signal and stop the cmd
@@ -74,7 +58,6 @@ func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
 		for {
 			select {
 			case _, ok := <-hookChan:
-				fmt.Println("ShutdownHookForChildCommand SIGTERM received")
 				if !ok {
 					break OutOfLoop
 				}
@@ -84,7 +67,6 @@ func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
 				}
 				break OutOfLoop
 			case <-cmd.Done():
-				fmt.Printf("ShutdownHookForChildCommand <-done, break from outerloop\n")
 				break OutOfLoop
 			}
 		}

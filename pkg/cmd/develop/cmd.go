@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -28,8 +29,6 @@ const urlHint = `Knowing your application url you can now access your new versio
 $ curl -H"%s:%s" YOUR_APP_URL.
 
 If you can't see any changes make sure that this header is respected by your app and propagated down the call chain.`
-
-var DefaultExclusions = []string{"*.log", ".git/"}
 
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -87,12 +86,12 @@ func NewCmd() *cobra.Command {
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().StringSliceP("port", "p", []string{}, "list of ports to be exposed in format local[:remote].")
-	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
-	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
-	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
+	developCmd.Flags().StringP(execute.RunFlagName, "r", "", "command to run your application")
+	developCmd.Flags().StringP(execute.BuildFlagName, "b", "", "command to build your application before run")
+	developCmd.Flags().Bool(execute.NoBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{"."}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.Flags().StringSlice("watch-exclude", DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
+	developCmd.Flags().StringSlice("watch-exclude", execute.DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
@@ -111,7 +110,7 @@ func NewCmd() *cobra.Command {
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
 	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired(build.RunFlagName)
+	_ = developCmd.MarkFlagRequired(execute.RunFlagName)
 
 	return developCmd
 }
@@ -140,16 +139,16 @@ func createTpCommand(cmd *cobra.Command) []string {
 }
 
 func createWrapperCmd(cmd *cobra.Command) []string {
-	run := cmd.Flag(build.RunFlagName).Value.String()
+	run := cmd.Flag(execute.RunFlagName).Value.String()
 	executeArgs := []string{
 		"ike", "execute",
-		"--" + build.RunFlagName, run,
+		"--" + execute.RunFlagName, run,
 	}
-	if cmd.Flag(build.NoBuildFlagName).Changed {
-		executeArgs = append(executeArgs, "--"+build.NoBuildFlagName, cmd.Flag(build.NoBuildFlagName).Value.String())
+	if cmd.Flag(execute.NoBuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.NoBuildFlagName, cmd.Flag(execute.NoBuildFlagName).Value.String())
 	}
-	if cmd.Flag(build.BuildFlagName).Changed {
-		executeArgs = append(executeArgs, "--"+build.BuildFlagName, cmd.Flag(build.BuildFlagName).Value.String())
+	if cmd.Flag(execute.BuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.BuildFlagName, cmd.Flag(execute.BuildFlagName).Value.String())
 	}
 
 	watch, _ := cmd.Flags().GetBool("watch")
