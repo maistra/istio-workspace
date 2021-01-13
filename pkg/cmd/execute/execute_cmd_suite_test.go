@@ -1,4 +1,4 @@
-package watch_test
+package execute_test
 
 import (
 	"testing"
@@ -15,7 +15,7 @@ import (
 
 func TestWatchCommand(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Watch Command Suite")
+	RunSpecWithJUnitReporter(t, "Execute Command Suite")
 }
 
 var _ = BeforeSuite(shell.StubShellCommands)

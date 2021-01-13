@@ -50,7 +50,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	})
 
-	Describe("input validation", func() {
+	Context("input validation", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
@@ -191,7 +191,7 @@ var _ = Describe("Usage of ike develop command", func() {
 		})
 	})
 
-	Describe("telepresence arguments delegation", func() {
+	Context("telepresence arguments delegation", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
@@ -241,17 +241,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			Expect(output).To(ContainSubstring("--run java -jar rating.jar"))
 		})
 
-	})
-
-	Context("build execution", func() {
-
-		tmpPath := NewTmpPath()
-		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.TpBin), path.Dir(shell.MvnBin))
-		})
-		AfterEach(tmpPath.Restore)
-
-		It("should execute build when specified", func() {
+		It("should pass build execution when specified", func() {
 			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--build", "mvn clean install",
@@ -260,11 +250,11 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("mvn clean install"))
+			Expect(output).To(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
 
 		})
 
-		It("should not execute build when --no-build specified", func() {
+		It("should pass --no-build to execute command when specified", func() {
 			output, err := Run(developCmd).Passing("--deployment", "rating-service",
 				"--run", "java -jar rating.jar",
 				"--build", "mvn clean install",
@@ -274,7 +264,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).ToNot(ContainSubstring("mvn clean install"))
+			Expect(output).ToNot(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
 		})
 
 	})

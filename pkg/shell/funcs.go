@@ -39,10 +39,6 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 		"cmd", cmd.Name,
 		"args", fmt.Sprint(cmd.Args),
 	)
-	fmt.Printf("starting command %s %s %s %s\n",
-		"cmd", cmd.Name,
-		"args", fmt.Sprint(cmd.Args),
-	)
 	status := <-cmd.Start()
 	<-cmd.Done()
 	fmt.Printf("Start done (%v) <- status\n", done)

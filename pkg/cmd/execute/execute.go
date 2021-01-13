@@ -1,4 +1,4 @@
-package watch
+package execute
 
 import (
 	"fmt"
@@ -24,38 +24,43 @@ var logger = func() logr.Logger {
 	return log.Log.WithValues("type", "watch")
 }
 
-// NewCmd creates watch command which observes file system changes in the defined set of directories
+// NewCmd creates execute command which triggers defined build and/or run script
+// When --watch is defined it will continuously observe file system changes in the defined set of directories
 // and re-runs build and run command when they occur.
 // It is hidden (not user facing) as it's integral part of develop command.
 func NewCmd() *cobra.Command {
-	watchCmd := &cobra.Command{
-		Use:          "watch",
+	executeCmd := &cobra.Command{
+		Use:          "execute",
 		Hidden:       true,
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
-		RunE: watchForRealChanges,
+		RunE: execute,
 	}
 
-	watchCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
-	watchCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
-	watchCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
-	watchCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
-	watchCmd.Flags().StringSlice("exclude", develop.DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
-	watchCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
-	if err := watchCmd.Flags().MarkHidden("interval"); err != nil {
-		logger().Error(err, "failed while trying to hide a flag")
-	}
-	watchCmd.Flags().Bool("kill", false, "to kill during testing")
-	if err := watchCmd.Flags().MarkHidden("kill"); err != nil {
+	executeCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
+	executeCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
+	executeCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
+	// Watch config
+	executeCmd.Flags().Bool("watch", false, "enables watch")
+	executeCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
+	executeCmd.Flags().StringSlice("exclude", develop.DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	executeCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
+	if err := executeCmd.Flags().MarkHidden("interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
 
-	return watchCmd
+	// To enable SIGTERM emulation for testing purposes
+	executeCmd.Flags().Bool("kill", false, "to kill during testing")
+	if err := executeCmd.Flags().MarkHidden("kill"); err != nil {
+		logger().Error(err, "failed while trying to hide a flag")
+	}
+
+	return executeCmd
 }
 
-func watchForRealChanges(command *cobra.Command, args []string) error {
+func execute(command *cobra.Command, args []string) error {
 	// build first
 	// execute the --run cmd
 
@@ -97,11 +102,15 @@ func watchForRealChanges(command *cobra.Command, args []string) error {
 	restart := make(chan int32)
 	defer close(restart)
 
-	closeWatch, err := watcher(restart)
-	if err != nil {
-		return err
+	if w, e := command.Flags().GetBool("watch"); w && e == nil {
+		closeWatch, err := watcher(restart)
+		if err != nil {
+			return err
+		}
+		defer closeWatch()
+	} else if e != nil {
+		return e
 	}
-	defer closeWatch()
 
 	go func() {
 		for i := range restart {
@@ -175,24 +184,21 @@ func runExecutor(command *cobra.Command) executor {
 
 func buildAndRun(builder, runner executor, kill chan struct{}) {
 	// TODO how do we handle errors / propagate them to owning cmd
-	stopBuild := builder()
+	_ = builder()
 	stopRun := runner()
 
 	<-kill
 
-	if e := stopBuild(); e != nil {
-		fmt.Println(e.Error())
-	}
 	if e := stopRun(); e != nil {
-		fmt.Println(e.Error())
+		fmt.Printf("Failed while trying to stop RUN proccess %s", e.Error()) // TODO logger
 	}
 }
 
 // simulateSigterm allow us to simulate a SIGTERM when running cobra command inside a test.
-// Triggered by setting the command flag "kill" = true when you want SIGTERM to occure.
+// Triggered by setting the command flag "--kill" to true when you want SIGTERM to occur.
 func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hookChan chan os.Signal) {
-
-	if command.Annotations["test"] != "true" {
+	const enabled = "true"
+	if command.Annotations["test"] != enabled {
 		return
 	}
 
@@ -201,7 +207,7 @@ func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hoo
 		case <-testSigtermGuard:
 			return
 		default:
-			if command.Flag("kill").Value.String() == "true" {
+			if command.Flag("kill").Value.String() == enabled {
 				hookChan <- syscall.SIGTERM
 				return
 			}

@@ -1,11 +1,11 @@
-package watch_test
+package execute_test
 
 import (
 	"path"
 	"strings"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/watch"
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 
 	"github.com/maistra/istio-workspace/test/shell"
 
@@ -18,18 +18,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _ = Describe("Usage of ike watch command", func() {
+var _ = Describe("Usage of ike execute command", func() {
 
-	var watchCmd *cobra.Command
+	var executeCmd *cobra.Command
 
 	BeforeEach(func() {
 
-		watchCmd = watch.NewCmd()
-		watchCmd.SilenceUsage = true
-		watchCmd.SilenceErrors = false
-		watchCmd.Annotations = make(map[string]string, 1)
-		watchCmd.Annotations["test"] = "true"
-		NewCmd().AddCommand(watchCmd)
+		executeCmd = execute.NewCmd()
+		executeCmd.SilenceUsage = true
+		executeCmd.SilenceErrors = false
+		executeCmd.Annotations = make(map[string]string, 1)
+		executeCmd.Annotations["test"] = "true"
+		NewCmd().AddCommand(executeCmd)
 	})
 
 	Context("watching file changes", func() {
@@ -47,9 +47,10 @@ var _ = Describe("Usage of ike watch command", func() {
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
-				return Run(watchCmd).Passing(
+				return Run(executeCmd).Passing(
 					"--run", "java -jar rating.jar",
 					"--build", "mvn clean install",
+					"--watch",
 					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
@@ -59,7 +60,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			time.Sleep(16 * time.Millisecond)
 			_, _ = code.WriteString("modified!")
 
-			simulateSigterm(watchCmd)
+			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -76,8 +77,9 @@ var _ = Describe("Usage of ike watch command", func() {
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
-				return Run(watchCmd).Passing(
+				return Run(executeCmd).Passing(
 					"--run", "java -jar rating.jar",
+					"--watch",
 					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"interval", "10",
@@ -87,7 +89,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond)
 			_, _ = logFile.WriteString("\n>>> Server started")
-			simulateSigterm(watchCmd)
+			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -102,8 +104,9 @@ var _ = Describe("Usage of ike watch command", func() {
 			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
-				return Run(watchCmd).Passing(
+				return Run(executeCmd).Passing(
 					"--run", "java -jar rating.jar",
+					"--watch",
 					"--build", "mvn clean install",
 					"--dir", tmpDir+"/watch-test",
 					"--exclude", "*.java",
@@ -115,7 +118,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
-			simulateSigterm(watchCmd)
+			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -132,8 +135,9 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
-				return Run(watchCmd).Passing(
+				return Run(executeCmd).Passing(
 					"--run", "java -jar rating.jar",
+					"--watch",
 					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
 					"--interval", "10",
@@ -143,7 +147,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
-			simulateSigterm(watchCmd)
+			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -164,8 +168,9 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
-				return Run(watchCmd).Passing(
+				return Run(executeCmd).Passing(
 					"--config", configFile.Name(),
+					"--watch",
 					"--no-build",
 					"--dir", tmpDir+"/watch-test",
 					// for testing purposes we handle file change events more frequently to avoid excessively long tests
@@ -176,7 +181,7 @@ var _ = Describe("Usage of ike watch command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
-			simulateSigterm(watchCmd)
+			simulateSigterm(executeCmd)
 
 			// then
 			var output string

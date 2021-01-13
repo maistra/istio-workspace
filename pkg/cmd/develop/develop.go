@@ -59,14 +59,10 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
-			if err := build.Build(cmd); err != nil {
-				return err
-			}
-
 			done := make(chan gocmd.Status, 1)
 			defer close(done)
 
-			arguments := parseArguments(cmd)
+			arguments := createTpCommand(cmd)
 
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
@@ -120,37 +116,20 @@ func NewCmd() *cobra.Command {
 	return developCmd
 }
 
-func parseArguments(cmd *cobra.Command) []string {
-	run := cmd.Flag(build.RunFlagName).Value.String()
-	watch, _ := cmd.Flags().GetBool("watch")
-	runArgs := strings.Split(run, " ") // default value
-
-	if watch {
-		runArgs = []string{
-			"ike", "watch",
-			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
-			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
-			"--interval", cmd.Flag("watch-interval").Value.String(),
-			"--" + build.RunFlagName, run,
-		}
-		if cmd.Flag(build.BuildFlagName).Changed {
-			runArgs = append(runArgs, "--"+build.BuildFlagName, cmd.Flag(build.BuildFlagName).Value.String())
-		}
-	}
-
+func createTpCommand(cmd *cobra.Command) []string {
 	tpArgs := []string{
 		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 	}
 	if cmd.Flags().Changed("port") {
-		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occure if flag does not exist. If it doesn't, it won't be Changed()
+		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occur if flag does not exist. If it doesn't, it won't be Changed()
 		for _, port := range ports {
 			tpArgs = append(tpArgs, "--expose", port)
 		}
 	}
 
 	tpArgs = append(tpArgs, "--run")
-	tpCmd := append(tpArgs, runArgs...)
+	tpCmd := append(tpArgs, createWrapperCmd(cmd)...)
 
 	namespaceFlag := cmd.Flag("namespace")
 	if namespaceFlag.Changed {
@@ -158,6 +137,31 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return tpCmd
+}
+
+func createWrapperCmd(cmd *cobra.Command) []string {
+	run := cmd.Flag(build.RunFlagName).Value.String()
+	executeArgs := []string{
+		"ike", "execute",
+		"--" + build.RunFlagName, run,
+	}
+	if cmd.Flag(build.NoBuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+build.NoBuildFlagName, cmd.Flag(build.NoBuildFlagName).Value.String())
+	}
+	if cmd.Flag(build.BuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+build.BuildFlagName, cmd.Flag(build.BuildFlagName).Value.String())
+	}
+
+	watch, _ := cmd.Flags().GetBool("watch")
+	if watch {
+		executeArgs = append(executeArgs,
+			"--watch",
+			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
+			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
+			"--interval", cmd.Flag("watch-interval").Value.String(),
+		)
+	}
+	return executeArgs
 }
 
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
