@@ -189,7 +189,8 @@ func buildAndRun(builder, runner executor, kill chan struct{}) {
 
 // TODO document why.
 func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hookChan chan os.Signal) {
-	if command.Version != "test" {
+
+	if command.Annotations["test"] != "true" {
 		return
 	}
 
