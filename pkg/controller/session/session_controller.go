@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"os"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
@@ -9,6 +10,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/template"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-sdk/pkg/predicate"
@@ -35,6 +37,13 @@ var (
 
 // DefaultManipulators contains the default config for the reconciler.
 func DefaultManipulators() Manipulators {
+	var engine template.Engine
+	if path, exists := os.LookupEnv(template.TemplatePath); exists {
+		engine = template.NewDefaultPatchEngine(path)
+	} else {
+		engine = template.NewDefaultEngine()
+	}
+
 	return Manipulators{
 		Locators: []model.Locator{
 			k8s.DeploymentLocator,
@@ -43,8 +52,8 @@ func DefaultManipulators() Manipulators {
 			istio.VirtualServiceGatewayLocator,
 		},
 		Mutators: []model.Mutator{
-			k8s.DeploymentMutator,
-			openshift.DeploymentConfigMutator,
+			k8s.DeploymentMutator(engine),
+			openshift.DeploymentConfigMutator(engine),
 			istio.DestinationRuleMutator,
 			istio.GatewayMutator,
 			istio.VirtualServiceMutator,

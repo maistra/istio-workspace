@@ -6,6 +6,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -142,7 +143,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should add suffix to the cloned deploymentconfig", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_ = get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -150,7 +151,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should remove liveness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -159,7 +160,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should remove readiness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -168,7 +169,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should update selector", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -177,7 +178,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should only mutate if Target is of kind DeploymentConfig", func() {
 			notMatchingRef := model.Ref{Name: "test-ref", Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "test-ref", nil)}}
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &notMatchingRef)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.Name+"-v1-"+ctx.Name)
@@ -189,7 +190,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			It("should change container to telepresence", func() {
 				ref := CreateTestRef()
-				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -198,7 +199,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			It("should change add required env variables", func() {
 				ref := CreateTestRef()
-				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -214,7 +215,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				ref := CreateTestRef()
 				ref.Strategy = model.StrategyExisting
 
-				mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
 				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
@@ -257,7 +258,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should revert to original deploymentconfig", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(ctx, &ref)
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
 			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)

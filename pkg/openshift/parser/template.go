@@ -3,7 +3,6 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -42,7 +41,7 @@ func ProcessTemplateUsingEnvVars(templatePath string) ([]byte, error) {
 
 // ProcessTemplate applies variables defined in the passed map to the template.
 func ProcessTemplate(templatePath string, variables map[string]string) ([]byte, error) {
-	data, err := Load(templatePath)
+	data, err := assets.Load(templatePath)
 	if err != nil {
 		return nil, err
 	}
@@ -88,19 +87,6 @@ func ParseParameters(tpl []byte) ([]openshiftApi.Parameter, error) {
 	return parameters.Parameter, nil
 }
 
-// Load loads file asset into byte array
-// Assets from given directory are added to the final binary through go-bindata code generation.
-//
-// If filePath exists locally it will be loaded instead of looked up through go-bindata assets.
-func Load(filePath string) (data []byte, err error) {
-	if fileExists(filePath) {
-		data, err = ioutil.ReadFile(filePath)
-	} else {
-		data, err = assets.Asset(filePath)
-	}
-	return data, err
-}
-
 // Parse takes byte array as a source and turns it into runtime.Object.
 func Parse(source []byte) (runtime.Object, error) {
 	decode, err := Decoder()
@@ -134,13 +120,4 @@ func Decoder() (DecodeFunc, error) {
 	}
 
 	return serializer.NewCodecFactory(s).UniversalDeserializer().Decode, nil
-}
-
-// fileExists checks if a file exists and is not a directory.
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
 }

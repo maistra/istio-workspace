@@ -6,9 +6,12 @@ import (
 	"io"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/template"
+
 	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 	"github.com/maistra/istio-workspace/test/testclient"
 
@@ -285,6 +288,57 @@ var _ = Describe("Complete session manipulation", func() {
 					Expect(*res.Action).ToNot(Equal("failed"))
 				}
 			})
+		})
+	})
+	Context("with dynamically loaded templates", func() {
+		var restoreEnvVars func()
+
+		BeforeEach(func() {
+			scenario = generator.TestScenario1HTTPThreeServicesInSequence
+			objects = []runtime.Object{}
+			objects = append(objects, &v1alpha1.Session{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-session1",
+					Namespace: namespace,
+				},
+				Spec: v1alpha1.SessionSpec{
+					Refs: []v1alpha1.Ref{
+						{
+							Name:     "ratings-v1",
+							Strategy: "telepresence",
+						},
+					},
+				},
+			})
+
+			tmpDir := test.TmpDir(GinkgoT(), "template")
+			test.TmpFile(GinkgoT(), tmpDir+"/telepresence.tpl", `
+[
+	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"}
+]
+`)
+			restoreEnvVars = test.TemporaryEnvVars(template.TemplatePath, tmpDir)
+		})
+
+		AfterEach(func() {
+			restoreEnvVars()
+			test.CleanUpTmpFiles(GinkgoT())
+		})
+
+		It("ensure template was called", func() {
+			req1 := reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      "test-session1",
+					Namespace: "test",
+				},
+			}
+			// Given - create first ref
+			res1, err := controller.Reconcile(req1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res1.Requeue).To(BeFalse())
+
+			_, err = get.DeploymentWithError("test", "ratings-v1-custom-template")
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })
