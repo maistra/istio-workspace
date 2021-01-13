@@ -27,6 +27,7 @@ var _ = Describe("Usage of ike watch command", func() {
 		watchCmd = watch.NewCmd()
 		watchCmd.SilenceUsage = true
 		watchCmd.SilenceErrors = false
+		watchCmd.Version = "test"
 		NewCmd().AddCommand(watchCmd)
 	})
 

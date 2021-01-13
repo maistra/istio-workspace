@@ -2,16 +2,17 @@ package watch
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/watch"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
@@ -55,7 +56,6 @@ func NewCmd() *cobra.Command {
 }
 
 func watchForRealChanges(command *cobra.Command, args []string) error {
-
 	// build first
 	// execute the --run cmd
 
@@ -108,7 +108,7 @@ func watchForRealChanges(command *cobra.Command, args []string) error {
 			if i > 0 { // not initial restart
 				kill <- struct{}{}
 			}
-			go buildAndRun(buildExecutor(command), runExecutor(command), kill, nil)
+			go buildAndRun(buildExecutor(command), runExecutor(command), kill)
 		}
 	}()
 
@@ -142,8 +142,8 @@ func watchForRealChanges(command *cobra.Command, args []string) error {
 	// TODO clean up Build.command / string parsing (optional flags --no-build etc)
 	// TODO RULES from above?
 	// TODO clean up the code
-
 }
+
 type stopper func() error
 type executor func() stopper
 
@@ -157,7 +157,7 @@ func buildExecutor(command *cobra.Command) executor {
 		<-b.Start()
 		<-b.Done()
 
-		return func() error { return b.Stop() }
+		return b.Stop
 	}
 }
 
@@ -168,34 +168,31 @@ func runExecutor(command *cobra.Command) executor {
 		r := gocmd.NewCmdOptions(shell.StreamOutput, runArgs[0], runArgs[1:]...)
 		shell.RedirectStreams(r, command.OutOrStdout(), command.OutOrStderr())
 		r.Start()
-		return func() error {
-			return r.Stop()
-		}
+		return r.Stop
 	}
 }
 
-func buildAndRun(builder, runner executor, kill chan struct{}, status chan gocmd.Status) {
-
+func buildAndRun(builder, runner executor, kill chan struct{}) {
+	// TODO how do we handle errors / propagate them to owning cmd
 	stopBuild := builder()
 	stopRun := runner()
 
-	for {
-		select {
-		case <-kill:
-			if e := stopBuild(); e != nil {
-				fmt.Println(e.Error())
-			}
-			if e := stopRun(); e != nil {
-				fmt.Println(e.Error())
-			}
-			return
-		}
-	}
+	<-kill
 
+	if e := stopBuild(); e != nil {
+		fmt.Println(e.Error())
+	}
+	if e := stopRun(); e != nil {
+		fmt.Println(e.Error())
+	}
 }
 
-//
+// TODO document why.
 func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hookChan chan os.Signal) {
+	if command.Version != "test" {
+		return
+	}
+
 	for {
 		select {
 		case <-testSigtermGuard:

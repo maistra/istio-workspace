@@ -10,7 +10,7 @@ import (
 )
 
 // SleepMs indicates for how long the program should sleep before he gets terminated
-// The value is in milliseconds
+// The value is in milliseconds.
 var SleepMs string
 
 // Echo if specified as build flag will be the output of the command.

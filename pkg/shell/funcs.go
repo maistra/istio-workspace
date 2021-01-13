@@ -54,7 +54,6 @@ func Start2(cmd *gocmd.Cmd) {
 	logger().V(1).Info("starting command",
 		"cmd", cmd.Name,
 		"args", fmt.Sprint(cmd.Args),
-
 	)
 	<-cmd.Start()
 	<-cmd.Done()
