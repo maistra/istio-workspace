@@ -39,14 +39,35 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 		"cmd", cmd.Name,
 		"args", fmt.Sprint(cmd.Args),
 	)
+	fmt.Printf("starting command %s %s %s %s\n",
+		"cmd", cmd.Name,
+		"args", fmt.Sprint(cmd.Args),
+	)
 	status := <-cmd.Start()
 	<-cmd.Done()
+	fmt.Printf("Start done (%v) <- status\n", done)
 	done <- status
 }
 
-// ShutdownHook will wait for SIGTERM signal and stop the cmd
+func Start2(cmd *gocmd.Cmd) {
+	cmd.Env = os.Environ()
+	logger().V(1).Info("starting command",
+		"cmd", cmd.Name,
+		"args", fmt.Sprint(cmd.Args),
+
+	)
+	<-cmd.Start()
+	<-cmd.Done()
+	fmt.Printf("starting command %s %s %s %s %s %d\n",
+		"cmd", cmd.Name,
+		"args", fmt.Sprint(cmd.Args),
+		"PID", cmd.Status().PID,
+	)
+}
+
+// ShutdownHookForChildCommand will wait for SIGTERM signal and stop the cmd
 // unless done receiving channel passed to it receives status or is closed.
-func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
+func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
 	go func() {
 		hookChan := make(chan os.Signal, 1)
 		signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
@@ -58,13 +79,17 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 		for {
 			select {
 			case _, ok := <-hookChan:
+				fmt.Println("ShutdownHookForChildCommand SIGTERM received")
 				if !ok {
 					break OutOfLoop
 				}
-				_ = cmd.Stop()
-				<-cmd.Done()
+				if cmd != nil {
+					_ = cmd.Stop()
+					<-cmd.Done()
+				}
 				break OutOfLoop
-			case <-done:
+			case <-cmd.Done():
+				fmt.Printf("ShutdownHookForChildCommand <-done, break from outerloop\n")
 				break OutOfLoop
 			}
 		}
@@ -72,7 +97,7 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 }
 
 // RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers.
-func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-chan gocmd.Status) {
+func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer) {
 	go func() {
 	OutOfLoop:
 		for {
@@ -91,7 +116,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 				if _, err := fmt.Fprintln(stderrDest, line); err != nil {
 					logger().Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
-			case <-done:
+			case <-src.Done():
 				break OutOfLoop
 			}
 		}

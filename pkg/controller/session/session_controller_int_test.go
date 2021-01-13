@@ -26,7 +26,8 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logf "sigs.k8s.io/controller-runtime/pkg/log" //nolint:depguard //reason registers wrapper as logger
+
+	//nolint:depguard //reason registers wrapper as logger
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	. "github.com/onsi/ginkgo"
@@ -44,7 +45,7 @@ var _ = Describe("Complete session manipulation", func() {
 		get        *testclient.Getters
 	)
 	JustBeforeEach(func() {
-		logf.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
+		log.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
 
 		schema, _ = v1alpha1.SchemeBuilder.Build()
 		_ = corev1.AddToScheme(schema)

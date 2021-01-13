@@ -37,7 +37,7 @@ func Build(cmd *cobra.Command) error {
 		done := make(chan gocmd.Status, 1)
 		defer close(done)
 
-		shell.RedirectStreams(build, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
+		shell.RedirectStreams(build, cmd.OutOrStdout(), cmd.OutOrStderr())
 
 		buildStatusChan := build.Start()
 		buildStatus := <-buildStatusChan

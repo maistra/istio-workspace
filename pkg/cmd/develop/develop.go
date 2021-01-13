@@ -71,8 +71,8 @@ func NewCmd() *cobra.Command {
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
 				tp.Dir = dir
-				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
-				shell.ShutdownHook(tp, done)
+				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr())
+				shell.ShutdownHookForChildCommand(tp)
 				shell.Start(tp, done)
 			}()
 

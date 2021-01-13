@@ -21,7 +21,7 @@ var (
 func StubShellCommands() {
 	MvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
 	JavaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
-		"-ldflags", "-w -X main.SleepMs=50")
+		"-ldflags", "-w -X main.SleepMs=1024")
 	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
 	TpBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence")

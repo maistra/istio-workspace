@@ -23,9 +23,10 @@ var _ = Describe("Usage of ike watch command", func() {
 	var watchCmd *cobra.Command
 
 	BeforeEach(func() {
+
 		watchCmd = watch.NewCmd()
 		watchCmd.SilenceUsage = true
-		watchCmd.SilenceErrors = true
+		watchCmd.SilenceErrors = false
 		NewCmd().AddCommand(watchCmd)
 	})
 
@@ -41,7 +42,6 @@ var _ = Describe("Usage of ike watch command", func() {
 			// given
 			tmpDir := TmpDir(GinkgoT(), "re-run")
 			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
-			telepresenceLog := TmpFile(GinkgoT(), tmpDir+"/watch-test/telepresence.log", "content")
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
@@ -53,19 +53,18 @@ var _ = Describe("Usage of ike watch command", func() {
 					"--interval", "10",
 				)
 			})()
-
 			// when
-			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-
-			_, _ = telepresenceLog.WriteString("modified!")
+			time.Sleep(16 * time.Millisecond)
 			_, _ = code.WriteString("modified!")
+
+			simulateSigterm(watchCmd)
 
 			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(2))
-			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(2), "Expected build to be re-run.")
+			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2), "Expected process to be restarted.")
 		})
 
 		It("should start java process once if only log file is changing", func() {
@@ -85,14 +84,14 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			// when
 			time.Sleep(25 * time.Millisecond)
-
 			_, _ = logFile.WriteString("\n>>> Server started")
+			simulateSigterm(watchCmd)
 
 			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1))
+			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1), "Expected process to be executed once.")
 		})
 
 		It("should build and run java process only initially when changing file is excluded", func() {
@@ -113,18 +112,19 @@ var _ = Describe("Usage of ike watch command", func() {
 
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
-
 			_, _ = code.WriteString("modified!")
+			simulateSigterm(watchCmd)
 
 			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(1))
-			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(1), "Expected process to be started once.")
+			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1), "Expected build to be executed once.")
 		})
 
 		It("should ignore build if not defined and just re-run java process on file change", func() {
+			// given
 			tmpDir := TmpDir(GinkgoT(), "ignore-build")
 			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
 
@@ -138,17 +138,21 @@ var _ = Describe("Usage of ike watch command", func() {
 				)
 			})()
 
+			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
+			simulateSigterm(watchCmd)
 
+			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
-			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(0), "Expected build to not be executed.")
+			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2), "Expected process to be restarted.")
 		})
 
 		It("should only re-run java process when --no-build flag specified but build defined in config", func() {
+			// given
 			configFile := TmpFile(GinkgoT(), "config.yaml", `watch:
   run: "java -jar config.jar"
   build: "mvn clean install"
@@ -167,14 +171,22 @@ var _ = Describe("Usage of ike watch command", func() {
 				)
 			})()
 
+			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
+			simulateSigterm(watchCmd)
 
+			// then
 			var output string
 			Eventually(outputChan).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
-			Expect(strings.Count(output, "mvn clean install")).To(Equal(0))
+			Expect(strings.Count(output, "mvn clean install")).To(Equal(0), "Expected build to not be executed.")
 		})
 	})
 
 })
+
+func simulateSigterm(cmd *cobra.Command) {
+	time.Sleep(16 * time.Millisecond)
+	_ = cmd.Flag("kill").Value.Set("true")
+}

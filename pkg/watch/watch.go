@@ -50,6 +50,7 @@ func (w *Watch) Start() {
 					continue
 				}
 				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
+				fmt.Printf("file changed %s %s %s %s\n", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
