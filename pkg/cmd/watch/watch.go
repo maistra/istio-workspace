@@ -154,6 +154,7 @@ func buildExecutor(command *cobra.Command) executor {
 
 		b := gocmd.NewCmdOptions(shell.StreamOutput, buildArgs[0], buildArgs[1:]...)
 		shell.RedirectStreams(b, command.OutOrStdout(), command.OutOrStderr())
+		// FIXME Build auto run and wait while run does not.. smelly? external control?
 		<-b.Start()
 		<-b.Done()
 
@@ -187,7 +188,8 @@ func buildAndRun(builder, runner executor, kill chan struct{}) {
 	}
 }
 
-// TODO document why.
+// simulateSigterm allow us to simulate a SIGTERM when running cobra command inside a test.
+// Triggered by setting the command flag "kill" = true when you want SIGTERM to occure.
 func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hookChan chan os.Signal) {
 
 	if command.Annotations["test"] != "true" {
