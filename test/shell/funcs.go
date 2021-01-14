@@ -30,8 +30,8 @@ func ExecuteAll(commands ...string) {
 func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	command := gocmd.NewCmdOptions(shell.BufferAndStreamOutput, name, args...)
 	command.Dir = dir
-	done := command.Start()
-	shell.RedirectStreams(command, os.Stdout, os.Stderr, done)
+	_ = command.Start()
+	shell.RedirectStreams(command, os.Stdout, os.Stderr)
 	commandString := command.Name + " " + strings.Join(command.Args, " ")
 	if !strings.Contains(commandString, "oc login") {
 		fmt.Printf("executing: [%s]\n", commandString)

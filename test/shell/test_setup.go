@@ -12,7 +12,6 @@ import (
 
 var (
 	MvnBin       string
-	TpBin        string
 	TpSleepBin   string
 	TpVersionBin string
 	JavaBin      string
@@ -21,10 +20,9 @@ var (
 func StubShellCommands() {
 	MvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
 	JavaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
-		"-ldflags", "-w -X main.SleepMs=50")
+		"-ldflags", "-w -X main.SleepMs=1024")
 	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
-	TpBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence")
 	TpVersionBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence", "-ldflags", "-w -X main.Echo=0.234")
 	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
 		"telepresence", "-ldflags", "-w -X main.SleepMs=50")
