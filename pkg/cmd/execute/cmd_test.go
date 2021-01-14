@@ -57,9 +57,8 @@ var _ = Describe("Usage of ike execute command", func() {
 				)
 			})()
 			// when
-			time.Sleep(16 * time.Millisecond)
+			time.Sleep(25 * time.Millisecond)
 			_, _ = code.WriteString("modified!")
-
 			simulateSigterm(executeCmd)
 
 			// then
