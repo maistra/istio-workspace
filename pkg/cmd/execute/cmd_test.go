@@ -59,6 +59,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond)
 			_, _ = code.WriteString("modified!")
+			time.Sleep(10 * time.Millisecond)
 			simulateSigterm(executeCmd)
 
 			// then
@@ -88,6 +89,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond)
 			_, _ = logFile.WriteString("\n>>> Server started")
+			time.Sleep(10 * time.Millisecond)
 			simulateSigterm(executeCmd)
 
 			// then
@@ -117,6 +119,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
+			time.Sleep(10 * time.Millisecond)
 			simulateSigterm(executeCmd)
 
 			// then
@@ -146,6 +149,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
+			time.Sleep(10 * time.Millisecond)
 			simulateSigterm(executeCmd)
 
 			// then
@@ -180,6 +184,7 @@ var _ = Describe("Usage of ike execute command", func() {
 			// when
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
+			time.Sleep(10 * time.Millisecond)
 			simulateSigterm(executeCmd)
 
 			// then
