@@ -125,7 +125,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// ggetWatchNamespace returns the namespace the operator should be watching for changes
+// getWatchNamespace returns the namespace the operator should be watching for changes.
 func getWatchNamespace() (string, error) {
 	ns, found := os.LookupEnv(WatchNamespaceEnvVar)
 	if !found {
@@ -133,4 +133,3 @@ func getWatchNamespace() (string, error) {
 	}
 	return ns, nil
 }
-
