@@ -185,6 +185,7 @@ ifeq ($(OS), Darwin)
 endif
 OPERATOR_ARCH:=$(shell uname -m)
 
+OPERATOR_SDK_VERSION=v1.0.1
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	mkdir -p $(PROJECT_DIR)/bin/
