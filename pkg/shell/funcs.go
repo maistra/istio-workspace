@@ -44,9 +44,9 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	done <- status
 }
 
-// ShutdownHook will wait for SIGTERM signal and stop the cmd
+// ShutdownHookForChildCommand will wait for SIGTERM signal and stop the cmd
 // unless done receiving channel passed to it receives status or is closed.
-func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
+func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
 	go func() {
 		hookChan := make(chan os.Signal, 1)
 		signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
@@ -61,10 +61,12 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 				if !ok {
 					break OutOfLoop
 				}
-				_ = cmd.Stop()
-				<-cmd.Done()
+				if cmd != nil {
+					_ = cmd.Stop()
+					<-cmd.Done()
+				}
 				break OutOfLoop
-			case <-done:
+			case <-cmd.Done():
 				break OutOfLoop
 			}
 		}
@@ -72,7 +74,7 @@ func ShutdownHook(cmd *gocmd.Cmd, done <-chan gocmd.Status) {
 }
 
 // RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers.
-func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-chan gocmd.Status) {
+func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer) {
 	go func() {
 	OutOfLoop:
 		for {
@@ -91,7 +93,7 @@ func RedirectStreams(src *gocmd.Cmd, stdoutDest, stderrDest io.Writer, done <-ch
 				if _, err := fmt.Fprintln(stderrDest, line); err != nil {
 					logger().Error(err, fmt.Sprintf("%s failed executing", src.Name))
 				}
-			case <-done:
+			case <-src.Done():
 				break OutOfLoop
 			}
 		}

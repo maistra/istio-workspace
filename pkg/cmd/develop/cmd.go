@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/pkg/cmd/internal/build"
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -28,8 +29,6 @@ const urlHint = `Knowing your application url you can now access your new versio
 $ curl -H"%s:%s" YOUR_APP_URL.
 
 If you can't see any changes make sure that this header is respected by your app and propagated down the call chain.`
-
-var DefaultExclusions = []string{"*.log", ".git/"}
 
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -59,20 +58,16 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
-			if err := build.Build(cmd); err != nil {
-				return err
-			}
-
 			done := make(chan gocmd.Status, 1)
 			defer close(done)
 
-			arguments := parseArguments(cmd)
+			arguments := createTpCommand(cmd)
 
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
 				tp.Dir = dir
-				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr(), done)
-				shell.ShutdownHook(tp, done)
+				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr())
+				shell.ShutdownHookForChildCommand(tp)
 				shell.Start(tp, done)
 			}()
 
@@ -91,12 +86,12 @@ func NewCmd() *cobra.Command {
 
 	developCmd.Flags().StringP("deployment", "d", "", "name of the deployment or deployment config")
 	developCmd.Flags().StringSliceP("port", "p", []string{}, "list of ports to be exposed in format local[:remote].")
-	developCmd.Flags().StringP(build.RunFlagName, "r", "", "command to run your application")
-	developCmd.Flags().StringP(build.BuildFlagName, "b", "", "command to build your application before run")
-	developCmd.Flags().Bool(build.NoBuildFlagName, false, "always skips build")
+	developCmd.Flags().StringP(execute.RunFlagName, "r", "", "command to run your application")
+	developCmd.Flags().StringP(execute.BuildFlagName, "b", "", "command to build your application before run")
+	developCmd.Flags().Bool(execute.NoBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{"."}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.Flags().StringSlice("watch-exclude", DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
+	developCmd.Flags().StringSlice("watch-exclude", execute.DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
@@ -115,42 +110,25 @@ func NewCmd() *cobra.Command {
 	developCmd.Flags().VisitAll(config.BindFullyQualifiedFlag(developCmd))
 
 	_ = developCmd.MarkFlagRequired("deployment")
-	_ = developCmd.MarkFlagRequired(build.RunFlagName)
+	_ = developCmd.MarkFlagRequired(execute.RunFlagName)
 
 	return developCmd
 }
 
-func parseArguments(cmd *cobra.Command) []string {
-	run := cmd.Flag(build.RunFlagName).Value.String()
-	watch, _ := cmd.Flags().GetBool("watch")
-	runArgs := strings.Split(run, " ") // default value
-
-	if watch {
-		runArgs = []string{
-			"ike", "watch",
-			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
-			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
-			"--interval", cmd.Flag("watch-interval").Value.String(),
-			"--" + build.RunFlagName, run,
-		}
-		if cmd.Flag(build.BuildFlagName).Changed {
-			runArgs = append(runArgs, "--"+build.BuildFlagName, cmd.Flag(build.BuildFlagName).Value.String())
-		}
-	}
-
+func createTpCommand(cmd *cobra.Command) []string {
 	tpArgs := []string{
 		"--deployment", cmd.Flag("deployment").Value.String(),
 		"--method", cmd.Flag("method").Value.String(),
 	}
 	if cmd.Flags().Changed("port") {
-		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occure if flag does not exist. If it doesn't, it won't be Changed()
+		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occur if flag does not exist. If it doesn't, it won't be Changed()
 		for _, port := range ports {
 			tpArgs = append(tpArgs, "--expose", port)
 		}
 	}
 
 	tpArgs = append(tpArgs, "--run")
-	tpCmd := append(tpArgs, runArgs...)
+	tpCmd := append(tpArgs, createWrapperCmd(cmd)...)
 
 	namespaceFlag := cmd.Flag("namespace")
 	if namespaceFlag.Changed {
@@ -158,6 +136,31 @@ func parseArguments(cmd *cobra.Command) []string {
 	}
 
 	return tpCmd
+}
+
+func createWrapperCmd(cmd *cobra.Command) []string {
+	run := cmd.Flag(execute.RunFlagName).Value.String()
+	executeArgs := []string{
+		"ike", "execute",
+		"--" + execute.RunFlagName, run,
+	}
+	if cmd.Flag(execute.NoBuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.NoBuildFlagName, cmd.Flag(execute.NoBuildFlagName).Value.String())
+	}
+	if cmd.Flag(execute.BuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.BuildFlagName, cmd.Flag(execute.BuildFlagName).Value.String())
+	}
+
+	watch, _ := cmd.Flags().GetBool("watch")
+	if watch {
+		executeArgs = append(executeArgs,
+			"--watch",
+			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
+			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
+			"--interval", cmd.Flag("watch-interval").Value.String(),
+		)
+	}
+	return executeArgs
 }
 
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {

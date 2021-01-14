@@ -6,7 +6,7 @@ require (
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-bindata/go-bindata v3.1.2+incompatible
-	github.com/go-cmd/cmd v1.1.0
+	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.3.0
 	github.com/goccy/go-yaml v1.8.4

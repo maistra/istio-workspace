@@ -12,10 +12,10 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/create"
 	"github.com/maistra/istio-workspace/pkg/cmd/delete"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/install"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/cmd/watch"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 		create.NewCmd(),
 		delete.NewCmd(),
 		develop.NewCmd(),
-		watch.NewCmd(),
+		execute.NewCmd(),
 		serve.NewCmd(),
 		install.NewCmd(),
 		completion.NewCmd(),
