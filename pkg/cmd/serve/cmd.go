@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
+	"github.com/operator-framework/operator-lib/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 
 	"github.com/maistra/istio-workspace/pkg/apis"
