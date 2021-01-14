@@ -33,7 +33,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			&istionetwork.Gateway{},
 			&istionetwork.GatewayList{}).Build()
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",

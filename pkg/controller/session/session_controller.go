@@ -121,7 +121,7 @@ type ReconcileSession struct {
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
-func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
@@ -137,7 +137,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	ctx := model.SessionContext{
-		Context:   context.Background(),
+		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
 		Route:     ConvertAPIRouteToModelRoute(session),

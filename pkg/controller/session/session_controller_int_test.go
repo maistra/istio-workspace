@@ -55,7 +55,7 @@ var _ = Describe("Complete session manipulation", func() {
 		Expect(err).ToNot(HaveOccurred())
 		objects = append(objects, objs...)
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
 	})
@@ -109,7 +109,7 @@ var _ = Describe("Complete session manipulation", func() {
 					},
 				}
 				// given - a fresh session
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -117,7 +117,7 @@ var _ = Describe("Complete session manipulation", func() {
 				target := get.Session("test", "test-session1")
 				target.Spec.Refs[0].Args["image"] = "y:y:y"
 
-				res, err = controller.Reconcile(req)
+				res, err = controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -146,12 +146,12 @@ var _ = Describe("Complete session manipulation", func() {
 				}
 
 				// Given - create first session
-				res1, err := controller.Reconcile(req1)
+				res1, err := controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res1.Requeue).To(BeFalse())
 
 				// Given - create second session
-				res2, err := controller.Reconcile(req2)
+				res2, err := controller.Reconcile(context.Background(), req2)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
@@ -170,7 +170,7 @@ var _ = Describe("Complete session manipulation", func() {
 				updateErr := c.Update(context.Background(), &session)
 				Expect(updateErr).ToNot(HaveOccurred())
 
-				res1, err = controller.Reconcile(req1)
+				res1, err = controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res1.Requeue).To(BeFalse())
 
@@ -193,7 +193,7 @@ var _ = Describe("Complete session manipulation", func() {
 					},
 				}
 				// Given - create first ref
-				res1, err := controller.Reconcile(req1)
+				res1, err := controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res1.Requeue).To(BeFalse())
 
@@ -212,7 +212,7 @@ var _ = Describe("Complete session manipulation", func() {
 				Expect(updateErr).ToNot(HaveOccurred())
 
 				// Given - create second ref
-				res2, err := controller.Reconcile(req1)
+				res2, err := controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
@@ -230,7 +230,7 @@ var _ = Describe("Complete session manipulation", func() {
 				updateErr = c.Update(context.Background(), &session)
 				Expect(updateErr).ToNot(HaveOccurred())
 
-				res1, err = controller.Reconcile(req1)
+				res1, err = controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
@@ -251,7 +251,7 @@ var _ = Describe("Complete session manipulation", func() {
 					},
 				}
 				// Given - create first ref
-				res1, err := controller.Reconcile(req1)
+				res1, err := controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res1.Requeue).To(BeFalse())
 
@@ -270,7 +270,7 @@ var _ = Describe("Complete session manipulation", func() {
 				Expect(updateErr).ToNot(HaveOccurred())
 
 				// Given - create second ref
-				res2, err := controller.Reconcile(req1)
+				res2, err := controller.Reconcile(context.Background(), req1)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
@@ -333,7 +333,7 @@ var _ = Describe("Complete session manipulation", func() {
 				},
 			}
 			// Given - create first ref
-			res1, err := controller.Reconcile(req1)
+			res1, err := controller.Reconcile(context.Background(), req1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res1.Requeue).To(BeFalse())
 

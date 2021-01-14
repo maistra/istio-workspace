@@ -100,7 +100,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				&istionetwork.VirtualService{},
 				&istionetwork.Gateway{}).Build()
 
-			c = fake.NewFakeClientWithScheme(schema, objects...)
+			c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 			ctx = model.SessionContext{
 				Name:      "test",
 				Namespace: "bookinfo",

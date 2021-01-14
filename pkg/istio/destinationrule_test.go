@@ -79,7 +79,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			&istionetwork.DestinationRule{},
 			&istionetwork.DestinationRuleList{}).Build()
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",

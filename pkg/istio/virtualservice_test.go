@@ -32,7 +32,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			&istionetwork.VirtualServiceList{},
 			&istionetwork.Gateway{}).Build()
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "vs-test",

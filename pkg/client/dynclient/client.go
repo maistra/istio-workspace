@@ -1,6 +1,8 @@
 package dynclient
 
 import (
+	"context"
+
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -86,14 +88,14 @@ func (c *Client) Create(obj runtime.Object) error {
 		return err
 	}
 
-	_, err = resourceInterface.Create(&unstructured.Unstructured{Object: unstructuredObj}, metav1.CreateOptions{})
+	_, err = resourceInterface.Create(context.Background(), &unstructured.Unstructured{Object: unstructuredObj}, metav1.CreateOptions{})
 
 	return err
 }
 
 func (c *Client) createNamespaceIfNotExists() error {
 	nsSpec := &coreV1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: c.Namespace}}
-	_, err := c.clientset.CoreV1().Namespaces().Create(nsSpec)
+	_, err := c.clientset.CoreV1().Namespaces().Create(context.Background(), nsSpec, metav1.CreateOptions{})
 	if errors.IsAlreadyExists(err) {
 		return nil
 	}
