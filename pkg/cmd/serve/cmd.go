@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	WatchNamespaceEnvVar = "WATCH_NAMESPACE"
+	watchNamespaceEnvVar = "WATCH_NAMESPACE"
 )
 
 var logger = func() logr.Logger {
@@ -118,9 +118,9 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 // getWatchNamespace returns the namespace the operator should be watching for changes.
 func getWatchNamespace() (string, error) {
-	ns, found := os.LookupEnv(WatchNamespaceEnvVar)
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return "", fmt.Errorf("%s must be set", WatchNamespaceEnvVar)
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
 }
