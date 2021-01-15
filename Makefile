@@ -19,6 +19,10 @@ MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
+GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
+GOBIN=$(GOPATH_1)/bin
+PATH:=${GOBIN}/bin:$(PATH)
+
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
@@ -109,7 +113,6 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
-GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
 operator-codegen: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests
 	$(call header,"Generates CRDs et al")
