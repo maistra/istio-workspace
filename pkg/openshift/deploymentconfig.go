@@ -3,7 +3,7 @@ package openshift
 import (
 	"encoding/json"
 
-	"github.com/maistra/istio-workspace/pkg/apis"
+	"github.com/maistra/istio-workspace/pkg/api"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
 
@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	apis.AddToSchemes = append(apis.AddToSchemes, appsv1.Install)
+	api.AddToSchemes = append(api.AddToSchemes, appsv1.Install)
 }
 
 const (

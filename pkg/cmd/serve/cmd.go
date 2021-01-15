@@ -8,7 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/leader"
 
-	"github.com/maistra/istio-workspace/pkg/apis"
+	"github.com/maistra/istio-workspace/pkg/api"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/controller"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -80,7 +80,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	logger().Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
+	if err = api.AddToScheme(mgr.GetScheme()); err != nil {
 		logger().Error(err, "")
 		return nil
 	}

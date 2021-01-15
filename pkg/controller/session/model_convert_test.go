@@ -1,7 +1,7 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/controller/session"
 	"github.com/maistra/istio-workspace/pkg/model"
 
