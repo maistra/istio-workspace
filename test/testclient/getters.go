@@ -3,7 +3,7 @@ package testclient
 import (
 	"context"
 
-	"github.com/maistra/istio-workspace/pkg/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 
 	"github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"

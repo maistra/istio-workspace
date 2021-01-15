@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/maistra/istio-workspace/pkg/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 )
 
 func init() {

@@ -1,7 +1,7 @@
 package istio //nolint:testpackage //reason we want to test mutationRequired in isolation
 
 import (
-	"github.com/maistra/istio-workspace/pkg/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/testclient"

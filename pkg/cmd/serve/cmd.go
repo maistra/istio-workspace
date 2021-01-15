@@ -8,9 +8,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/leader"
 
-	"github.com/maistra/istio-workspace/pkg/api"
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/controller"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/controller"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/spf13/cobra"

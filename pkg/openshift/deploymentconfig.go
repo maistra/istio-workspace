@@ -3,7 +3,7 @@ package openshift
 import (
 	"encoding/json"
 
-	"github.com/maistra/istio-workspace/pkg/api"
+	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
 

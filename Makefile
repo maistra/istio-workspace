@@ -62,7 +62,9 @@ endif
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
-SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
+SRC_DIRS:=./api ./controller ./pkg ./cmd ./version ./test
+TEST_DIRS:=./e2e
+SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 
 ###########################################################################
 ##@ Build
@@ -97,7 +99,7 @@ deps: ## Fetches all dependencies
 .PHONY: format
 format: $(SRCS) ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
+	goimports -l -w -e $(SRC_DIRS) $(TEST_DIRS)
 
 .PHONY: lint-prepare
 lint-prepare: deps tools operator-codegen compile
@@ -109,15 +111,15 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code
-	$(call header,"Generates operator-sdk code")
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
+operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator code
+	$(call header,"Generates CRDs et al")
+	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
+	controller-gen object paths=./api/...
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
-		$(PACKAGE_NAME)/pkg/apis \
+		$(PACKAGE_NAME)/api \
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
 

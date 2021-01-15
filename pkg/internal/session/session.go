@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/api/maistra/v1alpha1"
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 
