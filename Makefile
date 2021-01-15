@@ -74,7 +74,7 @@ SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: deps $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
 test: operator-codegen ## Runs tests
@@ -113,8 +113,8 @@ GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
 operator-codegen: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests
 	$(call header,"Generates CRDs et al")
-	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
-	controller-gen object paths=./api/...
+	$(CONTROLLER_GEN) crd paths=./api/... output:crd:dir=./deploy/crds
+	$(CONTROLLER_GEN) object paths=./api/...
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
@@ -132,11 +132,11 @@ $(BINARY_DIR):
 
 $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
-	${GOBUILD} go build -mod=vendor -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
+	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
-	${GOBUILD} go build -mod=vendor -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
+	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 test/cmd/test-service/main.pb.go: $(PROJECT_DIR)/bin/protoc test/cmd/test-service/main.proto
 	$(call header,"Compiling test proto... carry on!")
@@ -173,7 +173,7 @@ CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
 .PHONY: tools
-tools: ## Installs required go tools
+tools: controller-gen ## Installs required go tools
 	$(call header,"Installing required tools")
 	go install -mod=readonly golang.org/x/tools/cmd/goimports
 	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go

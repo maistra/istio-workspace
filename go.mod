@@ -16,6 +16,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/joho/godotenv v1.3.0
+	github.com/kisielk/errcheck v1.5.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59
@@ -61,7 +62,6 @@ require (
 )
 
 replace (
-	github.com/operator-framework/operator-lib => github.com/operator-framework/operator-lib v0.3.0
 	gopkg.in/fsnotify.v1 v1.4.9 => github.com/fsnotify/fsnotify v1.4.9
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.7.0
