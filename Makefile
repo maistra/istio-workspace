@@ -35,7 +35,7 @@ endef
 ##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
-all: deps tools operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
+all: deps tools generate format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
 ###########################################################################
 # Build configuration
@@ -78,10 +78,10 @@ SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: deps operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps generate $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
-test: operator-codegen ## Runs tests
+test: generate ## Runs tests
 	$(call header,"Running tests")
 	ginkgo -r -v --skipPackage=e2e ${args}
 
@@ -106,18 +106,18 @@ format: $(SRCS) ## Removes unneeded imports and formats source code
 	goimports -l -w -e $(SRC_DIRS) $(TEST_DIRS)
 
 .PHONY: lint-prepare
-lint-prepare: deps tools operator-codegen compile
+lint-prepare: deps tools generate compile
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
-.PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests
+.PHONY: generate
+generate: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
-	$(CONTROLLER_GEN) crd paths=./api/... output:crd:dir=./deploy/crds
-	$(CONTROLLER_GEN) object paths=./api/...
+	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
+	controller-gen object paths=./api/...
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
