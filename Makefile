@@ -160,8 +160,8 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 ##@ Setup
 ###########################################################################
 
+.PHONY: controller-gen
 controller-gen:
-ifeq (, $(shell which controller-gen))
 	@{ \
 	set -e ;\
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
@@ -170,13 +170,10 @@ ifeq (, $(shell which controller-gen))
 	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+
 
 .PHONY: tools
-tools: controller-gen ## Installs required go tools
+install-tools: controller-gen ## Installs required go tools
 	$(call header,"Installing required tools")
 	go install -mod=readonly golang.org/x/tools/cmd/goimports
 	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
@@ -189,10 +186,10 @@ tools: controller-gen ## Installs required go tools
 EXECUTABLES:=controller-gen golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
-.PHONY: check-tools
-check-tools:
+.PHONY: tools
+tools:
 	$(call header,"Checking required tools")
-	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) tools,echo "'$(EXECUTABLES)' are installed")
+	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) install-tools,echo "'$(EXECUTABLES)' are installed")
 
 
 $(PROJECT_DIR)/bin/protoc:
@@ -236,9 +233,9 @@ export IKE_VERSION
 IMG_BUILDER:=docker
 
 ## Prefer to use podman
- ifneq (, $(shell which podman))
+ifneq (, $(shell which podman))
 	IMG_BUILDER=podman
- endif
+endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -334,9 +331,9 @@ docker-push-test-prepared:
 
 k8s:=kubectl
 
- ifneq (, $(shell which oc))
- 	k8s=oc
- endif
+ifneq (, $(shell which oc))
+	k8s=oc
+endif
 
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
