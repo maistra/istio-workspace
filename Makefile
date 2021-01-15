@@ -74,7 +74,7 @@ SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
 test: operator-codegen ## Runs tests
@@ -111,7 +111,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 .PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator code
+operator-codegen: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests
 	$(call header,"Generates CRDs et al")
 	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
 	controller-gen object paths=./api/...
@@ -123,11 +123,6 @@ operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Ge
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
 
-.PHONY: csv-codegen
-csv-codegen: $(PROJECT_DIR)/bin/operator-sdk operator-tpl operator-codegen ## Generates operator-sdk CSV and related manifests
-	$(call header,"Generates operator-sdk CSV manifests")
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --csv-version $(OPERATOR_VERSION)
-
 .PHONY: version
 version:
 	@echo $(IKE_VERSION)
@@ -137,11 +132,11 @@ $(BINARY_DIR):
 
 $(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
-	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
+	${GOBUILD} go build -mod=vendor -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 $(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
-	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
+	${GOBUILD} go build -mod=vendor -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 test/cmd/test-service/main.pb.go: $(PROJECT_DIR)/bin/protoc test/cmd/test-service/main.proto
 	$(call header,"Compiling test proto... carry on!")
@@ -162,18 +157,33 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 ##@ Setup
 ###########################################################################
 
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
+
 .PHONY: tools
 tools: ## Installs required go tools
 	$(call header,"Installing required tools")
-	go install golang.org/x/tools/cmd/goimports
-	go install github.com/onsi/ginkgo/ginkgo
-	go install github.com/golang/protobuf/protoc-gen-go
-	go install github.com/mikefarah/yq/v3
+	go install -mod=readonly golang.org/x/tools/cmd/goimports
+	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
+	go install -mod=readonly github.com/onsi/ginkgo/ginkgo
+	go install -mod=readonly github.com/mikefarah/yq/v3
 	go get -u github.com/go-bindata/go-bindata/...
 	# go get causes problems and is not recommended by the creators. installing binary instead
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 
-EXECUTABLES:=golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=controller-gen golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: check-tools
@@ -181,13 +191,6 @@ check-tools:
 	$(call header,"Checking required tools")
 	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) tools,echo "'$(EXECUTABLES)' are installed")
 
-OPERATOR_SDK_VERSION=v1.3.0
-$(PROJECT_DIR)/bin/operator-sdk:
-	$(call header,"Installing operator-sdk cli")
-	mkdir -p $(PROJECT_DIR)/bin/
-	$(eval OPERATOR_SDK_VERSION:=$(shell go mod graph | grep operator-sdk | head -n 1 | cut -d'@' -f 2))
-	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
-	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 $(PROJECT_DIR)/bin/protoc:
 	$(call header,"Installing protoc")

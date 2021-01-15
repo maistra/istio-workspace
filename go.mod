@@ -1,6 +1,6 @@
 module github.com/maistra/istio-workspace
 
-go 1.15
+go 1.14
 
 require (
 	github.com/evanphx/json-patch v4.9.0+incompatible
@@ -16,7 +16,6 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/joho/godotenv v1.3.0
-	github.com/kisielk/errcheck v1.5.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59
@@ -26,7 +25,6 @@ require (
 	github.com/onsi/gomega v1.10.3
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.3.0
-	github.com/operator-framework/operator-sdk v1.3.0 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/prometheus/client_golang v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
@@ -63,7 +61,7 @@ require (
 )
 
 replace (
-	github.com/coreos/prometheus-operator => github.com/coreos/prometheus-operator v0.45.0
+	github.com/operator-framework/operator-lib => github.com/operator-framework/operator-lib v0.3.0
 	gopkg.in/fsnotify.v1 v1.4.9 => github.com/fsnotify/fsnotify v1.4.9
 	k8s.io/client-go => k8s.io/client-go v0.19.4
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.7.0
