@@ -41,7 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
-			Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
 			sessionName = GenerateSessionName()
 		})
