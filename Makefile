@@ -80,7 +80,7 @@ test: operator-codegen ## Runs tests
 	ginkgo -r -v --skipPackage=e2e ${args}
 
 .PHONY: test-e2e
-test-e2e: compile ## Runs end-to-end tests
+test-e2e: tools generate ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
 	ginkgo e2e/ -v -p ${args}
 
