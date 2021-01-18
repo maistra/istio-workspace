@@ -14,7 +14,7 @@ func AllDeploymentsAndPodsReady(ns string) func() bool {
 	}
 }
 
-// AllDeploymentConfigsAndPodsReady checks if both AllDeploymentsReady(DeploymentConfig) and AllPodsReady return true
+// AllDeploymentConfigsAndPodsReady checks if both AllDeploymentsReady(DeploymentConfig) and AllPodsReady return true.
 func AllDeploymentConfigsAndPodsReady(ns string) func() bool {
 	return func() bool {
 		return AllDeploymentsReady("deploymentconfig", ns)() && AllPodsReady(ns)()
