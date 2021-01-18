@@ -243,7 +243,7 @@ func EnsureAllDeploymentPodsAreReady(namespace string) {
 
 // EnsureAllDeploymentConfigPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllDeploymentConfigPodsAreReady(namespace string) {
-	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.
