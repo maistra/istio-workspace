@@ -74,7 +74,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 					"--run", "ruby ratings.rb 9080",
 					"--route", "header:x-test-suite=smoke",
 				)
-				Eventually(ikeWithWatch.Done(), 2*time.Minute).Should(BeClosed())
+				Eventually(ikeWithWatch.Done(), 10*time.Minute).Should(BeClosed())
 				Expect(ikeWithWatch.Status().Exit).ToNot(Equal(0))
 
 				// when
