@@ -7,7 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-// AllDeploymentsAndPodsReady checks if both AllDeploymentsReady(Deployment) and AllPodsReady return true
+// AllDeploymentsAndPodsReady checks if both AllDeploymentsReady(Deployment) and AllPodsReady return true.
 func AllDeploymentsAndPodsReady(ns string) func() bool {
 	return func() bool {
 		return AllDeploymentsReady("deployment", ns)() && AllPodsReady(ns)()
