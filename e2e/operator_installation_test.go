@@ -49,7 +49,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			<-testshell.Execute("ike install -l -n " + namespace).Done()
 
 			// then
-			Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 			operatorPodName := GetAllPods(namespace)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, namespace)
@@ -68,7 +68,7 @@ var _ = Describe("Operator Installation Tests", func() {
 			<-testshell.Execute("ike install --local").Done()
 
 			// then
-			Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 			operatorPodName := GetAllPods(namespace)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, namespace)
