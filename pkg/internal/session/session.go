@@ -187,11 +187,11 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
-	duration := 1 * time.Second
+	duration := 1 * time.Minute
 	if h.opts.Duration != nil {
 		duration = *h.opts.Duration
 	}
-	err = wait.Poll(duration, 10*time.Second, func() (bool, error) {
+	err = wait.Poll(2*time.Second, duration, func() (bool, error) {
 		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
