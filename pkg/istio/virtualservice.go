@@ -43,7 +43,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 			if (!mutationRequired(vs, hostName, targetVersion) && !connected) || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 				continue
 			}
-			ctx.Log.Info("Found VirtualService", "name", hostName)
+			ctx.Log.Info("Found VirtualService", "name", vs.Name)
 			mutatedVs, created, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
