@@ -306,6 +306,7 @@ func template(name string) corev1.PodTemplateSpec {
 						},
 						InitialDelaySeconds: 5,
 						PeriodSeconds:       3,
+						FailureThreshold:    10,
 					},
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
