@@ -308,7 +308,7 @@ func DumpEnvironmentDebugInfo(namespace, dir string) {
 	for _, pod := range pods {
 		printBanner()
 		fmt.Println("Logs of " + pod)
-		fmt.Println(LogsOf(namespace, pod))
+		LogsOf(namespace, pod)
 		printBanner()
 		StateOf(namespace, pod)
 		printBanner()

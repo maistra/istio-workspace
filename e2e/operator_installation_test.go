@@ -34,7 +34,7 @@ var _ = Describe("Operator Installation Tests", func() {
 				for _, pod := range pods {
 					printBanner()
 					fmt.Println("Logs of " + pod)
-					fmt.Println(LogsOf(namespace, pod))
+					LogsOf(namespace, pod)
 					printBanner()
 					StateOf(namespace, pod)
 					printBanner()

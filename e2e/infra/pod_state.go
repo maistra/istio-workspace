@@ -95,10 +95,9 @@ func StateOf(ns, pod string) {
 }
 
 // LogsOf returns logs of all containers in the pod.
-func LogsOf(ns, pod string) string {
+func LogsOf(ns, pod string) {
 	logs := shell.Execute("kubectl logs " + pod + " -n " + ns + " --all-containers=true")
 	<-logs.Done()
-	return fmt.Sprintf("%s", logs.Status().Stdout)
 }
 
 func isPodInStatus(pod, ns, status string) bool {
