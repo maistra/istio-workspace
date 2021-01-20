@@ -1,7 +1,7 @@
 package istio_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -79,7 +79,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			&istionetwork.DestinationRule{},
 			&istionetwork.DestinationRuleList{}).Build()
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "test",

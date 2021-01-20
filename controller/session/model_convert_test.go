@@ -1,8 +1,8 @@
 package session_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/pkg/controller/session"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controller/session"
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

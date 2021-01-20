@@ -3,6 +3,8 @@ package k8s_test
 import (
 	"context"
 
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -19,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("Operations for k8s Deployment kind", func() {
@@ -43,7 +44,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		schema := runtime.NewScheme()
 		err := appsv1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Context:   context.Background(),

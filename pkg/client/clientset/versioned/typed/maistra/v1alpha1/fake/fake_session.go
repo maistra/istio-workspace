@@ -3,7 +3,9 @@
 package fake
 
 import (
-	v1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	"context"
+
+	v1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,7 +25,7 @@ var sessionsResource = schema.GroupVersionResource{Group: "maistra.io", Version:
 var sessionsKind = schema.GroupVersionKind{Group: "maistra.io", Version: "v1alpha1", Kind: "Session"}
 
 // Get takes name of the session, and returns the corresponding session object, and an error if there is any.
-func (c *FakeSessions) Get(name string, options v1.GetOptions) (result *v1alpha1.Session, err error) {
+func (c *FakeSessions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Session, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewGetAction(sessionsResource, c.ns, name), &v1alpha1.Session{})
 
@@ -34,7 +36,7 @@ func (c *FakeSessions) Get(name string, options v1.GetOptions) (result *v1alpha1
 }
 
 // List takes label and field selectors, and returns the list of Sessions that match those selectors.
-func (c *FakeSessions) List(opts v1.ListOptions) (result *v1alpha1.SessionList, err error) {
+func (c *FakeSessions) List(ctx context.Context, opts v1.ListOptions) (result *v1alpha1.SessionList, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewListAction(sessionsResource, sessionsKind, c.ns, opts), &v1alpha1.SessionList{})
 
@@ -56,14 +58,14 @@ func (c *FakeSessions) List(opts v1.ListOptions) (result *v1alpha1.SessionList, 
 }
 
 // Watch returns a watch.Interface that watches the requested sessions.
-func (c *FakeSessions) Watch(opts v1.ListOptions) (watch.Interface, error) {
+func (c *FakeSessions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
 		InvokesWatch(testing.NewWatchAction(sessionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a session and creates it.  Returns the server's representation of the session, and an error, if there is any.
-func (c *FakeSessions) Create(session *v1alpha1.Session) (result *v1alpha1.Session, err error) {
+func (c *FakeSessions) Create(ctx context.Context, session *v1alpha1.Session, opts v1.CreateOptions) (result *v1alpha1.Session, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewCreateAction(sessionsResource, c.ns, session), &v1alpha1.Session{})
 
@@ -74,7 +76,7 @@ func (c *FakeSessions) Create(session *v1alpha1.Session) (result *v1alpha1.Sessi
 }
 
 // Update takes the representation of a session and updates it. Returns the server's representation of the session, and an error, if there is any.
-func (c *FakeSessions) Update(session *v1alpha1.Session) (result *v1alpha1.Session, err error) {
+func (c *FakeSessions) Update(ctx context.Context, session *v1alpha1.Session, opts v1.UpdateOptions) (result *v1alpha1.Session, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewUpdateAction(sessionsResource, c.ns, session), &v1alpha1.Session{})
 
@@ -85,7 +87,7 @@ func (c *FakeSessions) Update(session *v1alpha1.Session) (result *v1alpha1.Sessi
 }
 
 // Delete takes name of the session and deletes it. Returns an error if one occurs.
-func (c *FakeSessions) Delete(name string, options *v1.DeleteOptions) error {
+func (c *FakeSessions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
 		Invokes(testing.NewDeleteAction(sessionsResource, c.ns, name), &v1alpha1.Session{})
 
@@ -93,15 +95,15 @@ func (c *FakeSessions) Delete(name string, options *v1.DeleteOptions) error {
 }
 
 // DeleteCollection deletes a collection of objects.
-func (c *FakeSessions) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(sessionsResource, c.ns, listOptions)
+func (c *FakeSessions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
+	action := testing.NewDeleteCollectionAction(sessionsResource, c.ns, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.SessionList{})
 	return err
 }
 
 // Patch applies the patch and returns the patched session.
-func (c *FakeSessions) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.Session, err error) {
+func (c *FakeSessions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.Session, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(sessionsResource, c.ns, name, pt, data, subresources...), &v1alpha1.Session{})
 

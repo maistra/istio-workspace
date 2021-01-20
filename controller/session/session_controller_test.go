@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/pkg/controller/session"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controller/session"
 	"github.com/maistra/istio-workspace/pkg/model"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,7 +68,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Namespace: "test",
 			},
 		}
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		controller = session.NewStandaloneReconciler(c, manipulators)
 	})
 
@@ -80,7 +80,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 
 			It("no retry", func() {
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 			})
@@ -101,7 +101,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 
 			It("finalizer added", func() {
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -112,7 +112,7 @@ var _ = Describe("Basic session manipulation", func() {
 			It("mutate when target is located", func() {
 				locator.Action = foundTestLocator
 
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -123,7 +123,7 @@ var _ = Describe("Basic session manipulation", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
 
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -135,7 +135,7 @@ var _ = Describe("Basic session manipulation", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
 
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -175,7 +175,7 @@ var _ = Describe("Basic session manipulation", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
 
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -187,7 +187,7 @@ var _ = Describe("Basic session manipulation", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
 
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -224,7 +224,7 @@ var _ = Describe("Basic session manipulation", func() {
 			It("revertors called when ref removed", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -236,7 +236,7 @@ var _ = Describe("Basic session manipulation", func() {
 			It("status removed when ref removed", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -321,7 +321,7 @@ var _ = Describe("Basic session manipulation", func() {
 			It("call revert when a status.ref.strategy differ from spec.ref.strategy", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
-				res, err := controller.Reconcile(req)
+				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
@@ -337,7 +337,7 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the strategy differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(context.Background(), req)
 					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("details", GetSession("test", "test-session"))
@@ -349,7 +349,7 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the args differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(context.Background(), req)
 					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("ratings", GetSession("test", "test-session"))
@@ -361,7 +361,7 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when the same args differ", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(context.Background(), req)
 					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
@@ -375,7 +375,7 @@ var _ = Describe("Basic session manipulation", func() {
 				It("when any change happen", func() {
 					locator.Action = foundTestLocatorTarget("test-a", "test-b")
 					revertor.Action = noOp
-					_, reconcileErr := controller.Reconcile(req)
+					_, reconcileErr := controller.Reconcile(context.Background(), req)
 					Expect(reconcileErr).ToNot(HaveOccurred())
 
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
@@ -412,7 +412,7 @@ var _ = Describe("Basic session manipulation", func() {
 		It("revertors call when session removed", func() {
 			locator.Action = foundTestLocator
 			revertor.Action = removeResourceStatus("test", "details")
-			res, err := controller.Reconcile(req)
+			res, err := controller.Reconcile(context.Background(), req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
@@ -423,7 +423,7 @@ var _ = Describe("Basic session manipulation", func() {
 		It("status removed when session removed", func() {
 			locator.Action = foundTestLocator
 			revertor.Action = removeResourceStatus("test", "details")
-			res, err := controller.Reconcile(req)
+			res, err := controller.Reconcile(context.Background(), req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
@@ -432,7 +432,7 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(modified.Status.Refs).To(HaveLen(0))
 		})
 		It("finalizer removed", func() {
-			res, err := controller.Reconcile(req)
+			res, err := controller.Reconcile(context.Background(), req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
 
