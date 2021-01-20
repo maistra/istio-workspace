@@ -51,4 +51,7 @@
 - name: upstream
   color: 1fddb7
   description: "Requires changes in the upstream dependency"
+- name: MVP
+  color: D93F0B
+  description: "MVP Required Issue"
 
