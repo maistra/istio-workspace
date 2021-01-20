@@ -25,7 +25,7 @@ func StubShellCommands() {
 		"-ldflags", "-w -X main.SleepMs=50")
 	TpVersionBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence", "-ldflags", "-w -X main.Echo=0.234")
 	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
-		"telepresence", "-ldflags", "-w -X main.SleepMs=50")
+		"telepresence", "-ldflags", "-w -X main.SleepMs=256")
 }
 
 func ExecuteCommand(outputChan chan string, execute func() (string, error)) func() {

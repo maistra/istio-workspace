@@ -3,18 +3,14 @@ package serve
 import (
 	"context"
 	"fmt"
-
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
+	"os"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	"github.com/operator-framework/operator-sdk/pkg/metrics"
+	"github.com/operator-framework/operator-lib/leader"
 
-	"github.com/maistra/istio-workspace/pkg/apis"
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/controller"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/controller"
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/spf13/cobra"
@@ -24,13 +20,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
+const (
+	watchNamespaceEnvVar = "WATCH_NAMESPACE"
+)
+
 var logger = func() logr.Logger {
 	return log.Log.WithValues("type", "serve")
 }
 
 var (
 	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8383
+	metricsPort int32 = 8080
 )
 
 // NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
@@ -45,7 +45,7 @@ func NewCmd() *cobra.Command {
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {
-	namespace, err := k8sutil.GetWatchNamespace()
+	namespace, err := getWatchNamespace()
 	if err != nil {
 		logger().Error(err, "Failed to get watch namespace")
 		return err
@@ -80,7 +80,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	logger().Info("Registering Components.")
 
 	// Setup Scheme for all resources
-	if err = apis.AddToScheme(mgr.GetScheme()); err != nil {
+	if err = api.AddToScheme(mgr.GetScheme()); err != nil {
 		logger().Error(err, "")
 		return nil
 	}
@@ -91,16 +91,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Create Service object to expose the metrics port.
-	servicePorts := []v1.ServicePort{
-		{Port: metricsPort,
-			Name:       metrics.OperatorPortName,
-			Protocol:   v1.ProtocolTCP,
-			TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
-	}
-	if _, err = metrics.CreateMetricsService(ctx, cfg, servicePorts); err != nil {
-		logger().Error(err, "Could not create metrics service")
-	}
+	// add CreateService?
 
 	// Add readiness and health
 
@@ -123,4 +114,13 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// getWatchNamespace returns the namespace the operator should be watching for changes.
+func getWatchNamespace() (string, error) {
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	}
+	return ns, nil
 }

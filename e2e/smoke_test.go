@@ -41,6 +41,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			PrepareEnv(namespace)
 
 			InstallLocalOperator(namespace)
+			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 			DeployTestScenario(scenario, namespace)
 			sessionName = GenerateSessionName()
 		})
@@ -64,7 +65,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Context("basic deployment modifications", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						// given we have details code locally
@@ -80,7 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
@@ -97,7 +98,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				Context("deployment create/delete operations", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
 						ChangeNamespace("default")
@@ -113,7 +114,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						// check original response
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
@@ -163,7 +164,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 				Context("basic deployment modifications", func() {
 					It("should take over ratings service and serve it", func() {
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						ike := RunIke(testshell.GetProjectDir(), "develop",
@@ -175,7 +176,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
-						EnsureAllPodsAreReady(namespace)
+						EnsureAllDeploymentPodsAreReady(namespace)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
@@ -198,7 +199,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 			It("should watch for changes in ratings service in specified namespace and serve it", func() {
 				ChangeNamespace(namespace)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 				// given we have details code locally
@@ -213,7 +214,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 				)
-				EnsureAllPodsAreReady(namespace)
+				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 				// then modify the service
@@ -235,13 +236,23 @@ func EnsureAllPodsAreReady(namespace string) {
 	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
+// EnsureAllDeploymentPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentPodsAreReady(namespace string) {
+	Eventually(AllDeploymentsAndPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
+}
+
+// EnsureAllDeploymentConfigPodsAreReady make sure all Pods are in Ready state in given namespace.
+func EnsureAllDeploymentConfigPodsAreReady(namespace string) {
+	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+}
+
 // EnsureProdRouteIsReachable can be reached with no special arguments.
 func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
 
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
-		3*time.Minute, 1*time.Second).Should(And(matchers...))
+		5*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // EnsureSessionRouteIsReachable the manipulated route is reachable.
@@ -252,12 +263,12 @@ func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...ty
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		3*time.Minute, 1*time.Second).Should(And(matchers...))
+		5*time.Minute, 1*time.Second).Should(And(matchers...))
 
 	// check original response using host route
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionName + "." + GetGatewayHost(namespace)}),
-		3*time.Minute, 1*time.Second).Should(And(matchers...))
+		5*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable.
@@ -268,7 +279,7 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ..
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		3*time.Minute, 1*time.Second).Should(And(matchers...))
+		5*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike.
@@ -297,7 +308,7 @@ func DumpEnvironmentDebugInfo(namespace, dir string) {
 	for _, pod := range pods {
 		printBanner()
 		fmt.Println("Logs of " + pod)
-		fmt.Println(LogsOf(namespace, pod))
+		LogsOf(namespace, pod)
 		printBanner()
 		StateOf(namespace, pod)
 		printBanner()

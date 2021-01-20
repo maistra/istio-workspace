@@ -19,6 +19,10 @@ MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
+GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
+GOBIN=$(GOPATH_1)/bin
+PATH:=${GOBIN}/bin:$(PATH)
+
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
@@ -31,7 +35,7 @@ endef
 ##@ Default target (all you need - just run "make")
 .DEFAULT_GOAL:=all
 .PHONY: all
-all: deps tools operator-codegen format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
+all: deps tools generate format lint compile test ## Runs 'deps operator-codegen format lint compile test' targets
 
 ###########################################################################
 # Build configuration
@@ -62,7 +66,9 @@ endif
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
-SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell find ./version -name "*.go") $(shell find ./test -name "*.go")
+SRC_DIRS:=./api ./controller ./pkg ./cmd ./version ./test
+TEST_DIRS:=./e2e
+SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 
 ###########################################################################
 ##@ Build
@@ -72,10 +78,10 @@ SRCS=$(shell find ./pkg -name "*.go") $(shell find ./cmd -name "*.go") $(shell f
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: operator-codegen $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps generate $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
-test: operator-codegen ## Runs tests
+test: generate ## Runs tests
 	$(call header,"Running tests")
 	ginkgo -r -v --skipPackage=e2e ${args}
 
@@ -97,34 +103,28 @@ deps: ## Fetches all dependencies
 .PHONY: format
 format: $(SRCS) ## Removes unneeded imports and formats source code
 	$(call header,"Formatting code")
-	goimports -l -w -e ./pkg/ ./cmd/ ./version/ ./test/ ./e2e/
+	goimports -l -w -e $(SRC_DIRS) $(TEST_DIRS)
 
 .PHONY: lint-prepare
-lint-prepare: deps tools operator-codegen compile
+lint-prepare: deps tools generate compile
 
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run
 
-GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
-.PHONY: operator-codegen
-operator-codegen: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/$(ASSETS) ## Generates operator-sdk code
-	$(call header,"Generates operator-sdk code")
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate crds
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate k8s
+.PHONY: generate
+generate: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
+	$(call header,"Generates CRDs et al")
+	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
+	controller-gen object paths=./api/...
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
 		$(PACKAGE_NAME)/pkg/client \
-		$(PACKAGE_NAME)/pkg/apis \
+		$(PACKAGE_NAME)/api \
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
-
-.PHONY: csv-codegen
-csv-codegen: $(PROJECT_DIR)/bin/operator-sdk operator-tpl operator-codegen ## Generates operator-sdk CSV and related manifests
-	$(call header,"Generates operator-sdk CSV manifests")
-	GOPATH=$(GOPATH_1) $(PROJECT_DIR)/bin/operator-sdk generate csv --update-crds --csv-version $(OPERATOR_VERSION)
 
 .PHONY: version
 version:
@@ -160,37 +160,37 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 ##@ Setup
 ###########################################################################
 
+.PHONY: controller-gen
+controller-gen:
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+
+
 .PHONY: tools
-tools: ## Installs required go tools
+install-tools: controller-gen ## Installs required go tools
 	$(call header,"Installing required tools")
-	go install golang.org/x/tools/cmd/goimports
-	go install github.com/onsi/ginkgo/ginkgo
-	go install github.com/golang/protobuf/protoc-gen-go
-	go install github.com/mikefarah/yq/v3
+	go install -mod=readonly golang.org/x/tools/cmd/goimports
+	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
+	go install -mod=readonly github.com/onsi/ginkgo/ginkgo
+	go install -mod=readonly github.com/mikefarah/yq/v3
 	go get -u github.com/go-bindata/go-bindata/...
 	# go get causes problems and is not recommended by the creators. installing binary instead
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 
-EXECUTABLES:=golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=controller-gen golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
-.PHONY: check-tools
-check-tools:
+.PHONY: tools
+tools:
 	$(call header,"Checking required tools")
-	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) tools,echo "'$(EXECUTABLES)' are installed")
+	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) install-tools,echo "'$(EXECUTABLES)' are installed")
 
-OPERATOR_OS=linux-gnu
-ifeq ($(OS), Darwin)
-	OPERATOR_OS=apple-darwin
-endif
-OPERATOR_ARCH:=$(shell uname -m)
-
-$(PROJECT_DIR)/bin/operator-sdk:
-	$(call header,"Installing operator-sdk cli")
-	mkdir -p $(PROJECT_DIR)/bin/
-	$(eval OPERATOR_SDK_VERSION:=$(shell go mod graph | grep operator-sdk | head -n 1 | cut -d'@' -f 2))
-	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk-$(OPERATOR_SDK_VERSION)-$(OPERATOR_ARCH)-$(OPERATOR_OS) -O $(PROJECT_DIR)/bin/operator-sdk
-	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 $(PROJECT_DIR)/bin/protoc:
 	$(call header,"Installing protoc")
@@ -233,9 +233,9 @@ export IKE_VERSION
 IMG_BUILDER:=docker
 
 ## Prefer to use podman
- ifneq (, $(shell which podman))
+ifneq (, $(shell which podman))
 	IMG_BUILDER=podman
- endif
+endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -331,9 +331,9 @@ docker-push-test-prepared:
 
 k8s:=kubectl
 
- ifneq (, $(shell which oc))
- 	k8s=oc
- endif
+ifneq (, $(shell which oc))
+	k8s=oc
+endif
 
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))

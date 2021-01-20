@@ -40,6 +40,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 			PrepareEnv(namespace)
 			InstallLocalOperator(namespace)
+			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 		})
 
 		AfterEach(func() {
@@ -48,7 +49,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 				for _, pod := range pods {
 					printBanner()
 					fmt.Println("Logs of " + pod)
-					fmt.Println(LogsOf(namespace, pod))
+					LogsOf(namespace, pod)
 					printBanner()
 					StateOf(namespace, pod)
 					printBanner()
@@ -63,7 +64,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 			It("should remove session if non-existing deployment is specified", func() {
 
-				// given
+				// when
 				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
 					"--deployment", "non-existing-deployment",
 					"-n", namespace,
@@ -73,16 +74,16 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 					"--run", "ruby ratings.rb 9080",
 					"--route", "header:x-test-suite=smoke",
 				)
-				Eventually(ikeWithWatch.Done(), 2*time.Minute).Should(BeClosed())
+				Eventually(ikeWithWatch.Done(), 10*time.Minute).Should(BeClosed())
 				Expect(ikeWithWatch.Status().Exit).ToNot(Equal(0))
 
-				// when
-				sessions := testshell.ExecuteInDir(tmpDir, "kubectl", "get", "sessions", "-n", namespace)
-				Eventually(sessions.Done(), 1*time.Minute).Should(BeClosed())
-
 				// then
-				stdErr := strings.Join(sessions.Status().Stderr, " ")
-				Expect(stdErr).To(ContainSubstring("No resources found"))
+				Eventually(func() string {
+					session := testshell.ExecuteInDir(tmpDir, "kubectl", "get", "sessions", "-n", namespace)
+					<-session.Done()
+					return strings.Join(session.Status().Stderr, " ")
+				}, 10*time.Minute, 5*time.Second).Should(ContainSubstring("No resources found"))
+
 			})
 
 		})
