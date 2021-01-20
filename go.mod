@@ -23,7 +23,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.2
-	github.com/onsi/gomega v1.10.3
+	github.com/onsi/gomega v1.10.4
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.3.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
@@ -40,7 +40,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/mod v0.4.1 // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974
+	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.1.0
 	google.golang.org/grpc v1.30.0
@@ -52,9 +52,9 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	istio.io/api v0.0.0-20200107183329-ed4b507c54e1
 	istio.io/client-go v0.0.0-20200107185429-9053b0f86b03
-	k8s.io/api v0.19.4
+	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.19.4
-	k8s.io/apimachinery v0.19.4
+	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.19.4
 	k8s.io/code-generator v0.19.4
 	sigs.k8s.io/controller-runtime v0.7.0
