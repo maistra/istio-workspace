@@ -1,4 +1,4 @@
-package apis
+package api
 
 import (
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
