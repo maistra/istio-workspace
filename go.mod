@@ -63,6 +63,5 @@ require (
 
 replace (
 	gopkg.in/fsnotify.v1 v1.4.9 => github.com/fsnotify/fsnotify v1.4.9
-	k8s.io/client-go => k8s.io/client-go v0.19.4
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.7.0
 )
