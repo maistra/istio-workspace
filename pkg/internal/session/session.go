@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 
@@ -187,11 +187,11 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
-	duration := 1 * time.Second
+	duration := 1 * time.Minute
 	if h.opts.Duration != nil {
 		duration = *h.opts.Duration
 	}
-	err = wait.Poll(duration, 10*time.Second, func() (bool, error) {
+	err = wait.Poll(2*time.Second, duration, func() (bool, error) {
 		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err

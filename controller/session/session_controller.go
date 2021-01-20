@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -12,14 +12,15 @@ import (
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/template"
 
+	"github.com/operator-framework/operator-lib/handler"
+
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-sdk/pkg/predicate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
@@ -93,7 +94,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Session
-	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}}, &handler.EnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
+	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}}, &handler.InstrumentedEnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ type ReconcileSession struct {
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
-func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
@@ -137,7 +138,7 @@ func (r *ReconcileSession) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	ctx := model.SessionContext{
-		Context:   context.Background(),
+		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
 		Route:     ConvertAPIRouteToModelRoute(session),

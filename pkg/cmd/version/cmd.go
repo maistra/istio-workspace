@@ -8,7 +8,6 @@ import (
 	"github.com/maistra/istio-workspace/version"
 
 	"github.com/go-logr/logr"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +48,6 @@ func LogVersion() {
 	logger().Info(fmt.Sprintf("Ike Version: %s", version.Version))
 	logger().Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	logger().Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
-	logger().Info(fmt.Sprintf("operator-sdk Version: %v", sdkVersion.Version))
 	logger().Info(fmt.Sprintf("Build Commit: %v", version.Commit))
 	logger().Info(fmt.Sprintf("Build Time: %v", version.BuildTime))
 }

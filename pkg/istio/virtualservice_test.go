@@ -1,7 +1,7 @@
 package istio //nolint:testpackage //reason we want to test mutationRequired in isolation
 
 import (
-	"github.com/maistra/istio-workspace/pkg/apis/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/testclient"
@@ -32,7 +32,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			&istionetwork.VirtualServiceList{},
 			&istionetwork.Gateway{}).Build()
 
-		c = fake.NewFakeClientWithScheme(schema, objects...)
+		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
 			Name:      "vs-test",

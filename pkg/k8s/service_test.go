@@ -40,7 +40,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			Name:      "test",
 			Namespace: "test",
 			Log:       log.CreateOperatorAwareLogger("test").WithValues("type", "k8s-service"),
-			Client:    fake.NewFakeClientWithScheme(schema, objects...),
+			Client:    fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build(),
 		}
 	})
 

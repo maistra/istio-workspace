@@ -94,11 +94,11 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 	if err != nil {
 		return err
 	}
-	resources := []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "cluster_role.yaml"}
+	resources := []string{"crds/maistra.io_sessions.yaml", "service_account.yaml", "cluster_role.yaml"}
 	templates := []string{"cluster_role_binding.yaml", "operator.tpl.yaml"}
 
 	if local {
-		resources = []string{"crds/maistra.io_sessions_crd.yaml", "service_account.yaml", "role.yaml"}
+		resources = []string{"crds/maistra.io_sessions.yaml", "service_account.yaml", "role.yaml"}
 		templates = []string{"role_binding.yaml", "operator.tpl.yaml"}
 
 		if envErr := os.Setenv("WATCH_NAMESPACE", namespace); envErr != nil {

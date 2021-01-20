@@ -197,4 +197,5 @@ objects:
                   port: 8282
                 initialDelaySeconds: 1
                 periodSeconds: 5
+                failureThreshold: 10
 `
