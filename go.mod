@@ -15,17 +15,17 @@ require (
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
-	github.com/kisielk/errcheck v1.5.0
 	github.com/joho/godotenv v1.3.0
+	github.com/kisielk/errcheck v1.5.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59
+	github.com/mikefarah/yq/v3 v3.0.0-20201202084205-8846255d1c37
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
-	github.com/operator-framework/operator-lib v0.3.0
+	github.com/operator-framework/operator-lib v0.4.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/prometheus/client_golang v1.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
@@ -55,11 +55,11 @@ require (
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.20.2
 	k8s.io/code-generator v0.20.2
-	sigs.k8s.io/controller-runtime v0.7.0
+	sigs.k8s.io/controller-runtime v0.8.0
 	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
 	gopkg.in/fsnotify.v1 v1.4.9 => github.com/fsnotify/fsnotify v1.4.9
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.7.0
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.8.0
 )
