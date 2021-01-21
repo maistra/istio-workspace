@@ -78,7 +78,7 @@ SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: deps generate $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps generate format $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
 test: generate ## Runs tests
@@ -117,7 +117,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	golangci-lint run
 
 .PHONY: generate
-generate: $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
+generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
 	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
 	controller-gen object paths=./api/...
