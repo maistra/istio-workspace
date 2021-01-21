@@ -14,7 +14,7 @@ BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 TPL_BINARY_NAME:=tpl
 ASSETS:=pkg/assets/isto-workspace-deploy.go
-ASSET_SRCS=$(shell find ./deploy ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var")
+ASSET_SRCS=$(shell find ./deploy ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
 MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
