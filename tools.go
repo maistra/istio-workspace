@@ -10,4 +10,5 @@ import (
     _ "github.com/go-bindata/go-bindata"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/mikefarah/yq/v3"
+	_ "github.com/kisielk/errcheck"
 )
