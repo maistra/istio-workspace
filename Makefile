@@ -108,6 +108,9 @@ format: $(SRCS) ## Removes unneeded imports and formats source code
 .PHONY: lint-prepare
 lint-prepare: deps tools generate compile
 
+.PHONY: release-prepare
+release-prepare: deps tools generate format
+
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
