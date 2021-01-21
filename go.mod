@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/go-bindata/go-bindata v3.1.2+incompatible
+	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.3.0
@@ -15,8 +15,8 @@ require (
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
-	github.com/kisielk/errcheck v1.5.0
 	github.com/joho/godotenv v1.3.0
+	github.com/kisielk/errcheck v1.5.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59

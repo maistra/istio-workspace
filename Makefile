@@ -182,7 +182,7 @@ install-tools: controller-gen ## Installs required go tools
 	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
 	go install -mod=readonly github.com/onsi/ginkgo/ginkgo
 	go install -mod=readonly github.com/mikefarah/yq/v3
-	go get -u github.com/go-bindata/go-bindata/...
+	go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
 	# go get causes problems and is not recommended by the creators. installing binary instead
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 
