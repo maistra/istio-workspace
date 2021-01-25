@@ -119,7 +119,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
-	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
+	controller-gen crd:crdVersions=v1 paths=./api/... output:crd:dir=./deploy/crds
 	controller-gen object paths=./api/...
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh

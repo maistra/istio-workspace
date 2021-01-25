@@ -16,7 +16,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -115,7 +115,7 @@ func Decoder() (DecodeFunc, error) {
 	if err := scheme.AddToScheme(s); err != nil {
 		return nil, err
 	}
-	if err := apiextv1beta1.AddToScheme(s); err != nil {
+	if err := apiextv1.AddToScheme(s); err != nil {
 		return nil, err
 	}
 

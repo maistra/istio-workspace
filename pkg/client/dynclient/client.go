@@ -5,7 +5,7 @@ import (
 
 	coreV1 "k8s.io/api/core/v1"
 	rbacV1 "k8s.io/api/rbac/v1"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,7 +75,7 @@ func (c *Client) Create(obj runtime.Object) error {
 	resourceInterface = nsResourceInterface
 
 	switch obj.(type) {
-	case *v1beta1.CustomResourceDefinition:
+	case *v1.CustomResourceDefinition:
 	case *rbacV1.ClusterRole:
 	case *rbacV1.ClusterRoleBinding:
 	default:
