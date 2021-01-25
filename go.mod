@@ -9,7 +9,7 @@ require (
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.3.0
-	github.com/goccy/go-yaml v1.8.4
+	github.com/goccy/go-yaml v1.8.5
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/google/go-github/v32 v32.1.0
