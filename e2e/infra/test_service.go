@@ -104,28 +104,28 @@ func GenerateSessionName() string {
 	return stringWithCharset(8, charset)
 }
 
-// PublisherRuby contains fixed response to be changed by tests.
-const PublisherRuby = `
-require 'webrick'
-require 'json'
-require 'net/http'
+// PublisherService contains fixed response to be changed by tests.
+const PublisherService = `
+import sys
+from http.server import HTTPStatus, BaseHTTPRequestHandler
+from socketserver import TCPServer
 
-if ARGV.length < 1 then
-    puts "usage: #{$PROGRAM_NAME} port"
-    exit(-1)
-end
 
-port = Integer(ARGV[0])
+if len(sys.argv) < 2:
+  print("usage: #{$PROGRAM_NAME} port")
+  exit(-1)
 
-server = WEBrick::HTTPServer.new :BindAddress => '0.0.0.0', :Port => port
+PORT = int(sys.argv[1])
 
-trap 'INT' do server.shutdown end
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-type", "text/plain")
 
-server.mount_proc '/' do |req, res|
-    res.status = 200
-    res.body = {'caller' => 'PublisherA'}.to_json
-    res['Content-Type'] = 'application/json'
-end
+        self.end_headers()
+        self.wfile.write("{\"caller\": \"PublisherA\"}".encode("ascii"))
 
-server.start
+TCPServer.allow_reuse_address = True
+httpd = TCPServer(("", PORT), Handler)
+httpd.serve_forever()
 `
