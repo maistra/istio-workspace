@@ -46,13 +46,18 @@ var _ = Describe("Operator Installation Tests", func() {
 
 		It("should install into specified namespace", func() {
 			// when
-			<-testshell.Execute("ike install -l -n " + namespace).Done()
+			cmd := testshell.Execute("ike install -l -n " + namespace)
+			<-cmd.Done()
 
 			// then
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 			operatorPodName := GetAllPods(namespace)[0]
 			Expect(operatorPodName).To(ContainSubstring("istio-workspace-"))
 			ensureOperatorPodIsRunning(operatorPodName, namespace)
+
+			// verify full image name is printed ("image": "quai.io/maistra/istio-workspace:v0.0.4",)
+			out := strings.Join(cmd.Status().Stdout, "\n")
+			Expect(out).ToNot(MatchRegexp(`[\w.-]+/[\w.-]+/[\w.-]+:v`))
 		})
 
 		It("should install into current namespace", func() {
