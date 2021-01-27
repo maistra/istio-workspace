@@ -176,9 +176,15 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
+OPERATOR_SDK_VERSION=v1.3.0
+$(PROJECT_DIR)/bin/operator-sdk:
+	$(call header,"Installing operator-sdk cli")
+	mkdir -p $(PROJECT_DIR)/bin/
+	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
+	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 .PHONY: tools
-install-tools:  ## Installs required go tools
+install-tools:  $(PROJECT_DIR)/bin/operator-sdk ## Installs required go tools
 	$(call header,"Installing required tools")
 	go install -mod=readonly golang.org/x/tools/cmd/goimports
 	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
@@ -189,8 +195,9 @@ install-tools:  ## Installs required go tools
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
 	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	operator-sdk version
 
-EXECUTABLES:=controller-gen kustomize golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=operator-sdk controller-gen kustomize golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: tools
