@@ -5,7 +5,7 @@ OPERATOR_NAMESPACE?=istio-workspace-operator
 OPERATOR_WATCH_NAMESPACE=""
 TEST_NAMESPACE?=bookinfo
 
-PROJECT_DIR:=$(shell pwd)
+PROJECT_DIR:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 export PROJECT_DIR
 export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
@@ -21,7 +21,7 @@ TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 GOBIN=$(GOPATH_1)/bin
-PATH:=${GOBIN}/bin:$(PATH)
+PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
@@ -163,20 +163,22 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 ##@ Setup
 ###########################################################################
 
-.PHONY: controller-gen
-controller-gen:
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
+# go-get-tool will 'go get' any package $2 and install it to $1.
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
 
 
 .PHONY: tools
-install-tools: controller-gen ## Installs required go tools
+install-tools:  ## Installs required go tools
 	$(call header,"Installing required tools")
 	go install -mod=readonly golang.org/x/tools/cmd/goimports
 	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
@@ -185,8 +187,10 @@ install-tools: controller-gen ## Installs required go tools
 	go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
 	# go get causes problems and is not recommended by the creators. installing binary instead
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
+	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
+	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
-EXECUTABLES:=controller-gen golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
+EXECUTABLES:=controller-gen kustomize golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: tools
