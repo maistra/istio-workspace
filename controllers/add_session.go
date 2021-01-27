@@ -1,7 +1,7 @@
-package controller
+package controllers
 
 import (
-	"github.com/maistra/istio-workspace/controller/session"
+	"github.com/maistra/istio-workspace/controllers/session"
 )
 
 func init() {

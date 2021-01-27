@@ -9,7 +9,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/controller/session"
+	"github.com/maistra/istio-workspace/controllers/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"

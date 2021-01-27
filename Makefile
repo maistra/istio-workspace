@@ -66,7 +66,7 @@ endif
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
-SRC_DIRS:=./api ./controller ./pkg ./cmd ./version ./test
+SRC_DIRS:=./api ./controllers ./pkg ./cmd ./version ./test
 TEST_DIRS:=./e2e
 SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 
