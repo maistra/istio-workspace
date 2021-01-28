@@ -120,6 +120,19 @@ type ReconcileSession struct {
 	manipulators Manipulators
 }
 
+// +kubebuilder:rbac:groups=maistra.io,resources=sessions,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=maistra.io,resources=sessions/finalizers,verbs=update
+// +kubebuilder:rbac:groups=maistra.io,resources=sessions/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
+// +kubebuilder:rbac:groups="",resources=pods;services;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=*
+// +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=*
+// +kubebuilder:rbac:groups=apps.openshift.io,resources=deploymentconfigs,verbs=*
+// +kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;create
+// +kubebuilder:rbac:groups=istio.openshift.com,resources=*,verbs=*
+// +kubebuilder:rbac:groups=networking.istio.io,resources=*,verbs=*
+// +kubebuilder:rbac:groups=maistra.io,resources=*,verbs=*
+// +kubebuilder:rbac:groups=apps,resourceNames=istio-workspace,resources=deployments/finalizers,verbs=update
+
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
 func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) {

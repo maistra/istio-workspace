@@ -14,7 +14,7 @@ BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 TPL_BINARY_NAME:=tpl
 ASSETS:=pkg/assets/isto-workspace-deploy.go
-ASSET_SRCS=$(shell find ./deploy ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
+ASSET_SRCS=$(shell find ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
 MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
 TELEPRESENCE_VERSION?=$(shell telepresence --version)
@@ -26,6 +26,18 @@ PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
+
+BUNDLE_IMG ?= quay.io/maistra/istio-workspace-operator-bundle:$(IKE_VERSION)
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
 # Call this function with $(call header,"Your message") to see underscored green text
 define header =
@@ -119,9 +131,8 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
-  controller-gen crd rbac:roleName=istio-workspace paths="./..." output:crd:artifacts:config=config/crd/bases
-	object:headerFile="scripts/boilerplate.go.txt" paths="./..."
-  #controller-gen object paths=./api/...
+	controller-gen $(CRD_OPTIONS) rbac:roleName=istio-workspace paths="./..." output:crd:artifacts:config=config/crd/bases
+	controller-gen object:headerFile="scripts/boilerplate.txt" paths="./..."
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
@@ -134,14 +145,30 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 .PHONY: bundle
 bundle: generate
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
 
 # Build the bundle image.
 .PHONY: bundle-build
 bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
+
+# Push the bundle image.
+.PHONY: bundle-push
+bundle-push:
+	docker push $(BUNDLE_IMG)
+
+# Run the bundle image.
+.PHONY: bundle-run
+bundle-run:
+	oc new-project $(OPERATOR_NAMESPACE) || true
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
+
+# Clean the bundle image.
+.PHONY: bundle-clean
+bundle-clean:
+	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 .PHONY: version
 version:

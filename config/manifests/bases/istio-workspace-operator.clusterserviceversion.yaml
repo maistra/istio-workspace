@@ -10,7 +10,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: Session is the Schema for the sessions API
+    - description: Session is the Schema for the sessions API.
       displayName: Session
       kind: Session
       name: sessions.maistra.io.maistra.io
