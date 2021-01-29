@@ -364,7 +364,7 @@ bundle: generate	## Generate bundle manifests and metadata, then validate genera
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
-bundle-build:	## Build the bundle image
+bundle-build: bundle	## Build the bundle image
 	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
