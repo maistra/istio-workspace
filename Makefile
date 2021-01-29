@@ -82,6 +82,19 @@ SRC_DIRS:=./api ./controllers ./pkg ./cmd ./version ./test
 TEST_DIRS:=./e2e
 SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 
+k8s:=kubectl
+
+ifneq (, $(shell which oc))
+	k8s=oc
+endif
+
+IMG_BUILDER:=docker
+
+## Prefer to use podman
+ifneq (, $(shell which podman))
+	IMG_BUILDER=podman
+endif
+
 ###########################################################################
 ##@ Build
 ###########################################################################
@@ -141,34 +154,6 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
 
-# Generate bundle manifests and metadata, then validate generated files.
-.PHONY: bundle
-bundle: generate
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
-
-# Build the bundle image.
-.PHONY: bundle-build
-bundle-build:
-	docker build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
-
-# Push the bundle image.
-.PHONY: bundle-push
-bundle-push:
-	docker push $(BUNDLE_IMG)
-
-# Run the bundle image.
-.PHONY: bundle-run
-bundle-run:
-	oc new-project $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
-
-# Clean the bundle image.
-.PHONY: bundle-clean
-bundle-clean:
-	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 .PHONY: version
 version:
@@ -199,6 +184,34 @@ compile-test-service: test/cmd/test-service/html.go test/cmd/test-service/main.p
 $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
+
+###########################################################################
+##@ Operator SDK bundle
+###########################################################################
+
+.PHONY: bundle
+bundle: generate	## Generate bundle manifests and metadata, then validate generated files
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+.PHONY: bundle-build
+bundle-build:	## Build the bundle image
+	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
+
+.PHONY: bundle-push
+bundle-push:	## Push the bundle image
+	$(IMG_BUILDER) push $(BUNDLE_IMG)
+
+.PHONY: bundle-run
+bundle-run:		## Run the bundle image
+	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
+
+.PHONY: bundle-clean
+bundle-clean:	## Clean the bundle image
+	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 ###########################################################################
 ##@ Setup
@@ -240,7 +253,7 @@ install-tools:  $(PROJECT_DIR)/bin/operator-sdk ## Installs required go tools
 
 EXECUTABLES:=operator-sdk controller-gen kustomize golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
-        $(if $(shell which $(exec) 2>/dev/null),,"install"))
+		$(if $(shell which $(exec) 2>/dev/null),,"install"))
 .PHONY: tools
 tools:
 	$(call header,"Checking required tools")
@@ -270,13 +283,6 @@ IKE_DOCKER_REGISTRY?=quay.io
 IKE_DOCKER_REPOSITORY?=maistra
 export IKE_IMAGE_TAG
 export IKE_VERSION
-
-IMG_BUILDER:=docker
-
-## Prefer to use podman
-ifneq (, $(shell which podman))
-	IMG_BUILDER=podman
-endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -367,14 +373,8 @@ docker-push-test-prepared:
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 # ##########################################################################
-##@ Istio-workspace sample project deployment
+## Istio-workspace sample project deployment
 # ##########################################################################
-
-k8s:=kubectl
-
-ifneq (, $(shell which oc))
-	k8s=oc
-endif
 
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
