@@ -6,6 +6,7 @@ OPERATOR_WATCH_NAMESPACE=""
 TEST_NAMESPACE?=bookinfo
 
 PROJECT_DIR:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+$(shell mkdir -p $(PROJECT_DIR)/bin/)
 export PROJECT_DIR
 export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
@@ -200,31 +201,39 @@ tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_D
 tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq
 
 $(PROJECT_DIR)/bin/yq:
+	$(call header,"Installing")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v3
 
 $(PROJECT_DIR)/bin/protoc-gen-go:
+	$(call header,"Installing")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
 
 $(PROJECT_DIR)/bin/go-bindata:
+	$(call header,"Installing")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
 
 $(PROJECT_DIR)/bin/ginkgo:
+	$(call header,"Installing")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo
 
 $(PROJECT_DIR)/bin/goimports:
+	$(call header,"Installing")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly golang.org/x/tools/cmd/goimports
 
 $(PROJECT_DIR)/bin/golangci-lint:
+	$(call header,"Installing")
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.28.3
 
 $(PROJECT_DIR)/bin/controller-gen:
+	$(call header,"Installing")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
 $(PROJECT_DIR)/bin/kustomize:
+	$(call header,"Installing")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@$(shell go mod graph | grep kustomize | head -n 1 | cut -d'@' -f 2))
 
 $(PROJECT_DIR)/bin/protoc:
-	$(call header,"Installing protoc")
+	$(call header,"Installing")
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
@@ -236,7 +245,6 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 OPERATOR_SDK_VERSION=v1.3.0
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
-	mkdir -p $(PROJECT_DIR)/bin/
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
 	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
