@@ -29,7 +29,7 @@ func InstallLocalOperator(namespace string) {
 
 	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-	<-shell.ExecuteInDir(shell.GetProjectDir(), "make bundle-run").Done()
+	<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
 }
 
 func setOperatorNamespace() (namespace string) {
