@@ -25,7 +25,6 @@ PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
 
-BUNDLE_IMG ?= quay.io/maistra/istio-workspace-operator-bundle:$(IKE_VERSION)
 # Options for 'bundle-build'
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
@@ -67,10 +66,8 @@ IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
-	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
-	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next-$(COMMIT)
-else ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_VERSION:=$(IKE_VERSION)-dirty
+	IKE_VERSION:=$(IKE_VERSION)-next
+	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 endif
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
@@ -81,13 +78,11 @@ TEST_DIRS:=./e2e
 SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
 
 k8s:=kubectl
-
 ifneq (, $(shell which oc))
 	k8s=oc
 endif
 
 IMG_BUILDER:=docker
-
 ## Prefer to use podman
 ifneq (, $(shell which podman))
 	IMG_BUILDER=podman
@@ -152,7 +147,6 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 		"maistra:v1alpha1" \
 		--go-header-file ./scripts/boilerplate.txt
 
-
 .PHONY: version
 version:
 	@echo $(IKE_VERSION)
@@ -182,34 +176,6 @@ compile-test-service: test/cmd/test-service/html.go test/cmd/test-service/main.p
 $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
-
-###########################################################################
-##@ Operator SDK bundle
-###########################################################################
-
-.PHONY: bundle
-bundle: generate	## Generate bundle manifests and metadata, then validate generated files
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
-
-.PHONY: bundle-build
-bundle-build:	## Build the bundle image
-	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
-
-.PHONY: bundle-push
-bundle-push:	## Push the bundle image
-	$(IMG_BUILDER) push $(BUNDLE_IMG)
-
-.PHONY: bundle-run
-bundle-run:		## Run the bundle image
-	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
-
-.PHONY: bundle-clean
-bundle-clean:	## Clean the bundle image
-	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 ###########################################################################
 ##@ Setup
@@ -268,18 +234,18 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 ###########################################################################
-##@ Docker
+##@ Image builds
 ###########################################################################
 
+IKE_DOCKER_REGISTRY?=quay.io
+IKE_DOCKER_REPOSITORY?=maistra
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_IMAGE_TAG?=$(IKE_VERSION)
+export IKE_IMAGE_TAG
+export IKE_VERSION
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
 IKE_TEST_PREPARED_NAME?=prepared-image
-IKE_IMAGE_TAG?=$(IKE_VERSION)
-IKE_DOCKER_REGISTRY?=quay.io
-IKE_DOCKER_REPOSITORY?=maistra
-export IKE_IMAGE_TAG
-export IKE_VERSION
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -368,6 +334,36 @@ docker-push-test-prepared:
 	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
+
+###########################################################################
+##@ Operator SDK bundle
+###########################################################################
+
+BUNDLE_IMG?=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
+
+.PHONY: bundle
+bundle: generate	## Generate bundle manifests and metadata, then validate generated files
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+.PHONY: bundle-build
+bundle-build:	## Build the bundle image
+	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
+
+.PHONY: bundle-push
+bundle-push:	## Push the bundle image
+	$(IMG_BUILDER) push $(BUNDLE_IMG)
+
+.PHONY: bundle-run
+bundle-run:		## Run the bundle image
+	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
+
+.PHONY: bundle-clean
+bundle-clean:	## Clean the bundle image
+	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 # ##########################################################################
 ## Istio-workspace sample project deployment
