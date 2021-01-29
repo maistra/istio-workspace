@@ -198,7 +198,7 @@ endef
 .PHONY: tools
 tools: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/controller-gen $(PROJECT_DIR)/bin/kustomize
 tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_DIR)/bin/go-bindata
-tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq
+tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq $(PROJECT_DIR)/bin/ginkgo
 
 $(PROJECT_DIR)/bin/yq:
 	$(call header,"Installing")
