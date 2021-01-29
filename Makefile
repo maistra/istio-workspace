@@ -391,9 +391,6 @@ deploy-test-%:
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
-	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
-	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
-
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
@@ -401,8 +398,6 @@ undeploy-test-%:
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
-	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
-	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
 
 ##@ Helpers
 

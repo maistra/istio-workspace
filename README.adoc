@@ -45,7 +45,9 @@ Options:
 
 ----
 
-In the cluster console install the `istio-workspace` operator from the Operator Hub.
+If you're using Openshift you can install the `istio-workspace operator` via the Operator Hub in the web console.
+
+If you're on vanilla Kubernetes you can install it by installing the `Operator Lifecycle Managment` using the https://sdk.operatorframework.io/docs/installation/[Operator SDK]:
 
 [source,bash]
 ----

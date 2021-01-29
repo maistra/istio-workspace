@@ -9,7 +9,7 @@ require (
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.3.0
-	github.com/goccy/go-yaml v1.8.4
+	github.com/goccy/go-yaml v1.8.4 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/google/go-github/v32 v32.1.0
@@ -46,12 +46,12 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/h2non/gock.v1 v1.0.16
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	istio.io/api v0.0.0-20200107183329-ed4b507c54e1
 	istio.io/client-go v0.0.0-20200107185429-9053b0f86b03
 	k8s.io/api v0.20.2
-	k8s.io/apiextensions-apiserver v0.20.2
+	k8s.io/apiextensions-apiserver v0.20.2 // indirect
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.20.2
 	k8s.io/code-generator v0.20.2
