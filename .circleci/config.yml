@@ -170,6 +170,7 @@ jobs:
             export IKE_CLUSTER_HOST=localhost \
             export IKE_ISTIO_INGRESS=http://localhost:31380 \
 
+            export PRE_BUILT_IMAGES=true
             export IKE_DOCKER_REPOSITORY=maistra \
             IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
             IKE_EXTERNAL_DOCKER_REGISTRY=quay.io
@@ -183,6 +184,12 @@ jobs:
             make deps tools
 
             ./bin/operator-sdk olm install
+
+            make docker-build docker-push-versioned
+            make docker-build-test docker-push-test
+            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
+            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
+            make bundle-build bundle-push
 
             make test-e2e
       - save_cache:
