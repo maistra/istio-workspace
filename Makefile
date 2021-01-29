@@ -195,7 +195,9 @@ rm -rf $$TMP_DIR ;\
 endef
 
 .PHONY: tools
-tools: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/controller-gen $(PROJECT_DIR)/bin/kustomize $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_DIR)/bin/go-bindata $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq
+tools: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/controller-gen $(PROJECT_DIR)/bin/kustomize
+tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_DIR)/bin/go-bindata
+tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq
 
 $(PROJECT_DIR)/bin/yq:
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v3
@@ -216,10 +218,10 @@ $(PROJECT_DIR)/bin/golangci-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.28.3
 
 $(PROJECT_DIR)/bin/controller-gen:
-	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
+	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
 $(PROJECT_DIR)/bin/kustomize:
-	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@$(shell go mod graph | grep kustomize | head -n 1 | cut -d'@' -f 2))
 
 $(PROJECT_DIR)/bin/protoc:
 	$(call header,"Installing protoc")
