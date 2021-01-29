@@ -101,13 +101,12 @@ jobs:
             sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
-          name: "Configure Docker daemon with insecure-registry"
+          name: "Sets up Quay.io"
           command: |
-            json=`mktemp`
-            echo '{ "insecure-registries": [ "localhost:32000"] }' > ${json}
-            sudo mv ${json} /etc/docker/daemon.json
-            sudo service docker restart
-            echo "Configured Docker daemon with insecure-registry"
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
       - run:
           name: Install official kubectl
           command: |
@@ -172,17 +171,17 @@ jobs:
             export IKE_ISTIO_INGRESS=http://localhost:31380 \
 
             export IKE_DOCKER_REPOSITORY=maistra \
-            IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
-            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
+            IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
+            IKE_EXTERNAL_DOCKER_REGISTRY=quay.io
 
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG=latest
             else
-              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
+              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}-circle"
             fi
 
-            # actual build
             make deps tools
+
             ./bin/operator-sdk olm install
 
             make test-e2e
