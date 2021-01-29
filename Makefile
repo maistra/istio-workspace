@@ -249,7 +249,6 @@ install-tools:  $(PROJECT_DIR)/bin/operator-sdk ## Installs required go tools
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
 	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
-	operator-sdk version
 
 EXECUTABLES:=operator-sdk controller-gen kustomize golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
 CHECK:=$(foreach exec,$(EXECUTABLES),\
