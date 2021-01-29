@@ -45,18 +45,12 @@ Options:
 
 ----
 
-When logged in to the cluster run the following for a cluster wide operator:
+In the cluster console install the `istio-workspace` operator from the Operator Hub.
 
 [source,bash]
 ----
-ike install
-----
-
-or if you only want to install the operator for a single namespace run:
-
-[source,bash]
-----
-ike install -l
+operator-sdk install
+operator-sdk run bundle quay.io/maistra/istio-workspace-operator-bundle:latest
 ----
 
 And you are all set!
