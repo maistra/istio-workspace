@@ -17,8 +17,6 @@ ASSETS:=pkg/assets/isto-workspace-deploy.go
 ASSET_SRCS=$(shell find ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
 MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 
-TELEPRESENCE_VERSION?=$(shell telepresence --version)
-
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 GOBIN=$(GOPATH_1)/bin
 PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
