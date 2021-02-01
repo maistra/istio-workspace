@@ -13,7 +13,7 @@ jobs:
         env:
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
           REPOSITORY: "https://quay.io/api/v1/repository/maistra"
-          TAG: "PR-${{ github.event.number }}"
+          TAG: "pr-${{ github.event.number }}"
         run: |
           HEADER_TOKEN="Authorization: Bearer ${QUAY_OAUTH_TOKEN}"
 

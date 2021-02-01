@@ -178,7 +178,7 @@ jobs:
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG="${CIRCLE_BRANCH}"
             else
-              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}-circle"
+              export IKE_IMAGE_TAG="pr-${CIRCLE_PULL_REQUEST##*/}-circle"
             fi
 
             make deps tools
