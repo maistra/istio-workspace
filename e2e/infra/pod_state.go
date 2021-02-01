@@ -1,7 +1,9 @@
 package infra
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -105,8 +107,27 @@ func isPodInStatus(pod, ns, status string) bool {
 		"kubectl", "get",
 		"pod", pod,
 		"-n", ns,
-		"-o", `jsonpath={.status.conditions[?(@.type=="`+status+`")].status}`,
+		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+status+`")].status}`,
 	)
 	<-podStatus.Done()
-	return strings.Trim(fmt.Sprintf("%s", podStatus.Status().Stdout), "[]") == "True"
+
+	statuses := []map[string]string{}
+	err := json.Unmarshal([]byte(fmt.Sprintf("%s", podStatus.Status().Stdout)), &statuses)
+	if err != nil {
+		return false
+	}
+
+	if len(statuses) == 0 {
+		return false
+	}
+
+	s := statuses[0]
+	if s["status"] == "false" && s["reason"] == "PodCompleted" {
+		return true
+	}
+	b, err := strconv.ParseBool(s["status"])
+	if err != nil {
+		return false
+	}
+	return b
 }
