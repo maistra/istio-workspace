@@ -116,7 +116,7 @@ func isPodInStatus(pod, ns, conditionType string) bool {
 	)
 	<-podStatus.Done()
 
-	jsonBody := fmt.Sprintf("%s", strings.Join(podStatus.Status().Stdout, ""))
+	jsonBody := strings.Join(podStatus.Status().Stdout, "")
 
 	var conditions []conditionStruct
 	err := json.Unmarshal([]byte(jsonBody), &conditions)
@@ -134,7 +134,7 @@ func isPodInStatus(pod, ns, conditionType string) bool {
 	if err != nil {
 		return false
 	}
-	if !status && strings.ToLower(condition.Reason) == "podcompleted" {
+	if !status && strings.EqualFold(condition.Reason, "podcompleted") {
 		return true
 	}
 	return status
