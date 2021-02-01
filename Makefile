@@ -361,6 +361,8 @@ bundle: generate	## Generate bundle manifests and metadata, then validate genera
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
+	mv bundle.Dockerfile build
+	sed -i 's/COPY bundle\//COPY /g' build/bundle.Dockerfile
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
