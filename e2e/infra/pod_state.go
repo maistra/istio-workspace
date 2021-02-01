@@ -102,32 +102,32 @@ func LogsOf(ns, pod string) {
 	<-logs.Done()
 }
 
-func isPodInStatus(pod, ns, status string) bool {
+func isPodInStatus(pod, ns, conditionType string) bool {
 	podStatus := shell.ExecuteInDir(".",
 		"kubectl", "get",
 		"pod", pod,
 		"-n", ns,
-		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+status+`")]}`,
+		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+conditionType+`")]}`,
 	)
 	<-podStatus.Done()
 
-	statuses := []map[string]string{}
-	err := json.Unmarshal([]byte(fmt.Sprintf("%s", podStatus.Status().Stdout)), &statuses)
+	conditions := []map[string]string{}
+	err := json.Unmarshal([]byte(fmt.Sprintf("%s", podStatus.Status().Stdout)), &conditions)
 	if err != nil {
 		return false
 	}
 
-	if len(statuses) == 0 {
+	if len(conditions) == 0 {
 		return false
 	}
 
-	s := statuses[0]
-	if s["status"] == "false" && s["reason"] == "PodCompleted" {
+	condition := conditions[0]
+	status, err := strconv.ParseBool(condition["status"])
+	if err != nil {
+		return false
+	}
+	if !status && strings.ToLower(condition["reason"]) == "podcompleted" {
 		return true
 	}
-	b, err := strconv.ParseBool(s["status"])
-	if err != nil {
-		return false
-	}
-	return b
+	return status
 }
