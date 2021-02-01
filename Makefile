@@ -278,7 +278,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
+		-f $(BUILD_DIR)/Dockerfile $(BINARY_DIR)
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
@@ -309,7 +309,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
+		-f $(BUILD_DIR)/DockerfileTest $(BINARY_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
@@ -338,7 +338,7 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
+		-f $(BUILD_DIR)/DockerfileTestPrepared $(BINARY_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
