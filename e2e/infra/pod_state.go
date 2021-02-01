@@ -107,7 +107,7 @@ func isPodInStatus(pod, ns, status string) bool {
 		"kubectl", "get",
 		"pod", pod,
 		"-n", ns,
-		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+status+`")].status}`,
+		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+status+`")]}`,
 	)
 	<-podStatus.Done()
 
