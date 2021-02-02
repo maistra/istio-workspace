@@ -76,6 +76,13 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		}
 	}
 
+	// Propagates IKE_VERSION env var which is used by templates to be aligned with the version of the actual built binary
+	if _, found := os.LookupEnv("IKE_VERSION"); !found {
+		if envErr := os.Setenv("IKE_VERSION", version.Version); envErr != nil {
+			return envErr
+		}
+	}
+
 	// Propagates IKE_IMAGE_TAG env var which is used by templates to be aligned with the version of the actual built binary
 	if _, found := os.LookupEnv("IKE_IMAGE_TAG"); !found {
 		if envErr := os.Setenv("IKE_IMAGE_TAG", version.Version); envErr != nil {
@@ -83,9 +90,23 @@ func installOperator(cmd *cobra.Command, args []string) error { //nolint:gocyclo
 		}
 	}
 
-	// Propagates IKE_VERSION env var which is used by templates to be aligned with the version of the actual built binary
-	if _, found := os.LookupEnv("IKE_VERSION"); !found {
-		if envErr := os.Setenv("IKE_VERSION", version.Version); envErr != nil {
+	// Propagates IKE_DOCKER_REGISTRY env var which is used by templates to build the image url
+	if _, found := os.LookupEnv("IKE_DOCKER_REGISTRY"); !found {
+		if envErr := os.Setenv("IKE_DOCKER_REGISTRY", "quay.io"); envErr != nil {
+			return envErr
+		}
+	}
+
+	// Propagates IKE_DOCKER_REPOSITORY env var which is used by templates to build the image url
+	if _, found := os.LookupEnv("IKE_DOCKER_REPOSITORY"); !found {
+		if envErr := os.Setenv("IKE_DOCKER_REPOSITORY", "maistra"); envErr != nil {
+			return envErr
+		}
+	}
+
+	// Propagates IKE_IMAGE_NAME env var which is used by templates to build the image url
+	if _, found := os.LookupEnv("IKE_IMAGE_NAME"); !found {
+		if envErr := os.Setenv("IKE_IMAGE_NAME", "istio-workspace"); envErr != nil {
 			return envErr
 		}
 	}
