@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/config"
-
-	openshiftApi "github.com/openshift/api/template/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -53,10 +50,6 @@ func RegisterTemplateFuncs() {
 			return "repeat flag and/or comma-separated list of " + strings.Replace(flagType, "Slice", "", 1) + "s"
 		}
 		return "`" + flagType + "`"
-	})
-
-	cobra.AddTemplateFunc("tplParams", func() []openshiftApi.Parameter {
-		return config.Parameters
 	})
 }
 

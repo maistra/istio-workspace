@@ -5,9 +5,9 @@ defaults:
     name: "Install latest Golang"
     command: |
       sudo rm -rf /usr/local/go
-      sudo circleci-install golang 1.15.5
+      sudo circleci-install golang 1.15.7
   docker:
-    - image: &golang-img cimg/go:1.15.5
+    - image: &golang-img cimg/go:1.15.7
   machine-conf: &machine-conf
     image: ubuntu-1604:201903-01
   skip-e2e-check: &skip-e2e-check
@@ -101,17 +101,16 @@ jobs:
             sudo apt install --no-install-recommends telepresence
             telepresence --version
       - run:
-          name: "Configure Docker daemon with insecure-registry"
+          name: "Sets up Quay.io"
           command: |
-            json=`mktemp`
-            echo '{ "insecure-registries": [ "localhost:32000"] }' > ${json}
-            sudo mv ${json} /etc/docker/daemon.json
-            sudo service docker restart
-            echo "Configured Docker daemon with insecure-registry"
+            mkdir -p ~/.docker && chmod 0700 ~/.docker
+            touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
+            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            docker login quay.io
       - run:
           name: Install official kubectl
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.9/bin/linux/amd64/kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.2/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
@@ -136,7 +135,7 @@ jobs:
             # Allow intra-pod communication
             sudo iptables -P FORWARD ACCEPT
 
-            echo n | sudo microk8s.enable dns registry istio
+            echo n | sudo microk8s.enable dns registry istio rbac
 
             # wait until the registry is up and running
             sleep 10
@@ -171,18 +170,28 @@ jobs:
             export IKE_CLUSTER_HOST=localhost \
             export IKE_ISTIO_INGRESS=http://localhost:31380 \
 
+            export PRE_BUILT_IMAGES=true
             export IKE_DOCKER_REPOSITORY=maistra \
-            IKE_INTERNAL_DOCKER_REGISTRY=localhost:32000 \
-            IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
+            IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
+            IKE_EXTERNAL_DOCKER_REGISTRY=quay.io
 
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
-              export IKE_IMAGE_TAG=latest
+              export IKE_IMAGE_TAG="${CIRCLE_BRANCH}"
             else
-              export IKE_IMAGE_TAG="PR-${CIRCLE_PULL_REQUEST##*/}"
+              export IKE_IMAGE_TAG="pr-${CIRCLE_PULL_REQUEST##*/}-circle"
             fi
 
-            # actual build
-            make deps tools test-e2e
+            make deps tools
+
+            ./bin/operator-sdk olm install
+
+            make docker-build docker-push-versioned
+            make docker-build-test docker-push-test
+            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
+            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
+            make bundle-build bundle-push
+
+            make test-e2e
       - save_cache:
           key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:

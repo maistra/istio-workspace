@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -81,11 +83,17 @@ func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	}
 	defer resp.Body.Close()
 
-	dec := json.NewDecoder(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err, "Failed to read", "target", target)
+		return nil
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(body))
 	child := CallStack{}
 	err = dec.Decode(&child)
 	if err != nil {
-		log.Error(err, "Failed to decode", "target", target)
+		log.Error(err, "Failed to decode", "target", target, "body", string(body))
 		return nil
 	}
 	return &child

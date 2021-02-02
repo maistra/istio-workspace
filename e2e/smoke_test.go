@@ -69,14 +69,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						// given we have details code locally
-						CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
+						CreateFile(tmpDir+"/ratings.py", PublisherService)
 
 						ike := RunIke(tmpDir, "develop",
 							"--deployment", "ratings-v1",
 							"--port", "9080",
 							"--method", "inject-tcp",
 							"--watch",
-							"--run", "ruby ratings.rb 9080",
+							"--run", "python ratings.py 9080",
 							"--route", "header:x-test-suite=smoke",
 							"--session", sessionName,
 							"--namespace", namespace,
@@ -85,8 +85,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						// then modify the service
-						modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
-						CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
+						modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+						CreateFile(tmpDir+"/ratings.py", modifiedDetails)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
@@ -203,14 +203,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 				// given we have details code locally
-				CreateFile(tmpDir+"/ratings.rb", PublisherRuby)
+				CreateFile(tmpDir+"/ratings.py", PublisherService)
 
 				ike := RunIke(tmpDir, "develop",
 					"--deployment", "ratings-v1",
 					"--port", "9080",
 					"--method", "inject-tcp",
 					"--watch",
-					"--run", "ruby ratings.rb 9080",
+					"--run", "python ratings.py 9080",
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 				)
@@ -218,8 +218,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 				// then modify the service
-				modifiedDetails := strings.Replace(PublisherRuby, "PublisherA", "Publisher Ike", 1)
-				CreateFile(tmpDir+"/ratings.rb", modifiedDetails)
+				modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+				CreateFile(tmpDir+"/ratings.py", modifiedDetails)
 
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
