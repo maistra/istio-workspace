@@ -1,0 +1,13 @@
+domain: maistra.io
+layout: go.kubebuilder.io/v3
+projectName: istio-workspace-operator
+repo: github.com/maistra/istio-workspace
+resources:
+- crdVersion: v1
+  group: maistra.io
+  kind: Session
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}

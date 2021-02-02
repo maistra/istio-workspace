@@ -20,13 +20,16 @@ func BuildOperator() (registry string) {
 	if RunsAgainstOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle-build", "bundle-push").Done()
 	return
 }
 
 func InstallLocalOperator(namespace string) {
 	SetDockerRegistryInternal()
-	<-shell.Execute("ike install -l -n " + namespace).Done()
+
+	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+	<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
 }
 
 func setOperatorNamespace() (namespace string) {
