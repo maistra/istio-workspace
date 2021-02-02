@@ -5,7 +5,8 @@ OPERATOR_NAMESPACE?=istio-workspace-operator
 OPERATOR_WATCH_NAMESPACE=""
 TEST_NAMESPACE?=bookinfo
 
-PROJECT_DIR:=$(shell pwd)
+PROJECT_DIR:=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+$(shell mkdir -p $(PROJECT_DIR)/bin/)
 export PROJECT_DIR
 export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
@@ -14,18 +15,27 @@ BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 TPL_BINARY_NAME:=tpl
 ASSETS:=pkg/assets/isto-workspace-deploy.go
-ASSET_SRCS=$(shell find ./deploy ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
+ASSET_SRCS=$(shell find ./template -name "*.yaml" -o -name "*.tpl" -o -name "*.var" | sort)
 MANIFEST_DIR:=$(PROJECT_DIR)/deploy
-
-TELEPRESENCE_VERSION?=$(shell telepresence --version)
 
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 GOBIN=$(GOPATH_1)/bin
-PATH:=${GOBIN}/bin:$(PATH)
+PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
 
 # Determine this makefile's path.
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
+
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
 # Call this function with $(call header,"Your message") to see underscored green text
 define header =
@@ -57,18 +67,27 @@ IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
-	IKE_VERSION:=$(IKE_VERSION)-next-$(COMMIT)
-	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next-$(COMMIT)
-else ifneq ($(GITUNTRACKEDCHANGES),)
-	IKE_VERSION:=$(IKE_VERSION)-dirty
+	IKE_VERSION:=$(IKE_VERSION)-next
+	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 endif
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
 LDFLAGS="-w -X ${PACKAGE_NAME}/version.Release=${RELEASE} -X ${PACKAGE_NAME}/version.Version=${IKE_VERSION} -X ${PACKAGE_NAME}/version.Commit=${COMMIT} -X ${PACKAGE_NAME}/version.BuildTime=${BUILD_TIME}"
-SRC_DIRS:=./api ./controller ./pkg ./cmd ./version ./test
+SRC_DIRS:=./api ./controllers ./pkg ./cmd ./version ./test
 TEST_DIRS:=./e2e
 SRCS:=$(shell find ${SRC_DIRS} -name "*.go")
+
+k8s:=kubectl
+ifneq (, $(shell which oc))
+	k8s=oc
+endif
+
+IMG_BUILDER:=docker
+## Prefer to use podman
+ifneq (, $(shell which podman))
+	IMG_BUILDER=podman
+endif
 
 ###########################################################################
 ##@ Build
@@ -119,8 +138,8 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
-	controller-gen crd paths=./api/... output:crd:dir=./deploy/crds
-	controller-gen object paths=./api/...
+	controller-gen $(CRD_OPTIONS) rbac:roleName=istio-workspace paths="./..." output:crd:artifacts:config=config/crd/bases
+	controller-gen object:headerFile="scripts/boilerplate.txt" paths="./..."
 	$(call header,"Generates clientset code")
 	chmod +x ./vendor/k8s.io/code-generator/generate-groups.sh
 	GOPATH=$(GOPATH_1) ./vendor/k8s.io/code-generator/generate-groups.sh client \
@@ -163,40 +182,58 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 ##@ Setup
 ###########################################################################
 
-.PHONY: controller-gen
-controller-gen:
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-
+# go-get-tool will 'go get' any package $2 and install it to $1.
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
 
 .PHONY: tools
-install-tools: controller-gen ## Installs required go tools
-	$(call header,"Installing required tools")
-	go install -mod=readonly golang.org/x/tools/cmd/goimports
-	go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
-	go install -mod=readonly github.com/onsi/ginkgo/ginkgo
-	go install -mod=readonly github.com/mikefarah/yq/v3
-	go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
-	# go get causes problems and is not recommended by the creators. installing binary instead
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_1)/bin v1.28.3
+tools: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/controller-gen $(PROJECT_DIR)/bin/kustomize
+tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_DIR)/bin/go-bindata
+tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq $(PROJECT_DIR)/bin/ginkgo
 
-EXECUTABLES:=controller-gen golangci-lint goimports ginkgo go-bindata protoc-gen-go yq
-CHECK:=$(foreach exec,$(EXECUTABLES),\
-        $(if $(shell which $(exec) 2>/dev/null),,"install"))
-.PHONY: tools
-tools:
-	$(call header,"Checking required tools")
-	@$(if $(strip $(CHECK)),$(MAKE) -f $(THIS_MAKEFILE) install-tools,echo "'$(EXECUTABLES)' are installed")
+$(PROJECT_DIR)/bin/yq:
+	$(call header,"Installing")
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v3
 
+$(PROJECT_DIR)/bin/protoc-gen-go:
+	$(call header,"Installing")
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
+
+$(PROJECT_DIR)/bin/go-bindata:
+	$(call header,"Installing")
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
+
+$(PROJECT_DIR)/bin/ginkgo:
+	$(call header,"Installing")
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo
+
+$(PROJECT_DIR)/bin/goimports:
+	$(call header,"Installing")
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly golang.org/x/tools/cmd/goimports
+
+$(PROJECT_DIR)/bin/golangci-lint:
+	$(call header,"Installing")
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.28.3
+
+$(PROJECT_DIR)/bin/controller-gen:
+	$(call header,"Installing")
+	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
+
+$(PROJECT_DIR)/bin/kustomize:
+	$(call header,"Installing")
+	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@$(shell go mod graph | grep kustomize | head -n 1 | cut -d'@' -f 2))
 
 $(PROJECT_DIR)/bin/protoc:
-	$(call header,"Installing protoc")
+	$(call header,"Installing")
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
@@ -205,40 +242,25 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	$(call header,"Adds assets to the binary")
 	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
-.PHONY: operator-tpl
-operator-tpl: $(BINARY_DIR)/$(TPL_BINARY_NAME)
-	$(call header,"Updates operator.yaml")
-	@printf "## Autogenerated from operator.tpl.yaml at $(shell date)\n" > $(MANIFEST_DIR)/operator.yaml
-	@printf "## DO NOT MODIFY THIS FILE. Please change operator.tpl.yaml instead.\n\n" >> $(MANIFEST_DIR)/operator.yaml
-	@IKE_VERSION=$(IKE_VERSION) \
-   	IKE_DOCKER_REGISTRY=$(IKE_DOCKER_REGISTRY) \
-   	IKE_DOCKER_REPOSITORY=$(IKE_DOCKER_REPOSITORY) \
-   	IKE_IMAGE_NAME=$(IKE_IMAGE_NAME) \
-   	IKE_IMAGE_TAG=$(IKE_IMAGE_TAG) \
-   	WATCH_NAMESPACE=$(OPERATOR_WATCH_NAMESPACE) \
-	$(BINARY_DIR)/$(TPL_BINARY_NAME) \
-	$(MANIFEST_DIR)/operator.tpl.yaml >> $(MANIFEST_DIR)/operator.yaml
+OPERATOR_SDK_VERSION=v1.3.0
+$(PROJECT_DIR)/bin/operator-sdk:
+	$(call header,"Installing operator-sdk cli")
+	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
+	chmod +x $(PROJECT_DIR)/bin/operator-sdk
 
 ###########################################################################
-##@ Docker
+##@ Image builds
 ###########################################################################
 
+IKE_DOCKER_REGISTRY?=quay.io
+IKE_DOCKER_REPOSITORY?=maistra
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_IMAGE_TAG?=$(IKE_VERSION)
+export IKE_IMAGE_TAG
+export IKE_VERSION
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
 IKE_TEST_PREPARED_NAME?=prepared-image
-IKE_IMAGE_TAG?=$(IKE_VERSION)
-IKE_DOCKER_REGISTRY?=quay.io
-IKE_DOCKER_REPOSITORY?=maistra
-export IKE_IMAGE_TAG
-export IKE_VERSION
-
-IMG_BUILDER:=docker
-
-## Prefer to use podman
-ifneq (, $(shell which podman))
-	IMG_BUILDER=podman
-endif
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -256,7 +278,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/Dockerfile $(PROJECT_DIR)
+		-f $(BUILD_DIR)/Dockerfile $(BINARY_DIR)
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
@@ -287,7 +309,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTest $(PROJECT_DIR)
+		-f $(BUILD_DIR)/DockerfileTest $(BINARY_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
@@ -316,7 +338,7 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTestPrepared $(PROJECT_DIR)
+		-f $(BUILD_DIR)/DockerfileTestPrepared $(BINARY_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
@@ -328,15 +350,41 @@ docker-push-test-prepared:
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
-# ##########################################################################
-##@ Istio-workspace sample project deployment
-# ##########################################################################
+###########################################################################
+##@ Operator SDK bundle
+###########################################################################
 
-k8s:=kubectl
+BUNDLE_IMG?=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
 
-ifneq (, $(shell which oc))
-	k8s=oc
-endif
+.PHONY: bundle
+bundle: generate	## Generate bundle manifests and metadata, then validate generated files
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
+	mv bundle.Dockerfile build
+	sed -i 's/COPY bundle\//COPY /g' build/bundle.Dockerfile
+	operator-sdk bundle validate ./bundle
+
+.PHONY: bundle-build
+bundle-build: bundle	## Build the bundle image
+	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
+
+.PHONY: bundle-push
+bundle-push:	## Push the bundle image
+	$(IMG_BUILDER) push $(BUNDLE_IMG)
+
+.PHONY: bundle-run
+bundle-run:		## Run the bundle image
+	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
+
+.PHONY: bundle-clean
+bundle-clean:	## Clean the bundle image
+	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
+
+# ##########################################################################
+## Istio-workspace sample project deployment
+# ##########################################################################
 
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
@@ -345,9 +393,6 @@ deploy-test-%:
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
-	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
-	$(k8s) apply -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
-
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
@@ -355,8 +400,6 @@ undeploy-test-%:
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
-	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_rolebinding.yaml
-	$(k8s) delete -n $(TEST_NAMESPACE) -f deploy/examples/session_role.yaml
 
 ##@ Helpers
 

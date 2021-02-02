@@ -1,7 +1,9 @@
 package infra
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -100,13 +102,40 @@ func LogsOf(ns, pod string) {
 	<-logs.Done()
 }
 
-func isPodInStatus(pod, ns, status string) bool {
+type conditionStruct struct {
+	Reason string `json:"reason,omitempty"`
+	Status string `json:"status,omitempty"`
+}
+
+func isPodInStatus(pod, ns, conditionType string) bool {
 	podStatus := shell.ExecuteInDir(".",
 		"kubectl", "get",
 		"pod", pod,
 		"-n", ns,
-		"-o", `jsonpath={.status.conditions[?(@.type=="`+status+`")].status}`,
+		"-o", `jsonpath-as-json={.status.conditions[?(@.type=="`+conditionType+`")]}`,
 	)
 	<-podStatus.Done()
-	return strings.Trim(fmt.Sprintf("%s", podStatus.Status().Stdout), "[]") == "True"
+
+	jsonBody := strings.Join(podStatus.Status().Stdout, "")
+
+	var conditions []conditionStruct
+	err := json.Unmarshal([]byte(jsonBody), &conditions)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	if len(conditions) == 0 {
+		return false
+	}
+
+	condition := conditions[0]
+	status, err := strconv.ParseBool(condition.Status)
+	if err != nil {
+		return false
+	}
+	if !status && strings.EqualFold(condition.Reason, "podcompleted") {
+		return true
+	}
+	return status
 }

@@ -23,20 +23,14 @@ include::cmd:curl[flags='-sL http://git.io/get-ike | bash -s -- --help',block=tr
 
 Before you can start using CLI we have to add few backend bits to the cluster, so that we can safely swap services you will work on.
 
-The simplest way is to run built-in command which should take care of all the steps.
+If you're using Openshift you can install the `istio-workspace operator` via the Operator Hub in the web console.
 
-If you want to install the operator cluster wide run:
-
-[source,bash]
-----
-ike install
-----
-
-Or if you only want to install it for a single NAMESPACE:
+If you're on vanilla Kubernetes you can install it by installing the `Operator Lifecycle Managment` using the https://sdk.operatorframework.io/docs/installation/[Operator SDK]:
 
 [source,bash]
 ----
-ike install -l -n NAMESPACE
+operator-sdk install
+operator-sdk run bundle quay.io/maistra/istio-workspace-operator-bundle:latest
 ----
 
 NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags 
