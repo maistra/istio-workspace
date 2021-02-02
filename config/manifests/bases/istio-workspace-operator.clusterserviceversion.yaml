@@ -1,0 +1,50 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: istio-workspace-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Session is the Schema for the sessions API.
+      displayName: Session
+      kind: Session
+      name: sessions.maistra.io.maistra.io
+      version: v1alpha1
+  description: Installs istio-workspace
+  displayName: Istio Workspace
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - istio
+  - telepresence
+  links:
+  - name: Istio Workspace Operator
+    url: https://istio-workspace-operator.domain
+  maintainers:
+  - email: aslak@redhat.com
+    name: Aslak Knutsen
+  - email: bartosz@redhat.com
+    name: Bartosz Majsak
+  maturity: alpha
+  provider:
+    name: Red Hat aka Two Grumpy Basement Guys (and a blanket)
+  version: 0.0.0

@@ -9,7 +9,7 @@ import (
 	"github.com/operator-framework/operator-lib/leader"
 
 	"github.com/maistra/istio-workspace/api"
-	"github.com/maistra/istio-workspace/controller"
+	"github.com/maistra/istio-workspace/controllers"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/log"
 
@@ -86,7 +86,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	}
 
 	// Setup all Controllers
-	if err = controller.AddToManager(mgr); err != nil {
+	if err = controllers.AddToManager(mgr); err != nil {
 		logger().Error(err, "")
 		return err
 	}
