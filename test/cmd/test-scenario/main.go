@@ -45,16 +45,16 @@ func getTestImageName() string {
 	image := "istio-workspace-test"
 	tag := "latest"
 
-	if s, f := os.LookupEnv(config.EnvDockerRegistry); f {
+	if s, f := os.LookupEnv(config.EnvImageRegistry); f {
 		reg = s + "/"
 	}
-	if s, f := os.LookupEnv(config.EnvDockerRepository); f {
+	if s, f := os.LookupEnv(config.EnvImageDevRepository); f {
 		repo = s
 	}
-	if s, f := os.LookupEnv(config.EnvDockerTestImage); f {
+	if s, f := os.LookupEnv(config.EnvTestImage); f {
 		image = s
 	}
-	if s, f := os.LookupEnv("IKE_IMAGE_TAG"); f {
+	if s, f := os.LookupEnv(config.EnvImageTag); f {
 		tag = s
 	}
 

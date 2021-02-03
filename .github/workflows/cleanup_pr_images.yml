@@ -1,7 +1,7 @@
 name: Clean up images from PR testing
 on:
   pull_request:
-    types: closed 
+    types: closed
 
 jobs:
   cleanup-images:
@@ -12,6 +12,7 @@ jobs:
         env:
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
           REPOSITORY: "https://quay.io/api/v1/repository/maistra"
+          DEV_REPOSITORY: "https://quay.io/api/v1/repository/maistra-dev"
           TAG: "pr-${{ github.event.number }}"
         run: |
           HEADER_TOKEN="Authorization: Bearer ${QUAY_OAUTH_TOKEN}"
@@ -23,9 +24,9 @@ jobs:
           do
              curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace/tag/${t} || true
              curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-operator-bundle/tag/${t} || true
-             curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test/tag/${t} || true
-             curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test-prepared-image-prepared/tag/${t} || true
-             curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-test-prepared-prepared-image/tag/${t} || true
+             curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test/tag/${t} || true
+             curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test-prepared-image-prepared/tag/${t} || true
+             curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test-prepared-prepared-image/tag/${t} || true
           done
 
         shell: bash
