@@ -42,7 +42,7 @@ func CreateOperatorAwareLogger(name string) logr.Logger {
 		enc, lvl, opts = configureCliLogging()
 	}
 
-	opts = append(opts, zap.AddCallerSkip(1), zap.ErrorOutput(sink))
+	opts = append(opts, zap.AddCaller(), zap.ErrorOutput(sink))
 
 	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: !operator}
 	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
