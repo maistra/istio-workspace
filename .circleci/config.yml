@@ -29,12 +29,12 @@ defaults:
   check-if-build-executed: &check-if-build-executed
     name: "Check if build with this content was already executed"
     command: |
-      if [[ -f ${CIRCLE_JOB}.githash ]]; then
+      if [[ -f "${CIRCLE_JOB}".githash ]]; then
         echo "This exact code base has been successfully built"
         circleci step halt
       else
         echo "New build - if succeeds build git hash will be cached"
-        echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
+        echo "${TREE_SHA1}" > "${CIRCLE_JOB}".githash
       fi
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
@@ -83,11 +83,22 @@ jobs:
     steps:
       - checkout
       - run:
-          <<: *obtain-tree-hash
+          name: "Obtain git tree hash"
+          command: |
+            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+            echo ${TREE_SHA1} > /tmp/tree.sha1
       - restore_cache:
           <<: *restore-tree-hash
       - run:
-          <<: *check-if-build-executed
+          name: "Check if build with this content was already executed"
+          command: |
+            if [[ -f "${CIRCLE_JOB}".githash ]]; then
+              echo "This exact code base has been successfully built"
+              circleci step halt
+            else
+              echo "New build - if succeeds build git hash will be cached"
+              echo "${TREE_SHA1}" > "${CIRCLE_JOB}".githash
+            fi
       - run:
           <<: *skip-e2e-check
       - run:
