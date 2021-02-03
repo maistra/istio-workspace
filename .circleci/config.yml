@@ -166,14 +166,13 @@ jobs:
           name: "Run end-to-end tests"
           command: |
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
-            export KUBECONFIG=/tmp/kubeconfig
-            export IKE_CLUSTER_HOST=localhost \
-            export IKE_ISTIO_INGRESS=http://localhost:31380 \
 
-            export PRE_BUILT_IMAGES=true
-            export IKE_DOCKER_REPOSITORY=maistra \
-            IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
-            IKE_EXTERNAL_DOCKER_REGISTRY=quay.io
+            export KUBECONFIG=/tmp/kubeconfig \
+              IKE_CLUSTER_HOST=localhost \
+              IKE_ISTIO_INGRESS=http://localhost:31380 \
+              PRE_BUILT_IMAGES=true \
+              IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
+              IKE_EXTERNAL_DOCKER_REGISTRY=quay.io
 
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG="${CIRCLE_BRANCH}"

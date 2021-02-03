@@ -1,9 +1,10 @@
 package config
 
-// These consts are used across the project to load corresponding env variables
-// Extend when needed.
+// These consts are used across the project to load corresponding env variables.
 const (
-	EnvDockerRepository = "IKE_DOCKER_REPOSITORY"
-	EnvDockerRegistry   = "IKE_DOCKER_REGISTRY"
-	EnvDockerTestImage  = "IKE_TEST_IMAGE_NAME"
+	EnvImageRepository    = "IKE_DOCKER_REPOSITORY"
+	EnvImageDevRepository = "IKE_DOCKER_DEV_REPOSITORY"
+	EnvImageRegistry      = "IKE_DOCKER_REGISTRY"
+	EnvTestImage          = "IKE_TEST_IMAGE_NAME"
+	EnvImageTag           = "IKE_IMAGE_TAG"
 )

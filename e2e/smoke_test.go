@@ -108,7 +108,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+GetRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
+							"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
 							"--session", sessionName,
 						)
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
@@ -121,14 +121,13 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-						//ShouldNot(ContainSubstring(PreparedImageV1))
 
 						// when we start ike to create with a updated v
 						ike2 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
-							"--image", registry+"/"+GetRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV2+":"+GetImageTag(),
+							"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV2+":"+GetImageTag(),
 							"--session", sessionName,
 						)
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())

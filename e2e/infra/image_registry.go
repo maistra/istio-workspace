@@ -23,6 +23,18 @@ func GetRepositoryName() string {
 	return "istio-workspace-images"
 }
 
+// GetDevRepositoryName returns the name of the repository containing development related images.
+func GetDevRepositoryName() string {
+	if UsePrebuiltImages() {
+		if repository, found := os.LookupEnv("IKE_DOCKER_DEV_REPOSITORY"); !found {
+			ginkgo.Fail("\"IKE_DOCKER_DEV_REPOSITORY\" env variable not set")
+		} else {
+			return repository
+		}
+	}
+	return GetRepositoryName()
+}
+
 // GetImageTag returns image tag if defined in IKE_IMAGE_TAG variable or "latest" otherwise.
 func GetImageTag() string {
 	if imageTag, found := os.LookupEnv("IKE_IMAGE_TAG"); found {
@@ -46,12 +58,12 @@ func SetDockerRegistryInternal() {
 }
 
 func setDockerRegistry(registry string) {
-	err := os.Setenv(config.EnvDockerRegistry, registry)
+	err := os.Setenv(config.EnvImageRegistry, registry)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
 func setDockerRepository(namespace string) {
-	err := os.Setenv(config.EnvDockerRepository, namespace)
+	err := os.Setenv(config.EnvImageRepository, namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
