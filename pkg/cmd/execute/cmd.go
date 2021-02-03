@@ -188,14 +188,13 @@ func runExecutor(command *cobra.Command) executor {
 			"cmd", r.Name,
 			"args", fmt.Sprint(r.Args),
 		)
-		r.Start()
-		return func() error {
-			status := r.Status()
+		go func(statusChan <-chan gocmd.Status) {
+			status := <-statusChan
 			if status.Error != nil {
 				logger().Error(status.Error, "failed to run run command")
 			}
-			return r.Stop()
-		}
+		}(r.Start())
+		return r.Stop
 	}
 }
 
