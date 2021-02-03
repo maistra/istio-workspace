@@ -85,13 +85,15 @@ jobs:
       - run:
           name: "Obtain git tree hash"
           command: |
-            echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
-            echo ${TREE_SHA1} > /tmp/tree.sha1
+            export TREE_SHA1=$(git rev-parse HEAD:)
+            echo "export TREE_SHA1=${TREE_SHA1}" >> $BASH_ENV
+            echo "${TREE_SHA1}" > /tmp/tree.sha1
       - restore_cache:
           <<: *restore-tree-hash
       - run:
           name: "Check if build with this content was already executed"
           command: |
+            echo "${TREE_SHA1}"
             if [[ -f "${CIRCLE_JOB}".githash ]]; then
               echo "This exact code base has been successfully built"
               circleci step halt
