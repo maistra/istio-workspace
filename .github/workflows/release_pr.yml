@@ -5,9 +5,9 @@ on:
     types: created
 
 jobs:
-  prepare_release:
+  changelog:
     if: |
-      startsWith(github.event.comment.body, '/release')
+      startsWith(github.event.comment.body, '/changelog')
       && (contains(github.event.comment.author_association, 'MEMBER')
           || contains(github.event.comment.author_association, 'OWNER')
           || contains(github.event.comment.author_association, 'COLLABORATOR'))
@@ -118,9 +118,85 @@ jobs:
                   core.setFailed('Failed committing changelog');
               }
             }
+      - name: Publish job status and comment with details
+        if: always()
+        uses: actions/github-script@v3.1
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const status = ${{env.STATUS}};
 
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: status.sha,
+              context: status.context,
+              state: status.state,
+              description: status.description,
+              target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
+            });
+
+            if (status.details) {
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `#### ⚠ ${status.description}\n\n${status.details}`,
+              });
+            }
+  release:
+    if: |
+      startsWith(github.event.comment.body, '/release')
+      && (contains(github.event.comment.author_association, 'MEMBER')
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch all tags
+        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set GitHub user
+        env:
+          GIT_USER: ${{secrets.GIT_USER}}
+          GIT_EMAIL: ${{secrets.GIT_EMAIL}}
+        run: |
+          git config --local user.name "${GIT_USER}"
+          git config --local user.email "${GIT_EMAIL}"
+      - name: Checkout PR branch
+        id: checkout
+        uses: actions/github-script@v3.1
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const prHead = pr.data.head.sha;
+            core.setOutput("pr_head", prHead);
+
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: prHead,
+              context: 'release / commits',
+              state: 'pending',
+            });
+
+            const { spawnSync } = require("child_process")
+            const { status, stderr } = spawnSync(`git fetch origin pull/${pr.data.number}/head:${pr.data.head.ref} && git checkout ${pr.data.head.ref} && git push --set-upstream origin ${pr.data.head.ref}`, {shell: true});
+
+            if (status != 0) {
+              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                context: 'release / commits',
+                state: 'error',
+                description: 'Failed checking out PR branch',
+              }));
+              core.setFailed('Failed checking out PR branch');
+            }
       - name: Release commits
-        if: success()
         uses: actions/github-script@v3.1
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
@@ -133,7 +209,7 @@ jobs:
 
             if (status != 0) {
               core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
-                context: 'release / changelog',
+                context: 'release / commits',
                 state: 'failure',
                 description: 'Unable to create release-related commits',
                 details: stderr.toString(),
@@ -142,7 +218,7 @@ jobs:
             } else {
               const prHead = "${{ steps.checkout.outputs.pr_head }}";
               core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
-                context: 'release / changelog',
+                context: 'release / commits',
                 state: 'success',
                 description: 'Additional release-related commits created',
               }));
@@ -173,7 +249,6 @@ jobs:
                 body: `#### ⚠ ${status.description}\n\n${status.details}`,
               });
             }
-
   shipit:
     if: |
       startsWith(github.event.comment.body, '/shipit')

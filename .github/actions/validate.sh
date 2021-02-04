@@ -14,7 +14,7 @@ validate_version() {
     die "Undefined version (pass using -v|--version). Please use semantic versioning https://semver.org/."
   fi
 
-  # ensure defined version matches semver rules
+  # Ensure defined version matches semver rules
   if [[ ! "${version}" =~ $sem_ver_pattern ]]; then
     die "\`${version}\` you defined as a version does not match semantic versioning. Please make sure it conforms with https://semver.org/."
   fi
@@ -25,7 +25,7 @@ validate_version() {
     die "Version \`${version}\` already exists!"
   fi
 
-  # ensure release notes exist
+  # Ensure release notes exist
   if [[ ! -f "docs/modules/ROOT/pages/release_notes/${version}.adoc" ]]; then
     die "It seems you want to release \`${version}\`. Please create release highlights in \`docs/modules/ROOT/pages/release_notes/${version}.adoc\`."
   fi

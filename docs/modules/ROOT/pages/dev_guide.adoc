@@ -1,5 +1,6 @@
-:cmd-changelog: /release
-:cmd-rebase: /shipit
+:cmd-changelog: /changelog
+:cmd-release: /release
+:cmd-shipit: /shipit
 :sample-version: v0.0.4
 :base-branch: master
 :pr-url: https://github.com/bartoszmajsak/istio-workspace/pull/30
@@ -75,9 +76,6 @@ For example, commenting `{cmd-changelog} {sample-version}` will trigger changelo
 Such a comment results in adding commits to created PR which consists of:
 
 * changelog based on all PRs since the last release, which will be appended to release highlights submitted as part of this PR.
-* "version commit" (e.g. `release: {sample-version}`) which consist of documentation version lock to `{sample-version}` and special `/tag` directive in the message. 
-This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch.
-* commit which reverts documentation version lock back to `latest`.
 
 Changelog generation job performs validation and will fail if one of the issues listed below occurs:
 
@@ -89,16 +87,25 @@ Changelog generation job performs validation and will fail if one of the issues 
 In all the cases above PR will have `release / changelog` status set to failure and comment with an appropriate error message will be added
 by the bot. You can see that in the {pr-url}[comments of the sample PR].
 
-=== Triggering release process by invoking `{cmd-rebase}`
+=== Preparing the release using `{cmd-release}` command
 
-Once changelog generation succeeds, we can trigger the actual release process. This can be done by commenting with `{cmd-rebase}` command without
+This command will trigger the following commits:
+
+* "version commit" (e.g. `release: {sample-version}`) which consist of documentation version lock to `{sample-version}` and special `/tag` directive in the message. 
+This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch.
+* commit which reverts documentation version lock back to `latest`.
+
+
+=== Triggering release process by invoking `{cmd-shipit}`
+
+Once both steps above succeeds, we can trigger the actual release process. This can be done by commenting with `{cmd-shipit}` command without
 any parameters.
 
 This will result in rebasing this PR on top of the target branch if all the required checks have been successful. Once "release commit" appears
 on the target branch it will be automatically tagged based on `/tag VERSION` comment in its message. That tag will trigger the
 actual release process which consists of:
 
-. build and push tagged docker image to `quay.io` registry
+. build and push tagged container image to `quay.io` registry
 . push cross-compiled binaries and release notes to GitHub
 . generation documentation for released version
 
