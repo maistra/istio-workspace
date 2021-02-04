@@ -21,6 +21,7 @@ defaults:
   obtain-tree-hash: &obtain-tree-hash
     name: "Obtain git tree hash"
     command: |
+      mkdir -p .circleci/cache
       echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
       echo ${TREE_SHA1} > /tmp/tree.sha1
   restore-tree-hash: &restore-tree-hash
