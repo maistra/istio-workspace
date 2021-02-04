@@ -215,6 +215,7 @@ jobs:
             const { status, stderr} = spawnSync(`./.github/actions/release.sh -v ${version}`, {shell: true});
 
             if (status != 0) {
+              const prHead = "${{ steps.checkout.outputs.pr_head }}";
               core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
                 context: 'release / commits',
                 state: 'failure',
@@ -223,8 +224,8 @@ jobs:
               }));
               core.setFailed(`Release failed!`);
             } else {
-              const prHead = "${{ steps.checkout.outputs.pr_head }}";
-              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+              const { status, stderr, stdout } = spawnSync('echo -n $(git rev-parse HEAD)', {shell: true});
+              core.exportVariable("STATUS", JSON.stringify({ sha: stdout.toString(),
                 context: 'release / commits',
                 state: 'success',
                 description: 'Additional release-related commits created',
