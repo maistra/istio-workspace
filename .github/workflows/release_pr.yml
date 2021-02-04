@@ -116,6 +116,12 @@ jobs:
                     description: 'Failed committing release changelog',
                   }));
                   core.setFailed('Failed committing changelog');
+              } else {
+                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                  context: 'release / changelog',
+                  state: 'success',
+                  description: 'Changelog generated',
+                }));
               }
             }
       - name: Publish job status and comment with details
@@ -327,4 +333,3 @@ jobs:
 
                 core.setFailed('Release rebase failed!');
             });
-
