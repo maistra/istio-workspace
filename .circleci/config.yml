@@ -21,8 +21,9 @@ defaults:
   obtain-tree-hash: &obtain-tree-hash
     name: "Obtain git tree hash"
     command: |
-      mkdir -p .circleci/cache
-      echo "export TREE_SHA1=$(git rev-parse HEAD:)" >> $BASH_ENV
+      mkdir -p ${BUILD_CACHE_FOLDER}
+      export TREE_SHA1=$(git rev-parse HEAD:)
+      echo "export TREE_SHA1=${TREE_SHA1}" >> $BASH_ENV
       echo ${TREE_SHA1} > /tmp/tree.sha1
   restore-tree-hash: &restore-tree-hash
       keys:
@@ -30,22 +31,25 @@ defaults:
   check-if-build-executed: &check-if-build-executed
     name: "Check if build with this content was already executed"
     command: |
-      if [[ -f .circleci/cache/${CIRCLE_JOB}.githash ]]; then
+      echo "retrieved content hash: ${TREE_SHA1}"
+      echo "location: ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash"
+      if [[ -f ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash ]]; then
         echo "This exact code base has been successfully built"
         circleci step halt
       else
         echo "New build - if succeeds build git hash will be cached"
-        echo "${TREE_SHA1}" > .circleci/cache/${CIRCLE_JOB}.githash
+        echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash
       fi
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
-      - ./.circleci/cache
+      - ./${BUILD_CACHE_FOLDER}
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
+    BUILD_CACHE_FOLDER: ".circleci/cache"
 
 jobs:
 
