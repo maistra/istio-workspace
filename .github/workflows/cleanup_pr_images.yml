@@ -14,12 +14,13 @@ jobs:
           REPOSITORY: "https://quay.io/api/v1/repository/maistra"
           DEV_REPOSITORY: "https://quay.io/api/v1/repository/maistra-dev"
           TAG: "pr-${{ github.event.number }}"
+          HEAD_REF: "${{ github.event.pull_request.head.ref }}"
         run: |
           HEADER_TOKEN="Authorization: Bearer ${QUAY_OAUTH_TOKEN}"
 
           ## We create images for PRs on Prow and Circle, but Circle also runs builds when there's a branch only,
           ## thus we might need to clean-up images tagged after the branch
-          declare -a tags=("${TAG}-prow" "${TAG}-circle" "${{ github.event.ref }}")
+          declare -a tags=("${TAG}-prow" "${TAG}-circle" "${HEAD_REF##*/}")
           for t in "${tags[@]}"
           do
              curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace/tag/${t} || true
