@@ -117,7 +117,8 @@ jobs:
                   }));
                   core.setFailed('Failed committing changelog');
               } else {
-                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                const { status, stderr, stdout } = spawnSync('git rev-parse HEAD', {shell: true});
+                core.exportVariable("STATUS", JSON.stringify({ sha: stdout,
                   context: 'release / changelog',
                   state: 'success',
                   description: 'Changelog generated',
