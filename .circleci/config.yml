@@ -57,6 +57,8 @@ jobs:
   build:
     docker:
       - image: *golang-img
+    environment:
+      BUILD_CACHE_FOLDER: ".circleci/cache"
     steps:
       - checkout
       - run:
