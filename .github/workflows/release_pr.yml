@@ -120,7 +120,7 @@ jobs:
                 core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
                   context: 'release / changelog',
                   state: 'success',
-                  description: 'Additional release-related commits created',
+                  description: 'Changelog generated',
                 }));
               }
             }
@@ -333,4 +333,3 @@ jobs:
 
                 core.setFailed('Release rebase failed!');
             });
-
