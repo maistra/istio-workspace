@@ -33,6 +33,9 @@ defaults:
     command: |
       echo "retrieved content hash: ${TREE_SHA1}"
       echo "location: ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash"
+      ls ${BUILD_CACHE_FOLDER}
+      cat ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash || true
+
       if [[ -f ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash ]]; then
         echo "This exact code base has been successfully built"
         circleci step halt
@@ -40,6 +43,8 @@ defaults:
         echo "New build - if succeeds build git hash will be cached"
         echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash
       fi
+
+      cat ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash || true
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
