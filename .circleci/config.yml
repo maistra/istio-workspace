@@ -48,7 +48,7 @@ defaults:
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
-      - ./${BUILD_CACHE_FOLDER}
+      - ./.circleci/cache
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
