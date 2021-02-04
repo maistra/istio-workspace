@@ -203,6 +203,31 @@ jobs:
               }));
               core.setFailed('Failed checking out PR branch');
             }
+
+      - name: Validate
+        id: validation
+        uses: actions/github-script@v3.1
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const version = context.payload.comment.body.split(' ')[1]
+            core.setOutput("version", version);
+
+            const { spawnSync } = require("child_process");
+
+            const { status, stderr } = spawnSync(`./.github/actions/validate.sh ${version}`, {shell: true});
+
+            if (status != 0) {
+                const prHead = "${{ steps.checkout.outputs.pr_head }}";
+                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                  context: 'release / commits',
+                  state: 'failure',
+                  description: 'Failed validating release Pull Request',
+                  details: stderr.toString(),
+                }));
+                core.setFailed('Validation failed!');
+            }
+
       - name: Release commits
         uses: actions/github-script@v3.1
         with:
