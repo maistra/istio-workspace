@@ -100,6 +100,9 @@ jobs:
           <<: *restore-tree-hash
       - run:
           <<: *check-if-build-executed
+      - save_cache:
+          <<: *save-tree-hash
+
       - run:
           <<: *skip-e2e-check
       - run:
