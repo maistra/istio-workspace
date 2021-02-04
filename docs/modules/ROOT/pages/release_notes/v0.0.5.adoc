@@ -7,3 +7,37 @@ image::operator_all_the_things.jpg[Operator All the Things]
 == All changes in this release
 
 // changelog:generate content will be appended below
+=== Command line
+
+
+==== Bugs
+* fix(cli): watch run command status and log errors (https://github.com/maistra/istio-workspace/pull/650[#650]), by https://github.com/aslakknutsen[@aslakknutsen]
+* fix(cli): print full url to image being used for install (https://github.com/maistra/istio-workspace/pull/638[#638]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+=== Operator
+
+==== New features
+* fix(log): add log caller to structured logger (https://github.com/maistra/istio-workspace/pull/651[#651]), by https://github.com/aslakknutsen[@aslakknutsen]
+* feat(operator): introduces operator-sdk bundle creation (https://github.com/maistra/istio-workspace/pull/648[#648]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+=== Project infrastructure
+
+==== New features
+* chore: moves dev images to rely on maistra-dev repo (https://github.com/maistra/istio-workspace/pull/652[#652]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+=== Testing
+
+==== New features
+* chore: moves dev images to rely on maistra-dev repo (https://github.com/maistra/istio-workspace/pull/652[#652]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* fix(e2e): replace usage of ruby with python to limit dev container size (https://github.com/maistra/istio-workspace/pull/640[#640]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Bugs
+* fix(circle): tree hash propagates properly to avoid redundant job runs (https://github.com/maistra/istio-workspace/pull/657[#657]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+== Latest dependencies update
+
+ * github.com/go-logr/logr to 0.4.0 (https://github.com/maistra/istio-workspace/pull/647[#647]), by https://github.com/dependabot[@dependabot]
+ * github.com/go-logr/zapr to 0.4.0 (https://github.com/maistra/istio-workspace/pull/645[#645]), by https://github.com/dependabot[@dependabot]
+
