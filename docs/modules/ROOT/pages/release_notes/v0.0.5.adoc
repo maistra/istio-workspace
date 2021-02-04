@@ -1,0 +1,9 @@
+== Highlights of v0.0.5 release
+
+The main focus of this release was to move to the new version of the `Operator SDK` and be able to leverage the `Operator Lifecycle Manager` as an installation process. This will allow us to make the project available for easy consumption via the `Operator Hub`.
+
+image::operator_all_the_things.jpg[Operator All the Things]
+
+== All changes in this release
+
+// changelog:generate content will be appended below
