@@ -29,17 +29,17 @@ defaults:
   check-if-build-executed: &check-if-build-executed
     name: "Check if build with this content was already executed"
     command: |
-      if [[ -f ${CIRCLE_JOB}.githash ]]; then
+      if [[ -f .circleci/cache/${CIRCLE_JOB}.githash ]]; then
         echo "This exact code base has been successfully built"
         circleci step halt
       else
         echo "New build - if succeeds build git hash will be cached"
-        echo "${TREE_SHA1}" > ${CIRCLE_JOB}.githash
+        echo "${TREE_SHA1}" > .circleci/cache/${CIRCLE_JOB}.githash
       fi
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
-      - ./${CIRCLE_JOB}.githash
+      - ./.circleci/cache
   env-vars: &env-vars
     GOPATH: /home/circleci/.go_workspace
     IKE_E2E_KEEP_NS: "false"
