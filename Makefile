@@ -406,6 +406,23 @@ undeploy-test-%:
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
 
+
+# ##########################################################################
+## Istio-workspace release helpers
+# ##########################################################################
+
+VERSION?=x
+export VERSION
+
+.PHONY: prepare-release
+prepare-release: ## Prepare for release. make prepare-release v0.0.5
+	@if [ "$(VERSION)" = "x" ]; then\
+    echo "missing version: VERSION=v0.0.5 make prepare-release" && exit -1;\
+  else\
+    git checkout -b release_$(VERSION) & \
+    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+	fi
+
 ##@ Helpers
 
 .PHONY: help
