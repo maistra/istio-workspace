@@ -420,7 +420,8 @@ prepare-release: ## Prepare for release. make prepare-release v0.0.5
     echo "missing version: VERSION=v0.0.5 make prepare-release" && exit -1;\
   else\
     git checkout -b release_$(VERSION) & \
-    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc & \
+    sed -i "/vX.Y.Z/${VERSION}" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
 	fi
 
 ##@ Helpers
