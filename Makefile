@@ -178,6 +178,10 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
 
+$(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
+	$(call header,"Adds assets to the binary")
+	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
+
 ###########################################################################
 ##@ Setup
 ###########################################################################
@@ -228,19 +232,18 @@ $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
+KUSTOMIZE_VERSION?=v3.9.3
 $(PROJECT_DIR)/bin/kustomize:
 	$(call header,"Installing")
-	$(call go-get-tool,$(PROJECT_DIR)/bin/kustomize,sigs.k8s.io/kustomize/kustomize/v3@$(shell go mod graph | grep kustomize | head -n 1 | cut -d'@' -f 2))
+	wget -q -c https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(GOOS)_$(GOARCH).tar.gz -O /tmp/kustomize.tar.gz
+	tar xzvf /tmp/kustomize.tar.gz -C $(PROJECT_DIR)/bin/
+	chmod +x $(PROJECT_DIR)/bin/kustomize
 
 $(PROJECT_DIR)/bin/protoc:
 	$(call header,"Installing")
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
-
-$(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
-	$(call header,"Adds assets to the binary")
-	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 OPERATOR_SDK_VERSION=v1.3.0
 $(PROJECT_DIR)/bin/operator-sdk:
@@ -362,7 +365,7 @@ docker-push-test-prepared:
 BUNDLE_IMG?=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
 
 .PHONY: bundle
-bundle: generate	## Generate bundle manifests and metadata, then validate generated files
+bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate bundle manifests and metadata, then validate generated files
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
@@ -405,6 +408,25 @@ undeploy-test-%:
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
+
+
+# ##########################################################################
+##@ Release helpers
+# ##########################################################################
+
+VERSION?=x
+export VERSION
+
+.PHONY: prepare-release
+prepare-release: ## Prepare for release. e.g. VERSION=v1.0.0 make prepare-release
+	@if [ "$(VERSION)" = "x" ]; then\
+    echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
+  else\
+  	./.github/actions/validate.sh $(VERSION) --skip-release-notes-check && \
+    git checkout -b release_$(VERSION) && \
+    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
+    sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+	fi
 
 ##@ Helpers
 
