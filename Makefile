@@ -63,12 +63,15 @@ ifneq ($(GITUNTRACKEDCHANGES),)
 	COMMIT:=$(COMMIT)-dirty
 endif
 
-IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+DEFAULT_IKE_VERSION=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+IKE_VERSION?=$(DEFAULT_IKE_VERSION)
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
-	IKE_VERSION:=$(IKE_VERSION)-next
-	OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
+	ifeq ($(DEFAULT_IKE_VERSION),$(IKE_VERSION))
+		IKE_VERSION:=$(IKE_VERSION)-next
+		OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
+	endif
 endif
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
