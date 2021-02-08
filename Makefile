@@ -420,7 +420,7 @@ export VERSION
 .PHONY: prepare-release
 prepare-release: ## Prepare for release. e.g. VERSION=v1.0.0 make prepare-release
 	@if [ "$(VERSION)" = "x" ]; then\
-    echo "missing version: VERSION=v0.0.5 make prepare-release" && exit -1;\
+    echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
   else\
   	./.github/actions/validate.sh $(VERSION) --skip-release-notes-check && \
     git checkout -b release_$(VERSION) && \
