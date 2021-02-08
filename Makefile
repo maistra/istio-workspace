@@ -409,6 +409,25 @@ undeploy-test-%:
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
 
+
+# ##########################################################################
+##@ Release helpers
+# ##########################################################################
+
+VERSION?=x
+export VERSION
+
+.PHONY: prepare-release
+prepare-release: ## Prepare for release. e.g. VERSION=v1.0.0 make prepare-release
+	@if [ "$(VERSION)" = "x" ]; then\
+    echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
+  else\
+  	./.github/actions/validate.sh $(VERSION) --skip-release-notes-check && \
+    git checkout -b release_$(VERSION) && \
+    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
+    sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+	fi
+
 ##@ Helpers
 
 .PHONY: help
