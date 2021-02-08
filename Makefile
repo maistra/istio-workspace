@@ -419,7 +419,7 @@ prepare-release: ## Prepare for release. make prepare-release v0.0.5
 	@if [ "$(VERSION)" = "x" ]; then\
     echo "missing version: VERSION=v0.0.5 make prepare-release" && exit -1;\
   else\
-  	./.github/actions/validate.sh $(VERSION) && \
+  	./.github/actions/validate.sh $(VERSION) --skip-release-notes-check && \
     git checkout -b release_$(VERSION) && \
     cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
     sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
