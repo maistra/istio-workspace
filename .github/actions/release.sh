@@ -57,7 +57,7 @@ fi
 
 ## Replace antora version for docs build
 sed -i "/version:/c\version: ${version}" docs/antora.yml
-sed -i "/^= Releases.*/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
+sed -i "/append:release_notes/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
 
 ## Bumps bundle
 IKE_VERSION="${version}" make bundle
