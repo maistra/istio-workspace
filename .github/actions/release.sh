@@ -70,6 +70,8 @@ EOF
 
 ## Prepare next release iteration
 sed -i "/version:/c\version: latest" docs/antora.yml
+IKE_VERSION="${version}-next" make bundle
+
 git commit -am"release: next iteration"
 
 git push
