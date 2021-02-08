@@ -178,6 +178,10 @@ $(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
 
+$(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
+	$(call header,"Adds assets to the binary")
+	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
+
 ###########################################################################
 ##@ Setup
 ###########################################################################
@@ -237,10 +241,6 @@ $(PROJECT_DIR)/bin/protoc:
 	mkdir -p $(PROJECT_DIR)/bin/
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
-
-$(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
-	$(call header,"Adds assets to the binary")
-	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 OPERATOR_SDK_VERSION=v1.3.0
 $(PROJECT_DIR)/bin/operator-sdk:
