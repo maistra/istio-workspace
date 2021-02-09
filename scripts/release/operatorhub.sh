@@ -32,7 +32,7 @@ git remote add fork "${FORK_REPO_URL}"
 git checkout -b "${BRANCH_NAME}"
 
 mkdir -p community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
-cp -R "${CUR_DIR}"/../../bundle/ community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
+cp -a "${CUR_DIR}"/../../bundle/. community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
 
 git add .
 git commit -S -m"add ${OPERATOR_NAME} release ${OPERATOR_VERSION}"
