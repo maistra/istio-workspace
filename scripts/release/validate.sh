@@ -11,7 +11,7 @@ validate_version() {
   version=$1
 
   if [[ ${version} == "" ]]; then
-    die "Undefined version (pass using -v|--version). Please use semantic versioning https://semver.org/."
+    die "Undefined version. Please use semantic versioning https://semver.org/."
   fi
 
   # Ensure defined version matches semver rules
