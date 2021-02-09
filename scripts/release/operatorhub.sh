@@ -3,7 +3,7 @@
 set -e
 
 GITHUB_USER="${GITHUB_USER:-alien-ike}"
-CURR_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
 FORK="${FORK:-maistra}"
@@ -22,36 +22,30 @@ if [[ -z $GITHUB_TOKEN ]]; then
   die "Please provide GITHUB_TOKEN"
 fi
 
-# Validate version
-# TODO: ./path doesn't work?
-# TODO: validate failes due to existing v. Expected to be called before release, not after
-#sh "${CURR_FOLDER}"/validate.sh "v${OPERATOR_VERSION}" --skip-ensure-release-notes
+source "${CUR_DIR}"/validate_semver.sh
+validate_semantic_versioning "v${OPERATOR_VERSION}"
 
-git clone "${HUB_REPO_URL}" "${TEMP_FOLDER}"
+git clone --depth 1 "${HUB_REPO_URL}" "${TEMP_FOLDER}"
 
-# make branch
 cd "${TEMP_FOLDER}"
-
 git remote add fork "${FORK_REPO_URL}"
 git checkout -b "${BRANCH_NAME}"
 
 mkdir -p community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
-cp -R "${CURR_FOLDER}"/../../bundle/ community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
+cp -R "${CUR_DIR}"/../../bundle/ community-operators/"${OPERATOR_NAME}"/"${OPERATOR_VERSION}"/
 
-# commit - signed
 git add .
 git commit -S -m"add ${OPERATOR_NAME} release ${OPERATOR_VERSION}"
 
 git push fork "${BRANCH_NAME}"
 
-
 TEMP_PAYLOAD=$(mktemp)
 
 jq -c -n \
-  --arg msg "$(cat ${CURR_FOLDER}/operatorhub-pr-template.md)" \
-  --arg head ${FORK}:${BRANCH_NAME} \
+  --arg msg "$(cat "${CUR_DIR}"/operatorhub-pr-template.md)" \
+  --arg head "${FORK}:${BRANCH_NAME}" \
   --arg title "add ${OPERATOR_NAME} release ${OPERATOR_VERSION}" \
-   '{head: $head, base: "master", title: $title, body: $msg }' > ${TEMP_PAYLOAD}
+   '{head: $head, base: "master", title: $title, body: $msg }' > "${TEMP_PAYLOAD}"
 
 curl \
   -X POST \
