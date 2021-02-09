@@ -17,6 +17,7 @@ spec:
       version: v1alpha1
   description: Installs istio-workspace
   displayName: Istio Workspace
+  categories: "Developer Tools"
   icon:
   - base64data: ""
     mediatype: ""
@@ -37,8 +38,10 @@ spec:
   - istio
   - telepresence
   links:
-  - name: Istio Workspace Operator
-    url: https://istio-workspace-operator.domain
+  - name: Istio Workspace Source code
+    url: https://github.com/maistra/istio-workspace
+  - name: Istio Workspace Documentation
+    url: https://istio-workspace-docs.netlify.com/
   maintainers:
   - email: aslak@redhat.com
     name: Aslak Knutsen
@@ -46,5 +49,5 @@ spec:
     name: Bartosz Majsak
   maturity: alpha
   provider:
-    name: Red Hat aka Two Grumpy Basement Guys (and a blanket)
+    name: Red Hat, Inc.
   version: 0.0.0
