@@ -6,18 +6,18 @@ Thanks submitting your Operator. Please check below list before you create your 
 ### New Submissions
 
 * [x] Does your operator have [nested directory structure](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md#create-a-bundle)?
-* [ ] Have you selected the Project *Community Operator Submissions* in your PR on the right-hand menu bar?
-* [ ] Are you familiar with our [contribution guidelines](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md)?
+* [x] Have you selected the Project *Community Operator Submissions* in your PR on the right-hand menu bar?
+* [x] Are you familiar with our [contribution guidelines](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md)?
 * [x] Have you [packaged and deployed](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md) your Operator for Operator Framework?
 * [x] Have you tested your Operator with all Custom Resource Definitions?
 * [ ] Have you tested your Operator in all supported [installation modes](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/design/building-your-csv.md#operator-metadata)?
-* [ ] Is your submission [signed](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md#sign-your-work)?
+* [x] Is your submission [signed](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md#sign-your-work)?
 
 ### Updates to existing Operators
 
 * [ ] Is your new CSV pointing to the previous version with the `replaces` property?
 * [ ] Is your new CSV referenced in the [appropriate channel](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md#bundle-format) defined in the `package.yaml` ?
-* [x] Have you tested an update to your Operator when deployed via OLM?
+* [ ] Have you tested an update to your Operator when deployed via OLM?
 * [ ] Is your submission [signed](https://github.com/operator-framework/community-operators/blob/master/docs/contributing.md#sign-your-work)?
 
 ### Your submission should not
@@ -37,12 +37,12 @@ Thanks submitting your Operator. Please check below list before you create your 
 
 ### Operator Metadata should contain
 
-* [ ] Human readable name and 1-liner description about your Operator
+* [x] Human readable name and 1-liner description about your Operator
 * [x] Valid [category name](https://github.com/operator-framework/community-operators/blob/master/docs/packaging-required-fields.md#categories)<sup>1</sup>
 * [x] One of the pre-defined [capability levels](https://github.com/operator-framework/operator-courier/blob/4d1a25d2c8d52f7de6297ec18d8afd6521236aa2/operatorcourier/validate.py#L556)<sup>2</sup>
 * [x] Links to the maintainer, source code and documentation
 * [x] Example templates for all Custom Resource Definitions intended to be used
-* [ ] A quadratic logo
+* [x] A quadratic logo
 
 Remember that you can preview your CSV [here](https://operatorhub.io/preview).
 
