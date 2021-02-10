@@ -394,6 +394,11 @@ bundle-run:		## Run the bundle image
 bundle-clean:	## Clean the bundle image
 	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
+.PHONY: bundle-publish-community-hub
+bundle-bundle-publish-community-hub:	## Open up a PR to the Operator Hub community catalog
+  # gpg key sign commit
+  ./scripts/release/operatorhub.sh
+
 # ##########################################################################
 ## Istio-workspace sample project deployment
 # ##########################################################################
