@@ -2,12 +2,12 @@
 
 set -e
 
-GITHUB_USER="${GITHUB_USER:-alien-ike}"
+GIT_USER="${GIT_USER:-alien-ike}"
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
 FORK="${FORK:-maistra}"
-FORK_REPO_URL="${FORK_REPO_URL:-https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
+FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
 TEMP_FOLDER=$(mktemp -d)
 OPERATOR_NAME=istio-workspace-operator
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5} # TODO replace during release process?
