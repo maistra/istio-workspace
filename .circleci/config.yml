@@ -243,7 +243,8 @@ jobs:
       - run:
           name: "Publish it!"
           command: |
-            make bundle-publish
+            OPERATOR_HUB="upstream-community-operators" make bundle-publish
+            OPERATOR_HUB="community-operators" make bundle-publish
       - run:
           name: "Release it!"
           command: |
