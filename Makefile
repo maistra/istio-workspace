@@ -63,13 +63,12 @@ ifneq ($(GITUNTRACKEDCHANGES),)
 	COMMIT:=$(COMMIT)-dirty
 endif
 
-DEFAULT_IKE_VERSION=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-IKE_VERSION?=$(DEFAULT_IKE_VERSION)
+IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
 export OPERATOR_VERSION
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
-	ifeq ($(DEFAULT_IKE_VERSION),$(IKE_VERSION))
+	ifeq ($(origin IKE_VERSION),file)
 		IKE_VERSION:=$(IKE_VERSION)-next
 		OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 	endif
@@ -378,7 +377,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
-bundle-build: bundle	## Build the bundle image
+bundle-build:	## Build the bundle image
 	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
@@ -416,7 +415,6 @@ undeploy-test-%:
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
-
 
 # ##########################################################################
 ##@ Helpers

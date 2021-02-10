@@ -192,7 +192,7 @@ jobs:
             make docker-build-test docker-push-test
             IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
             IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
-            make bundle-build bundle-push
+            make bundle bundle-build bundle-push
 
             make test-e2e
       - save_cache:

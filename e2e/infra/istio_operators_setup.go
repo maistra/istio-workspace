@@ -20,7 +20,7 @@ func BuildOperator() (registry string) {
 	if RunsAgainstOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle-build", "bundle-push").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle", "bundle-build", "bundle-push").Done()
 	return
 }
 
