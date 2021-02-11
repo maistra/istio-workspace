@@ -69,7 +69,7 @@ jobs:
 
             const { spawnSync } = require("child_process");
 
-            const { status, stderr } = spawnSync(`./.github/actions/validate.sh ${version}`, {shell: true});
+            const { status, stderr } = spawnSync(`./scripts/release/validate.sh ${version}`, {shell: true});
 
             if (status != 0) {
                 const prHead = "${{ steps.checkout.outputs.pr_head }}";
@@ -215,7 +215,7 @@ jobs:
 
             const { spawnSync } = require("child_process");
 
-            const { status, stderr } = spawnSync(`./.github/actions/validate.sh ${version}`, {shell: true});
+            const { status, stderr } = spawnSync(`./scripts/release/validate.sh ${version}`, {shell: true});
 
             if (status != 0) {
                 const prHead = "${{ steps.checkout.outputs.pr_head }}";
@@ -237,7 +237,7 @@ jobs:
 
             const { spawnSync } = require("child_process");
 
-            const { status, stderr} = spawnSync(`./.github/actions/release.sh -v ${version}`, {shell: true});
+            const { status, stderr} = spawnSync(`./scripts/release/release.sh -v ${version}`, {shell: true});
 
             if (status != 0) {
               const prHead = "${{ steps.checkout.outputs.pr_head }}";

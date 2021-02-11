@@ -1,6 +1,8 @@
 #!/bin/bash
 
-sem_ver_pattern="^[vV](0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+source "${CUR_DIR}"/validate_semver.sh
 
 die () {
     echo >&2 "$@"
@@ -10,14 +12,7 @@ die () {
 validate_version() {
   version=$1
 
-  if [[ ${version} == "" ]]; then
-    die "Undefined version (pass using -v|--version). Please use semantic versioning https://semver.org/."
-  fi
-
-  # Ensure defined version matches semver rules
-  if [[ ! "${version}" =~ $sem_ver_pattern ]]; then
-    die "\`${version}\` you defined as a version does not match semantic versioning. Please make sure it conforms with https://semver.org/ and make sure it starts with v prefix."
-  fi
+  validate_semantic_versioning "$1"
 
   ## Check if tag exists
   tag_exists=$(git --no-pager tag --list | grep -c "${version}")

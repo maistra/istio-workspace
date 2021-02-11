@@ -26,14 +26,11 @@ PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
 # Be sure to place this BEFORE `include` directives, if any.
 THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
 
-# Options for 'bundle-build'
-ifneq ($(origin CHANNELS), undefined)
-BUNDLE_CHANNELS := --channels=$(CHANNELS)
-endif
-ifneq ($(origin DEFAULT_CHANNEL), undefined)
-BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
-endif
-BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+CHANNELS?="alpha"
+DEFAULT_CHANNEL?="alpha"
+BUNDLE_CHANNELS:=--channels=$(CHANNELS)
+BUNDLE_DEFAULT_CHANNEL:=--default-channel=$(DEFAULT_CHANNEL)
+BUNDLE_METADATA_OPTS?=$(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -63,12 +60,12 @@ ifneq ($(GITUNTRACKEDCHANGES),)
 	COMMIT:=$(COMMIT)-dirty
 endif
 
-DEFAULT_IKE_VERSION=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-IKE_VERSION?=$(DEFAULT_IKE_VERSION)
+IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
+export OPERATOR_VERSION
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
-	ifeq ($(DEFAULT_IKE_VERSION),$(IKE_VERSION))
+	ifeq ($(origin IKE_VERSION),file)
 		IKE_VERSION:=$(IKE_VERSION)-next
 		OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 	endif
@@ -377,7 +374,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
-bundle-build: bundle	## Build the bundle image
+bundle-build:	## Build the bundle image
 	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
@@ -392,6 +389,10 @@ bundle-run:		## Run the bundle image
 .PHONY: bundle-clean
 bundle-clean:	## Clean the bundle image
 	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
+
+.PHONY: bundle-publish
+bundle-publish:	## Open up a PR to the Operator Hub community catalog
+	./scripts/release/operatorhub.sh
 
 # ##########################################################################
 ## Istio-workspace sample project deployment
@@ -412,26 +413,23 @@ undeploy-test-%:
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
 
-
 # ##########################################################################
-##@ Release helpers
+##@ Helpers
 # ##########################################################################
 
 VERSION?=x
 export VERSION
 
-.PHONY: prepare-release
-prepare-release: ## Prepare for release. e.g. VERSION=v1.0.0 make prepare-release
+.PHONY: release-notes-draft
+release-notes-draft: ## Prepares release notes based on template. e.g. VERSION=v1.0.0 make release-notes-draft
 	@if [ "$(VERSION)" = "x" ]; then\
-    echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
-  else\
-  	./.github/actions/validate.sh $(VERSION) --skip-release-notes-check && \
-    git checkout -b release_$(VERSION) && \
-    cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-    sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+		echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
+	else\
+		./scripts/release/validate.sh $(VERSION) --skip-release-notes-check && \
+		git checkout -b release_$(VERSION) && \
+		cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
+		sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
 	fi
-
-##@ Helpers
 
 .PHONY: help
 help:  ## Displays this help \o/

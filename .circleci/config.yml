@@ -192,7 +192,7 @@ jobs:
             make docker-build-test docker-push-test
             IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
             IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
-            make bundle-build bundle-push
+            make bundle bundle-build bundle-push
 
             make test-e2e
       - save_cache:
@@ -228,9 +228,23 @@ jobs:
             echo $QUAY_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
+          name: "Imports GPG key"
+          command: |
+            echo -e $PGP_KEY | gpg --import
+      - run:
+          name: "Sets up Git credentials"
+          command: |
+            git config --local user.name "${GIT_USER}"
+            git config --local user.email "${GIT_EMAIL}"
+      - run:
           name: "Push it!"
           command: |
-            make deps tools docker-build docker-push-versioned bundle-build bundle-push
+            make deps tools docker-build docker-push-versioned bundle bundle-build bundle-push
+      - run:
+          name: "Publish it!"
+          command: |
+            OPERATOR_HUB="upstream-community-operators" make bundle-publish
+            OPERATOR_HUB="community-operators" make bundle-publish
       - run:
           name: "Release it!"
           command: |
