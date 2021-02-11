@@ -9,11 +9,12 @@ show_help() {
   echo " "
   echo "Options:"
   echo "-h, --help              shows brief help"
-  echo "-t, --test              runs operator-framework ansible tests"
+  echo "-t, --test              runs operator-framework ansible tests (default: all. other supported values are: orange, kiwi or lemon)"
   echo "-d, --dry-run           skips push to GH and PR"
 }
 
 runTests=0
+tests=all
 dryRun=0
 
 while test $# -gt 0; do
@@ -22,10 +23,22 @@ while test $# -gt 0; do
             show_help
             exit 0
             ;;
-    -t|--test)
+    -t)
+            shift
             runTests=1
+            if test $# -gt 0; then
+              tests=$1
+            fi
             shift
             ;;
+    --test*)
+        runTests=1
+        tests=$(echo $1 | sed -e 's/^[^=]*=//g')
+        if [[ "$tests" == "--test" ]]; then
+          tests=all
+        fi
+        shift
+        ;;
     -d|--dry-run)
             dryRun=1
             shift
@@ -71,12 +84,12 @@ git add .
 git commit -S -m"${TITLE}"
 
 if [[ $runTests -ne 0 ]]; then
-  echo "Running tests"
+  echo "Running tests: $tests"
 
   cd "${TMP_DIR}"
 
   bash <(curl -sL https://cutt.ly/WhkV76k) \
-  all \
+  "$tests" \
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
 fi
 
