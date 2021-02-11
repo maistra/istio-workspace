@@ -238,8 +238,10 @@ jobs:
             export GPG_PROGRAM="/usr/bin/gpg-passphrase"
 
             echo -e $PGP_KEY | gpg --import
-            sudo echo '/usr/bin/gpg --passphrase "${PGP_PASSPHRASE}" --batch --no-tty "$@"' > "${GPG_PROGRAM}"
-            sudo chmod 777 "${GPG_PROGRAM}"
+            sudo touch "${GPG_PROGRAM}"
+            sudo chown $(whoami) "${GPG_PROGRAM}"
+            echo '/usr/bin/gpg --passphrase "${PGP_PASSPHRASE}" --batch --no-tty "$@"' > "${GPG_PROGRAM}"
+            chmod +x "${GPG_PROGRAM}"
             git config --global user.signingkey "${PGP_KEYID}"
             git config --global gpg.program "${GPG_PROGRAM}"
       - run:
