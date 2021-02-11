@@ -25,8 +25,6 @@ var _ = Describe("Operator End to End Tests", func() {
 		BeforeEach(func() {
 			namespaces = []string{}
 			operatorNamepace = generateNamespaceName()
-			namespaces = append(namespaces, operatorNamepace)
-
 			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamepace)
 		})
 
@@ -54,26 +52,23 @@ var _ = Describe("Operator End to End Tests", func() {
 					"--image", "x:x:x", // never used
 					"--session", watchNs,
 				)
+
+				Eventually(func(contain string) func() bool {
+					return func() bool {
+
+						operatorLog := shell.ExecuteInDir(".",
+							"kubectl", "logs",
+							"istio-operator",
+							"-n", operatorNamepace,
+						)
+						<-operatorLog.Done()
+
+						log := strings.Join(operatorLog.Status().Stdout, "")
+						return strings.Contains(log, contain)
+					}
+				}, 1*time.Minute, 5*time.Second)
+
 				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
-
-				// check operator log for ns
-
-				operatorLog := shell.ExecuteInDir(".",
-					"kubectl", "logs",
-					"istio-operator",
-					"-n", operatorNamepace,
-				)
-				<-operatorLog.Done()
-
-				log := strings.Join(operatorLog.Status().Stdout, "")
-				Expect(log).To(ContainSubstring(watchNs))
-
-				ikeDel := RunIke(shell.GetProjectDir(), "delete",
-					"--deployment", "ratings-v1",
-					"-n", watchNs,
-					"--session", watchNs,
-				)
-				Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 			}
 
 		}
@@ -82,6 +77,7 @@ var _ = Describe("Operator End to End Tests", func() {
 				Skip("Only run on microk8s cluster for complete isolation")
 			}
 			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
+			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(operatorNamepace)
 		})
@@ -97,6 +93,7 @@ var _ = Describe("Operator End to End Tests", func() {
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
 
 			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-single").Done()
+			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})
@@ -112,6 +109,7 @@ var _ = Describe("Operator End to End Tests", func() {
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
 
 			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi").Done()
+			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})
@@ -124,6 +122,7 @@ var _ = Describe("Operator End to End Tests", func() {
 			CreateNamespace()
 
 			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-all").Done()
+			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})

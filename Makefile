@@ -399,7 +399,7 @@ bundle-run-multi:		## Run the bundle image in MultiNamespace(OPERATOR_NAMESPACE)
 .PHONY: bundle-run-all
 bundle-run-all:		## Run the bundle image in AllNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespace
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespaces
 
 
 .PHONY: bundle-clean
