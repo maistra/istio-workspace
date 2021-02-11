@@ -101,7 +101,7 @@ var _ = Describe("Operator End to End Tests", func() {
 			VerifyWatchList(namespaces...)
 		})
 
-		It("MultiNamespace", func() {
+		PIt("MultiNamespace", func() { // require Operator SDK update
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 
