@@ -55,7 +55,6 @@ var _ = Describe("Operator End to End Tests", func() {
 
 				Eventually(func(contain string) func() bool {
 					return func() bool {
-
 						operatorLog := shell.ExecuteInDir(".",
 							"kubectl", "logs",
 							"deployment/istio-workspace-operator-controller-manager",
@@ -66,7 +65,7 @@ var _ = Describe("Operator End to End Tests", func() {
 						log := strings.Join(operatorLog.Status().Stdout, "")
 						return strings.Contains(log, contain)
 					}
-				}(watchNs), 1*time.Minute, 5*time.Second)
+				}(watchNs), 1*time.Minute, 5*time.Second).Should(BeTrue())
 
 				ikeCreate.Stop()
 			}
@@ -76,7 +75,11 @@ var _ = Describe("Operator End to End Tests", func() {
 			if RunsAgainstOpenshift {
 				Skip("Only run on microk8s cluster for complete isolation")
 			}
-			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
+
+			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run")
+			<-bundle.Done()
+			Expect(bundle.Status().Exit).To(Equal((0)))
+
 			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(operatorNamepace)
@@ -92,7 +95,10 @@ var _ = Describe("Operator End to End Tests", func() {
 
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
 
-			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-single").Done()
+			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-single")
+			<-bundle.Done()
+			Expect(bundle.Status().Exit).To(Equal((0)))
+
 			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
@@ -108,7 +114,10 @@ var _ = Describe("Operator End to End Tests", func() {
 
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
 
-			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi").Done()
+			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi")
+			<-bundle.Done()
+			Expect(bundle.Status().Exit).To(Equal((0)))
+
 			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
@@ -121,7 +130,10 @@ var _ = Describe("Operator End to End Tests", func() {
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 
-			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-all").Done()
+			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-all")
+			<-bundle.Done()
+			Expect(bundle.Status().Exit).To(Equal((0)))
+
 			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
