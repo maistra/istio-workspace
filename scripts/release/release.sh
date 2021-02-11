@@ -60,7 +60,7 @@ sed -i "/version:/c\version: ${version}" docs/antora.yml
 sed -i "/append:release_notes/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
 
 ## Bumps bundle
-CHANNELS=alpha DEFAULT_CHANNEL=alpha IKE_VERSION="${version}" make bundle
+IKE_VERSION="${version}" make bundle
 
 git add . && git commit -F- <<EOF
 release: ${version}
