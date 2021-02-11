@@ -15,6 +15,8 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 func main() {

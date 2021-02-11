@@ -21,7 +21,7 @@ require (
 	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/onsi/ginkgo v1.15.0
-	github.com/onsi/gomega v1.10.4
+	github.com/onsi/gomega v1.10.5
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.3.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
@@ -45,8 +45,8 @@ require (
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
-	istio.io/api v0.0.0-20200107183329-ed4b507c54e1
-	istio.io/client-go v0.0.0-20200107185429-9053b0f86b03
+	istio.io/api v0.0.0-20210204223132-d90b2f705958
+	istio.io/client-go v1.9.0
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2 // indirect
 	k8s.io/apimachinery v0.20.2
