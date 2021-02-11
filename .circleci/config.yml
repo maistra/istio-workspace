@@ -239,7 +239,7 @@ jobs:
       - run:
           name: "Push it!"
           command: |
-            make deps tools docker-build docker-push-versioned bundle-build bundle-push
+            make deps tools docker-build docker-push-versioned bundle bundle-build bundle-push
       - run:
           name: "Publish it!"
           command: |
