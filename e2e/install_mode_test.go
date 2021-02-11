@@ -1,0 +1,132 @@
+package e2e_test
+
+import (
+	"strings"
+	"time"
+
+	. "github.com/maistra/istio-workspace/e2e/infra"
+	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/shell"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("Operator End to End Tests", func() {
+
+	Context("using install mode", func() {
+
+		var (
+			operatorNamepace string
+			namespaces       []string
+
+			cleanEnvVariable func()
+		)
+		BeforeEach(func() {
+			namespaces = []string{}
+			operatorNamepace = generateNamespaceName()
+			namespaces = append(namespaces, operatorNamepace)
+
+			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamepace)
+		})
+
+		AfterEach(func() {
+			cleanEnvVariable()
+			for _, namespace := range namespaces {
+				cleanupNamespace(namespace)
+			}
+			cleanupNamespace(operatorNamepace)
+		})
+		CreateNamespace := func() {
+			for _, namespace := range namespaces {
+				<-shell.Execute(NewProjectCmd(namespace)).Done()
+			}
+		}
+		WatchListExpression := func() string {
+			return strings.Join(namespaces, ",")
+		}
+		VerifyWatchList := func(validateNamespaces ...string) {
+			for _, watchNs := range validateNamespaces {
+				ikeCreate := RunIke(shell.GetProjectDir(), "create",
+					"--deployment", watchNs+"-v1",
+					"-n", watchNs,
+					"--route", "header:x-test-suite=smoke",
+					"--image", "x:x:x", // never used
+					"--session", watchNs,
+				)
+				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
+
+				// check operator log for ns
+
+				operatorLog := shell.ExecuteInDir(".",
+					"kubectl", "logs",
+					"istio-operator",
+					"-n", operatorNamepace,
+				)
+				<-operatorLog.Done()
+
+				log := strings.Join(operatorLog.Status().Stdout, "")
+				Expect(log).To(ContainSubstring(watchNs))
+
+				ikeDel := RunIke(shell.GetProjectDir(), "delete",
+					"--deployment", "ratings-v1",
+					"-n", watchNs,
+					"--session", watchNs,
+				)
+				Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
+			}
+
+		}
+		It("OwnNamespace", func() {
+			if RunsAgainstOpenshift {
+				Skip("Only run on microk8s cluster for complete isolation")
+			}
+			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
+
+			VerifyWatchList(operatorNamepace)
+		})
+
+		It("SingleNamespace", func() {
+			if RunsAgainstOpenshift {
+				Skip("Only run on microk8s cluster for complete isolation")
+			}
+
+			namespaces = append(namespaces, generateNamespaceName())
+			CreateNamespace()
+
+			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
+
+			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-single").Done()
+
+			VerifyWatchList(namespaces...)
+		})
+
+		It("MultiNamespace", func() {
+			if RunsAgainstOpenshift {
+				Skip("Only run on microk8s cluster for complete isolation")
+			}
+
+			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
+			CreateNamespace()
+
+			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
+
+			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi").Done()
+
+			VerifyWatchList(namespaces...)
+		})
+		It("AllNamespace", func() {
+			if RunsAgainstOpenshift {
+				Skip("Only run on microk8s cluster for complete isolation")
+			}
+
+			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
+			CreateNamespace()
+
+			<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-all").Done()
+
+			VerifyWatchList(namespaces...)
+		})
+
+	})
+})
