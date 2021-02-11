@@ -360,3 +360,23 @@ jobs:
 
                 core.setFailed('Release rebase failed!');
             });
+  help:
+    if: |
+      startsWith(github.event.comment.body, '/help')
+      && (contains(github.event.comment.author_association, 'MEMBER')
+          || contains(github.event.comment.author_association, 'OWNER')
+          || contains(github.event.comment.author_association, 'COLLABORATOR'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment with docs
+        id: comment-help
+        uses: actions/github-script@v3.1
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: "#### 💁 ℹ️ Available commands\n\n * `/changelog vX.Y.Z` will append changelog based on the closed PRs since last release to provided release notes.\n\n * `/release vX.Y.Z` will add release-related commits to this PR on your behalf. \n\n * `/shipit` will rebase everything on master branch and trigger actual release process`"
+            });
