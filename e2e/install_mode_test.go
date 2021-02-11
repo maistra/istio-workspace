@@ -1,7 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -68,17 +67,16 @@ var _ = Describe("Operator End to End Tests", func() {
 						<-operatorLog.Done()
 
 						log := strings.Join(operatorLog.Status().Stdout, "")
-						fmt.Println(">>>>>>CONTAINS ", contain)
-						fmt.Println(">>>>>>LOG  ", log)
 						return strings.Contains(log, contain)
 					}
 				}(watchNs), 1*time.Minute, 5*time.Second).Should(BeTrue())
 
 				ikeCreate.Stop()
+				<-shell.ExecuteInDir(".", "kubectl", "delete", "session", watchNs, "-n", watchNs).Done()
 			}
 
 		}
-		XIt("OwnNamespace", func() {
+		It("OwnNamespace", func() {
 			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run")
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(Equal((0)))
