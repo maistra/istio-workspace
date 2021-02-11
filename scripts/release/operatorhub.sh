@@ -51,11 +51,6 @@ while test $# -gt 0; do
   esac
 done
 
-CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TMP_DIR=$(mktemp -d)
-
-source "${CUR_DIR}"/validate_semver.sh
-
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
@@ -68,6 +63,12 @@ OPERATOR_HUB=${OPERATOR_HUB:-community-operators}
 
 BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}"-release-"${OPERATOR_VERSION}"}
 TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
+
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+TMP_DIR=$(mktemp -d -t "${OPERATOR_HUB}-${OPERATOR_NAME}.XXXXXXXXXX")
+trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
+
+source "${CUR_DIR}"/validate_semver.sh
 
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
