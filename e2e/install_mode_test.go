@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -63,6 +64,8 @@ var _ = Describe("Operator End to End Tests", func() {
 						<-operatorLog.Done()
 
 						log := strings.Join(operatorLog.Status().Stdout, "")
+						fmt.Println(">>>>>>CONTAINS ", contain)
+						fmt.Println(">>>>>>LOG  ", log)
 						return strings.Contains(log, contain)
 					}
 				}(watchNs), 1*time.Minute, 5*time.Second).Should(BeTrue())
