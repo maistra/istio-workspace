@@ -71,12 +71,18 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return e
 	}
 
-	// Create a new Cmd to provide shared dependencies and Start components
-	mgr, err := manager.New(cfg, manager.Options{
+	managerOptions := manager.Options{
 		MetricsBindAddress:     fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 		HealthProbeBindAddress: "0.0.0.0:8282",
-		NewCache:               cache.MultiNamespacedCacheBuilder(namespaces),
-	})
+	}
+	if len(namespaces) == 1 {
+		managerOptions.Namespace = namespaces[0]
+	} else {
+		managerOptions.NewCache = cache.MultiNamespacedCacheBuilder(namespaces)
+	}
+
+	// Create a new Cmd to provide shared dependencies and Start components
+	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
 		logger().Error(err, "")
 		return err
