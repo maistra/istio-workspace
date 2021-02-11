@@ -228,14 +228,20 @@ jobs:
             echo $QUAY_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
-          name: "Imports GPG key"
-          command: |
-            echo -e $PGP_KEY | gpg --import
-      - run:
           name: "Sets up Git credentials"
           command: |
-            git config --local user.name "${GIT_USER}"
-            git config --local user.email "${GIT_EMAIL}"
+            git config --global user.name "${GIT_USER}"
+            git config --global user.email "${GIT_EMAIL}"
+      - run:
+          name: "Configures PGP for signing commits in Git"
+          command: |
+            export GPG_PROGRAM="/usr/bin/gpg-passphrase"
+
+            echo -e $PGP_KEY | gpg --import
+            sudo echo '/usr/bin/gpg --passphrase "${PGP_PASSPHRASE}" --batch --no-tty "$@"' > "${GPG_PROGRAM}"
+            sudo chmod 777 "${GPG_PROGRAM}"
+            git config --global user.signingkey "${PGP_KEYID}"
+            git config --global gpg.program "${GPG_PROGRAM}"
       - run:
           name: "Push it!"
           command: |
