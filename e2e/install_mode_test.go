@@ -24,6 +24,10 @@ var _ = Describe("Operator End to End Tests", func() {
 			cleanEnvVariable func()
 		)
 		BeforeEach(func() {
+			if RunsAgainstOpenshift {
+				Skip("Only run on microk8s cluster for complete isolation")
+			}
+
 			namespaces = []string{}
 			operatorNamepace = generateNamespaceName()
 			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamepace)
@@ -75,10 +79,6 @@ var _ = Describe("Operator End to End Tests", func() {
 
 		}
 		XIt("OwnNamespace", func() {
-			if RunsAgainstOpenshift {
-				Skip("Only run on microk8s cluster for complete isolation")
-			}
-
 			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run")
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(Equal((0)))
@@ -89,10 +89,6 @@ var _ = Describe("Operator End to End Tests", func() {
 		})
 
 		It("SingleNamespace", func() {
-			if RunsAgainstOpenshift {
-				Skip("Only run on microk8s cluster for complete isolation")
-			}
-
 			namespaces = append(namespaces, generateNamespaceName())
 			CreateNamespace()
 
@@ -108,10 +104,6 @@ var _ = Describe("Operator End to End Tests", func() {
 		})
 
 		It("MultiNamespace", func() {
-			if RunsAgainstOpenshift {
-				Skip("Only run on microk8s cluster for complete isolation")
-			}
-
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 
@@ -126,10 +118,6 @@ var _ = Describe("Operator End to End Tests", func() {
 			VerifyWatchList(namespaces...)
 		})
 		It("AllNamespace", func() {
-			if RunsAgainstOpenshift {
-				Skip("Only run on microk8s cluster for complete isolation")
-			}
-
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 
