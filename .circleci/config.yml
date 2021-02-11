@@ -255,7 +255,7 @@ jobs:
           name: "Release it!"
           command: |
             asciidoctor -b docbook -a leveloffset=+1 -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc | pandoc --atx-headers --wrap=preserve -t markdown_strict -f docbook - 1> converted-release-notes.md
-            curl -sL https://git.io/goreleaser | bash -s -- release --rm-dist --release-notes=converted-release-notes.md
+            curl -sL https://git.io/goreleaser | bash -s -- release ${GORELEASER_OPTS} --rm-dist --release-notes=converted-release-notes.md
 
 workflows:
   version: 2.1
