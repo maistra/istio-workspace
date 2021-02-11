@@ -66,7 +66,7 @@ var _ = Describe("Operator End to End Tests", func() {
 						log := strings.Join(operatorLog.Status().Stdout, "")
 						return strings.Contains(log, contain)
 					}
-				}, 1*time.Minute, 5*time.Second)
+				}(watchNs), 1*time.Minute, 5*time.Second)
 
 				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
 			}
