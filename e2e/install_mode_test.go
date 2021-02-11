@@ -58,7 +58,7 @@ var _ = Describe("Operator End to End Tests", func() {
 
 						operatorLog := shell.ExecuteInDir(".",
 							"kubectl", "logs",
-							"istio-operator",
+							"deployment/istio-workspace-operator-controller-manager",
 							"-n", operatorNamepace,
 						)
 						<-operatorLog.Done()
@@ -68,7 +68,7 @@ var _ = Describe("Operator End to End Tests", func() {
 					}
 				}(watchNs), 1*time.Minute, 5*time.Second)
 
-				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
+				ikeCreate.Stop()
 			}
 
 		}
