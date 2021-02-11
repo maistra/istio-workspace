@@ -74,7 +74,7 @@ var _ = Describe("Operator End to End Tests", func() {
 			}
 
 		}
-		It("OwnNamespace", func() {
+		XIt("OwnNamespace", func() {
 			if RunsAgainstOpenshift {
 				Skip("Only run on microk8s cluster for complete isolation")
 			}
