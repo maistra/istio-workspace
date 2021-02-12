@@ -111,7 +111,7 @@ var _ = Describe("Operator installation", func() {
 
 			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi")
 			<-bundle.Done()
-			Expect(bundle.Status().Exit).To(Equal((0)))
+			Expect(bundle.Status().Exit).To(BeZero())
 
 			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
