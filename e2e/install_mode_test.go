@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("Operator installation", func() {
 
-	Context("using install mode", func() {
+	Context("on bare k8s", func() {
 
 		var (
 			operatorNamepace string
