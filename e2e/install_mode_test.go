@@ -78,7 +78,7 @@ var _ = Describe("Operator installation", func() {
 			}
 
 		}
-		It("OwnNamespace", func() {
+		It("should install to its own namespace", func() {
 			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run")
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(Equal((0)))
