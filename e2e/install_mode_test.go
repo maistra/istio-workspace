@@ -39,6 +39,7 @@ var _ = Describe("Operator installation", func() {
 			}
 			cleanupNamespace(operatorNamepace)
 		})
+
 		CreateNamespace := func() {
 			for _, namespace := range namespaces {
 				<-shell.Execute(NewProjectCmd(namespace)).Done()
