@@ -66,8 +66,7 @@ func NewCmd() *cobra.Command {
 			}()
 
 			routeExp, _ := session.ParseRoute(options.RouteExp)
-			hint, err := Hint(&sessionState.RefStatus, routeExp)
-			if err == nil {
+			if hint, err := Hint(&sessionState.RefStatus, routeExp); err == nil {
 				logger().Info(hint)
 			}
 
