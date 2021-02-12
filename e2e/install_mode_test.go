@@ -88,7 +88,7 @@ var _ = Describe("Operator installation", func() {
 			VerifyWatchList(operatorNamepace)
 		})
 
-		It("SingleNamespace", func() {
+		It("should install to the single namespace", func() {
 			namespaces = append(namespaces, generateNamespaceName())
 			CreateNamespace()
 
