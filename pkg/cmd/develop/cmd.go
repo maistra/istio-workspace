@@ -48,8 +48,8 @@ func NewCmd() *cobra.Command {
 			defer sessionClose()
 
 			// HACK: need contract with TP cmd?
-			if err2 := cmd.Flags().Set("deployment", sessionState.DeploymentName); err2 != nil {
-				return err2
+			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
+				return err
 			}
 
 			done := make(chan gocmd.Status, 1)
