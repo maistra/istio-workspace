@@ -9,11 +9,12 @@ show_help() {
   echo " "
   echo "Options:"
   echo "-h, --help              shows brief help"
-  echo "-t, --test              runs operator-framework ansible tests"
+  echo "-t, --test              runs operator-framework ansible tests (default: all. other supported values are: orange, kiwi or lemon)"
   echo "-d, --dry-run           skips push to GH and PR"
 }
 
 runTests=0
+tests=all
 dryRun=0
 
 while test $# -gt 0; do
@@ -22,10 +23,22 @@ while test $# -gt 0; do
             show_help
             exit 0
             ;;
-    -t|--test)
+    -t)
+            shift
             runTests=1
+            if test $# -gt 0; then
+              tests=$1
+            fi
             shift
             ;;
+    --test*)
+        runTests=1
+        tests=$(echo $1 | sed -e 's/^[^=]*=//g')
+        if [[ "$tests" == "--test" ]]; then
+          tests=all
+        fi
+        shift
+        ;;
     -d|--dry-run)
             dryRun=1
             shift
@@ -38,11 +51,6 @@ while test $# -gt 0; do
   esac
 done
 
-CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TMP_DIR=$(mktemp -d)
-
-source "${CUR_DIR}"/validate_semver.sh
-
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
@@ -53,8 +61,14 @@ OPERATOR_NAME=istio-workspace-operator
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5}
 OPERATOR_HUB=${OPERATOR_HUB:-community-operators}
 
-BRANCH=${BRANCH:-"${OPERATOR_NAME}"-release-"${OPERATOR_VERSION}"}
+BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
 TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
+
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+TMP_DIR=$(mktemp -d -t "${OPERATOR_HUB}-${OPERATOR_NAME}.XXXXXXXXXX")
+trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
+
+source "${CUR_DIR}"/validate_semver.sh
 
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
@@ -71,12 +85,12 @@ git add .
 git commit -S -m"${TITLE}"
 
 if [[ $runTests -ne 0 ]]; then
-  echo "Running tests"
+  echo "Running tests: $tests"
 
   cd "${TMP_DIR}"
 
   bash <(curl -sL https://cutt.ly/WhkV76k) \
-  all \
+  "$tests" \
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
 fi
 
