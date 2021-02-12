@@ -37,6 +37,7 @@ func executeCommand(cmd *cobra.Command, args ...string) (output string, err erro
 func executeCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
+	cmd.SetErr(buf)
 	cmd.Root().SetArgs(append(strings.Split(cmd.CommandPath(), " ")[1:], args...))
 	c, err = cmd.ExecuteC()
 	return c, buf.String(), err
