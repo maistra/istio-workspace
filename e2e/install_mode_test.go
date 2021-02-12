@@ -45,6 +45,7 @@ var _ = Describe("Operator installation", func() {
 				<-shell.Execute(NewProjectCmd(namespace)).Done()
 			}
 		}
+
 		WatchListExpression := func() string {
 			return strings.Join(namespaces, ",")
 		}
