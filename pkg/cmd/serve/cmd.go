@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/leader"
@@ -14,6 +15,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -51,6 +53,9 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	namespaces := strings.Split(namespace, ",")
+	logger().Info("Listening for namespaces", "namespaces", namespaces)
+
 	// Get a config to talk to the apiserver
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
@@ -66,12 +71,18 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return e
 	}
 
-	// Create a new Cmd to provide shared dependencies and Start components
-	mgr, err := manager.New(cfg, manager.Options{
-		Namespace:              namespace,
+	managerOptions := manager.Options{
 		MetricsBindAddress:     fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 		HealthProbeBindAddress: "0.0.0.0:8282",
-	})
+	}
+	if len(namespaces) == 1 {
+		managerOptions.Namespace = namespaces[0]
+	} else {
+		managerOptions.NewCache = cache.MultiNamespacedCacheBuilder(namespaces)
+	}
+
+	// Create a new Cmd to provide shared dependencies and Start components
+	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
 		logger().Error(err, "")
 		return err
