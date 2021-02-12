@@ -1,0 +1,16 @@
+== Highlights of v0.0.6 release
+
+=== Available in OperatorHub 
+
+Starting with this release you should be able to install `istio-workspace` in a new way; 
+either via the Openshift Console Operator Hub or https://operatorhub.io/
+
+=== New contributors
+
+In this release we've been so lucky to get a little help from our new friend https://github.com/Humpheh[Humphrey Shotton].
+
+Thank you! :)
+
+== All changes in this release
+
+// changelog:generate
