@@ -65,6 +65,7 @@ IKE_VERSION="${version}" make bundle
 git add . && git commit -F- <<EOF
 release: ${version}
 
+/skip-e2e
 /tag ${version}
 EOF
 
@@ -72,6 +73,6 @@ EOF
 sed -i "/version:/c\version: latest" docs/antora.yml
 IKE_VERSION="${version}-next" make bundle
 
-git commit -am"release: next iteration"
+git commit -am"release: next iteration" -m"/skip-e2e"
 
 git push
