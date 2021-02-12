@@ -14,6 +14,21 @@ import (
 
 var _ = Describe("Operator installation", func() {
 
+	/*
+
+		Test scenario overview:
+
+		Given N namespaces
+
+		When Operator is installed in X install-mode targeting the namespaces
+
+		Then
+			For each target namespace
+				Create a dummy Session object(the content is of no importance)
+				Verify that the Operator reacted to the Session object creation by checking the log
+				Delete the dummy Session
+
+	*/
 	Context("on bare k8s", func() {
 
 		var (
