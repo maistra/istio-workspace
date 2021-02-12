@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Operator End to End Tests", func() {
+var _ = Describe("Operator installation", func() {
 
 	Context("using install mode", func() {
 
