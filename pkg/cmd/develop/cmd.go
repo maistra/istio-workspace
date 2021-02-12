@@ -24,12 +24,6 @@ var logger = func() logr.Logger {
 	return log.Log.WithValues("type", "develop")
 }
 
-const urlHint = `Knowing your application url you can now access your new version by using
-
-$ curl -H"%s:%s" YOUR_APP_URL.
-
-If you can't see any changes make sure that this header is respected by your app and propagated down the call chain.`
-
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	developCmd := &cobra.Command{
@@ -71,8 +65,9 @@ func NewCmd() *cobra.Command {
 				shell.Start(tp, done)
 			}()
 
-			if route, _ := session.ParseRoute(options.RouteExp); route != nil {
-				logger().Info(fmt.Sprintf(urlHint, route.Name, route.Value))
+			routeExp, _ := session.ParseRoute(options.RouteExp)
+			if hint, err := Hint(&sessionState.RefStatus, routeExp); err == nil {
+				logger().Info(hint)
 			}
 
 			finalStatus := <-done
