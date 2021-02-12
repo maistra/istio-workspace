@@ -103,7 +103,7 @@ var _ = Describe("Operator installation", func() {
 			VerifyWatchList(namespaces...)
 		})
 
-		PIt("MultiNamespace", func() { // require Operator SDK update
+		PIt("should install to multiple namespaces", func() { // require Operator SDK update, see: https://github.com/operator-framework/operator-sdk/issues/4512
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 
