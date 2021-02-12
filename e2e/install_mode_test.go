@@ -48,6 +48,7 @@ var _ = Describe("Operator installation", func() {
 		WatchListExpression := func() string {
 			return strings.Join(namespaces, ",")
 		}
+
 		VerifyWatchList := func(validateNamespaces ...string) {
 			for _, watchNs := range validateNamespaces {
 				ikeCreate := RunIke(shell.GetProjectDir(), "create",
