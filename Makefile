@@ -371,6 +371,9 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
 	mv bundle.Dockerfile build
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Dockerfile
+	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
+	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
+
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
