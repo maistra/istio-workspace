@@ -30,7 +30,7 @@ jobs:
           make lint-prepare
         shell: bash
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v2.4.0
         with:
           version: v1.28
           working-directory: go/src/github.com/${{ env.REPOSITORY }}
