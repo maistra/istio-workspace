@@ -29,7 +29,7 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
@@ -43,7 +43,6 @@ require (
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/h2non/gock.v1 v1.0.16
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	istio.io/api v0.0.0-20210204223132-d90b2f705958
 	istio.io/client-go v1.9.0
