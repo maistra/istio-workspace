@@ -11,7 +11,6 @@ jobs:
       - name: Delete PR-related images
         env:
           QUAY_OAUTH_TOKEN: ${{ secrets.QUAY_OAUTH_TOKEN }}
-          REPOSITORY: "https://quay.io/api/v1/repository/maistra"
           DEV_REPOSITORY: "https://quay.io/api/v1/repository/maistra-dev"
           TAG: "pr-${{ github.event.number }}"
           HEAD_REF: "${{ github.event.pull_request.head.ref }}"
@@ -23,8 +22,8 @@ jobs:
           declare -a tags=("${TAG}-prow" "${TAG}-circle" "${HEAD_REF##*/}")
           for t in "${tags[@]}"
           do
-             curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace/tag/${t} || true
-             curl -H "${HEADER_TOKEN}" -X DELETE ${REPOSITORY}/istio-workspace-operator-bundle/tag/${t} || true
+             curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace/tag/${t} || true
+             curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-operator-bundle/tag/${t} || true
              curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test/tag/${t} || true
              curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test-prepared-image-prepared/tag/${t} || true
              curl -H "${HEADER_TOKEN}" -X DELETE ${DEV_REPOSITORY}/istio-workspace-test-prepared-prepared-image/tag/${t} || true
