@@ -1,6 +1,6 @@
 name: istio-workspace
 title: Istio Workspace
-version: v0.0.6
+version: latest
 nav:
   - modules/ROOT/nav.adoc
 
