@@ -72,7 +72,7 @@ source "${CUR_DIR}"/validate_semver.sh
 
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
-git clone --depth 1 "${HUB_REPO_URL}" "${TMP_DIR}"
+git clone "${HUB_REPO_URL}" "${TMP_DIR}"
 
 cd "${TMP_DIR}"
 git remote add fork "${FORK_REPO_URL}"
