@@ -16,10 +16,10 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: Session is the Schema for the sessions API.
+    - description: Session controls the developer routes.
       displayName: Session
       kind: Session
-      name: sessions.maistra.io.maistra.io
+      name: sessions.maistra.io
       version: v1alpha1
   description: |
     Testing on production sounds scary and dangerous because a lot of things can go wrong.

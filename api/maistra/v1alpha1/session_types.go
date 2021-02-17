@@ -82,7 +82,7 @@ type LabeledRefResource struct {
 // +kubebuilder:resource:path=sessions,scope=Namespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Session is the Schema for the sessions API.
+// Session controls the creation of the specialized hidden routes.
 type Session struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
