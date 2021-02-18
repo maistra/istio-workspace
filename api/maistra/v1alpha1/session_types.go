@@ -22,49 +22,67 @@ import (
 
 // SessionSpec defines the desired state of Session.
 type SessionSpec struct {
+	// How to route the given Session. A header based route using x-workspace-route with the Session name as value will be used if not provided.
 	Route Route `json:"route,omitempty"`
-	Refs  []Ref `json:"ref,omitempty"`
+	// Who should participate in the given session
+	Refs []Ref `json:"ref,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-// Ref defines the desired state for a single reference within the Session.
+// Ref defines how to target a single Deployment or DeploymentConfig.
 type Ref struct {
-	Name     string            `json:"name,omitempty"`
-	Strategy string            `json:"strategy,omitempty"`
-	Args     map[string]string `json:"args,omitempty"`
+	// Deployment or DeploymentConfig name
+	Name string `json:"name,omitempty"`
+	// How this deployment should be handled, e.g. telepresence or prepared-image
+	Strategy string `json:"strategy,omitempty"`
+	// Additional arguments to the given strategy
+	Args map[string]string `json:"args,omitempty"`
 }
 
 // +k8s:openapi-gen=true
 // Route defines the strategy for how the traffic is routed to the Ref.
 type Route struct {
-	Type  string `json:"type,omitempty"`
-	Name  string `json:"name,omitempty"`
+	// The type of route to use, e.g. header
+	Type string `json:"type,omitempty"`
+	// Name of the key, e.g. http header
+	Name string `json:"name,omitempty"`
+	// The value to use for routing
 	Value string `json:"value,omitempty"`
 }
 
 // +k8s:openapi-gen=true
 // SessionStatus defines the observed state of Session.
 type SessionStatus struct {
-	State *string      `json:"state,omitempty"`
-	Route *Route       `json:"route,omitempty"`
-	Refs  []*RefStatus `json:"refs,omitempty"`
+	State *string `json:"state,omitempty"`
+	// The current configured route
+	Route *Route `json:"route,omitempty"`
+	// Status of the Refs in the Session
+	Refs []*RefStatus `json:"refs,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-// RefStatus defines the observed state of the individual Ref.
+// Status of an individual Ref in the Session.
 type RefStatus struct {
-	Ref       `json:",inline"`
-	Targets   []*LabeledRefResource `json:"targets,omitempty"`
-	Resources []*RefResource        `json:"resources,omitempty"`
+	Ref `json:",inline"`
+	// A lit of the Object used as source
+	Targets []*LabeledRefResource `json:"targets,omitempty"`
+	// +optional
+	// A list of the Resources involved in maintaining this route
+	Resources []*RefResource `json:"resources,omitempty"`
 }
 
 // +k8s:openapi-gen=true
-// RefResource defines the observed resources mutated/created as part of the Ref.
+// An external Resource that has been manipulated in some way.
 type RefResource struct {
-	Kind   *string           `json:"kind,omitempty"`
-	Name   *string           `json:"name,omitempty"`
-	Action *string           `json:"action,omitempty"`
-	Prop   map[string]string `json:"prop,omitempty"`
+	// The Resource Kind
+	Kind *string `json:"kind,omitempty"`
+	// The Resource Name
+	Name *string `json:"name,omitempty"`
+	// The Action that was performed, e.g. created, failed, manipulated
+	Action *string `json:"action,omitempty"`
+	// +optional
+	// Additional properties for special Resources, e.g. hosts for Gateways
+	Prop map[string]string `json:"prop,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -87,7 +105,9 @@ type Session struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SessionSpec   `json:"spec,omitempty"`
+	// Spec defines the desired state
+	Spec SessionSpec `json:"spec,omitempty"`
+	// Status defines the current status of the State
 	Status SessionStatus `json:"status,omitempty"`
 }
 
