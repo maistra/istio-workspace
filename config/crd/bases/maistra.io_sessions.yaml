@@ -19,7 +19,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ' the creation of the specialized hidden routes.'
+        description: Session controls the creation of the specialized hidden routes.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
