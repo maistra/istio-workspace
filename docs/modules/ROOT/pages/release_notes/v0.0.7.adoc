@@ -1,0 +1,15 @@
+== Highlights of v0.0.7 release
+
+=== Route available in Status
+
+You can use the Route option to define the criteria you want to use for this Session either via `Session.Spec.Route` or via the `--route` CLI option. If you don't, the operator will calculate a route for you using `header:x-workspace-route:"session.name"`.
+
+You can now find the currently used Route reflected in `Session.Status.Route`.
+
+=== Improvement to CustomResourceDefintion and ClusterServiceVersion
+
+We've added better descriptions and some field-level documentation to the `CustomResourceDefintion` and the `ClusterServiceVersion`
+
+== All changes in this release
+
+// changelog:generate
