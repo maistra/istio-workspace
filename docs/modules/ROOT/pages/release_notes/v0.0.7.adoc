@@ -13,3 +13,24 @@ We've added better descriptions and some field-level documentation to the `Custo
 == All changes in this release
 
 // changelog:generate
+=== Documentation
+
+==== New features
+* fix(doc): add better description to the crd (https://github.com/maistra/istio-workspace/pull/704[#704]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+=== Operator
+
+==== New features
+* feat(operator): add description for crd in csv (https://github.com/maistra/istio-workspace/pull/703[#703]), by https://github.com/aslakknutsen[@aslakknutsen]
+* fix(operator): add route to status (https://github.com/maistra/istio-workspace/pull/701[#701]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+=== Project infrastructure
+
+==== New features
+* chore(images): move pr builds to maistra-dev org (https://github.com/maistra/istio-workspace/pull/700[#700]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+
+
