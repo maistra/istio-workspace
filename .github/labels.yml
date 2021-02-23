@@ -34,11 +34,14 @@
   color: e8e540
   description: "Internal: related to project testing"
 - name: kind/bug
-  color: "008672"
+  color: 008672
   description: "Kind: Not working as expected"
 - name: kind/enhancement
-  color: "008672"
+  color: 008672
   description: "Kind: New feature or improvement"
+- name: doc/highlight
+  color: e5950b
+  description: "Doc: PR or Issue should be highlighted in the docs or release notes"
 - name: reason/breaking-changes
   color: 8e0b30
   description: "Reason: dependency update with compatibility issues"
