@@ -1,13 +1,11 @@
 package serve
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/leader"
 
 	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/controllers"
@@ -63,18 +61,13 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ctx := context.Background()
-
-	// Become the leader before proceeding
-	if e := leader.Become(ctx, "istio-workspace-lock"); e != nil {
-		logger().Error(e, "")
-		return e
-	}
-
 	managerOptions := manager.Options{
 		MetricsBindAddress:     fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 		HealthProbeBindAddress: "0.0.0.0:8282",
+		LeaderElection:         true,
+		LeaderElectionID:       "istio-workspace-lock",
 	}
+
 	if len(namespaces) == 1 {
 		managerOptions.Namespace = namespaces[0]
 	} else {
