@@ -99,10 +99,14 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	if err != nil {
 		return State{}, func() {}, err
 	}
+	route := session.Status.Route
+	if route == nil {
+		route = &istiov1alpha1.Route{}
+	}
 	return State{
 			DeploymentName: serviceName,
 			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
-			Route:          *session.Status.Route,
+			Route:          *route,
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil
