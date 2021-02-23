@@ -46,10 +46,10 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	istio.io/api v0.0.0-20210204223132-d90b2f705958
 	istio.io/client-go v1.9.0
-	k8s.io/api v0.20.2
+	k8s.io/api v0.20.4
 	k8s.io/apiextensions-apiserver v0.20.2 // indirect
 	k8s.io/apimachinery v0.20.4
-	k8s.io/client-go v0.20.2
+	k8s.io/client-go v0.20.4
 	k8s.io/code-generator v0.20.4
 	sigs.k8s.io/controller-runtime v0.7.0
 	sigs.k8s.io/controller-tools v0.4.1
