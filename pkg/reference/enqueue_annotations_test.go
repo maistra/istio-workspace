@@ -25,14 +25,54 @@ var _ = Describe("Enqueue Annotations", func() {
 	})
 
 	It("should add single reference when single session exist", func() {
+		// when
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
 
-		reference.SetOwnerAnnotations(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
-
+		// then
 		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session1"))
 
 	})
-	PIt("should add multiple reference when multiple session exist", func() {})
-	PIt("should remove single reference when multiple session exist", func() {})
-	PIt("should remove reference when no session exist", func() {})
+
+	It("should add multiple reference when multiple session exist", func() {
+		// when
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session2"}, deployment)
+
+		// then
+		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session1,test/session2"))
+	})
+
+	It("should prevent from having duplicate annotations", func() {
+		// when
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session2"}, deployment)
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+
+		// then
+		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session1,test/session2"))
+	})
+
+	It("should remove reference when no reference exist", func() {
+		// given
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+
+		// when
+		reference.Remove(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+
+		// then
+		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(BeEmpty())
+	})
+
+	It("should remove single reference when multiple reference exist", func() {
+		// given
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session2"}, deployment)
+
+		// when
+		reference.Remove(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+
+		// then
+		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session2"))
+	})
 
 })

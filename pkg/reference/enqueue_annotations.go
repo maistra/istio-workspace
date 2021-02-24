@@ -95,6 +95,70 @@ func (e *EnqueueRequestForAnnotation) Generic(evt event.GenericEvent, q workqueu
 	}
 }
 
+// Add helps in adding 'NamespacedNameAnnotation' and 'TypeAnnotation' to object based on
+// the values obtained from owner. The object gets the annotations from owner's namespace, name, group
+// and kind. In other terms, object can be said to be the dependent having annotations from the owner.
+// When a watch is set on the object, the annotations help to identify the owner and trigger reconciliation.
+// Annotations are accumulated as a comma-separated list.
+func Add(owner types.NamespacedName, object client.Object) error {
+	if owner.Name == "" {
+		return fmt.Errorf("%T does not have a name, cannot call Add", owner)
+	}
+
+	annotations := object.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+
+	references := strings.Split(annotations[NamespacedNameAnnotation], ",")
+	reference := fmt.Sprintf("%s/%s", owner.Namespace, owner.Name)
+
+	if len(references) == 1 && references[0] == "" {
+		references[0] = reference
+	} else {
+		for _, r := range references {
+			if r == reference {
+				return nil
+			}
+		}
+		references = append(references, reference)
+	}
+
+	annotations[NamespacedNameAnnotation] = strings.Join(references, ",")
+
+	object.SetAnnotations(annotations)
+
+	return nil
+}
+
+// Remove.
+func Remove(owner types.NamespacedName, object client.Object) error {
+	if owner.Name == "" {
+		return fmt.Errorf("%T does not have a name, cannot call Add", owner)
+	}
+
+	annotations := object.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+
+	existingReferences := strings.Split(annotations[NamespacedNameAnnotation], ",")
+	reference := fmt.Sprintf("%s/%s", owner.Namespace, owner.Name)
+
+	var references []string
+	for _, r := range existingReferences {
+		if r != reference {
+			references = append(references, r)
+		}
+	}
+
+	annotations[NamespacedNameAnnotation] = strings.Join(references, ",")
+
+	object.SetAnnotations(annotations)
+
+	return nil
+}
+
 // getAnnotationRequests checks if the provided object has the annotations so as to enqueue the reconcile request.
 func (e *EnqueueRequestForAnnotation) getAnnotationRequests(object metav1.Object) (bool, reconcile.Request) {
 	if len(object.GetAnnotations()) == 0 {
@@ -122,26 +186,4 @@ func parseNamespacedName(namespacedNameString string) types.NamespacedName {
 	default:
 		return types.NamespacedName{Namespace: values[0], Name: values[1]}
 	}
-}
-
-// SetOwnerAnnotations helps in adding 'NamespacedNameAnnotation' and 'TypeAnnotation' to object based on
-// the values obtained from owner. The object gets the annotations from owner's namespace, name, group
-// and kind. In other terms, object can be said to be the dependent having annotations from the owner.
-// When a watch is set on the object, the annotations help to identify the owner and trigger reconciliation.
-// Annotations are ALWAYS overwritten.
-func SetOwnerAnnotations(owner types.NamespacedName, object client.Object) error {
-	if owner.Name == "" {
-		return fmt.Errorf("%T does not have a name, cannot call SetOwnerAnnotations", owner)
-	}
-
-	annotations := object.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
-	}
-
-	annotations[NamespacedNameAnnotation] = fmt.Sprintf("%s/%s", owner.Namespace, owner.Name)
-
-	object.SetAnnotations(annotations)
-
-	return nil
 }
