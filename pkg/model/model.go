@@ -27,7 +27,7 @@ type SessionContext struct {
 	Log       logr.Logger
 }
 
-// ToOwnerReference returns a OwnerReference object that represents this Session
+// ToOwnerReference returns a OwnerReference object that represents this Session.
 func (s *SessionContext) ToOwnerReference() metav1.OwnerReference {
 	return metav1.OwnerReference{
 		APIVersion: "maistra.io/v1alpha1",

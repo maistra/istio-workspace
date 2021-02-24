@@ -1,12 +1,14 @@
 package reference_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/reference"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/maistra/istio-workspace/pkg/reference"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Enqueue Annotations", func() {
@@ -26,7 +28,7 @@ var _ = Describe("Enqueue Annotations", func() {
 
 		reference.SetOwnerAnnotations(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
 
-		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To((Equal("test/session1")))
+		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session1"))
 
 	})
 	PIt("should add multiple reference when multiple session exist", func() {})

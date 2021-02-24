@@ -106,26 +106,26 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to secondary resources
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &reference.EnqueueRequestForAnnotation{
-		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
 
 	err = c.Watch(&source.Kind{Type: &istionetwork.VirtualService{}}, &reference.EnqueueRequestForAnnotation{
-		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &istionetwork.DestinationRule{}}, &reference.EnqueueRequestForAnnotation{
-		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
 	err = c.Watch(&source.Kind{Type: &istionetwork.Gateway{}}, &reference.EnqueueRequestForAnnotation{
-		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
@@ -308,7 +308,7 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 				ctx.Log.Error(err, "Mutate", "name", ref.Name)
 			}
 			ConvertModelRefToAPIStatus(*ref, session)
-			ctx.Client.Status().Update(ctx, session)
+			_ = ctx.Client.Status().Update(ctx, session)
 		}
 	}
 
