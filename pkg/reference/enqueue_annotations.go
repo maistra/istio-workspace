@@ -1,4 +1,4 @@
-package session
+package reference
 
 import (
 	"fmt"
@@ -18,11 +18,7 @@ const (
 	// NamespacedNameAnnotation is an annotation whose value encodes the name and namespace of a resource to
 	// reconcile when a resource containing this annotation changes. Valid values are of the form
 	// `<namespace>/<name>` for namespace-scoped owners and `<name>` for cluster-scoped owners.
-	NamespacedNameAnnotation = "operator-sdk/primary-resource"
-	// TypeAnnotation is an annotation whose value encodes the group and kind of a resource to reconcil when a
-	// resource containing this annotation changes. Valid values are of the form `<Kind>` for resource in the
-	// core group, and `<Kind>.<group>` for all other resources.
-	TypeAnnotation = "operator-sdk/primary-resource-type"
+	NamespacedNameAnnotation = "mistra.io/istio-workspaces"
 )
 
 // EnqueueRequestForAnnotation enqueues Request containing the Name and Namespace specified in the
@@ -56,7 +52,6 @@ const (
 //
 //	annotations:
 //		operator-sdk/primary-resource:"my-namespace/my-replicaset"
-//		operator-sdk/primary-resource-type:"ReplicaSet.apps"
 //
 // Though an annotation-based watch handler removes the boundaries set by native owner reference implementation,
 // the garbage collector still respects the scope restrictions. For example,
@@ -106,11 +101,7 @@ func (e *EnqueueRequestForAnnotation) getAnnotationRequests(object metav1.Object
 		return false, reconcile.Request{}
 	}
 
-	if typeString, ok := object.GetAnnotations()[TypeAnnotation]; ok && typeString == e.Type.String() {
-		namespacedNameString, ok := object.GetAnnotations()[NamespacedNameAnnotation]
-		if !ok {
-			logger().Info("Unable to find namespaced name annotation for resource", "resource", object)
-		}
+	if namespacedNameString, ok := object.GetAnnotations()[NamespacedNameAnnotation]; ok && namespacedNameString == e.Type.String() {
 		if strings.TrimSpace(namespacedNameString) == "" {
 			return false, reconcile.Request{}
 		}
@@ -138,15 +129,9 @@ func parseNamespacedName(namespacedNameString string) types.NamespacedName {
 // and kind. In other terms, object can be said to be the dependent having annotations from the owner.
 // When a watch is set on the object, the annotations help to identify the owner and trigger reconciliation.
 // Annotations are ALWAYS overwritten.
-func SetOwnerAnnotations(owner, object client.Object) error {
-	if owner.GetName() == "" {
+func SetOwnerAnnotations(owner types.NamespacedName, object client.Object) error {
+	if owner.Name == "" {
 		return fmt.Errorf("%T does not have a name, cannot call SetOwnerAnnotations", owner)
-	}
-
-	ownerGK := owner.GetObjectKind().GroupVersionKind().GroupKind()
-
-	if ownerGK.Kind == "" {
-		return fmt.Errorf("Owner %s Kind not found, cannot call SetOwnerAnnotations", owner.GetName())
 	}
 
 	annotations := object.GetAnnotations()
@@ -154,8 +139,7 @@ func SetOwnerAnnotations(owner, object client.Object) error {
 		annotations = map[string]string{}
 	}
 
-	annotations[NamespacedNameAnnotation] = fmt.Sprintf("%s/%s", owner.GetNamespace(), owner.GetName())
-	annotations[TypeAnnotation] = ownerGK.String()
+	annotations[NamespacedNameAnnotation] = fmt.Sprintf("%s/%s", owner.Namespace, owner.Name)
 
 	object.SetAnnotations(annotations)
 

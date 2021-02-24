@@ -10,6 +10,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	"github.com/operator-framework/operator-lib/handler"
@@ -104,26 +105,26 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to secondary resources
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &EnqueueRequestForAnnotation{
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &reference.EnqueueRequestForAnnotation{
 		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &istionetwork.VirtualService{}}, &EnqueueRequestForAnnotation{
+	err = c.Watch(&source.Kind{Type: &istionetwork.VirtualService{}}, &reference.EnqueueRequestForAnnotation{
 		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
-	err = c.Watch(&source.Kind{Type: &istionetwork.DestinationRule{}}, &EnqueueRequestForAnnotation{
+	err = c.Watch(&source.Kind{Type: &istionetwork.DestinationRule{}}, &reference.EnqueueRequestForAnnotation{
 		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return err
 	}
-	err = c.Watch(&source.Kind{Type: &istionetwork.Gateway{}}, &EnqueueRequestForAnnotation{
+	err = c.Watch(&source.Kind{Type: &istionetwork.Gateway{}}, &reference.EnqueueRequestForAnnotation{
 		schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 	}, predicate.GenerationChangedPredicate{})
 	if err != nil {
