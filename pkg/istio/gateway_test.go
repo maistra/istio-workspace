@@ -100,6 +100,32 @@ var _ = Describe("Operations for istio gateway kind", func() {
 							},
 						},
 					},
+					&istionetwork.Gateway{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "gateway-force-updated",
+							Namespace: "test",
+							Annotations: map[string]string{
+								istio.LabelIkeHosts: "test.domain.com",
+							},
+						},
+						Spec: v1alpha3.Gateway{
+							Selector: map[string]string{
+								"istio": "ingressgateway",
+							},
+							Servers: []*v1alpha3.Server{
+								{
+									Port: &v1alpha3.Port{
+										Protocol: "HTTP",
+										Name:     "http",
+										Number:   80,
+									},
+									Hosts: []string{
+										"domain.com",
+									},
+								},
+							},
+						},
+					},
 				}
 				ref = &model.Ref{
 					Name: "customer-v1",
@@ -184,6 +210,18 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				status := statuss[0]
 				Expect(status.Prop["hosts"]).To(Equal("test.domain.com"))
+			})
+
+			It("should reapply found ike hsots if gateway out of sync", func() {
+				ref.Targets = []model.LocatedResourceStatus{
+					model.NewLocatedResource("Gateway", "gateway-force-updated", nil),
+				}
+
+				err := istio.GatewayMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway-force-updated")
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 			})
 		})
 

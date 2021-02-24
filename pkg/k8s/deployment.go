@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -65,7 +66,7 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
 			return err
 		}
-		//session.SetOwnerAnnotations(ctx.ToOwnerReference(), deploymentClone)
+		reference.Add(ctx.ToNamespacedName(), deploymentClone)
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)

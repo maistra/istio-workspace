@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 
 	"istio.io/api/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,7 +37,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			mutatedDr := mutateDestinationRule(*dr, newVersion)
-			mutatedDr.OwnerReferences = append(mutatedDr.OwnerReferences, ctx.ToOwnerReference())
+			reference.Add(ctx.ToNamespacedName(), &mutatedDr)
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -65,7 +66,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
 		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
-		mutatedDr.OwnerReferences = nil
+		reference.Remove(ctx.ToNamespacedName(), &mutatedDr)
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})

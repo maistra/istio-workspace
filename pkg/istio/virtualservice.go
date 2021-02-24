@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,7 +54,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
 				return err
 			}
-			mutatedVs.OwnerReferences = append(mutatedVs.OwnerReferences, ctx.ToOwnerReference())
+			reference.Add(ctx.ToNamespacedName(), &mutatedVs)
 			if created {
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil {
@@ -97,6 +98,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		switch resource.Action { //nolint:exhaustive //reason only these cases are relevant
 		case model.ActionModified:
 			mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
+			reference.Remove(ctx.ToNamespacedName(), &mutatedVs)
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})

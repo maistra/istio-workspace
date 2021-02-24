@@ -24,6 +24,17 @@ var _ = Describe("Enqueue Annotations", func() {
 		}
 	})
 
+	It("should fail to add when missing namespace", func() {
+		// when
+		err := reference.Add(types.NamespacedName{Name: "session1"}, deployment)
+		Expect(err).To((HaveOccurred()))
+	})
+	It("should fail to add when missing name", func() {
+		// when
+		err := reference.Add(types.NamespacedName{Namespace: "test"}, deployment)
+		Expect(err).To((HaveOccurred()))
+	})
+
 	It("should add single reference when single session exist", func() {
 		// when
 		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
@@ -52,6 +63,17 @@ var _ = Describe("Enqueue Annotations", func() {
 		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session1,test/session2"))
 	})
 
+	It("should fail to remove when missing namespace", func() {
+		// when
+		err := reference.Remove(types.NamespacedName{Name: "session1"}, deployment)
+		Expect(err).To((HaveOccurred()))
+	})
+	It("should fail to remove when missing name", func() {
+		// when
+		err := reference.Remove(types.NamespacedName{Namespace: "test"}, deployment)
+		Expect(err).To((HaveOccurred()))
+	})
+
 	It("should remove reference when no reference exist", func() {
 		// given
 		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
@@ -75,4 +97,27 @@ var _ = Describe("Enqueue Annotations", func() {
 		Expect(deployment.Annotations[reference.NamespacedNameAnnotation]).To(Equal("test/session2"))
 	})
 
+	It("should get references when one reference exist", func() {
+		// given
+		Expect(reference.Get(deployment)).To(HaveLen(0))
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+
+		// then
+		typeNames := reference.Get(deployment)
+		Expect(typeNames).To(HaveLen(1))
+		Expect(typeNames[0].String()).To(Equal("test/session1"))
+	})
+
+	It("should get references when multiple reference exist", func() {
+		// given
+		Expect(reference.Get(deployment)).To(HaveLen(0))
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session1"}, deployment)
+		reference.Add(types.NamespacedName{Namespace: "test", Name: "session2"}, deployment)
+
+		// then
+		typeNames := reference.Get(deployment)
+		Expect(typeNames).To(HaveLen(2))
+		Expect(typeNames[0].String()).To(Equal("test/session1"))
+		Expect(typeNames[1].String()).To(Equal("test/session2"))
+	})
 })

@@ -5,6 +5,7 @@ import (
 
 	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -69,6 +70,7 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
 			return err
 		}
+		reference.Add(ctx.ToNamespacedName(), deploymentClone)
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -31,8 +32,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
 		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
-		mutatedGw.OwnerReferences = append(mutatedGw.OwnerReferences, ctx.ToOwnerReference())
-
+		reference.Add(ctx.ToNamespacedName(), &mutatedGw)
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
@@ -66,6 +66,7 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found Gateway", "name", resource.Name)
 		mutatedGw := revertGateway(ctx, *gw)
+		reference.Remove(ctx.ToNamespacedName(), &mutatedGw)
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name, Action: model.ActionFailed})
@@ -97,6 +98,11 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 			}
 			if existInList(existingHosts, newHost) {
 				addedHosts = append(addedHosts, newHost)
+			}
+		}
+		for _, existing := range existingHosts {
+			if !existInList(hosts, existing) {
+				hosts = append(hosts, existing)
 			}
 		}
 		server.Hosts = hosts
