@@ -8,6 +8,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"
 
@@ -140,6 +141,15 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 					},
 				},
 			}
+		})
+
+		It("should add reference to cloned deployment", func() {
+			ref := CreateTestRef()
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			dc := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(reference.Get(&dc)).To(HaveLen(1))
 		})
 
 		It("should add suffix to the cloned deploymentconfig", func() {

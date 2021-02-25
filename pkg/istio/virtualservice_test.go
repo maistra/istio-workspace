@@ -4,6 +4,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -164,6 +165,17 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Name:      "details-v1",
 						Namespace: "test",
 					}
+				})
+
+				It("reference added", func() {
+					ref.AddTargetResource(targetV1)
+					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+
+					err := VirtualServiceMutator(ctx, &ref)
+					Expect(err).ToNot(HaveOccurred())
+
+					virtualService := get.VirtualService("test", "details")
+					Expect(reference.Get(&virtualService)).To(HaveLen(1))
 				})
 
 				It("route added", func() {
@@ -426,6 +438,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						},
 					}
 
+				})
+
+				It("reference removed", func() {
+					err := VirtualServiceRevertor(ctx, &ref)
+					Expect(err).ToNot(HaveOccurred())
+
+					virtualService := get.VirtualService("test", "details")
+					Expect(reference.Get(&virtualService)).To(BeEmpty())
 				})
 
 				It("route removed", func() {

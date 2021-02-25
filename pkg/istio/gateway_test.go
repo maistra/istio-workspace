@@ -5,6 +5,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -135,6 +136,14 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
+			It("add reference", func() {
+				err := istio.GatewayMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway")
+				Expect(reference.Get(&gw)).To(HaveLen(1))
+			})
+
 			It("add single session", func() {
 				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
@@ -262,6 +271,14 @@ var _ = Describe("Operations for istio gateway kind", func() {
 						{Kind: "Gateway", Name: "gateway", Action: model.ActionModified},
 					},
 				}
+			})
+
+			It("remove reference", func() {
+				err := istio.GatewayRevertor(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway")
+				Expect(reference.Get(&gw)).To(BeEmpty())
 			})
 
 			It("single remove session", func() {
