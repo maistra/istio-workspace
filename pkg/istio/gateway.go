@@ -159,7 +159,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 		server.Hosts = hosts
 	}
 	for _, toBeRemoved := range toBeRemovedHosts {
-		removeFromList(existingHosts, toBeRemoved)
+		existingHosts = removeFromList(existingHosts, toBeRemoved)
 	}
 	if len(existingHosts) == 0 {
 		delete(source.Annotations, LabelIkeHosts)
