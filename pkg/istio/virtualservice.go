@@ -33,12 +33,13 @@ var _ model.Revertor = VirtualServiceRevertor
 func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 	targetVersion := ref.GetVersion()
 
+	vss, err := getVirtualServices(ctx, ctx.Namespace)
+	if err != nil {
+		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: ctx.Namespace, Action: model.ActionFailed})
+		return err
+	}
+
 	for _, hostName := range ref.GetTargetHostNames() {
-		vss, err := getVirtualServices(ctx, ctx.Namespace)
-		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName.Name, Action: model.ActionFailed})
-			return err
-		}
 		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			_, connected := connectedToGateway(vs)
 			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) ||
@@ -61,7 +62,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
 					return err
 				}
-
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionCreated})
 			} else {
 				err = ctx.Client.Update(ctx, &mutatedVs)
@@ -69,7 +69,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
 					return err
 				}
-
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionModified})
 			}
 		}
@@ -154,7 +153,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 	return *target, false, nil
 }
 
-func updateTargetHttp(ctx model.SessionContext, tHTTP *v1alpha3.HTTPRoute, hostName model.HostName, version, newVersion string, target *istionetwork.VirtualService)  {
+func updateTargetHttp(ctx model.SessionContext, tHTTP *v1alpha3.HTTPRoute, hostName model.HostName, version, newVersion string, target *istionetwork.VirtualService) {
 	targetHTTP := *tHTTP
 	targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
 	targetHTTP = updateSubset(targetHTTP, newVersion)
