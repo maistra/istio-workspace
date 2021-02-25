@@ -20,7 +20,6 @@ type SessionContext struct {
 
 	Name      string
 	Namespace string
-	UID       types.UID
 	Route     Route
 	Client    client.Client
 	Log       logr.Logger

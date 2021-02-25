@@ -187,7 +187,6 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
-		UID:       session.UID,
 		Route:     route,
 		Log:       reqLogger,
 		Client:    r.client,
