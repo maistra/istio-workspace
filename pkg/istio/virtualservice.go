@@ -30,7 +30,7 @@ var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
 var _ model.Manipulator = virtualServiceManipulator{}
 
-// VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects
+// VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects.
 func VirtualServiceManipulator() model.Manipulator {
 	return virtualServiceManipulator{}
 }

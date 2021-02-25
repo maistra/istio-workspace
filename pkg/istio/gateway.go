@@ -5,6 +5,7 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -22,7 +23,7 @@ var _ model.Mutator = GatewayMutator
 var _ model.Revertor = GatewayRevertor
 var _ model.Manipulator = gatewayManipulator{}
 
-// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects
+// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects.
 func GatewayManipulator() model.Manipulator {
 	return gatewayManipulator{}
 }

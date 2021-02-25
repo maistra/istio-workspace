@@ -7,6 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	appsv1 "github.com/openshift/api/apps/v1"
@@ -28,7 +29,7 @@ var _ model.Locator = DeploymentConfigLocator
 var _ model.Revertor = DeploymentConfigRevertor
 var _ model.Manipulator = deploymentConfigManipulator{}
 
-// DeploymentConfigManipulator represents a model.Manipulator implementation for handling DeploymentConfig objects
+// DeploymentConfigManipulator represents a model.Manipulator implementation for handling DeploymentConfig objects.
 func DeploymentConfigManipulator(engine template.Engine) model.Manipulator {
 	return deploymentConfigManipulator{engine: engine}
 }

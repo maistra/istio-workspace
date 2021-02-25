@@ -125,9 +125,9 @@ type ReconcileSession struct {
 	manipulators Manipulators
 }
 
-// WatchTypes returns a list of client.Objects to watch for changes
+// WatchTypes returns a list of client.Objects to watch for changes.
 func (r ReconcileSession) WatchTypes() []client.Object {
-	var objects []client.Object
+	objects := []client.Object{}
 	for _, handler := range r.manipulators.Handlers {
 		objects = append(objects, handler.TargetResourceType())
 	}

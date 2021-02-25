@@ -3,15 +3,15 @@ package istio
 import (
 	"strings"
 
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 
 	"istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -23,7 +23,7 @@ var _ model.Mutator = DestinationRuleMutator
 var _ model.Revertor = DestinationRuleRevertor
 var _ model.Manipulator = destinationRuleManipulator{}
 
-// DestinationRuleManipulator represents a model.Manipulator implementation for handling DestinationRule objects
+// DestinationRuleManipulator represents a model.Manipulator implementation for handling DestinationRule objects.
 func DestinationRuleManipulator() model.Manipulator {
 	return destinationRuleManipulator{}
 }
