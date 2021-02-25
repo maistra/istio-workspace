@@ -105,7 +105,8 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 			}
 		}
 		for _, existing := range existingHosts {
-			if !existInList(hosts, existing) {
+			baseHost := strings.Join(strings.Split(existing, ".")[1:], ".")
+			if !existInList(hosts, existing) && existInList(hosts, baseHost) {
 				hosts = append(hosts, existing)
 			}
 		}
@@ -123,17 +124,21 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 	if hosts := source.Annotations[LabelIkeHosts]; hosts != "" {
 		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
 	}
+	var toBeRemovedHosts []string
 	for _, server := range source.Spec.Servers {
 		hosts := server.Hosts
 		for i := 0; i < len(hosts); i++ {
 			host := hosts[i]
 			if existInList(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
-				existingHosts = removeFromList(existingHosts, host)
+				toBeRemovedHosts = append(toBeRemovedHosts, host)
 				hosts = append(hosts[:i], hosts[i+1:]...)
 				i--
 			}
 		}
 		server.Hosts = hosts
+	}
+	for _, toBeRemoved := range toBeRemovedHosts {
+		removeFromList(existingHosts, toBeRemoved)
 	}
 	if len(existingHosts) == 0 {
 		delete(source.Annotations, LabelIkeHosts)
