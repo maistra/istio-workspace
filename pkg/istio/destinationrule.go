@@ -37,7 +37,9 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			mutatedDr := mutateDestinationRule(*dr, newVersion)
-			reference.Add(ctx.ToNamespacedName(), &mutatedDr)
+			if err = reference.Add(ctx.ToNamespacedName(), &mutatedDr); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
+			}
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -66,7 +68,9 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
 		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
-		reference.Remove(ctx.ToNamespacedName(), &mutatedDr)
+		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedDr); err != nil {
+			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})

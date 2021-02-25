@@ -56,7 +56,9 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 				return err
 			}
 
-			reference.Add(ctx.ToNamespacedName(), &mutatedVs)
+			if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+			}
 			if isNew {
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil && !errors.IsAlreadyExists(err) {
@@ -96,7 +98,9 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		switch resource.Action { //nolint:exhaustive //reason only these cases are relevant
 		case model.ActionModified:
 			mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
-			reference.Remove(ctx.ToNamespacedName(), &mutatedVs)
+			if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+			}
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})

@@ -32,7 +32,9 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
 		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
-		reference.Add(ctx.ToNamespacedName(), &mutatedGw)
+		if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
@@ -66,7 +68,9 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found Gateway", "name", resource.Name)
 		mutatedGw := revertGateway(ctx, *gw)
-		reference.Remove(ctx.ToNamespacedName(), &mutatedGw)
+		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name, Action: model.ActionFailed})

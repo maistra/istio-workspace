@@ -66,7 +66,9 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
 			return err
 		}
-		reference.Add(ctx.ToNamespacedName(), deploymentClone)
+		if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
+		}
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
