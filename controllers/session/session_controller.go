@@ -306,8 +306,6 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 			if err != nil {
 				ctx.Log.Error(err, "Mutate", "name", ref.Name)
 			}
-			ConvertModelRefToAPIStatus(*ref, session)
-			_ = ctx.Client.Status().Update(ctx, session)
 		}
 	}
 
