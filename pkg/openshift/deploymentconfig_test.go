@@ -187,6 +187,29 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
+		It("should recreate cloned DeploymentConfig if deleted externally", func() {
+			// given a normal setup
+			ref := CreateTestRef()
+			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo("v1-test"))
+
+			// when DeploymentConfig is deleted
+			c.Delete(ctx, &deployment)
+
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(err).To(HaveOccurred())
+
+			// then it should be recreated on next reconcile
+			mutatorErr = openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment = get.DeploymentConfig(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo("v1-test"))
+		})
+
 		Context("telepresence mutation strategy", func() {
 
 			It("should change container to telepresence", func() {

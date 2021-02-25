@@ -39,9 +39,6 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 // DeploymentMutator attempts to clone the located Deployment.
 func DeploymentMutator(engine template.Engine) model.Mutator {
 	return func(ctx model.SessionContext, ref *model.Ref) error {
-		if len(ref.GetResources(model.Kind(DeploymentKind))) > 0 {
-			return nil
-		}
 		targets := ref.GetTargets(model.Kind(DeploymentKind))
 		if len(targets) == 0 {
 			return nil
@@ -69,6 +66,10 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 		if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 			ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 		}
+		if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
+			return nil
+		}
+
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
