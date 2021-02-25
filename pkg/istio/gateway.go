@@ -5,6 +5,7 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -19,6 +20,25 @@ const (
 
 var _ model.Mutator = GatewayMutator
 var _ model.Revertor = GatewayRevertor
+var _ model.Manipulator = gatewayManipulator{}
+
+// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects
+func GatewayManipulator() model.Manipulator {
+	return gatewayManipulator{}
+}
+
+type gatewayManipulator struct {
+}
+
+func (d gatewayManipulator) TargetResourceType() client.Object {
+	return &istionetwork.Gateway{}
+}
+func (d gatewayManipulator) Mutate() model.Mutator {
+	return GatewayMutator
+}
+func (d gatewayManipulator) Revert() model.Revertor {
+	return GatewayRevertor
+}
 
 // GatewayMutator attempts to expose a external host on the gateway.
 func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {

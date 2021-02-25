@@ -16,9 +16,7 @@ import (
 	"github.com/operator-framework/operator-lib/handler"
 
 	"github.com/go-logr/logr"
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -57,19 +55,12 @@ func DefaultManipulators() Manipulators {
 			k8s.ServiceLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
-		Mutators: []model.Mutator{
-			k8s.DeploymentMutator(engine),
-			openshift.DeploymentConfigMutator(engine),
-			istio.DestinationRuleMutator,
-			istio.GatewayMutator,
-			istio.VirtualServiceMutator,
-		},
-		Revertors: []model.Revertor{
-			k8s.DeploymentRevertor,
-			openshift.DeploymentConfigRevertor,
-			istio.DestinationRuleRevertor,
-			istio.GatewayRevertor,
-			istio.VirtualServiceRevertor,
+		Handlers: []model.Manipulator{
+			k8s.DeploymentManipulator(engine),
+			openshift.DeploymentConfigManipulator(engine),
+			istio.DestinationRuleManipulator(),
+			istio.GatewayManipulator(),
+			istio.VirtualServiceManipulator(),
 		},
 	}
 }
@@ -81,17 +72,17 @@ func Add(mgr manager.Manager) error {
 }
 
 // newReconciler returns a new reconcile.Reconciler.
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager) *ReconcileSession {
 	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
 }
 
 // NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager.
-func NewStandaloneReconciler(c client.Client, m Manipulators) reconcile.Reconciler {
+func NewStandaloneReconciler(c client.Client, m Manipulators) *ReconcileSession {
 	return &ReconcileSession{client: c, manipulators: m}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler.
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
+func add(mgr manager.Manager, r *ReconcileSession) error {
 	// Create a new controller
 	c, err := controller.New("session-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -104,31 +95,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to secondary resources
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &reference.EnqueueRequestForAnnotation{
-		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
-	}, predicate.GenerationChangedPredicate{})
-	if err != nil {
-		return err
-	}
-
-	err = c.Watch(&source.Kind{Type: &istionetwork.VirtualService{}}, &reference.EnqueueRequestForAnnotation{
-		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
-	}, predicate.GenerationChangedPredicate{})
-	if err != nil {
-		return err
-	}
-	err = c.Watch(&source.Kind{Type: &istionetwork.DestinationRule{}}, &reference.EnqueueRequestForAnnotation{
-		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
-	}, predicate.GenerationChangedPredicate{})
-	if err != nil {
-		return err
-	}
-	err = c.Watch(&source.Kind{Type: &istionetwork.Gateway{}}, &reference.EnqueueRequestForAnnotation{
-		Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
-	}, predicate.GenerationChangedPredicate{})
-	if err != nil {
-		return err
+	for _, object := range r.WatchTypes() {
+		// Watch for changes to secondary resources
+		err = c.Watch(&source.Kind{Type: object}, &reference.EnqueueRequestForAnnotation{
+			Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+		}, predicate.GenerationChangedPredicate{})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -136,9 +110,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
-	Locators  []model.Locator
-	Mutators  []model.Mutator
-	Revertors []model.Revertor
+	Locators []model.Locator
+	Handlers []model.Manipulator
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}
@@ -150,6 +123,15 @@ type ReconcileSession struct {
 	client       client.Client
 	scheme       *runtime.Scheme
 	manipulators Manipulators
+}
+
+// WatchTypes returns a list of client.Objects to watch for changes
+func (r ReconcileSession) WatchTypes() []client.Object {
+	var objects []client.Object
+	for _, handler := range r.manipulators.Handlers {
+		objects = append(objects, handler.TargetResourceType())
+	}
+	return objects
 }
 
 // +kubebuilder:rbac:groups=maistra.io,resources=sessions,verbs=get;list;watch;create;update;patch;delete
@@ -262,8 +244,8 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 	ctx.Log.Info("Remove ref", "name", ref.Name)
 
 	ConvertAPIStatusToModelRef(*session, ref)
-	for _, revertor := range r.manipulators.Revertors {
-		err := revertor(ctx, ref)
+	for _, revertor := range r.manipulators.Handlers {
+		err := revertor.Revert()(ctx, ref)
 		if err != nil {
 			ctx.Log.Error(err, "Revert", "name", ref.Name)
 		}
@@ -301,8 +283,8 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 		}
 	}
 	if located {
-		for _, mutator := range r.manipulators.Mutators {
-			err := mutator(ctx, ref)
+		for _, mutator := range r.manipulators.Handlers {
+			err := mutator.Mutate()(ctx, ref)
 			if err != nil {
 				ctx.Log.Error(err, "Mutate", "name", ref.Name)
 			}

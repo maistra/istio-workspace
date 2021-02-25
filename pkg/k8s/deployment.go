@@ -6,6 +6,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	appsv1 "k8s.io/api/apps/v1"
 
@@ -21,6 +22,26 @@ const (
 
 var _ model.Locator = DeploymentLocator
 var _ model.Revertor = DeploymentRevertor
+var _ model.Manipulator = deploymentManipulator{}
+
+// DeploymentManipulator represents a model.Manipulator implementation for handling Deployment objects
+func DeploymentManipulator(engine template.Engine) model.Manipulator {
+	return deploymentManipulator{engine: engine}
+}
+
+type deploymentManipulator struct {
+	engine template.Engine
+}
+
+func (d deploymentManipulator) TargetResourceType() client.Object {
+	return &appsv1.Deployment{}
+}
+func (d deploymentManipulator) Mutate() model.Mutator {
+	return DeploymentMutator(d.engine)
+}
+func (d deploymentManipulator) Revert() model.Revertor {
+	return DeploymentRevertor
+}
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name.
 func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {

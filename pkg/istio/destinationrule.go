@@ -21,6 +21,25 @@ const (
 
 var _ model.Mutator = DestinationRuleMutator
 var _ model.Revertor = DestinationRuleRevertor
+var _ model.Manipulator = destinationRuleManipulator{}
+
+// DestinationRuleManipulator represents a model.Manipulator implementation for handling DestinationRule objects
+func DestinationRuleManipulator() model.Manipulator {
+	return destinationRuleManipulator{}
+}
+
+type destinationRuleManipulator struct {
+}
+
+func (d destinationRuleManipulator) TargetResourceType() client.Object {
+	return &istionetwork.DestinationRule{}
+}
+func (d destinationRuleManipulator) Mutate() model.Mutator {
+	return DestinationRuleMutator
+}
+func (d destinationRuleManipulator) Revert() model.Revertor {
+	return DestinationRuleRevertor
+}
 
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.

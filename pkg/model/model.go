@@ -252,3 +252,16 @@ type Mutator func(SessionContext, *Ref) error
 // Revertor should delete/modify a target Kind to return to the original state after a Mutator
 // * Remove status from Ref unless there is a failure that requires retry.
 type Revertor func(SessionContext, *Ref) error
+
+// Manipulator is a joint interface between a Mutator and Revertor function combined with their target Object.
+type Manipulator interface {
+	// Mutate is called to manipulate/mutate the TargetResource
+	Mutate() Mutator
+
+	// Revert is called to undo the manipulated/mutated TargetResource
+	Revert() Revertor
+
+	// TargetResourceType should return a empty version of the Type of Resource this manipulator targets.
+	// Used to register Watch for changes to the Type.
+	TargetResourceType() client.Object
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -25,6 +26,26 @@ const (
 
 var _ model.Locator = DeploymentConfigLocator
 var _ model.Revertor = DeploymentConfigRevertor
+var _ model.Manipulator = deploymentConfigManipulator{}
+
+// DeploymentConfigManipulator represents a model.Manipulator implementation for handling DeploymentConfig objects
+func DeploymentConfigManipulator(engine template.Engine) model.Manipulator {
+	return deploymentConfigManipulator{engine: engine}
+}
+
+type deploymentConfigManipulator struct {
+	engine template.Engine
+}
+
+func (d deploymentConfigManipulator) TargetResourceType() client.Object {
+	return &appsv1.DeploymentConfig{}
+}
+func (d deploymentConfigManipulator) Mutate() model.Mutator {
+	return DeploymentConfigMutator(d.engine)
+}
+func (d deploymentConfigManipulator) Revert() model.Revertor {
+	return DeploymentConfigRevertor
+}
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {

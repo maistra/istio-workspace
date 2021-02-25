@@ -57,9 +57,10 @@ var _ = Describe("Basic session manipulation", func() {
 		mutator = &trackedMutator{Action: noOp}
 		revertor = &trackedRevertor{Action: noOp}
 		manipulators := session.Manipulators{
-			Locators:  []model.Locator{locator.Do},
-			Mutators:  []model.Mutator{mutator.Do},
-			Revertors: []model.Revertor{revertor.Do},
+			Locators: []model.Locator{locator.Do},
+			Handlers: []model.Manipulator{
+				trackedManipulator{mutator: mutator.Do, revertor: revertor.Do},
+			},
 		}
 
 		schema, _ = v1alpha1.SchemeBuilder.Build()
@@ -495,6 +496,21 @@ func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContex
 		ref.AddResourceStatus(status)
 		return nil
 	}
+}
+
+type trackedManipulator struct {
+	mutator  model.Mutator
+	revertor model.Revertor
+}
+
+func (t trackedManipulator) Mutate() model.Mutator {
+	return t.mutator
+}
+func (t trackedManipulator) Revert() model.Revertor {
+	return t.revertor
+}
+func (t trackedManipulator) TargetResourceType() client.Object {
+	return nil
 }
 
 type trackedMutator struct {

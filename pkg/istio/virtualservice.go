@@ -28,6 +28,25 @@ const (
 
 var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
+var _ model.Manipulator = virtualServiceManipulator{}
+
+// VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects
+func VirtualServiceManipulator() model.Manipulator {
+	return virtualServiceManipulator{}
+}
+
+type virtualServiceManipulator struct {
+}
+
+func (d virtualServiceManipulator) TargetResourceType() client.Object {
+	return &istionetwork.VirtualService{}
+}
+func (d virtualServiceManipulator) Mutate() model.Mutator {
+	return VirtualServiceMutator
+}
+func (d virtualServiceManipulator) Revert() model.Revertor {
+	return VirtualServiceRevertor
+}
 
 // VirtualServiceMutator attempts to create a virtual service for forked service.
 func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint:gocyclo //reason it is what it is :D
