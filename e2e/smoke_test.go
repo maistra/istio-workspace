@@ -58,7 +58,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Context("http protocol", func() {
 
 				BeforeEach(func() {
-					scenario = "scenario-1"
+					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
 					registry = GetDockerRegistryInternal()
 				})
 

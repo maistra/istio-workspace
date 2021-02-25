@@ -66,12 +66,12 @@ var _ = Describe("Enqueue Annotations", func() {
 	It("should fail to remove when missing namespace", func() {
 		// when
 		err := reference.Remove(types.NamespacedName{Name: "session1"}, deployment)
-		Expect(err).To((HaveOccurred()))
+		Expect(err).To(HaveOccurred())
 	})
 	It("should fail to remove when missing name", func() {
 		// when
 		err := reference.Remove(types.NamespacedName{Namespace: "test"}, deployment)
-		Expect(err).To((HaveOccurred()))
+		Expect(err).To(HaveOccurred())
 	})
 
 	It("should remove reference when no reference exist", func() {

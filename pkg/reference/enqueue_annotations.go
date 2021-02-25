@@ -148,7 +148,9 @@ func Add(owner types.NamespacedName, object client.Object) error {
 	return nil
 }
 
-// Remove.
+// Remove helps in removing 'NamespacedNameAnnotation' from object based on
+// the NamespaceName. The object gets the annotations from owner's namespace, name, group
+// and kind. Annotations are accumulated as a comma-separated list, thus removal will change the content of the list.
 func Remove(owner types.NamespacedName, object client.Object) error {
 	if owner.Namespace == "" {
 		return fmt.Errorf("%T does not have a namespace, cannot call Remove", owner)
@@ -179,7 +181,7 @@ func Remove(owner types.NamespacedName, object client.Object) error {
 	return nil
 }
 
-// Get.
+// Get converts annotations defined for NamespacedNameAnnotation as comma-separated list to a slice.
 func Get(object client.Object) []types.NamespacedName {
 	var typeNames []types.NamespacedName
 	annotations := object.GetAnnotations()
@@ -199,7 +201,7 @@ func Get(object client.Object) []types.NamespacedName {
 // addToQueue adds a slice of Reconcile Requests to the queue.
 func (e *EnqueueRequestForAnnotation) addToQueue(q workqueue.RateLimitingInterface, requests []reconcile.Request) {
 	for _, request := range requests {
-		q.Add((request))
+		q.Add(request)
 	}
 }
 
