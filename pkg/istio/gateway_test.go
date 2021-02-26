@@ -146,7 +146,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
-			It("add reference", func() {
+			It("should add reference", func() {
 				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
