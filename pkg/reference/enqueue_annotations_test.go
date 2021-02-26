@@ -29,6 +29,7 @@ var _ = Describe("Enqueue Annotations", func() {
 		err := reference.Add(types.NamespacedName{Name: "session1"}, deployment)
 		Expect(err).To((HaveOccurred()))
 	})
+
 	It("should fail to add when missing name", func() {
 		// when
 		err := reference.Add(types.NamespacedName{Namespace: "test"}, deployment)
