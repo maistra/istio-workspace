@@ -165,7 +165,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		Context("existing rule", func() {
 
-			It("reference removed", func() {
+			It("should remove reference", func() {
 				err := istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
