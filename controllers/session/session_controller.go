@@ -18,8 +18,10 @@ import (
 	"github.com/go-logr/logr"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -96,6 +98,12 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	for _, object := range r.WatchTypes() {
+		err := mgr.GetClient().Get(context.Background(), types.NamespacedName{Namespace: "test", Name: "test"}, object)
+		if err != nil && meta.IsNoMatchError(err) {
+			continue
+		} else if err != nil {
+			logger().Error(err, "other error checking for type")
+		}
 		// Watch for changes to secondary resources
 		err = c.Watch(&source.Kind{Type: object}, &reference.EnqueueRequestForAnnotation{
 			Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
