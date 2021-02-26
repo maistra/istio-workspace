@@ -440,7 +440,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 				})
 
-				It("reference removed", func() {
+				It("should remove reference", func() {
 					err := VirtualServiceRevertor(ctx, &ref)
 					Expect(err).ToNot(HaveOccurred())
 
