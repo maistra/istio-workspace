@@ -108,7 +108,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				}
 			})
 
-			It("reference added", func() {
+			It("should add reference", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
