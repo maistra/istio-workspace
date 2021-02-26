@@ -167,7 +167,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					}
 				})
 
-				It("reference added", func() {
+				It("should add reference", func() {
 					ref.AddTargetResource(targetV1)
 					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
 
