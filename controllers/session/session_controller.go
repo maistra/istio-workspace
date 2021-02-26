@@ -101,7 +101,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 			Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
 		}, predicate.GenerationChangedPredicate{})
 		if err != nil {
-			return err
+			logger().Error(err, "could not add watch on crd")
 		}
 	}
 
