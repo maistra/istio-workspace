@@ -8,6 +8,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"
 
@@ -133,6 +134,15 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			}
 		})
 
+		It("should add reference to cloned deployment", func() {
+			ref := CreateTestRef()
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			d := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(reference.Get(&d)).To(HaveLen(1))
+		})
+
 		It("should add suffix to the cloned deployment", func() {
 			ref := CreateTestRef()
 			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
@@ -177,6 +187,29 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.Name+"-v1-"+ctx.Name)
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
+		})
+
+		It("should recreate cloned Deployment if deleted externally", func() {
+			// given a normal setup
+			ref := CreateTestRef()
+			mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment := get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo("v1-test"))
+
+			// when Deployment is deleted
+			c.Delete(ctx, &deployment)
+
+			_, err := get.DeploymentWithError(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(err).To(HaveOccurred())
+
+			// then it should be recreated on next reconcile
+			mutatorErr = k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
+			Expect(mutatorErr).ToNot(HaveOccurred())
+
+			deployment = get.Deployment(ctx.Namespace, ref.Name+"-v1-"+ctx.Name)
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo("v1-test"))
 		})
 
 		Context("telepresence mutation strategy", func() {

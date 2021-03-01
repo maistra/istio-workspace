@@ -5,6 +5,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -100,6 +101,42 @@ var _ = Describe("Operations for istio gateway kind", func() {
 							},
 						},
 					},
+					&istionetwork.Gateway{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "gateway-force-updated",
+							Namespace: "test",
+							Annotations: map[string]string{
+								istio.LabelIkeHosts: "test.domain.com",
+							},
+						},
+						Spec: v1alpha3.Gateway{
+							Selector: map[string]string{
+								"istio": "ingressgateway",
+							},
+							Servers: []*v1alpha3.Server{
+								{
+									Port: &v1alpha3.Port{
+										Protocol: "HTTP",
+										Name:     "http",
+										Number:   80,
+									},
+									Hosts: []string{
+										"domain.com",
+									},
+								},
+								{
+									Port: &v1alpha3.Port{
+										Protocol: "HTTP",
+										Name:     "http",
+										Number:   80,
+									},
+									Hosts: []string{
+										"other-domain.com",
+									},
+								},
+							},
+						},
+					},
 				}
 				ref = &model.Ref{
 					Name: "customer-v1",
@@ -109,13 +146,21 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
+			It("should add reference", func() {
+				err := istio.GatewayMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway")
+				Expect(reference.Get(&gw)).To(HaveLen(1))
+			})
+
 			It("add single session", func() {
 				err := istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 			})
 
 			It("add single session - verify ref", func() {
@@ -134,7 +179,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 
 				ctx2 := model.SessionContext{
 					Name:      "test2",
@@ -152,7 +197,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com", "test2.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com", "test2.domain.com"))
 			})
 
 			It("add multiple refs", func() {
@@ -161,14 +206,14 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 
 				err = istio.GatewayMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 			})
 
 			It("should only return added hosts once", func() {
@@ -184,6 +229,19 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				status := statuss[0]
 				Expect(status.Prop["hosts"]).To(Equal("test.domain.com"))
+			})
+
+			It("should reapply found ike hosts if gateway out of sync", func() {
+				ref.Targets = []model.LocatedResourceStatus{
+					model.NewLocatedResource("Gateway", "gateway-force-updated", nil),
+				}
+
+				err := istio.GatewayMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway-force-updated")
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
+				Expect(gw.Spec.Servers[1].Hosts).To(ConsistOf("other-domain.com", "test.other-domain.com"))
 			})
 		})
 
@@ -214,6 +272,18 @@ var _ = Describe("Operations for istio gateway kind", func() {
 										"test2.domain.com",
 									},
 								},
+								{
+									Port: &v1alpha3.Port{
+										Protocol: "HTTP",
+										Name:     "http",
+										Number:   81,
+									},
+									Hosts: []string{
+										"domain.com",
+										"test.domain.com",
+										"test2.domain.com",
+									},
+								},
 							},
 						},
 					},
@@ -226,12 +296,21 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				}
 			})
 
+			It("remove reference", func() {
+				err := istio.GatewayRevertor(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				gw := get.Gateway("test", "gateway")
+				Expect(reference.Get(&gw)).To(BeEmpty())
+			})
+
 			It("single remove session", func() {
 				err := istio.GatewayRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+				Expect(gw.Spec.Servers[1].Hosts).To(HaveLen(2))
 			})
 
 			It("multiple remove sessions", func() {
@@ -240,7 +319,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com", "test2.domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test2.domain.com"))
 
 				ctx2 := model.SessionContext{
 					Name:      "test2",
@@ -260,7 +339,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(1))
-				Expect(gw.Spec.Servers[0].Hosts).To(ContainElements("domain.com"))
+				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com"))
 				Expect(gw.Labels).ToNot(HaveKey(istio.LabelIkeHosts))
 			})
 		})

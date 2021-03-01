@@ -4,6 +4,9 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -18,6 +21,25 @@ const (
 
 var _ model.Mutator = GatewayMutator
 var _ model.Revertor = GatewayRevertor
+var _ model.Manipulator = gatewayManipulator{}
+
+// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects.
+func GatewayManipulator() model.Manipulator {
+	return gatewayManipulator{}
+}
+
+type gatewayManipulator struct {
+}
+
+func (d gatewayManipulator) TargetResourceType() client.Object {
+	return &istionetwork.Gateway{}
+}
+func (d gatewayManipulator) Mutate() model.Mutator {
+	return GatewayMutator
+}
+func (d gatewayManipulator) Revert() model.Revertor {
+	return GatewayRevertor
+}
 
 // GatewayMutator attempts to expose a external host on the gateway.
 func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
@@ -30,6 +52,10 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
 		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
+
+		if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
@@ -63,6 +89,9 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found Gateway", "name", resource.Name)
 		mutatedGw := revertGateway(ctx, *gw)
+		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name, Action: model.ActionFailed})
@@ -96,6 +125,12 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 				addedHosts = append(addedHosts, newHost)
 			}
 		}
+		for _, existing := range existingHosts {
+			baseHost := strings.Join(strings.Split(existing, ".")[1:], ".")
+			if !existInList(hosts, existing) && existInList(hosts, baseHost) {
+				hosts = append(hosts, existing)
+			}
+		}
 		server.Hosts = hosts
 	}
 	source.Annotations[LabelIkeHosts] = strings.Join(existingHosts, ",")
@@ -110,17 +145,21 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 	if hosts := source.Annotations[LabelIkeHosts]; hosts != "" {
 		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
 	}
+	var toBeRemovedHosts []string
 	for _, server := range source.Spec.Servers {
 		hosts := server.Hosts
 		for i := 0; i < len(hosts); i++ {
 			host := hosts[i]
 			if existInList(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
-				existingHosts = removeFromList(existingHosts, host)
+				toBeRemovedHosts = append(toBeRemovedHosts, host)
 				hosts = append(hosts[:i], hosts[i+1:]...)
 				i--
 			}
 		}
 		server.Hosts = hosts
+	}
+	for _, toBeRemoved := range toBeRemovedHosts {
+		existingHosts = removeFromList(existingHosts, toBeRemoved)
 	}
 	if len(existingHosts) == 0 {
 		delete(source.Annotations, LabelIkeHosts)

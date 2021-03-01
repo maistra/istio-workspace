@@ -3,14 +3,15 @@ package istio
 import (
 	"strings"
 
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 
 	"istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -20,6 +21,25 @@ const (
 
 var _ model.Mutator = DestinationRuleMutator
 var _ model.Revertor = DestinationRuleRevertor
+var _ model.Manipulator = destinationRuleManipulator{}
+
+// DestinationRuleManipulator represents a model.Manipulator implementation for handling DestinationRule objects.
+func DestinationRuleManipulator() model.Manipulator {
+	return destinationRuleManipulator{}
+}
+
+type destinationRuleManipulator struct {
+}
+
+func (d destinationRuleManipulator) TargetResourceType() client.Object {
+	return &istionetwork.DestinationRule{}
+}
+func (d destinationRuleManipulator) Mutate() model.Mutator {
+	return DestinationRuleMutator
+}
+func (d destinationRuleManipulator) Revert() model.Revertor {
+	return DestinationRuleRevertor
+}
 
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.
@@ -30,12 +50,15 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			return err
 		}
 		for _, dr := range drs {
-			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			newVersion := ref.GetNewVersion(ctx.Name)
 			if alreadyMutated(*dr, newVersion) {
 				continue
 			}
+			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
 			mutatedDr := mutateDestinationRule(*dr, newVersion)
+			if err = reference.Add(ctx.ToNamespacedName(), &mutatedDr); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
+			}
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
@@ -64,6 +87,9 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 
 		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
 		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
+		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedDr); err != nil {
+			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
+		}
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})

@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.5.0
   creationTimestamp: null
   name: sessions.maistra.io
 spec:
@@ -22,14 +22,10 @@ spec:
         description: Session controls the creation of the specialized hidden routes.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -50,15 +46,12 @@ spec:
                       description: Deployment or DeploymentConfig name
                       type: string
                     strategy:
-                      description: How this deployment should be handled, e.g. telepresence
-                        or prepared-image
+                      description: How this deployment should be handled, e.g. telepresence or prepared-image
                       type: string
                   type: object
                 type: array
               route:
-                description: How to route the given Session. A header based route
-                  using x-workspace-route with the Session name as value will be used
-                  if not provided.
+                description: How to route the given Session. A header based route using x-workspace-route with the Session name as value will be used if not provided.
                 properties:
                   name:
                     description: Name of the key, e.g. http header
@@ -88,15 +81,12 @@ spec:
                       description: Deployment or DeploymentConfig name
                       type: string
                     resources:
-                      description: A list of the Resources involved in maintaining
-                        this route
+                      description: A list of the Resources involved in maintaining this route
                       items:
-                        description: An external Resource that has been manipulated
-                          in some way.
+                        description: An external Resource that has been manipulated in some way.
                         properties:
                           action:
-                            description: The Action that was performed, e.g. created,
-                              failed, manipulated
+                            description: The Action that was performed, e.g. created, failed, manipulated
                             type: string
                           kind:
                             description: The Resource Kind
@@ -107,14 +97,12 @@ spec:
                           prop:
                             additionalProperties:
                               type: string
-                            description: Additional properties for special Resources,
-                              e.g. hosts for Gateways
+                            description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                         type: object
                       type: array
                     strategy:
-                      description: How this deployment should be handled, e.g. telepresence
-                        or prepared-image
+                      description: How this deployment should be handled, e.g. telepresence or prepared-image
                       type: string
                     targets:
                       description: A lit of the Object used as source
@@ -122,8 +110,7 @@ spec:
                         description: LabeledRefResource is a RefResource with Labels.
                         properties:
                           action:
-                            description: The Action that was performed, e.g. created,
-                              failed, manipulated
+                            description: The Action that was performed, e.g. created, failed, manipulated
                             type: string
                           kind:
                             description: The Resource Kind
@@ -138,8 +125,7 @@ spec:
                           prop:
                             additionalProperties:
                               type: string
-                            description: Additional properties for special Resources,
-                              e.g. hosts for Gateways
+                            description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                         required:
                         - labels
