@@ -313,7 +313,7 @@ var _ = Describe("Basic session manipulation", func() {
 										Name:     "locations",
 										Strategy: "prepared-image",
 										Args: map[string]string{
-											"image": "x",
+											"image":                       "x",
 											"should-be-removed-on-update": "true",
 										}},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
