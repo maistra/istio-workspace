@@ -21,7 +21,7 @@ const (
 	// NamespacedNameAnnotation is an annotation whose value encodes the name and namespace of a resource to
 	// reconcile when a resource containing this annotation changes. Valid values are of the form
 	// `<namespace>/<name>` for namespace-scoped owners and `<name>` for cluster-scoped owners.
-	NamespacedNameAnnotation = "mistra.io/istio-workspaces"
+	NamespacedNameAnnotation = "maistra.io/istio-workspaces"
 )
 
 var (
@@ -32,35 +32,35 @@ var (
 
 // EnqueueRequestForAnnotation enqueues Request containing the Name and Namespace specified in the
 // annotations of the object that is the source of the Event. The source of the event triggers reconciliation
-// of the parent resource which is identified by annotations. `NamespacedNameAnnotation` and
-// `TypeAnnotation` together uniquely identify an owner resource to reconcile.
+// of the parent resource which is identified by annotations. `NamespacedNameAnnotation` uniquely identify an owner resource to reconcile.
 //
 // handler.EnqueueRequestForAnnotation can be used to trigger reconciliation of resources which are
 // cross-referenced.  This allows a namespace-scoped dependent to trigger reconciliation of an owner
 // which is in a different namespace, and a cluster-scoped dependent can trigger the reconciliation
 // of a namespace(scoped)-owner.
 //
-// As an example, consider the case where we would like to watch clusterroles based on which we reconcile
-// namespace-scoped replicasets. With native owner references, this would not be possible since the
-// cluster-scoped dependent (clusterroles) is trying to specify a namespace-scoped owner (replicasets).
-// Whereas in case of annotations-based handlers, we could implement the following:
+// As an example, consider the case where we would like to watch virtualservices based on which we reconcile
+// Istio Workspace Sessions. We rely on using annotations as a way of tracking the resources that we manipulate
+// to avoid running into the built-in garbage collection included with OwnerRef. Using this approach we could implement the following:
 //
 //	if err := c.Watch(&source.Kind{
-//		// Watch clusterroles
-//		Type: &rbacv1.ClusterRole{}},
+//		// Watch VirtualService
+//		Type: &istio.VirtualService{}},
 //
 //		// Enqueue ReplicaSet reconcile requests using the namespacedName annotation value in the request.
-//		&handler.EnqueueRequestForAnnotation{schema.GroupKind{Group:"apps", Kind:"ReplicaSet"}}); err != nil {
+//		&handler.EnqueueRequestForAnnotation{schema.GroupKind{Group:"istio.io", Kind:"VirtualService"}}); err != nil {
 //			entryLog.Error(err, "unable to watch ClusterRole")
 //			os.Exit(1)
 //		}
 //	}
 //
-// With this watch, the ReplicaSet reconciler would receive a request to reconcile
-// "my-namespace/my-replicaset" based on a change to a ClusterRole that has the following annotations:
+// With this watch, the Istio Workspace controller would receive a request to reconcile
+// "namespace/session1,session2" based on a change to a VirtualService that has the following annotations:
 //
 //	annotations:
-//		operator-sdk/primary-resource:"my-namespace/my-replicaset"
+//		maistra.io/istio-workspaces: "namespace/session1,session2"
+//
+// Note: multiple sessions can manipulate the same resource, therefore the annonation is a list defined as comma-separated values.
 //
 // Though an annotation-based watch handler removes the boundaries set by native owner reference implementation,
 // the garbage collector still respects the scope restrictions. For example,
@@ -73,7 +73,7 @@ type EnqueueRequestForAnnotation struct {
 
 var _ crtHandler.EventHandler = &EnqueueRequestForAnnotation{}
 
-// Create implements EventHandler.
+// Create reacts to create event and schedules reconcile.
 func (e *EnqueueRequestForAnnotation) Create(evt event.CreateEvent, q workqueue.RateLimitingInterface) {
 	if ok, reqs := e.getAnnotationRequests(evt.Object); ok {
 		logChange("Reference Object created", evt.Object, reqs)
@@ -81,7 +81,7 @@ func (e *EnqueueRequestForAnnotation) Create(evt event.CreateEvent, q workqueue.
 	}
 }
 
-// Update implements EventHandler.
+// Update reacts to update event and schedules reconcile.
 func (e *EnqueueRequestForAnnotation) Update(evt event.UpdateEvent, q workqueue.RateLimitingInterface) {
 	if ok, reqs := e.getAnnotationRequests(evt.ObjectOld); ok {
 		logChange("Reference Object updated", evt.ObjectOld, reqs)
@@ -93,7 +93,7 @@ func (e *EnqueueRequestForAnnotation) Update(evt event.UpdateEvent, q workqueue.
 	}
 }
 
-// Delete implements EventHandler.
+// Delete reacts to delete event and schedules reconcile.
 func (e *EnqueueRequestForAnnotation) Delete(evt event.DeleteEvent, q workqueue.RateLimitingInterface) {
 	if ok, reqs := e.getAnnotationRequests(evt.Object); ok {
 		logChange("Reference Object deleted", evt.Object, reqs)
@@ -101,7 +101,7 @@ func (e *EnqueueRequestForAnnotation) Delete(evt event.DeleteEvent, q workqueue.
 	}
 }
 
-// Generic implements EventHandler.
+// Generic reacts to any other event (e.g. reconcile Autoscaling, or a Webhook) and schedules reconcile.
 func (e *EnqueueRequestForAnnotation) Generic(evt event.GenericEvent, q workqueue.RateLimitingInterface) {
 	if ok, reqs := e.getAnnotationRequests(evt.Object); ok {
 		logChange("Reference Object generic", evt.Object, reqs)
