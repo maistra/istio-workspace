@@ -81,7 +81,7 @@ var _ = Describe("Basic session manipulation", func() {
 				objects = []runtime.Object{}
 			})
 
-			It("no retry", func() {
+			It("should not retry", func() {
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -102,7 +102,7 @@ var _ = Describe("Basic session manipulation", func() {
 				}
 			})
 
-			It("finalizer added", func() {
+			It("should add finalizer", func() {
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -111,7 +111,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.ObjectMeta.Finalizers).To(HaveLen(1))
 			})
 
-			It("mutate when target is located", func() {
+			It("should mutate when target is located", func() {
 				locator.Action = foundTestLocator
 
 				res, err := controller.Reconcile(context.Background(), req)
@@ -121,7 +121,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 			})
-			It("revertors not called when mutation occure", func() {
+			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
 
@@ -133,7 +133,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(mutator.WasCalled).To(BeTrue())
 				Expect(revertor.WasCalled).ToNot(BeTrue())
 			})
-			It("status is updated when mutation occure", func() {
+			It("should update the status when mutation occurs", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
 
@@ -146,7 +146,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.Status.Refs).To(HaveLen(1))
 				Expect(modified.Status.Refs[0].Name).To(Equal("details"))
 			})
-			It("status is updated with route", func() {
+			It("should update status with the corresponding route", func() {
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -184,7 +184,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("revertors not called when mutation occure", func() {
+			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
 
@@ -196,7 +196,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(mutator.WasCalled).To(BeTrue())
 				Expect(revertor.WasCalled).ToNot(BeTrue())
 			})
-			It("existing status is updated when new mutation occure", func() {
+			It("should update existing status when new mutation occurs", func() {
 				locator.Action = foundTestLocator
 				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
 
@@ -234,7 +234,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("revertors called when ref removed", func() {
+			It("should call revertors when ref is removed", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
 				res, err := controller.Reconcile(context.Background(), req)
@@ -246,7 +246,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(revertor.WasCalled).To(BeTrue())
 			})
 
-			It("status removed when ref removed", func() {
+			It("should remove status when ref is removed", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
 				res, err := controller.Reconcile(context.Background(), req)
@@ -314,6 +314,7 @@ var _ = Describe("Basic session manipulation", func() {
 										Strategy: "prepared-image",
 										Args: map[string]string{
 											"image": "x",
+											"should-be-removed-on-update": "true",
 										}},
 									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
 									Targets: []*v1alpha1.LabeledRefResource{
@@ -331,7 +332,7 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("call revert when a status.ref.strategy differ from spec.ref.strategy", func() {
+			It("should call revert when a status.ref.strategy differs from spec.ref.strategy", func() {
 				locator.Action = foundTestLocator
 				revertor.Action = removeResourceStatus("test", "details")
 				res, err := controller.Reconcile(context.Background(), req)
@@ -346,8 +347,10 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Refs).To(HaveLen(3))
 			})
+
 			Context("ensure updated spec.ref is reflected in status.ref", func() {
-				It("when the strategy differ", func() {
+
+				It("should update the strategy", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
 					_, reconcileErr := controller.Reconcile(context.Background(), req)
@@ -359,7 +362,8 @@ var _ = Describe("Basic session manipulation", func() {
 					Expect(modified.Args).To(BeNil())
 					Expect(modified.Resources).To(HaveLen(0))
 				})
-				It("when the args differ", func() {
+
+				It("should replace the args when strategy changes", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
 					_, reconcileErr := controller.Reconcile(context.Background(), req)
@@ -371,7 +375,8 @@ var _ = Describe("Basic session manipulation", func() {
 					Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
 					Expect(modified.Resources).To(HaveLen(0))
 				})
-				It("when the same args differ", func() {
+
+				It("should update args for existing strategy", func() {
 					locator.Action = foundTestLocator
 					revertor.Action = removeResourceStatus("test", "details")
 					_, reconcileErr := controller.Reconcile(context.Background(), req)
@@ -380,12 +385,12 @@ var _ = Describe("Basic session manipulation", func() {
 					modified := GetStatusRef("locations", GetSession("test", "test-session"))
 					Expect(modified).ToNot(BeNil())
 					Expect(modified.Strategy).To(Equal("prepared-image"))
-					Expect(modified.Args).To(Equal(map[string]string{"image": "y"}))
-					Expect(modified.Resources).To(HaveLen(0))
+					Expect(modified.Args).To(Equal(map[string]string{"image": "y"})) // additionally we check if existing old arg has been removed
 				})
+
 			})
 			Context("ensure targets are reflected on update", func() {
-				It("when any change happen", func() {
+				It("should update on any change", func() {
 					locator.Action = foundTestLocatorTarget("test-a", "test-b")
 					revertor.Action = noOp
 					_, reconcileErr := controller.Reconcile(context.Background(), req)
@@ -422,7 +427,8 @@ var _ = Describe("Basic session manipulation", func() {
 				},
 			}
 		})
-		It("revertors call when session removed", func() {
+
+		It("should call revertors when session removed", func() {
 			locator.Action = foundTestLocator
 			revertor.Action = removeResourceStatus("test", "details")
 			res, err := controller.Reconcile(context.Background(), req)
@@ -433,7 +439,8 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(mutator.WasCalled).To(BeFalse())
 			Expect(revertor.WasCalled).To(BeTrue())
 		})
-		It("status removed when session removed", func() {
+
+		It("should remove status when session removed", func() {
 			locator.Action = foundTestLocator
 			revertor.Action = removeResourceStatus("test", "details")
 			res, err := controller.Reconcile(context.Background(), req)
@@ -444,7 +451,8 @@ var _ = Describe("Basic session manipulation", func() {
 			Expect(modified.Status).ToNot(BeNil())
 			Expect(modified.Status.Refs).To(HaveLen(0))
 		})
-		It("finalizer removed", func() {
+
+		It("should remove finalizer", func() {
 			res, err := controller.Reconcile(context.Background(), req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.Requeue).To(BeFalse())
