@@ -252,8 +252,8 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 	ctx.Log.Info("Remove ref", "name", ref.Name)
 
 	ConvertAPIStatusToModelRef(*session, ref)
-	for _, revertor := range r.manipulators.Handlers {
-		err := revertor.Revert()(ctx, ref)
+	for _, handler := range r.manipulators.Handlers {
+		err := handler.Revert()(ctx, ref)
 		if err != nil {
 			ctx.Log.Error(err, "Revert", "name", ref.Name)
 		}
@@ -291,8 +291,8 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 		}
 	}
 	if located {
-		for _, mutator := range r.manipulators.Handlers {
-			err := mutator.Mutate()(ctx, ref)
+		for _, handler := range r.manipulators.Handlers {
+			err := handler.Mutate()(ctx, ref)
 			if err != nil {
 				ctx.Log.Error(err, "Mutate", "name", ref.Name)
 			}
