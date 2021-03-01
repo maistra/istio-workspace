@@ -97,10 +97,11 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	for _, object := range r.WatchTypes() {
-		if _, err := mgr.GetCache().GetInformer(context.Background(), object); meta.IsNoMatchError(err) {
+		if _, err := mgr.GetCache().GetInformer(context.Background(), object); err != nil {
+			if !meta.IsNoMatchError(err) {
+				logger().Error(err, "error checking for type Kind availability")
+			}
 			continue
-		} else if err != nil {
-			logger().Error(err, "error checking for type Kind availability")
 		}
 
 		// Watch for changes to secondary resources
