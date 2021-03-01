@@ -238,14 +238,14 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
 				// when we start ike to create
-				ike1 := RunIke(tmpDir, "create",
+				ikeCreate := RunIke(tmpDir, "create",
 					"--deployment", "ratings-v1",
 					"-n", namespace,
 					"--route", "header:x-test-suite=smoke",
 					"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
 					"--session", sessionName,
 				)
-				Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
+				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
 
 				// ensure the new service is running
 				EnsureAllDeploymentPodsAreReady(namespace)
