@@ -97,7 +97,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	for _, object := range r.WatchTypes() {
-		if _, err := mgr.GetCache().GetInformer(context.Background(), object); err != nil {
+		if _, err = mgr.GetCache().GetInformer(context.Background(), object); err != nil {
 			if !meta.IsNoMatchError(err) {
 				logger().Error(err, "error checking for type Kind availability")
 			}
