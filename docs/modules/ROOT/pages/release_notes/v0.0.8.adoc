@@ -1,0 +1,12 @@
+== Highlights of v0.0.8 release
+
+=== Watch dependent resources for change
+
+The operator will now watch all the dependent resources (`DestinationRule`, `Gateway`, `VirtualService`, `Deployment`)
+and reconcile the `Session` on any change.
+
+This means that even if a third-party tool reconfigures the current state, overwrites it, or pushes new releases, the operator will ensure that the special route is still operational.
+
+== All changes in this release
+
+// changelog:generate
