@@ -5,7 +5,10 @@ import (
 
 	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	appsv1 "github.com/openshift/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,6 +27,26 @@ const (
 
 var _ model.Locator = DeploymentConfigLocator
 var _ model.Revertor = DeploymentConfigRevertor
+var _ model.Manipulator = deploymentConfigManipulator{}
+
+// DeploymentConfigManipulator represents a model.Manipulator implementation for handling DeploymentConfig objects.
+func DeploymentConfigManipulator(engine template.Engine) model.Manipulator {
+	return deploymentConfigManipulator{engine: engine}
+}
+
+type deploymentConfigManipulator struct {
+	engine template.Engine
+}
+
+func (d deploymentConfigManipulator) TargetResourceType() client.Object {
+	return &appsv1.DeploymentConfig{}
+}
+func (d deploymentConfigManipulator) Mutate() model.Mutator {
+	return DeploymentConfigMutator(d.engine)
+}
+func (d deploymentConfigManipulator) Revert() model.Revertor {
+	return DeploymentConfigRevertor
+}
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
@@ -42,9 +65,6 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 // DeploymentConfigMutator attempts to clone the located DeploymentConfig.
 func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 	return func(ctx model.SessionContext, ref *model.Ref) error {
-		if len(ref.GetResources(model.Kind(DeploymentConfigKind))) > 0 {
-			return nil
-		}
 		targets := ref.GetTargets(model.Kind(DeploymentConfigKind))
 		if len(targets) == 0 {
 			return nil
@@ -69,6 +89,13 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
 			return err
 		}
+		if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
+		}
+		if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
+			return nil
+		}
+
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
