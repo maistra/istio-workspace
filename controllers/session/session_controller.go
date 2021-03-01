@@ -18,6 +18,7 @@ import (
 	"github.com/go-logr/logr"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -96,11 +97,12 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	for _, object := range r.WatchTypes() {
-		_, err := mgr.GetRESTMapper().RESTMapping(schema.GroupKind{Group: "apps.openshift.io/v1", Kind: "DeploymentConfig"})
-		if err != nil {
-			logger().Error(err, "error checking for type DeploymentConfig")
+		if _, err := mgr.GetCache().GetInformer(context.Background(), object); meta.IsNoMatchError(err) {
 			continue
+		} else {
+			logger().Error(err, "error checking for type DeploymentConfig")
 		}
+
 		// Watch for changes to secondary resources
 		err = c.Watch(&source.Kind{Type: object}, &reference.EnqueueRequestForAnnotation{
 			Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
