@@ -363,6 +363,8 @@ docker-push-test-prepared:
 ###########################################################################
 
 BUNDLE_IMG?=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
+DESC_FILE:=dist/operatorhub_description.md
+CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
 bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate bundle manifests and metadata, then validate generated files
@@ -371,8 +373,12 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
 	mv bundle.Dockerfile build
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Dockerfile
-	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
-	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
+	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
+	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
+	cat $(PROJECT_DIR)/README.md | awk '/tag::description/{flag=1;next}/end::description/{flag=0}flag' > $(PROJECT_DIR)/$(DESC_FILE)
+	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
+	sed -i -e '/insert::description-from-readme/{r $(PROJECT_DIR)/$(DESC_FILE)' -e 'd}' $(PROJECT_DIR)/$(CSV_FILE)
+	rm $(DESC_FILE)
 
 	operator-sdk bundle validate ./bundle
 

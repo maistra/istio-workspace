@@ -58,7 +58,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			Context("http protocol", func() {
 
 				BeforeEach(func() {
-					scenario = "scenario-1"
+					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
 					registry = GetDockerRegistryInternal()
 				})
 
@@ -227,6 +227,60 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 		})
 
+		Context("reconcile on change to related resources", func() {
+
+			BeforeEach(func() {
+				scenario = "scenario-1"
+			})
+
+			It("should watch for changes in ratings service and serve it", func() {
+				EnsureAllDeploymentPodsAreReady(namespace)
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+				// when we start ike to create
+				ikeCreate := RunIke(tmpDir, "create",
+					"--deployment", "ratings-v1",
+					"-n", namespace,
+					"--route", "header:x-test-suite=smoke",
+					"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
+					"--session", sessionName,
+				)
+				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
+
+				// ensure the new service is running
+				EnsureAllDeploymentPodsAreReady(namespace)
+
+				// check original response
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
+
+				// but also check if prod is intact
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+
+				// then reset scenario
+				DeployTestScenario(scenario, namespace)
+
+				// check original response is still intact
+				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
+
+				// but also check if prod is intact
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+
+				// when we start ike to delete
+				ikeDel := RunIke(tmpDir, "delete",
+					"--deployment", "ratings-v1",
+					"-n", namespace,
+					"--session", sessionName,
+				)
+				Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
+
+				// check original response
+				EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+				// but also check if prod is intact
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+			})
+
+		})
 	})
 })
 

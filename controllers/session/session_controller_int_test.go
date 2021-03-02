@@ -43,6 +43,7 @@ var _ = Describe("Complete session manipulation", func() {
 		scenario   func(io.Writer)
 		get        *testclient.Getters
 	)
+
 	JustBeforeEach(func() {
 		log.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
 
@@ -101,7 +102,8 @@ var _ = Describe("Complete session manipulation", func() {
 		})
 
 		Context("when a ref is updated", func() {
-			It("it should update the image", func() {
+
+			It("should update the image", func() {
 				req := reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "test-session1",
@@ -131,7 +133,8 @@ var _ = Describe("Complete session manipulation", func() {
 		})
 
 		Context("when there are multiple sessions", func() {
-			It("shared resources should still be in sync on delete", func() {
+
+			It("should sync resources on delete", func() {
 				req1 := reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "test-session1",
@@ -185,7 +188,7 @@ var _ = Describe("Complete session manipulation", func() {
 		})
 
 		Context("when there are multiple refs in a session", func() {
-			It("shared resources should be in sync on delete", func() {
+			It("should sync shared resources on delete", func() {
 				req1 := reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "test-session1",
@@ -325,7 +328,7 @@ var _ = Describe("Complete session manipulation", func() {
 			test.CleanUpTmpFiles(GinkgoT())
 		})
 
-		It("ensure template was called", func() {
+		It("should ensure template was called", func() {
 			req1 := reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      "test-session1",
