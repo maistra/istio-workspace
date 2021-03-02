@@ -1,0 +1,3 @@
+= Istio Workspace Create task
+
+include::cmd:yq[flags="e '.spec.params' -P -j -I4 ike-create.yaml | jq -r '. | map("* **\(.name)**: \(.description).") | .[]'"]
