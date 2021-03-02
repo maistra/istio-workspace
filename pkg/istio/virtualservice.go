@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -27,38 +28,62 @@ const (
 
 var _ model.Mutator = VirtualServiceMutator
 var _ model.Revertor = VirtualServiceRevertor
+var _ model.Manipulator = virtualServiceManipulator{}
+
+// VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects.
+func VirtualServiceManipulator() model.Manipulator {
+	return virtualServiceManipulator{}
+}
+
+type virtualServiceManipulator struct {
+}
+
+func (d virtualServiceManipulator) TargetResourceType() client.Object {
+	return &istionetwork.VirtualService{}
+}
+func (d virtualServiceManipulator) Mutate() model.Mutator {
+	return VirtualServiceMutator
+}
+func (d virtualServiceManipulator) Revert() model.Revertor {
+	return VirtualServiceRevertor
+}
 
 // VirtualServiceMutator attempts to create a virtual service for forked service.
-func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
+func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint:gocyclo //reason it is what it is :D
 	targetVersion := ref.GetVersion()
 
+	vss, err := getVirtualServices(ctx, ctx.Namespace)
+	if err != nil {
+		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: ctx.Namespace, Action: model.ActionFailed})
+		return err
+	}
+
 	for _, hostName := range ref.GetTargetHostNames() {
-		vss, err := getVirtualServices(ctx, ctx.Namespace)
-		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: hostName.Name, Action: model.ActionFailed})
-			return err
-		}
 		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			_, connected := connectedToGateway(vs)
-			if (!mutationRequired(vs, hostName, targetVersion) && !connected) || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
+			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) ||
+				(!mutationRequired(vs, hostName, targetVersion) && !connected) ||
+				vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 				continue
 			}
+
 			ctx.Log.Info("Found VirtualService", "name", vs.Name)
-			mutatedVs, created, err := mutateVirtualService(ctx, ref, hostName, vs)
+
+			mutatedVs, isNew, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
 				return err
 			}
 
-			if created {
+			if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+			}
+			if isNew {
 				err = ctx.Client.Create(ctx, &mutatedVs)
-				if err != nil {
-					if !errors.IsAlreadyExists(err) {
-						ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
-						return err
-					}
+				if err != nil && !errors.IsAlreadyExists(err) {
+					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
+					return err
 				}
-
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionCreated})
 			} else {
 				err = ctx.Client.Update(ctx, &mutatedVs)
@@ -66,7 +91,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error {
 					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
 					return err
 				}
-
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionModified})
 			}
 		}
@@ -93,6 +117,9 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		switch resource.Action { //nolint:exhaustive //reason only these cases are relevant
 		case model.ActionModified:
 			mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
+			if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+			}
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
 				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
@@ -131,15 +158,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 
 		targetsHTTP := findRoutes(clonedSource, hostName, version)
 		for _, tHTTP := range targetsHTTP {
-			targetHTTP := *tHTTP
-			targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
-			targetHTTP = updateSubset(targetHTTP, newVersion)
-			targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
-			targetHTTP = removeWeight(targetHTTP)
-			targetHTTP.Mirror = nil
-			targetHTTP.Redirect = nil
-
-			target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
+			simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
 		}
 		for i := 0; i < len(target.Spec.Http); i++ {
 			targetHTTP := addHeaderRequest(*target.Spec.Http[i], ctx.Route)
@@ -153,17 +172,20 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 		return istionetwork.VirtualService{}, false, fmt.Errorf("route not found")
 	}
 	for _, tHTTP := range targetsHTTP {
-		targetHTTP := *tHTTP
-		targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
-		targetHTTP = updateSubset(targetHTTP, newVersion)
-		targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
-		targetHTTP = removeWeight(targetHTTP)
-		targetHTTP.Mirror = nil
-		targetHTTP.Redirect = nil
-
-		target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
+		simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
 	}
 	return *target, false, nil
+}
+
+func simplifyTargetRoute(ctx model.SessionContext, targetHTTP v1alpha3.HTTPRoute, hostName model.HostName, version, newVersion string, target *istionetwork.VirtualService) {
+	targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
+	targetHTTP = updateSubset(targetHTTP, newVersion)
+	targetHTTP = addHeaderMatch(targetHTTP, ctx.Route)
+	targetHTTP = removeWeight(targetHTTP)
+	targetHTTP.Mirror = nil
+	targetHTTP.Redirect = nil
+
+	target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
 }
 
 func revertVirtualService(subsetName string, vs istionetwork.VirtualService) istionetwork.VirtualService {
@@ -205,6 +227,17 @@ func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName,
 	return false
 }
 
+func vsAlreadyMutated(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {
+	for _, http := range vs.Spec.Http {
+		for _, route := range http.Route {
+			if route.Destination != nil && targetHost.Match(route.Destination.Host) && route.Destination.Subset == targetVersion {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func connectedToGateway(vs istionetwork.VirtualService) ([]string, bool) {
 	return vs.Spec.Gateways, len(vs.Spec.Gateways) > 0
 }
@@ -213,10 +246,8 @@ func findRoutes(vs *istionetwork.VirtualService, host model.HostName, subset str
 	var routes []*v1alpha3.HTTPRoute
 	for _, h := range vs.Spec.Http {
 		for _, r := range h.Route {
-			if r.Destination != nil && host.Match(r.Destination.Host) {
-				if r.Destination.Subset == "" || r.Destination.Subset == subset {
-					routes = append(routes, h)
-				}
+			if r.Destination != nil && host.Match(r.Destination.Host) && (r.Destination.Subset == "" || r.Destination.Subset == subset) {
+				routes = append(routes, h)
 			}
 		}
 	}
