@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ike-delete
+spec:
+  params:
+    - name: namespace
+      type: string
+      description: Which namespace to target
+      default: $(context.taskRun.namespace)
+    - name: target
+      type: string
+      description: What deployment to target
+    - name: session
+      type: string
+      description: What to call the session
+  steps:
+    - name: ike
+      image: quay.io/maistra/istio-workspace:ci-demo
+      script: |
+        ike delete --session $(params.session) --deployment $(params.target) --namespace $(params.namespace)
