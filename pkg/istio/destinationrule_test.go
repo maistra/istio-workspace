@@ -5,6 +5,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 
 	. "github.com/onsi/ginkgo"
@@ -107,6 +108,14 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				}
 			})
 
+			It("should add reference", func() {
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRule("test", "customer-mutate")
+				Expect(reference.Get(&dr)).To(HaveLen(1))
+			})
+
 			It("new subset added", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
@@ -155,6 +164,14 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		})
 
 		Context("existing rule", func() {
+
+			It("should remove reference", func() {
+				err := istio.DestinationRuleRevertor(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRule("test", "customer-revert")
+				Expect(reference.Get(&dr)).To(BeEmpty())
+			})
 
 			It("new subset removed", func() {
 				err := istio.DestinationRuleRevertor(ctx, ref)
