@@ -10,3 +10,30 @@ This means that even if a third-party tool reconfigures the current state, overw
 == All changes in this release
 
 // changelog:generate
+=== Command line
+
+
+==== Bugs
+* fix(cli): guard against possible nil Route (https://github.com/maistra/istio-workspace/pull/717[#717]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+=== Documentation
+
+==== New features
+* feat: automates sourcing CSV description from README (https://github.com/maistra/istio-workspace/pull/718[#718]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+=== Operator
+
+==== New features
+* feat(operator): watch manipulated resources for reconcile on change (https://github.com/maistra/istio-workspace/pull/719[#719]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Bugs
+* fix(operator): move to use leader election by lease (https://github.com/maistra/istio-workspace/pull/715[#715]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+== Latest dependencies update
+
+ * k8s.io/apimachinery to 0.20.4 (https://github.com/maistra/istio-workspace/pull/710[#710]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/client-go to 0.20.4 (https://github.com/maistra/istio-workspace/pull/713[#713]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/code-generator to 0.20.4 (https://github.com/maistra/istio-workspace/pull/709[#709]), by https://github.com/dependabot[@dependabot]
+ * sigs.k8s.io/controller-tools to 0.5.0 (https://github.com/maistra/istio-workspace/pull/708[#708]), by https://github.com/dependabot[@dependabot]
+
