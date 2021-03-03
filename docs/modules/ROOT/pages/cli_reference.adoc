@@ -48,7 +48,7 @@ Below you can find a documented list of all commands and their available flags.
 
 Main command, which holds global flags and prints the overall usage of the tool.
 
-include::cmd:ike[flags='--help --help-format=adoc']
+include::cmd:ike[args='--help --help-format=adoc']
 
 [#ike-serve]
 === `ike serve`
@@ -57,7 +57,7 @@ Starts the controller in the cluster.
 
 // TODO briefly mention operator and how it works + link to the dedicated docs
 
-include::cmd:ike[flags='serve --help --help-format=adoc']
+include::cmd:ike[args='serve --help --help-format=adoc']
 
 [#ike-create]
 === `ike create`
@@ -68,7 +68,7 @@ The `create` command requires an image-reference to a repository which is reacha
 
 IMPORTANT: The `create` command will exit and leave the `Session` alive in the cluster as soon as it's created.
 
-include::cmd:ike[flags='create --help --help-format=adoc']
+include::cmd:ike[args='create --help --help-format=adoc']
 
 
 [#ike-delete]
@@ -76,14 +76,14 @@ include::cmd:ike[flags='create --help --help-format=adoc']
 
 Deletes or leaves existing development session in the cluster.
 
-include::cmd:ike[flags='delete --help --help-format=adoc']
+include::cmd:ike[args='delete --help --help-format=adoc']
 
 [#ike-develop]
 === `ike develop`
 
 Creates or joins existing development session in the cluster. Allows to re-route cluster network traffic to your local process.
 
-include::cmd:ike[flags='develop --help --help-format=adoc']
+include::cmd:ike[args='develop --help --help-format=adoc']
 
 ==== Watching for changes
 
@@ -106,6 +106,6 @@ those won't be respected.
 === `ike version`
 
 Prints version of the binary and build metadata.
-include::cmd:ike[flags='version',block=true,print=true]
+include::cmd:ike[args='version',block=true,print=true]
 
-include::cmd:ike[flags='version --help --help-format=adoc']
+include::cmd:ike[args='version --help --help-format=adoc']

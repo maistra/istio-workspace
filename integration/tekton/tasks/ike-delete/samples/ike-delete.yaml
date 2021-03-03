@@ -1,11 +1,11 @@
 name: remove-customer
-  taskRef:
-    name: ike-delete
-    kind: Task
-  params:
-    - name: session
-      value: $(params.git-pr-head-ref)
-    - name: target
-      value: customer-v1
-    - name: namespace
-      value: workspace-demo
+taskRef:
+  name: ike-delete
+  kind: Task
+params:
+  - name: session
+    value: $(params.git-pr-head-ref)
+  - name: target
+    value: customer-v1
+  - name: namespace
+    value: workspace-demo

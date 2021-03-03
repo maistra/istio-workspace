@@ -9,3 +9,9 @@
 * xref:dev_guide.adoc[Development Guide]
 
 * xref:release_notes.adoc[Releases]
+
+* xref:integration/tekton/ike-create.adoc[ike-create]
+
+* xref:integration/tekton/ike-delete.adoc[ike-delete]
+
+* xref:integration/tekton/ike-session-url.adoc[ike-session-url]
