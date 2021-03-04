@@ -206,7 +206,7 @@ tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq $(PROJECT_DIR)/bin
 
 $(PROJECT_DIR)/bin/yq:
 	$(call header,"Installing")
-	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v3
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v4
 
 $(PROJECT_DIR)/bin/protoc-gen-go:
 	$(call header,"Installing")
