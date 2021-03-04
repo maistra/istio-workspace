@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ike-session-url
+spec:
+  params:
+    - name: namespace
+      type: string
+      description: Which namespace to target
+      default: $(context.taskRun.namespace)
+    - name: session
+      type: string
+      description: What to call the session
+  results:
+    - name: url
+      description: The URL of the new route
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:4.6
+      script: |
+        STATE=`oc get session $(params.session) --namespace $(params.namespace) -o json`
+        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | uniq > /tekton/results/url
