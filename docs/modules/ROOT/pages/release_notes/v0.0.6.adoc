@@ -11,39 +11,39 @@ In this release we've been so lucky to get a little help from our new friend htt
 
 Thank you! :)
 
-== All changes in this release
+=== All changes in this release
 
 // changelog:generate
-=== Command line
+==== Command line
 
-==== New features
+===== New features
 * feat(cli): print usage hint including exposed hosts (https://github.com/maistra/istio-workspace/pull/692[#692]), by https://github.com/aslakknutsen[@aslakknutsen]
 * fix(cli): add k8s auth package (https://github.com/maistra/istio-workspace/pull/682[#682]), by https://github.com/Humpheh[@Humpheh]
 
 
-=== Operator
+==== Operator
 
-==== New features
+===== New features
 * feat(operator): support MultiNamespace install mode (https://github.com/maistra/istio-workspace/pull/680[#680]), by https://github.com/aslakknutsen[@aslakknutsen]
 
 
-=== Project infrastructure
+==== Project infrastructure
 
-==== New features
+===== New features
 * feat(gh-actions): enables /help cmd for releases (https://github.com/maistra/istio-workspace/pull/690[#690]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 * feat(operator): automates operator bundle submission (https://github.com/maistra/istio-workspace/pull/685[#685]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-==== Bugs
+===== Bugs
 * fix(release): enables operatorhub signed commits (https://github.com/maistra/istio-workspace/pull/689[#689]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 * fix(circle): uses custom gpg program to sign commits (https://github.com/maistra/istio-workspace/pull/687[#687]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
-=== Testing
+==== Testing
 
-==== New features
+===== New features
 * chore: sets err buffer to be captured for tests (https://github.com/maistra/istio-workspace/pull/693[#693]), by https://github.com/bartoszmajsak[@bartoszmajsak]
 
 
-== Latest dependencies update
+=== Latest dependencies update
 
  * github.com/onsi/ginkgo to 1.15.0 (https://github.com/maistra/istio-workspace/pull/669[#669]), by https://github.com/dependabot[@dependabot]
  * github.com/onsi/gomega to 1.10.5 (https://github.com/maistra/istio-workspace/pull/668[#668]), by https://github.com/dependabot[@dependabot]
