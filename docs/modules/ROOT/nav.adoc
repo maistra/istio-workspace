@@ -10,8 +10,5 @@
 
 * xref:release_notes.adoc[Releases]
 
-* xref:integration/tekton/ike-create.adoc[ike-create]
+* xref:integration/tekton/README.adoc[Tekton Integration]
 
-* xref:integration/tekton/ike-delete.adoc[ike-delete]
-
-* xref:integration/tekton/ike-session-url.adoc[ike-session-url]

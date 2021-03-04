@@ -1,0 +1,9 @@
+= Istio Workspace Tekton Integration
+
+What is it
+
+== Tasks
+
+include::tasks/ike-create.adoc[leveloffset=2]
+include::tasks/ike-delete.adoc[leveloffset=2]
+include::tasks/ike-session-url.adoc[leveloffset=2]
