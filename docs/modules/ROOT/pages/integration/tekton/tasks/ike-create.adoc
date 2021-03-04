@@ -7,7 +7,7 @@ Link to docs?
 
 === Parameters
 
-include::cmd:yq[args="e '.spec.params' -P -j -I4 ike-create.yaml | jq -r '. | map(\"* `\(.name)`: \(.description).\") | .[]' || echo -e '[NOTE]\nThe task does not define any results to be consumed further in the pipeline.'", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-create"]
+include::cmd:yq[args="e '.spec.params' -P -j -I4 ike-create.yaml | jq -r '. | map(if .default then \"* `\(.name)`(\(.type)): \(.description).\n** default value: \(.default)\" else \"* `\(.name)`(\(.type)): \(.description).\"  end) | .[]' || echo -e '[NOTE]\nThe task does not define any results to be consumed further in the pipeline.' ", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-create"]
 
 
 === Results
