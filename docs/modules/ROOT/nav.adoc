@@ -10,5 +10,6 @@
 
 * xref:release_notes.adoc[Releases]
 
-* xref:integration/tekton/README.adoc[Tekton Integration]
+.Integrations
+* xref:integration/tekton/README.adoc[Tekton/Openshift Pipelines]
 
