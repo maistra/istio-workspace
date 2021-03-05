@@ -25,7 +25,7 @@ spec:
       description: The URL of the new route
   steps:
     - name: ike
-      image: quay.io/maistra/istio-workspace:ci-demo
+      image: released-image
       script: |
         STATE=`ike create --session $(params.session) --route $(params.route) --deployment $(params.target) --namespace $(params.namespace) --image $(params.image) --json`
         echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 > /tekton/results/url
