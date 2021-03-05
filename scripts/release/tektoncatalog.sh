@@ -70,7 +70,8 @@ OPERATOR_HUB=${OPERATOR_HUB:-task}
 
 BRANCH=${BRANCH:-"${OPERATOR_HUB}/istio-workspace-${OPERATOR_VERSION}"}
 TITLE="Add istio-workspace release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
-COMMIT_MESSAGE="${TITLE}"
+COMMIT_MESSAGE="${TITLE}
+"
 
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$( git rev-parse --show-toplevel )"
@@ -106,6 +107,11 @@ do
 
   sed -i "s/released-image/${IKE_DOCKER_REGISTRY}\/${IKE_DOCKER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}/g" "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/${OPERATOR_NAME}.yaml
 done
+
+COMMIT_MESSAGE="${COMMIT_MESSAGE}
+
+$(cd ${ROOT_DIR}; git log --pretty=format:%s `git tag --sort=-committerdate | head -1`...`git tag --sort=-committerdate | head -2 | awk '{split($0, tags, "\n")} END {print tags[1]}'` integration/tekton | grep -v "release:")
+"
 
 git add .
 git commit -s -S -m"${COMMIT_MESSAGE}"
