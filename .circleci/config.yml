@@ -9,7 +9,7 @@ defaults:
   docker:
     - image: &golang-img cimg/go:1.15.7
   machine-conf: &machine-conf
-    image: ubuntu-1604:201903-01
+    image: ubuntu-2004:202101-01
   skip-e2e-check: &skip-e2e-check
     name: "Check for /skip-e2e directive"
     command: |
