@@ -248,9 +248,9 @@ jobs:
             sudo chown $(whoami) "${GPG_PROGRAM}"
 
             chmod +x "${GPG_PROGRAM}"
-            echo '/usr/bin/gpg --passphrase "${PGP_PASSPHRASE}" --batch --no-tty "$@"' > "${GPG_PROGRAM}"
+            echo '/usr/bin/gpg --passphrase "${PGP_PASSPHRASE}"  --pinentry-mode loopback --batch --no-tty "$@"' > "${GPG_PROGRAM}"
 
-            echo -e $PGP_KEY | gpg --import --pinentry-mode loopback
+            echo -e $PGP_KEY | gpg --import --pinentry-mode loopback --batch --no-tty
             git config --global user.signingkey "${PGP_KEYID}"
             git config --global gpg.program "${GPG_PROGRAM}"
       - run:
