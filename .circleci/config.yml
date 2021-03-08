@@ -212,13 +212,20 @@ jobs:
     steps:
       - checkout
       - run:
+          <<: *golang-install
+      - run:
+          name: "Install Node"
+          command: |
+            sudo circleci-install nodejs 10
+      - run:
           name: "Installs release tools prerequisites"
           command: |
+            export PANDOC_VERSION=2.9
+            npm i -g asciidoctor @asciidoctor/core @asciidoctor/docbook-converter
             cd ~
-            gem install asciidoctor
-            wget "https://github.com/jgm/pandoc/releases/download/2.9/pandoc-2.9-linux-amd64.tar.gz" -O "pandoc.tar.gz"
+            wget "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-linux-amd64.tar.gz" -O "pandoc.tar.gz"
             tar xzfv pandoc.tar.gz
-            sudo mv $PWD/pandoc-2.9/bin/pandoc /usr/local/bin/
+            sudo mv $PWD/pandoc-${PANDOC_VERSION}/bin/pandoc /usr/local/bin/
       - run:
           <<: *golang-install
       - run:
