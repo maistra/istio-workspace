@@ -108,7 +108,7 @@ jobs:
           name: "Install telepresence"
           command: |
             cd ~
-            pyenv global 3.5.2
+            pyenv global 3.9.1
             curl -s https://packagecloud.io/install/repositories/datawireio/telepresence/script.deb.sh | sudo bash
             sudo apt install --no-install-recommends telepresence
             telepresence --version
