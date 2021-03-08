@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ike-create
+spec:
+  params:
+    - name: namespace
+      type: string
+      description: Which namespace to target
+      default: $(context.taskRun.namespace)
+    - name: target
+      type: string
+      description: What deployment to target
+    - name: session
+      type: string
+      description: What to call the session
+    - name: route
+      type: string
+      description: How to route
+    - name: image
+      type: string
+      description: The image to use for the route
+  results:
+    - name: url
+      description: The URL of the new route
+  steps:
+    - name: ike
+      image: quay.io/maistra/istio-workspace:ci-demo
+      script: |
+        STATE=`ike create --session $(params.session) --route $(params.route) --deployment $(params.target) --namespace $(params.namespace) --image $(params.image) --json`
+        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 > /tekton/results/url

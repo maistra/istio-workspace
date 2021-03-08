@@ -9,3 +9,7 @@
 * xref:dev_guide.adoc[Development Guide]
 
 * xref:release_notes.adoc[Releases]
+
+.Integrations
+* xref:integration/tekton/overview.adoc[Tekton/Openshift Pipelines]
+

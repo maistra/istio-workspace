@@ -9,7 +9,6 @@ require (
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
-	github.com/goccy/go-yaml v1.8.4 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/google/go-github/v32 v32.1.0
@@ -18,7 +17,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mikefarah/yq/v3 v3.0.0-20201020025845-ccb718cd0f59
+	github.com/mikefarah/yq/v4 v4.6.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
@@ -44,8 +43,8 @@ require (
 	gopkg.in/h2non/gock.v1 v1.0.16
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
-	istio.io/api v0.0.0-20210204223132-d90b2f705958
-	istio.io/client-go v1.9.0
+	istio.io/api v0.0.0-20210218044411-561dc276d04d
+	istio.io/client-go v1.9.1
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4

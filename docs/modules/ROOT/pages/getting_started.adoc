@@ -17,7 +17,7 @@ TIP: You can also specify the version and directory before downloading `curl -sL
 
 Here are all available flags of this installation script
 
-include::cmd:curl[flags='-sL http://git.io/get-ike | bash -s -- --help',block=true]
+include::cmd:curl[args='-sL http://git.io/get-ike | bash -s -- --help',block=true]
 
 == Installing cluster component
 

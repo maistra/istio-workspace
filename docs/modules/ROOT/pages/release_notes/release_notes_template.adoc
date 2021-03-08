@@ -6,6 +6,6 @@ Summary - focus of the release
 
 Why is that cool and important?
 
-== All changes in this release
+=== All changes in this release
 
 // changelog:generate
