@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/joho/godotenv v1.3.0
-	github.com/kisielk/errcheck v1.5.0
+	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mikefarah/yq/v4 v4.6.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
