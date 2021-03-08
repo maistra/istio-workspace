@@ -183,7 +183,7 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 ###########################################################################
-##@ Setup
+## Setup
 ###########################################################################
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
@@ -421,7 +421,7 @@ bundle-publish:	## Open up a PR to the Operator Hub community catalog
 	./scripts/release/operatorhub.sh
 
 # ##########################################################################
-## Tekton tasks
+##@ Tekton tasks
 # ##########################################################################
 
 .PHONY: tekton-publish
