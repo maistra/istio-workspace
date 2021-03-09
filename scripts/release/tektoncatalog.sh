@@ -67,7 +67,6 @@ PROJECT_DIR="$(git rev-parse --show-toplevel)"
 TASKS_DIR="${PROJECT_DIR}"/integration/tekton/tasks/
 TMP_DIR=$(mktemp -d -t "tekton-${TEKTON_HUB_PATH}.XXXXXXXXXX")
 
-# trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
 
 source "${CUR_DIR}"/validate_semver.sh
 
