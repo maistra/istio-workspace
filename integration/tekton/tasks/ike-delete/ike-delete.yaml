@@ -16,6 +16,6 @@ spec:
       description: What to call the session
   steps:
     - name: ike
-      image: quay.io/maistra/istio-workspace:ci-demo
+      image: released-image
       script: |
         ike delete --session $(params.session) --deployment $(params.target) --namespace $(params.namespace)

@@ -257,31 +257,51 @@ jobs:
             git config --global gpg.program "${GPG_PROGRAM}"
       - run:
           <<: *obtain-tree-hash
-          when: always
       - restore_cache:
           <<: *restore-tree-hash
       - run:
-          name: "Push it!"
+          name: "Release images!"
           command: |
             make deps tools docker-build docker-push-versioned bundle bundle-build bundle-push
       - run:
           name: "Release client!"
           command: |
-            nvm use 10
-            asciidoctor --require @asciidoctor/docbook-converter -a leveloffset=+1 --backend docbook  -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc |  pandoc --wrap=preserve --from docbook --to gfm - 1> converted-release-notes.md
-            curl -sL https://git.io/goreleaser | bash -s -- release ${GORELEASER_OPTS} --rm-dist --release-notes=converted-release-notes.md
+            if [[ -f ${BUILD_CACHE_FOLDER}/release-client.githash ]]; then
+              echo "This exact code base has been successfully pushed"
+            else
+              echo "New build - if succeeds subsequent run will be skipped."
+
+              nvm use 10
+              asciidoctor --require @asciidoctor/docbook-converter -a leveloffset=+1 --backend docbook  -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc |  pandoc --wrap=preserve --from docbook --to gfm - 1> converted-release-notes.md
+              curl -sL https://git.io/goreleaser | bash -s -- release ${GORELEASER_OPTS} --rm-dist --release-notes=converted-release-notes.md
+
+              echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/release-client.githash
+            fi
       - run:
           name: "Publish Operator Hub Catalog!"
           command: |
             if [[ -f ${BUILD_CACHE_FOLDER}/operatorhub.githash ]]; then
               echo "This exact code base has been successfully pushed"
             else
-              echo "New build - if succeeds build git hash will be cached"
+              echo "New build - if succeeds subsequent run will be skipped."
 
               OPERATOR_HUB="upstream-community-operators" make bundle-publish
               OPERATOR_HUB="community-operators" make bundle-publish
 
               echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/operatorhub.githash
+            fi
+      - run:
+          name: "Publish Tekton Hub Catalog!"
+          command: |
+            if [[ -f ${BUILD_CACHE_FOLDER}/tektonhub.githash ]]; then
+              echo "This exact code base has been successfully pushed"
+            else
+              echo "New build - if succeeds subsequent run will be skipped."
+
+              nvm use 10
+              make tekton-publish
+
+              echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/tektonhub.githash
             fi
       - save_cache:
           <<: *save-tree-hash
