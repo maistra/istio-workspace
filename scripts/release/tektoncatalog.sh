@@ -60,7 +60,7 @@ FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/$
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5} # should be provided by Makefile target
 TEKTON_HUB_PATH=${TEKTON_HUB_PATH:-task}
 
-TITLE="Add istio-workspace release ${OPERATOR_VERSION} to ${TEKTON_HUB_PATH}"
+TITLE="Add istio-workspace ${OPERATOR_VERSION} tasks"
 
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
