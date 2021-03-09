@@ -2,7 +2,16 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: ike-delete
+  labels:
+    app.kubernetes.io/version: current-version
+  annotations:
+    tekton.dev/displayName: Ike Delete
+    tekton.dev/tags: istio, telepresence
+    tekton.dev/pipelines.minVersion: 0.21.0
 spec:
+  description: >-
+    `ike-delete` removes a `ref` from a `session` object. If this is
+    the last `ref` on the `session` the `session` will be deleted.
   params:
     - name: namespace
       type: string
@@ -16,6 +25,6 @@ spec:
       description: What to call the session
   steps:
     - name: ike
-      image: quay.io/maistra/istio-workspace:ci-demo
+      image: released-image
       script: |
         ike delete --session $(params.session) --deployment $(params.target) --namespace $(params.namespace)

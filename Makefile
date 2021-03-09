@@ -183,7 +183,7 @@ $(PROJECT_DIR)/$(ASSETS): $(ASSET_SRCS)
 	go-bindata -o $(ASSETS) -nometadata -pkg assets -ignore 'examples/' $(ASSET_SRCS)
 
 ###########################################################################
-##@ Setup
+## Setup
 ###########################################################################
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
@@ -267,6 +267,7 @@ IKE_TEST_PREPARED_NAME?=prepared-image
 export IKE_DOCKER_REGISTRY
 export IKE_DOCKER_REPOSITORY
 export IKE_DOCKER_DEV_REPOSITORY
+export IKE_IMAGE_NAME
 export IKE_IMAGE_TAG
 export IKE_VERSION
 
@@ -418,6 +419,14 @@ bundle-clean:	## Clean the bundle image
 .PHONY: bundle-publish
 bundle-publish:	## Open up a PR to the Operator Hub community catalog
 	./scripts/release/operatorhub.sh
+
+# ##########################################################################
+##@ Tekton tasks
+# ##########################################################################
+
+.PHONY: tekton-publish
+tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
+	./scripts/release/tektoncatalog.sh
 
 # ##########################################################################
 ## Istio-workspace sample project deployment

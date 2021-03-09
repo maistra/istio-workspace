@@ -15,7 +15,12 @@ show_help() {
 
 runTests=0
 tests=all
-dryRun=0
+dryRun=false
+
+skipInDryRun() {
+   if $dryRun; then echo "# $@";  fi
+  if ! $dryRun; then "$@";  fi
+}
 
 while test $# -gt 0; do
   case "$1" in
@@ -40,7 +45,7 @@ while test $# -gt 0; do
         shift
         ;;
     -d|--dry-run)
-            dryRun=1
+            dryRun=true
             shift
             ;;
     *)
@@ -94,16 +99,11 @@ if [[ $runTests -ne 0 ]]; then
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
 fi
 
-if [[ $dryRun -ne 0 ]]; then
-    echo "skips pushing to Git Hub"
-    exit 0
-fi
-
 if [[ -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
 fi
 
-git push fork "${BRANCH}"
+skipInDryRun git push fork "${BRANCH}"
 
 PAYLOAD=$(mktemp)
 
@@ -113,7 +113,12 @@ jq -c -n \
   --arg title "${TITLE}" \
    '{head: $head, base: "master", title: $title, body: $msg }' > "${PAYLOAD}"
 
-curl \
+if $dryRun; then
+  echo -e "${PAYLOAD}\n------------------"
+  jq . "${PAYLOAD}"
+fi
+
+skipInDryRun curl \
   -X POST \
   -H "Authorization: token ${GITHUB_TOKEN}" \
   -H "Accept: application/vnd.github.v3+json" \
