@@ -2,7 +2,16 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: ike-session-url
+  labels:
+    app.kubernetes.io/version: current-version
+  annotations:
+    tekton.dev/displayName: Ike Session URL
+    tekton.dev/tags: istio, telepresence
+    tekton.dev/pipelines.minVersion: 0.21.0
 spec:
+  description: >-
+    `ike-session-url` is a convenient way to get a hold of the exposed URL
+    for the a given `session`.
   params:
     - name: namespace
       type: string

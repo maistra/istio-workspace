@@ -99,6 +99,7 @@ for taskName in "${TASKS_DIR}"/*; do
   popd
 
   sed -i "s/released-image/${IKE_IMAGE}/g" "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}/${taskName}.yaml"
+  sed -i "s/current-version/${OPERATOR_VERSION}/g" "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}/${taskName}.yaml"
 done
 
 COMMIT_MESSAGE="${COMMIT_MESSAGE}
