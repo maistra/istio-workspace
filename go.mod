@@ -15,12 +15,12 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/joho/godotenv v1.3.0
-	github.com/kisielk/errcheck v1.5.0
+	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mikefarah/yq/v4 v4.6.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
-	github.com/onsi/ginkgo v1.15.0
-	github.com/onsi/gomega v1.10.5
+	github.com/onsi/ginkgo v1.15.1
+	github.com/onsi/gomega v1.11.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.3.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
@@ -43,8 +43,8 @@ require (
 	gopkg.in/h2non/gock.v1 v1.0.16
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
-	istio.io/api v0.0.0-20210204223132-d90b2f705958
-	istio.io/client-go v1.9.0
+	istio.io/api v0.0.0-20210218044411-561dc276d04d
+	istio.io/client-go v1.9.1
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4
