@@ -220,10 +220,12 @@ jobs:
       - run:
           <<: *node-install
       - run:
-          name: "Installs release tools prerequisites"
+          name: "Install release tools prerequisites"
           command: |
-            export PANDOC_VERSION=2.11.4
+            nvm use 10
             npm i -g asciidoctor @asciidoctor/core @asciidoctor/docbook-converter
+
+            export PANDOC_VERSION=2.11.4
             cd ~
             wget "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-linux-amd64.tar.gz" -O "pandoc.tar.gz"
             tar xzfv pandoc.tar.gz
