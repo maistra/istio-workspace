@@ -7,15 +7,15 @@ insert-changes
 These are the criteria that every PR should meet, please check them off as you
 review them:
 
-- [ ] Includes [docs](https://github.com/tektoncd/community/blob/master/standards.md#principles) (if user facing)
+- [x] Includes [docs](https://github.com/tektoncd/community/blob/master/standards.md#principles) (if user facing)
 - [ ] Includes [tests](https://github.com/tektoncd/community/blob/master/standards.md#principles) (if functionality of task changed or new task added)
-- [ ] Commit messages follow [commit message best practices](https://github.com/tektoncd/community/blob/master/standards.md#commit-messages)
-- [ ] Complies with [Catalog Organization TEP][TEP], see [example]. **Note** [An issue has been filed to automate this validation][validation]
+- [x] Commit messages follow [commit message best practices](https://github.com/tektoncd/community/blob/master/standards.md#commit-messages)
+- [x] Complies with [Catalog Organization TEP][TEP], see [example]. **Note** [An issue has been filed to automate this validation][validation]
   - [x] File path follows  `<kind>/<name>/<version>/name.yaml`
   - [x] Has `README.md` at `<kind>/<name>/<version>/README.md`
-  - [ ] Has mandatory `metadata.labels` - `app.kubernetes.io/version` the same as the `<version>` of the resource
-  - [ ] Has mandatory `metadata.annotations` `tekton.dev/pipelines.minVersion`
-  - [ ] mandatory `spec.description` follows the convention
+  - [x] Has mandatory `metadata.labels` - `app.kubernetes.io/version` the same as the `<version>` of the resource
+  - [x] Has mandatory `metadata.annotations` `tekton.dev/pipelines.minVersion`
+  - [x] mandatory `spec.description` follows the convention
 
           ```
 

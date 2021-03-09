@@ -2,7 +2,16 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: ike-create
+  labels:
+    app.kubernetes.io/version: current-version
+  annotations:
+    tekton.dev/displayName: Ike Create
+    tekton.dev/tags: istio, telepresence
+    tekton.dev/pipelines.minVersion: 0.21.0
 spec:
+  description: >-
+    `ike-create` creates a new `session` object for `istio-workspace` and will
+    provide a private route in the cluster for the given target.
   params:
     - name: namespace
       type: string

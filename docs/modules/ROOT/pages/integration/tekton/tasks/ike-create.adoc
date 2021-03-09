@@ -1,9 +1,8 @@
 = Istio Workspace Create Task
 
-What is it
+include::cmd:yq[args="e '.spec.description' ike-create.yaml ", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-create"]
 
 ==  `ike-create`
-Link to docs?
 
 === Parameters
 
