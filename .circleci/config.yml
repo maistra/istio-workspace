@@ -266,9 +266,17 @@ jobs:
       - run:
           name: "Release client!"
           command: |
-            nvm use 10
-            asciidoctor --require @asciidoctor/docbook-converter -a leveloffset=+1 --backend docbook  -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc |  pandoc --wrap=preserve --from docbook --to gfm - 1> converted-release-notes.md
-            curl -sL https://git.io/goreleaser | bash -s -- release ${GORELEASER_OPTS} --rm-dist --release-notes=converted-release-notes.md
+            if [[ -f ${BUILD_CACHE_FOLDER}/release-client.githash ]]; then
+              echo "This exact code base has been successfully pushed"
+            else
+              echo "New build - if succeeds subsequent run will be skipped."
+
+              nvm use 10
+              asciidoctor --require @asciidoctor/docbook-converter -a leveloffset=+1 --backend docbook  -o - docs/modules/ROOT/pages/release_notes/${CIRCLE_TAG}.adoc |  pandoc --wrap=preserve --from docbook --to gfm - 1> converted-release-notes.md
+              curl -sL https://git.io/goreleaser | bash -s -- release ${GORELEASER_OPTS} --rm-dist --release-notes=converted-release-notes.md
+
+              echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/release-client.githash
+            fi
       - run:
           name: "Publish Operator Hub Catalog!"
           command: |
