@@ -1,10 +1,8 @@
 = Istio Workspace Session Url Task
 
-What is it
+include::cmd:yq[args="e '.spec.description' ike-session-url.yaml ", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-session-url"]
 
 ==  `ike-session-url`
-
-Link to docs?
 
 === Parameters
 
