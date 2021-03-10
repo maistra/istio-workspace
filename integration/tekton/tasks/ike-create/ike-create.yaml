@@ -7,7 +7,7 @@ metadata:
   annotations:
     tekton.dev/displayName: Ike Create
     tekton.dev/tags: istio, telepresence
-    tekton.dev/pipelines.minVersion: 0.21.0
+    tekton.dev/pipelines.minVersion: 0.16.0
 spec:
   description: >-
     `ike-create` creates a new `session` object for `istio-workspace` and will
