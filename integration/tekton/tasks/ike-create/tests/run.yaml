@@ -7,10 +7,10 @@ spec:
     name: ike-create
   params:
     - name: target
-      value: reviews-v1
+      value: ratings-v1
     - name: session
       value: session-name
     - name: image
       value: test-image-name
     - name: route
-      value: header:ike-session-id=tekton-test
+      value: header:x-workspace-route=tekton-test

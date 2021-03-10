@@ -281,6 +281,47 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 		})
+
+		Context("verify external integrations", func() {
+
+			Context("Tekton", func() {
+
+				BeforeEach(func() {
+					scenario = "scenario-1"
+				})
+
+				It("should create, get, and delete", func() {
+					// deploy tasks
+					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " make tekton-deploy").Done()
+
+					//image := registry + "/" + GetDevRepositoryName() + "/istio-workspace-test-prepared-" + PreparedImageV1 + ":" + GetImageTag()
+
+					EnsureAllDeploymentPodsAreReady(namespace)
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					// Deploy ike-create
+					// Deploy GET ike-session-url
+
+					// ensure the new service is running
+					EnsureAllDeploymentPodsAreReady(namespace)
+
+					// check original response
+					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
+
+					// but also check if prod is intact
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					// Deploy ike-delete
+
+					// check original response
+					EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					// but also check if prod is intact
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+				})
+			})
+		})
 	})
 })
 
