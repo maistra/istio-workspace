@@ -263,6 +263,7 @@ IKE_IMAGE_TAG?=$(IKE_VERSION)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
 IKE_TEST_PREPARED_NAME?=prepared-image
+IKE_IMAGE=${IKE_DOCKER_REGISTRY}\/${IKE_DOCKER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
 
 export IKE_DOCKER_REGISTRY
 export IKE_DOCKER_REPOSITORY
@@ -270,6 +271,7 @@ export IKE_DOCKER_DEV_REPOSITORY
 export IKE_IMAGE_NAME
 export IKE_IMAGE_TAG
 export IKE_VERSION
+export IKE_IMAGE
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -423,6 +425,18 @@ bundle-publish:	## Open up a PR to the Operator Hub community catalog
 # ##########################################################################
 ##@ Tekton tasks
 # ##########################################################################
+
+.PHONY: tekton-deploy
+tekton-deploy: ## Deploy the Tekton tasks
+	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-create/ike-create.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-delete/ike-delete.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+
+.PHONY: tekton-undeploy
+tekton-undeploy: ## UnDeploy the Tekton tasks
+	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-create/ike-create.yaml" || true
+	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-session-url/ike-session-url.yaml" || true
+	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-delete/ike-delete.yaml" || true
 
 .PHONY: tekton-publish
 tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
