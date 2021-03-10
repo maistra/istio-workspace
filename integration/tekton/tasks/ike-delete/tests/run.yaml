@@ -1,19 +1,12 @@
----
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  name: git-cli-run
+  name: ike-delete-run
 spec:
   taskRef:
-    name: git-cli
-  workspaces:
-    - name: source
-      emptyDir: {}
-    - name: input
-      emptyDir: {}
+    name: ike-delete
   params:
-    - name: GIT_SCRIPT
-      value: |
-        git init
-        git remote add origin https://github.com/kelseyhightower/nocode
-        git pull origin master
+    - name: target
+      value: reviews-v1
+    - name: session
+      value: session-name
