@@ -32,3 +32,22 @@ func TemporaryEnvVars(keyValues ...string) func() {
 		}
 	}
 }
+
+func TemporaryUnsetEnvVars(keys ...string) func() { //nolint:unused //reason linter is drunk
+	originalEnvs := map[string]string{}
+
+	for _, key := range keys {
+		originalEnvs[key] = os.Getenv(key)
+		_ = os.Unsetenv(key)
+	}
+
+	return func() {
+		for k, v := range originalEnvs {
+			if v != "" {
+				_ = os.Setenv(k, v)
+			} else {
+				_ = os.Unsetenv(k)
+			}
+		}
+	}
+}

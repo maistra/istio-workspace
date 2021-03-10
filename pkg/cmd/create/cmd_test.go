@@ -34,6 +34,7 @@ var _ = Describe("Usage of ike create command", func() {
 			})
 
 			It("should fail when image command is not specified", func() {
+				defer TemporaryUnsetEnvVars("IKE_IMAGE")()
 				_, err := ValidateArgumentsOf(createCmd).Passing("--deployment", "rating-service")
 
 				Expect(err).To(HaveOccurred())
