@@ -282,7 +282,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		})
 
-		Context("verify external integrations", func() {
+		FContext("verify external integrations", func() {
 
 			Context("Tekton", func() {
 
@@ -291,16 +291,21 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				})
 
 				It("should create, get, and delete", func() {
-					// deploy tasks
-					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " make tekton-deploy").Done()
+					host := GetGatewayHost(namespace)
 
-					//image := registry + "/" + GetDevRepositoryName() + "/istio-workspace-test-prepared-" + PreparedImageV1 + ":" + GetImageTag()
+					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " make tekton-deploy").Done()
 
 					EnsureAllDeploymentPodsAreReady(namespace)
 					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
-					// Deploy ike-create
-					// Deploy GET ike-session-url
+					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " TEST_SESSION_NAME= " + sessionName + "make tekton-test-ike-create").Done()
+					Eventually(TaskIsDone(namespace, "ike-create-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
+					Expect(TaskResult(namespace, "ike-create-run", "url")).To(Equal(host))
+
+					// verify session url
+					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " TEST_SESSION_NAME= " + sessionName + "make tekton-test-ike-session-url").Done()
+					Eventually(TaskIsDone(namespace, "ike-session-url-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
+					Expect(TaskResult(namespace, "ike-session-url-run", "url")).To(Equal(host))
 
 					// ensure the new service is running
 					EnsureAllDeploymentPodsAreReady(namespace)
@@ -311,7 +316,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					// but also check if prod is intact
 					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
-					// Deploy ike-delete
+					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " TEST_SESSION_NAME= " + sessionName + " make tekton-test-ike-delete").Done()
+					Eventually(TaskIsDone(namespace, "ike-delete-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 					// check original response
 					EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
