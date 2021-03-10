@@ -324,17 +324,11 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 					// but also check if prod is intact
 					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
-
 				})
 			})
 		})
 	})
 })
-
-// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
-func EnsureAllPodsAreReady(namespace string) {
-	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
-}
 
 // EnsureAllDeploymentPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllDeploymentPodsAreReady(namespace string) {
