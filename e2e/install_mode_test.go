@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Operator installation", func() {
+var _ = XDescribe("Operator installation", func() {
 
 	/*
 
@@ -133,6 +133,7 @@ var _ = Describe("Operator installation", func() {
 
 			VerifyWatchList(namespaces...)
 		})
+
 		It("AllNamespace", func() {
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()

@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
+var _ = XDescribe("Smoke End To End Tests - Faulty scenarios", func() {
 
 	Context("exit codes", func() {
 

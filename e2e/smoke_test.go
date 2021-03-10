@@ -282,7 +282,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 		})
 
-		FContext("verify external integrations", func() {
+		Context("verify external integrations", func() {
 
 			Context("Tekton", func() {
 
@@ -290,7 +290,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					scenario = "scenario-1"
 				})
 
-				It("should create, get, and delete", func() {
+				FIt("should create, get, and delete", func() {
 					host := GetGatewayHost(namespace)
 
 					<-testshell.Execute("TEST_NAMESPACE=" + namespace + " make tekton-deploy").Done()
