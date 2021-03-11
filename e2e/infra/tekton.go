@@ -14,7 +14,7 @@ func TaskIsDone(ns, taskName string) func() bool {
 		<-taskRunStatus.Done()
 		status := strings.Join(taskRunStatus.Status().Stdout, "")
 		if strings.Contains(status, "Failed") {
-			<-shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o yaml").Done()
+			<-shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "yaml").Done()
 			ginkgo.Fail("Expected " + taskName + " to succeed")
 		}
 		return strings.Contains(status, "Succeeded")
