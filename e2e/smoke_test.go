@@ -290,7 +290,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					scenario = "scenario-1"
 				})
 
-				FIt("should create, get, and delete", func() {
+				It("should create, get, and delete", func() {
 					defer test.TemporaryEnvVars("TEST_NAMESPACE", namespace, "TEST_SESSION_NAME", sessionName)()
 
 					host := GetGatewayHost(namespace)
