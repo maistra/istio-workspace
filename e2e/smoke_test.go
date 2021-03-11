@@ -399,6 +399,7 @@ func Stop(ike *cmd.Cmd) {
 	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
 }
 
+// DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
 func DumpEnvironmentDebugInfo(namespace, dir string) {
 	pods := GetAllPods(namespace)
 	for _, pod := range pods {
