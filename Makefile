@@ -428,22 +428,23 @@ bundle-publish:	## Open up a PR to the Operator Hub community catalog
 
 .PHONY: tekton-deploy
 tekton-deploy: ## Deploy the Tekton tasks
-	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-create/ike-create.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
-	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
-	sed "s/released-image/${IKE_IMAGE}/g" "integration/tekton/tasks/ike-delete/ike-delete.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" | oc apply -f - -n $(TEST_NAMESPACE)
 
 .PHONY: tekton-undeploy
 tekton-undeploy: ## UnDeploy the Tekton tasks
-	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-create/ike-create.yaml" || true
-	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-session-url/ike-session-url.yaml" || true
-	oc delete -n $(TEST_NAMESPACE) -f "integration/tekton/tasks/ike-delete/ike-delete.yaml" || true
+	oc delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" || true
+	oc delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" || true
+	oc delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" || true
 
 TEST_SESSION_NAME?=test
 
 tekton-test-%: ## Run a Tekton tasks for test purpose
 	$(eval task:=$(subst tekton-test-,,$@))
-	sed "s/session-name/${TEST_SESSION_NAME}/g" integration/tekton/tasks/${task}/tests/run.yaml | \
-  sed "s/test-image-name/$(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_DEV_REPOSITORY)\/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)/g" | oc apply -f - -n ${TEST_NAMESPACE}
+	sed "s/session-name/${TEST_SESSION_NAME}/g" "$(PROJECT_DIR)/integration/tekton/tasks/${task}/tests/run.yaml" | \
+  sed "s/test-image-name/$(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_DEV_REPOSITORY)\/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)/g" | \
+  oc apply -f - -n ${TEST_NAMESPACE}
 
 .PHONY: tekton-publish
 tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
