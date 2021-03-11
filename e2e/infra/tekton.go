@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"github.com/onsi/ginkgo"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -11,7 +12,12 @@ func TaskIsDone(ns, taskName string) func() bool {
 	return func() bool {
 		taskRunStatus := shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "jsonpath='{.status.conditions[?(.type==\"Succeeded\")].reason}'")
 		<-taskRunStatus.Done()
-		return strings.Contains(strings.Join(taskRunStatus.Status().Stdout, ""), "Succeeded")
+		status := strings.Join(taskRunStatus.Status().Stdout, "")
+		if strings.Contains(status, "Failed") {
+			<-shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o yaml").Done()
+			ginkgo.Fail("Expected " + taskName + " to succeed")
+		}
+		return strings.Contains(status, "Succeeded")
 	}
 }
 
