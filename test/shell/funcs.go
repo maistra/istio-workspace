@@ -17,6 +17,12 @@ func Execute(command string) *gocmd.Cmd {
 	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
+// ExecuteInProjectRoot runs given command in project root folder (e.g. handy for make).
+func ExecuteInProjectRoot(command string) *gocmd.Cmd {
+	cmd, _ := shlex.Split(command)
+	return ExecuteInDir(GetProjectDir(), cmd[0], cmd[1:]...)
+}
+
 // ExecuteAll executes all passed commands in sequence, waiting for every single one to finish.
 // before starting next one.
 func ExecuteAll(commands ...string) {
