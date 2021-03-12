@@ -293,7 +293,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				It("should create, get, and delete", func() {
 					defer test.TemporaryEnvVars("TEST_NAMESPACE", namespace, "TEST_SESSION_NAME", sessionName)()
 
-					host := GetGatewayHost(namespace)
+					host := sessionName + "." + GetGatewayHost(namespace)
 
 					<-testshell.ExecuteInProjectRoot("make tekton-deploy").Done()
 
