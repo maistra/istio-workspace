@@ -3,6 +3,7 @@ kind: TaskRun
 metadata:
   name: ike-session-url-run
 spec:
+  serviceAccountName: istio-workspace
   taskRef:
     name: ike-session-url
   params:

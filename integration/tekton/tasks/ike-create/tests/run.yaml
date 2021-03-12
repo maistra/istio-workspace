@@ -3,6 +3,7 @@ kind: TaskRun
 metadata:
   name: ike-create-run
 spec:
+  serviceAccountName: istio-workspace
   taskRef:
     name: ike-create
   params:
