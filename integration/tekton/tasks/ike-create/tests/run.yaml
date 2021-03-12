@@ -13,4 +13,4 @@ spec:
     - name: image
       value: test-image-name
     - name: route
-      value: header:x-workspace-route=tekton-test
+      value: header:x-test-suite=smoke
