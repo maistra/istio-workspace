@@ -28,4 +28,9 @@ spec:
       image: quay.io/openshift/origin-cli:4.6
       script: |
         STATE=`oc get session $(params.session) --namespace $(params.namespace) -o json`
+        if [[ $? -ne 0 ]]; then
+          error=$?
+          echo $STATE
+          exit $error
+        fi
         echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | uniq | tr -d '\n' > /tekton/results/url
