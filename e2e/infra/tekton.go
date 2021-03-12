@@ -1,8 +1,9 @@
 package infra
 
 import (
-	"github.com/onsi/ginkgo"
 	"strings"
+
+	"github.com/onsi/ginkgo"
 
 	"github.com/maistra/istio-workspace/test/shell"
 )
@@ -25,5 +26,5 @@ func TaskIsDone(ns, taskName string) func() bool {
 func TaskResult(ns, taskName, key string) string {
 	taskResultStatus := shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "jsonpath='{.status.taskResults[?(.name==\""+key+"\")].value}'")
 	<-taskResultStatus.Done()
-	return strings.Join(taskResultStatus.Status().Stdout, "")
+	return strings.ReplaceAll(strings.Join(taskResultStatus.Status().Stdout, ""), "'", "")
 }
