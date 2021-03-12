@@ -155,11 +155,11 @@ version:
 $(DIST_DIR):
 	[ -d $@ ] || mkdir -p $@
 
-$(DIST_DIR)/$(BINARY_NAME): DIST_DIR $(SRCS)
+$(DIST_DIR)/$(BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
-$(DIST_DIR)/$(TEST_BINARY_NAME): DIST_DIR $(SRCS) test/cmd/test-service/html.go
+$(DIST_DIR)/$(TEST_BINARY_NAME): $(DIST_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
@@ -174,7 +174,7 @@ test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
 .PHONY: compile-test-service
 compile-test-service: test/cmd/test-service/html.go test/cmd/test-service/main.pb.go $(DIST_DIR)/$(TEST_BINARY_NAME)
 
-$(DIST_DIR)/$(TPL_BINARY_NAME): DIST_DIR $(SRCS)
+$(DIST_DIR)/$(TPL_BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
 
