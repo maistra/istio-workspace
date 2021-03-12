@@ -38,4 +38,4 @@ spec:
       image: released-image
       script: |
         STATE=`ike create --session $(params.session) --route $(params.route) --deployment $(params.target) --namespace $(params.namespace) --image $(params.image) --json`
-        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 > /tekton/results/url
+        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | tr -d '\n' > /tekton/results/url
