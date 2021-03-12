@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = XDescribe("Operator installation", func() {
+var _ = Describe("Operator installation", func() {
 
 	/*
 

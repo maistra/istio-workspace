@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = XDescribe("Bash Completion Tests", func() {
+var _ = Describe("Bash Completion Tests", func() {
 
 	Context("basic completion", func() {
 
