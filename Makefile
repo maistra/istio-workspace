@@ -444,7 +444,7 @@ IKE_TEST_PREPARED_IMG:=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE
 tekton-test-%: $(PROJECT_DIR)/bin/yq ## Run a Tekton tasks for test purpose
 	$(eval task:=$(subst tekton-test-,,$@))
 	@yq e '.spec.params[] | select(.name=="session") | .value="${TEST_SESSION_NAME}", .spec.params[] | select(.name=="route") | .value="header:x-test-suite=smoke", .spec.params[] | select(.name=="image") | .value="${IKE_TEST_PREPARED_IMG}", . ' $(PROJECT_DIR)/integration/tekton/tasks/$(task)/samples/$(task).yaml \
-		| awk '/apiVersion:/,0  {print $1}' | ${k8s} apply -f -
+		| awk '/apiVersion:/,0  {print $1}' | $(k8s) apply -f - -n ${TEST_NAMESPACE}
 
 .PHONY: tekton-publish
 tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
