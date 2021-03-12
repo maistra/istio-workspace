@@ -1,1 +1,0 @@
-pre-apply-task-hook.sh
