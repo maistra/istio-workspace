@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap/zapcore"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
@@ -36,8 +38,7 @@ func NewCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
-					log.SetLogger(log.NilLog)
-					cmd.SilenceErrors = true
+					log.SetLogger(log.CreateOperatorAwareLoggerWithLevel("root", zapcore.ErrorLevel))
 				}
 			})
 
