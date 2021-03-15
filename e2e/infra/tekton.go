@@ -24,7 +24,7 @@ func TaskIsDone(ns, taskName string) func() bool {
 
 // TaskResult returns value of given result variable for defined Task.
 func TaskResult(ns, taskName, key string) string {
-	taskResultStatus := shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "jsonpath='{.status.taskResults[?(.name==\""+key+"\")].value}'")
+	taskResultStatus := shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "jsonpath={.status.taskResults[?(.name==\""+key+"\")].value}")
 	<-taskResultStatus.Done()
-	return strings.ReplaceAll(strings.Join(taskResultStatus.Status().Stdout, ""), "'", "")
+	return strings.Join(taskResultStatus.Status().Stdout, "")
 }
