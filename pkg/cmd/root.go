@@ -36,8 +36,8 @@ func NewCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
-					log.SetLogger(log.NilLog)
-					cmd.SilenceErrors = true
+					//log.SetLogger(log.NilLog)
+					//cmd.SilenceErrors = true
 				}
 			})
 

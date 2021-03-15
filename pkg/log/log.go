@@ -29,12 +29,20 @@ func SetLogger(logger logr.Logger) {
 
 // CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
 func CreateOperatorAwareLogger(name string) logr.Logger {
+	return CreateOperatorAwareLoggerWithLevel(name, zap.InfoLevel)
+}
+
+// CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
+func CreateOperatorAwareLoggerWithLevel(name string, level zapcore.Level) logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
 	var lvl zap.AtomicLevel
 
 	operator := isRunningAsOperator()
 	sink := zapcore.AddSync(os.Stderr)
+
+	// TODO: move lvl to a single location
+	// TODO: support DEBUG level in both client & Operator
 
 	if operator {
 		enc, lvl, opts = configureOperatorLogging()
