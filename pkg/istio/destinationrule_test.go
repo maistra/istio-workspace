@@ -129,7 +129,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-mutate")
-				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
 
 			It("new subset only added once", func() {
@@ -142,7 +142,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 				dr := get.DestinationRule("test", "customer-mutate")
 				Expect(dr.Spec.Subsets).To(HaveLen(2))
-				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
 		})
 	})
@@ -186,7 +186,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRule("test", "customer-revert")
-				Expect(dr.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal("v1-test"))))
+				Expect(dr.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
 		})
 	})

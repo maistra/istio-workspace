@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -148,7 +149,7 @@ func (r *Ref) GetVersion() string {
 
 // GetNewVersion returns the new updated version name.
 func (r *Ref) GetNewVersion(sessionName string) string {
-	return r.GetVersion() + "-" + sessionName
+	return GetSha(r.GetVersion()) + "-" + sessionName
 }
 
 // AddTargetResource adds the status of an involved Resource to this ref.
@@ -197,6 +198,12 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 		}
 	}
 	return refs
+}
+
+func GetSha(version string) string {
+	sum := sha256.Sum256([]byte(version))
+	sha := fmt.Sprintf("%x", sum)
+	return sha[:8]
 }
 
 // ResourceStatus holds information about the resources created/changed to fulfill a Ref.
