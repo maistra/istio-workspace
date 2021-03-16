@@ -4,12 +4,17 @@
 # Istio Workspace
 
 <!-- tag::description[] -->
-As a developer, do you have confidence that your Test and Stage environments reflect reality? Are they easy to keep up-to-date with production? Can you reproduce production failure in these environments or locally? What about that error you keep seeing on production that’s never occurring on Test or Stage?
+Istio Workspace enables developers to:
 
-Shipping changes to production sounds scary and dangerous because a lot of things can go wrong. What we really want to avoid is to impact regular application users in a bad way.
+ * run one or more services locally during development but make it appear like it would be developed in the actual cluster
+   * this way you can use your favourite development tools
+   * have instant feedback loop
+   * don't make your machine overheating trying to run the whole cluster locally
+ * safely preview incoming changes in pull requests without affecting regular users 
+ * have confidence in testing or troubleshooting your services directly in the cluster
 
-Fortunately, Istio Workspace supports testing on multi-user environment in an unobtrusive way.
-Doesn’t matter if it is QE cluster or actual production. We give you confidence that your changes won’t blow up the cluster, and your users won’t even notice a glitch.
+Istio Workspace supports testing on multi-user environment in an unobtrusive way.
+It doesn’t really matter if it is QE cluster or actual production. We give you confidence that your changes won’t blow up the cluster, and your users won’t even notice a glitch.
 
 You will need [Kubernetes](https://k8s.io) or [Openshift](https://openshift.com) cluster with  [Istio](https://istio.io/) installed. 
 
@@ -89,7 +94,7 @@ Run `make help` to see what targets are available, but you will use `make` most 
 
 We follow standard Go coding conventions which we ensure using `goimports` during the build.
 
-In addition we provide `.editorconfig` file which is supported by [majority of the IDEs](https://editorconfig.org/#download).
+In addition, we provide `.editorconfig` file which is supported by [majority of the IDEs](https://editorconfig.org/#download).
 
 ## License
 
