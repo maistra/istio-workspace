@@ -37,7 +37,7 @@ Thanks submitting your Operator. Please check below list before you create your 
 
 ### Operator Metadata should contain
 
-* [x] Human readable name and 1-liner description about your Operator
+* [x] Human-readable name and 1-liner description about your Operator
 * [x] Valid [category name](https://github.com/operator-framework/community-operators/blob/master/docs/packaging-required-fields.md#categories)<sup>1</sup>
 * [x] One of the pre-defined [capability levels](https://github.com/operator-framework/operator-courier/blob/4d1a25d2c8d52f7de6297ec18d8afd6521236aa2/operatorcourier/validate.py#L556)<sup>2</sup>
 * [x] Links to the maintainer, source code and documentation

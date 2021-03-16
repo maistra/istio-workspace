@@ -17,7 +17,7 @@
 * Possible to piggyback on Tracing variables to avoid additional http header propagation?
 * Subdomain as entrypoint vs http header?
 ** Subdomain easy for user access
-** http header: js lib for client to detect available versions and swap between them?
+** http header: js lib for the client to detect available versions and swap between them?
 
 ==== PR preview deployment
 
@@ -63,7 +63,7 @@ When a service is in 'observation'/dev mode
 
 ==== X Trace
 
-The method of determining when a call is in a X 'session' and allow services/middlware to act accordingly
+The method of determining when a call is in an X 'session' and allow services/middlware to act accordingly
 
 ==== Shadow Proxy
 
@@ -73,7 +73,7 @@ Injected/Configured during X to control behavior of responses of calls to extern
 Local run existing service from git repo based on service name
 
 ==== Service 
-https://istio.io/docs/tasks/traffic-management/request-routing/#route-based-on-user-identity + something gateway external DNS sub domain
+https://istio.io/docs/tasks/traffic-management/request-routing/#route-based-on-user-identity + something gateway external DNS subdomain
 
     Session CRD
         Field (Ref, ?)
@@ -105,7 +105,7 @@ https://istio.io/docs/tasks/traffic-management/request-routing/#route-based-on-u
 
 
 
-Execute local cli to setup safe production route for my local service 
+Execute a local cli to set up safe production route for my local service 
 [source]
 ....
 > ./ike develop "DeploymentName" --user x [--watch] [--session "Username#Branch+UID(5char)"]

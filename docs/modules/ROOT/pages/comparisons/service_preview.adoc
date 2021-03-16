@@ -11,9 +11,9 @@ Edge CI - https://www.getambassador.io/docs/latest/topics/using/edgectl/edge-con
 Ambassador injector will modify the deployment and inject the Traffic Agent sidecar, then the sidecar talks to the ‘real service’.  Requires that the Service use targetPort: http so the injector can change which port in the deployment is called http. +
 https://www.getambassador.io/docs/latest/topics/using/edgectl/service-preview-reference/#manual-traffic-agent-sidecar-configuration[https://www.getambassador.io/docs/latest/topics/using/edgectl/service-preview-reference/#manual-traffic-agent-sidecar-configuration]
 
-Currently does not run out of the box on Openshift
+Currently, does not run out of the box on Openshift
 
-Currently does not run with istio.
+Currently, does not run with istio.
 
 * Sidecar injection seems a little random who wins?
 
@@ -23,7 +23,7 @@ Currently does not run with istio.
 Require no change to the target deployment. +
 Rely on manipulating istio directly.
 
-Strongest point; deep middleware integration
+The strongest point; deep middleware integration
 
 * Che, odo, IDE extension
 * Cache, Messaging understanding

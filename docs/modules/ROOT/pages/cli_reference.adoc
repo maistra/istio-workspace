@@ -90,7 +90,7 @@ include::cmd:ike[args='develop --help --help-format=adoc']
 `ike develop` provides `--watch` functionality to trigger build and relaunch the process whenever you modify something
 in your project. This way you can immediately introduce your changes in your cluster.
 
-By default all log files (`*.log`) and `.git` folder are not monitored.
+By default, all log files (`*.log`) and `.git` folder are not monitored.
 
 TIP: For details on how define what should be watched see <<ike-develop,ike develop>> reference.
 
