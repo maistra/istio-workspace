@@ -200,6 +200,7 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 	return refs
 }
 
+// GetSha computes a hash of the version and returns 8 characters substring of it.
 func GetSha(version string) string {
 	sum := sha256.Sum256([]byte(version))
 	sha := fmt.Sprintf("%x", sum)
