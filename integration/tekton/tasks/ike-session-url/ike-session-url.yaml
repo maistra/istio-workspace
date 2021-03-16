@@ -7,7 +7,7 @@ metadata:
   annotations:
     tekton.dev/displayName: Ike Session URL
     tekton.dev/tags: istio, telepresence
-    tekton.dev/pipelines.minVersion: 0.21.0
+    tekton.dev/pipelines.minVersion: 0.16.0
 spec:
   description: >-
     `ike-session-url` is a convenient way to get a hold of the exposed URL
@@ -25,7 +25,12 @@ spec:
       description: The URL of the new route
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6
+      image: quay.io/openshift/origin-cli:4.9
       script: |
         STATE=`oc get session $(params.session) --namespace $(params.namespace) -o json`
-        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | uniq > /tekton/results/url
+        if [[ $? -ne 0 ]]; then
+          error=$?
+          echo $STATE
+          exit $error
+        fi
+        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | uniq | tr -d '\n' > /tekton/results/url

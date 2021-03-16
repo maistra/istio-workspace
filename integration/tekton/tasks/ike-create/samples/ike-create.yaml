@@ -1,17 +1,17 @@
-name: preview-customer
-taskRef:
-  name: ike-create
-  kind: Task
-runAfter:
-  - image-customer
-params:
-  - name: session
-    value: $(params.git-pr-head-ref)
-  - name: target
-    value: customer-v1
-  - name: route
-    value: "header:ike-session-id=$(params.git-pr-head-ref)"
-  - name: namespace
-    value: workspace-demo
-  - name: image
-    value: image-registry.openshift-image-registry.svc:5000/workspace-demo/$(params.git-repo-name)-customer:$(params.git-revision)
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: ike-create-run
+spec:
+  serviceAccountName: istio-workspace
+  taskRef:
+    name: ike-create
+  params:
+    - name: target
+      value: ratings-v1
+    - name: session
+      value: $(params.git-pr-head-ref)
+    - name: image
+      value: quay.io/workspace-demo/$(params.git-repo-name)-ratings:$(params.git-revision)
+    - name: route
+      value: "header:ike-session-id=$(params.git-pr-head-ref)"

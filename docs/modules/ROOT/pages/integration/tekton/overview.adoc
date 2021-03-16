@@ -4,7 +4,7 @@ You can use Istio Workspace to prepare special routes from a CI system, e.g. per
 PR to test/preview the changes before merging.
 
 The Istio Workspace Tekton tasks wraps the Istio Workspace CLI into a Tekton Task
-for easy usage witthin the Tekton/Openshift Pipelines CI system.
+for easy usage within the Tekton/Openshift Pipelines CI system.
 
 == Tasks
 

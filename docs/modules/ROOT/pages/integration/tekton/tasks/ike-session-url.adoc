@@ -16,4 +16,4 @@ include::cmd:yq[args="e '.spec.results' -P -j -I4 ike-session-url.yaml | jq -r '
 
 === Usage
 
-include::cmd:yq[args="e '{\"params\": .params}' -I2 samples/ike-session-url.yaml", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-session-url",block=true,format=yaml]
+include::cmd:yq[args="e '{\"params\": .spec.params}' -I2 samples/ike-session-url.yaml", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-session-url",block=true,format=yaml]
