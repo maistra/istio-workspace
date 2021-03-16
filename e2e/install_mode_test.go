@@ -133,6 +133,7 @@ var _ = Describe("Operator installation", func() {
 
 			VerifyWatchList(namespaces...)
 		})
+
 		It("AllNamespace", func() {
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()

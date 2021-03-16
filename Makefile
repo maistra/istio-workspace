@@ -10,7 +10,7 @@ $(shell mkdir -p $(PROJECT_DIR)/bin/)
 export PROJECT_DIR
 export GO111MODULE:=on
 BUILD_DIR:=$(PROJECT_DIR)/build
-BINARY_DIR:=$(PROJECT_DIR)/dist
+DIST_DIR:=$(PROJECT_DIR)/dist
 BINARY_NAME:=ike
 TEST_BINARY_NAME:=test-service
 TPL_BINARY_NAME:=tpl
@@ -97,7 +97,7 @@ endif
 build-ci: deps tools format compile test # Like 'all', but without linter which is executed as separated PR check
 
 .PHONY: compile
-compile: deps generate format $(BINARY_DIR)/$(BINARY_NAME) ## Compiles binaries
+compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 
 .PHONY: test
 test: generate ## Runs tests
@@ -111,7 +111,7 @@ test-e2e: compile ## Runs end-to-end tests
 
 .PHONY: clean
 clean: ## Removes build artifacts
-	rm -rf $(BINARY_DIR) $(PROJECT_DIR)/bin/ vendor/ bundle/
+	rm -rf $(DIST_DIR) $(PROJECT_DIR)/bin/ vendor/ bundle/
 
 .PHONY: deps
 deps: ## Fetches all dependencies
@@ -152,14 +152,14 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 version:
 	@echo $(IKE_VERSION)
 
-$(BINARY_DIR):
+$(DIST_DIR):
 	[ -d $@ ] || mkdir -p $@
 
-$(BINARY_DIR)/$(BINARY_NAME): $(BINARY_DIR) $(SRCS)
+$(DIST_DIR)/$(BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
-$(BINARY_DIR)/$(TEST_BINARY_NAME): $(BINARY_DIR) $(SRCS) test/cmd/test-service/html.go
+$(DIST_DIR)/$(TEST_BINARY_NAME): $(DIST_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
@@ -172,9 +172,9 @@ test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
 	go-bindata -o test/cmd/test-service/html.go -pkg main -prefix test/cmd/test-service/assets test/cmd/test-service/assets/*
 
 .PHONY: compile-test-service
-compile-test-service: test/cmd/test-service/html.go test/cmd/test-service/main.pb.go $(BINARY_DIR)/$(TEST_BINARY_NAME)
+compile-test-service: test/cmd/test-service/html.go test/cmd/test-service/main.pb.go $(DIST_DIR)/$(TEST_BINARY_NAME)
 
-$(BINARY_DIR)/$(TPL_BINARY_NAME): $(BINARY_DIR) $(SRCS)
+$(DIST_DIR)/$(TPL_BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling tpl processor... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(TPL_BINARY_NAME)/
 
@@ -263,6 +263,7 @@ IKE_IMAGE_TAG?=$(IKE_VERSION)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
 IKE_TEST_PREPARED_NAME?=prepared-image
+IKE_IMAGE=${IKE_DOCKER_REGISTRY}\/${IKE_DOCKER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
 
 export IKE_DOCKER_REGISTRY
 export IKE_DOCKER_REPOSITORY
@@ -270,6 +271,7 @@ export IKE_DOCKER_DEV_REPOSITORY
 export IKE_IMAGE_NAME
 export IKE_IMAGE_TAG
 export IKE_VERSION
+export IKE_IMAGE
 
 .PHONY: docker-build
 docker-build: GOOS=linux
@@ -287,7 +289,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/Dockerfile $(BINARY_DIR)
+		-f $(BUILD_DIR)/Dockerfile $(DIST_DIR)
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
@@ -303,7 +305,7 @@ docker-push--%:
 	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
 .PHONY: docker-build-test
-docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
+docker-build-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
 	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--no-cache \
@@ -318,7 +320,7 @@ docker-build-test: $(BINARY_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTest $(BINARY_DIR)
+		-f $(BUILD_DIR)/DockerfileTest $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
@@ -347,7 +349,7 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTestPrepared $(BINARY_DIR)
+		-f $(BUILD_DIR)/DockerfileTestPrepared $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
@@ -424,9 +426,30 @@ bundle-publish:	## Open up a PR to the Operator Hub community catalog
 ##@ Tekton tasks
 # ##########################################################################
 
+.PHONY: tekton-deploy
+tekton-deploy: ## Deploy the Tekton tasks
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+
+.PHONY: tekton-undeploy
+tekton-undeploy: ## UnDeploy the Tekton tasks
+	$(k8s) delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" || true
+	$(k8s) delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" || true
+	$(k8s) delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" || true
+
+TEST_SESSION_NAME?=test-session
+IKE_TEST_PREPARED_IMG:=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+
+tekton-test-%: $(PROJECT_DIR)/bin/yq ## Run a Tekton tasks for test purpose
+	$(eval task:=$(subst tekton-test-,,$@))
+	@yq e '.spec.params[] | select(.name=="session") | .value="${TEST_SESSION_NAME}", .spec.params[] | select(.name=="route") | .value="header:x-test-suite=smoke", .spec.params[] | select(.name=="image") | .value="${IKE_TEST_PREPARED_IMG}", . ' $(PROJECT_DIR)/integration/tekton/tasks/$(task)/samples/$(task).yaml \
+		| awk '/apiVersion:/,0  {print $1}' | $(k8s) apply -f - -n ${TEST_NAMESPACE}
+
 .PHONY: tekton-publish
 tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
 	./scripts/release/tektoncatalog.sh
+
 
 # ##########################################################################
 ## Istio-workspace sample project deployment

@@ -281,13 +281,56 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 			})
 
 		})
+
+		Context("verify external integrations", func() {
+
+			Context("Tekton", func() {
+
+				BeforeEach(func() {
+					scenario = "scenario-1"
+				})
+
+				It("should create, get, and delete", func() {
+					defer test.TemporaryEnvVars("TEST_NAMESPACE", namespace, "TEST_SESSION_NAME", sessionName)()
+
+					host := sessionName + "." + GetGatewayHost(namespace)
+
+					<-testshell.ExecuteInProjectRoot("make tekton-deploy").Done()
+
+					EnsureAllDeploymentPodsAreReady(namespace)
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-create").Done()
+					Eventually(TaskIsDone(namespace, "ike-create-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
+					Expect(TaskResult(namespace, "ike-create-run", "url")).To(Equal(host))
+
+					// verify session url
+					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-session-url").Done()
+					Eventually(TaskIsDone(namespace, "ike-session-url-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
+					Expect(TaskResult(namespace, "ike-session-url-run", "url")).To(Equal(host))
+
+					// ensure the new service is running
+					EnsureAllDeploymentPodsAreReady(namespace)
+
+					// check original response
+					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
+
+					// but also check if prod is intact
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-delete").Done()
+					Eventually(TaskIsDone(namespace, "ike-delete-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
+
+					// check original response
+					EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+
+					// but also check if prod is intact
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+				})
+			})
+		})
 	})
 })
-
-// EnsureAllPodsAreReady make sure all Pods are in Ready state in given namespace.
-func EnsureAllPodsAreReady(namespace string) {
-	Eventually(AllPodsReady(namespace), 5*time.Minute, 5*time.Second).Should(BeTrue())
-}
 
 // EnsureAllDeploymentPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllDeploymentPodsAreReady(namespace string) {
@@ -356,6 +399,7 @@ func Stop(ike *cmd.Cmd) {
 	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
 }
 
+// DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
 func DumpEnvironmentDebugInfo(namespace, dir string) {
 	pods := GetAllPods(namespace)
 	for _, pod := range pods {

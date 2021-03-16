@@ -72,11 +72,14 @@ source "${CUR_DIR}"/validate_semver.sh
 
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
+if [[ -z $IKE_IMAGE ]]; then
+  echo "Please provide IKE_IMAGE with a reference to the image to use for the tasks" && exit 1
+fi
+
 ##################################################################################
 #### Prepare PR commit                                                        ####
 ##################################################################################
 
-IKE_IMAGE="${IKE_DOCKER_REGISTRY}\/${IKE_DOCKER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}" # should be provided by Makefile target
 BRANCH=${BRANCH:-"${TEKTON_HUB_PATH}/istio-workspace-${OPERATOR_VERSION}"}
 ADOC_INCLUDE=$(LIB=$(mktemp) && wget -q -P "${LIB}" https://raw.githubusercontent.com/maistra/istio-workspace-docs-site/master/lib/include-shell.js && echo "${LIB}/include-shell")
 

@@ -14,4 +14,4 @@ include::cmd:yq[args="e '.spec.results' -P -j -I4 ike-delete.yaml | jq -r '. | m
 
 === Usage
 
-include::cmd:yq[args="e '{\"params\": .params}' -I2 samples/ike-delete.yaml", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-delete",block=true,format=yaml]
+include::cmd:yq[args="e '{\"params\": .spec.params}' -I2 samples/ike-delete.yaml", cwd="$PROJECT_DIR/integration/tekton/tasks/ike-delete",block=true,format=yaml]
