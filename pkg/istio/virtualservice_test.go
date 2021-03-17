@@ -148,16 +148,16 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					ref            model.Ref
 					targetV1       = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
 					targetV1Host   = model.HostName{Name: "details"}
-					targetV1Subset = "v1-vs-test"
+					targetV1Subset = model.GetSha("v1") + "-vs-test"
 					targetV4       = model.NewLocatedResource("Deployment", "details-v4", map[string]string{"version": "v4"})
 					targetV4Host   = model.HostName{Name: "details"}
-					targetV4Subset = "v4-vs-test"
+					targetV4Subset = model.GetSha("v4") + "-vs-test"
 					targetV5       = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
 					targetV5Host   = model.HostName{Name: "details"}
-					targetV5Subset = "v5-vs-test"
+					targetV5Subset = model.GetSha("v5") + "-vs-test"
 					targetV6       = model.NewLocatedResource("Deployment", "x-v5", map[string]string{"version": "v5"})
 					targetV6Host   = model.HostName{Name: "x"}
-					targetV6Subset = "v5-vs-test"
+					targetV6Subset = model.GetSha("v5") + "-vs-test"
 				)
 
 				BeforeEach(func() {
@@ -351,7 +351,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
-												Subset: "v1-vs-test",
+												Subset: model.GetSha("v1") + "-vs-test",
 											},
 										},
 									},
@@ -368,7 +368,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 										{
 											Destination: &istionetworkv1alpha3.Destination{
 												Host:   "details",
-												Subset: "v1-vs-test",
+												Subset: model.GetSha("v1") + "-vs-test",
 											},
 										},
 									},
@@ -461,7 +461,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
-					Expect(virtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal("v1-vs-test"))
+					Expect(virtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal(model.GetSha("v1") + "-vs-test"))
 				})
 			})
 		})
