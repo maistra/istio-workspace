@@ -29,52 +29,58 @@ func SetLogger(logger logr.Logger) {
 
 // CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
 func CreateOperatorAwareLogger(name string) logr.Logger {
+	level := zap.InfoLevel
+	if isDebugModeEnabled() {
+		level = zap.DebugLevel
+	}
+	return CreateOperatorAwareLoggerWithLevel(name, level)
+}
+
+// CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
+func CreateOperatorAwareLoggerWithLevel(name string, level zapcore.Level) logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
-	var lvl zap.AtomicLevel
 
 	operator := isRunningAsOperator()
 	sink := zapcore.AddSync(os.Stderr)
 
 	if operator {
-		enc, lvl, opts = configureOperatorLogging()
+		enc, opts = configureOperatorLogging()
 	} else {
-		enc, lvl, opts = configureCliLogging()
+		enc, opts = configureCliLogging()
 	}
 
 	opts = append(opts, zap.AddCaller(), zap.ErrorOutput(sink))
 
 	encoder := &zapr.KubeAwareEncoder{Encoder: enc, Verbose: !operator}
-	log := zap.New(zapcore.NewCore(encoder, sink, lvl))
+	log := zap.New(zapcore.NewCore(encoder, sink, zap.NewAtomicLevelAt(level)))
 	log = log.Named(name).WithOptions(opts...)
 
 	return zapr2.NewLogger(log)
 }
 
-func configureCliLogging() (enc zapcore.Encoder, lvl zap.AtomicLevel, opts []zap.Option) {
+func configureCliLogging() (zapcore.Encoder, []zap.Option) {
+	var enc zapcore.Encoder
+	var opts []zap.Option
 	encCfg := newCliEncoderConfig()
-	lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
-	if debugLevel, found := os.LookupEnv("IKE_LOG_DEBUG"); found {
-		if debug, _ := strconv.ParseBool(debugLevel); debug {
-			zap.NewAtomicLevelAt(zap.DebugLevel)
-			enc = zapcore.NewConsoleEncoder(encCfg)
-		}
+	if isDebugModeEnabled() {
+		enc = zapcore.NewConsoleEncoder(encCfg)
 	} else {
 		enc = newFilteringEncoder(zapcore.NewConsoleEncoder(encCfg))
 	}
 	opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
-	return
+	return enc, opts
 }
 
-func configureOperatorLogging() (enc zapcore.Encoder, lvl zap.AtomicLevel, opts []zap.Option) {
+func configureOperatorLogging() (zapcore.Encoder, []zap.Option) {
 	encCfg := zap.NewProductionEncoderConfig()
-	enc = zapcore.NewJSONEncoder(encCfg)
-	lvl = zap.NewAtomicLevelAt(zap.InfoLevel)
+	enc := zapcore.NewJSONEncoder(encCfg)
+	var opts []zap.Option
 	opts = append(opts, zap.AddStacktrace(zap.WarnLevel),
 		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 			return zapcore.NewSamplerWithOptions(core, time.Second, 100, 100)
 		}))
-	return
+	return enc, opts
 }
 
 func newCliEncoderConfig() zapcore.EncoderConfig {
@@ -89,4 +95,9 @@ func newCliEncoderConfig() zapcore.EncoderConfig {
 func isRunningAsOperator() bool {
 	_, runningInCluster := os.LookupEnv("OPERATOR_NAME")
 	return runningInCluster
+}
+
+func isDebugModeEnabled() bool {
+	debug, _ := strconv.ParseBool(os.Getenv("IKE_LOG_DEBUG"))
+	return debug
 }

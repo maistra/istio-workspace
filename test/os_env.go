@@ -2,6 +2,25 @@ package test
 
 import "os"
 
+func TemporaryUnsetEnvVars(keys ...string) func() {
+	originalEnvs := map[string]string{}
+
+	for _, key := range keys {
+		originalEnvs[key] = os.Getenv(key)
+		_ = os.Unsetenv(key)
+	}
+
+	return func() {
+		for k, v := range originalEnvs {
+			if v != "" {
+				_ = os.Setenv(k, v)
+			} else {
+				_ = os.Unsetenv(k)
+			}
+		}
+	}
+}
+
 func TemporaryEnvVars(keyValues ...string) func() {
 	if len(keyValues)%2 != 0 {
 		panic("you should supply even amount of key-value arguments")

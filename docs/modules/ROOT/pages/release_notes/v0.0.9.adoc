@@ -1,0 +1,58 @@
+== Highlights of v0.0.9 release
+
+=== Tekton / Openshift Pipeline Tasks
+
+With this release you can now use `istio-workspace` within Tekton to make special routes for 
+either preview or testing purposes. See https://istio-workspace-docs.netlify.app/istio-workspace/v0.0.9/integration/tekton/overview.html[Tekton Integration docs] for more details.
+
+=== All changes in this release
+
+// changelog:generate
+==== Build System Integration
+
+===== New features
+* feat: tekton task release scripts (https://github.com/maistra/istio-workspace/pull/735[#735]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat: initial move of Tekton tasks (https://github.com/maistra/istio-workspace/pull/728[#728]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Command line
+
+
+===== Bugs
+* fix: do not ignore errors when outputting in json (https://github.com/maistra/istio-workspace/pull/741[#741]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Documentation
+
+===== New features
+* chore: rewords project description (https://github.com/maistra/istio-workspace/pull/742[#742]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(doc): add metadata and desc to Tekton Tasks (https://github.com/maistra/istio-workspace/pull/736[#736]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+==== Operator
+
+
+===== Bugs
+* fix(operator): avoid reusing version in clone name (https://github.com/maistra/istio-workspace/pull/743[#743]), by https://github.com/aslakknutsen[@aslakknutsen]
+* fix: do not ignore errors when outputting in json (https://github.com/maistra/istio-workspace/pull/741[#741]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Project infrastructure
+
+===== New features
+* fix(circle): updates executor machine to Ubuntu 20.04 (https://github.com/maistra/istio-workspace/pull/734[#734]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Testing
+
+===== New features
+* feat(tekton): adds e2e tests for Tekton tasks (https://github.com/maistra/istio-workspace/pull/738[#738]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+=== Latest dependencies update
+
+ * github.com/kisielk/errcheck to 1.6.0 (https://github.com/maistra/istio-workspace/pull/722[#722]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/ginkgo to 1.15.1 (https://github.com/maistra/istio-workspace/pull/732[#732]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/gomega to 1.11.0 (https://github.com/maistra/istio-workspace/pull/733[#733]), by https://github.com/dependabot[@dependabot]
+ * golangci/golangci-lint-action to v2.5.1. (https://github.com/maistra/istio-workspace/pull/720[#720]), by https://github.com/dependabot[@dependabot]
+ * google.golang.org/grpc to 1.36.0 (https://github.com/maistra/istio-workspace/pull/721[#721]), by https://github.com/dependabot[@dependabot]
+ * istio.io/client-go to 1.9.1 (https://github.com/maistra/istio-workspace/pull/731[#731]), by https://github.com/dependabot[@dependabot]
+
