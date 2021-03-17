@@ -1,0 +1,10 @@
+== Highlights of v0.0.9 release
+
+=== Tekton / Openshift Pipeline Tasks
+
+With this release you can now use `istio-workspace` within Tekton to make special routes for 
+either preview or testing purposes. See https://istio-workspace-docs.netlify.app/istio-workspace/v0.0.9/integration/tekton/overview.html[Tekton Integration docs] for more details.
+
+=== All changes in this release
+
+// changelog:generate
