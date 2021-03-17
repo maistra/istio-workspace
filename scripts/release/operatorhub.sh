@@ -99,7 +99,7 @@ if [[ $runTests -ne 0 ]]; then
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
 fi
 
-if [[ -z $GITHUB_TOKEN ]]; then
+if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
 fi
 

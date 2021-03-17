@@ -117,7 +117,7 @@ git commit -sS -m"${TITLE}
 
 ${COMMIT_MESSAGE}"
 
-if [[ -z $GITHUB_TOKEN ]]; then
+if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
 fi
 
