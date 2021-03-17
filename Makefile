@@ -102,12 +102,12 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v -progress -vet=off --skipPackage=e2e ${args}
+	ginkgo -r -v -progress -vet=off -trace -skipPackage=e2e ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
-	ginkgo e2e/ -r -v -progress -vet=off ${args}
+	ginkgo e2e/ -r -v -progress -vet=off -trace ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts
@@ -157,7 +157,7 @@ $(DIST_DIR):
 
 $(DIST_DIR)/$(BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
-	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
+	${GOBUILD} go build -v -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
 $(DIST_DIR)/$(TEST_BINARY_NAME): $(DIST_DIR) $(SRCS) test/cmd/test-service/html.go
 	$(call header,"Compiling test service... carry on!")
