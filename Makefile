@@ -102,12 +102,12 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v --skipPackage=e2e ${args}
+	ginkgo -r -v -progress -vet=off --skipPackage=e2e ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
-	ginkgo e2e/ -v -p ${args}
+	ginkgo e2e/ -r -v -progress -vet=off ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts
