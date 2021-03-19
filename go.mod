@@ -23,7 +23,7 @@ require (
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.3.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
-	github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang v1.10.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1 // indirect
@@ -45,7 +45,7 @@ require (
 	istio.io/api v0.0.0-20210218044411-561dc276d04d
 	istio.io/client-go v1.9.1
 	k8s.io/api v0.20.4
-	k8s.io/apimachinery v0.20.4
+	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.4
 	k8s.io/code-generator v0.20.4
 	sigs.k8s.io/controller-runtime v0.7.0
