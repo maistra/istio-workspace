@@ -45,7 +45,7 @@ require (
 	istio.io/api v0.0.0-20210218044411-561dc276d04d
 	istio.io/client-go v1.9.1
 	k8s.io/api v0.20.4
-	k8s.io/apimachinery v0.20.4
+	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.4
 	k8s.io/code-generator v0.20.4
 	sigs.k8s.io/controller-runtime v0.7.0
