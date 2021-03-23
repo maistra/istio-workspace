@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	zapr2 "github.com/go-logr/zapr"
+	"k8s.io/klog/v2"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -25,6 +26,7 @@ var Log = NilLog
 func SetLogger(logger logr.Logger) {
 	Log = logger
 	logf.SetLogger(logger)
+	klog.SetLogger(logger)
 }
 
 // CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
