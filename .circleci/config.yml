@@ -135,7 +135,7 @@ jobs:
       - run:
           name: Install official kubectl
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.2/bin/linux/amd64/kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
@@ -195,11 +195,13 @@ jobs:
               sleep 10
             done
             echo "Tekton installed"
-      - run:
-          name: "[TEST]"
-          command: |
-            echo $MICROK8S_VERSION
-            echo $GOVERSION
+      - save_cache:
+          key: snap-cache-{{ checksum "/tmp/snap_version" }}
+          paths:
+            - /snap/
+            - /var/snap/
+            - /var/lib/snapd/
+            - ~/snap
       - run:
           name: "Run end-to-end tests"
           command: |
@@ -236,13 +238,6 @@ jobs:
             - ./vendor
       - save_cache:
           <<: *save-tree-hash
-      - save_cache:
-          key: snap-cache-{{ checksum "/tmp/snap_version" }}
-          paths:
-            - /snap/
-            - /var/snap/
-            - /var/lib/snapd/
-            - ~/snap
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
