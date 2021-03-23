@@ -5,6 +5,9 @@ defaults:
     name: "Install latest Golang"
     command: |
       sudo snap install go --classic --channel 1.16/stable
+      echo "export GOROOT=/snap/go/current" >> $BASH_ENV
+      ## cleaning up path: remove pre-installed golang version
+      sudo rm -rf /usr/local/go
   node-install: &node-install
     name: "Install Node"
     command: |
