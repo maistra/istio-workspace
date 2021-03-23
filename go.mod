@@ -25,7 +25,7 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/prometheus/client_golang v1.10.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
-	github.com/spf13/afero v1.5.1
+	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -48,7 +48,7 @@ require (
 	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.5
 	k8s.io/code-generator v0.20.4
-	k8s.io/klog/v2 v2.4.0
+	k8s.io/klog/v2 v2.8.0
 	sigs.k8s.io/controller-runtime v0.7.0
 	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/yaml v1.2.0
