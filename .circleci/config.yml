@@ -99,7 +99,7 @@ jobs:
       - run:
           name: "Obtain snap cache version"
           command: |
-            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 2 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 2 )" > /tmp/snap_version
+            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snap_version
             cat /tmp/snap_version
       - run:
           <<: *obtain-tree-hash
