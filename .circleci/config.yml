@@ -99,7 +99,7 @@ jobs:
       - run:
           name: "Obtain snap cache version"
           command: |
-            echo "go-$(snap info go | grep "${GOLANG_SNAP_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )-microk8s-$(snap info microk8s | grep "${MICROK8S_SNAP_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )" > /tmp/snap_version
+            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 2 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 2 )" > /tmp/snap_version
             cat /tmp/snap_version
       - run:
           <<: *obtain-tree-hash
@@ -201,7 +201,6 @@ jobs:
             - /snap/
             - /var/snap/
             - /var/lib/snapd/
-            - ~/snap
       - run:
           name: "Run end-to-end tests"
           command: |
