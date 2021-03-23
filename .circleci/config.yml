@@ -1,14 +1,23 @@
 version: 2.1
 
 defaults:
+  env-vars: &env-vars
+    GOPATH: /home/circleci/.go_workspace
+    IKE_E2E_KEEP_NS: "false"
+    IKE_E2E_MANAGE_CLUSTER: "false"
+    IKE_LOG_DEBUG: "true"
+    BUILD_CACHE_FOLDER: ".circleci/cache"
+    MICROK8S_VERSION: "1.18/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
     command: |
       sudo snap install go --classic --channel 1.16/stable
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
-      echo "export GOVERSION=$(go version | cut -d' ' -f 3)" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
       sudo rm -rf /usr/local/go
+      echo "export GOVERSION=$(go version | cut -d' ' -f 3)" >> $BASH_ENV
+      echo "${GOVERSION}-$(snap info microk8s | grep "${MICROK8S_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )" > /tmp/snap_version
+      cat /tmp/snap_version
   node-install: &node-install
     name: "Install Node"
     command: |
@@ -49,13 +58,7 @@ defaults:
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
-      - ./.circleci/cache # Can't use env variable here - needs to be explicit value
-  env-vars: &env-vars
-    GOPATH: /home/circleci/.go_workspace
-    IKE_E2E_KEEP_NS: "false"
-    IKE_E2E_MANAGE_CLUSTER: "false"
-    IKE_LOG_DEBUG: "true"
-    BUILD_CACHE_FOLDER: ".circleci/cache"
+    - ./.circleci/cache # Can't use env variable here - needs to be explicit value
 
 jobs:
 
@@ -98,7 +101,7 @@ jobs:
       - restore_cache:
           keys:
             - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
-            - snap-cache-{{ .Environment.GOVERSION }}-{{ .Environment.MICROK8S_VERSION}}
+            - snap-cache-{{ checksum "/tmp/snap_version" }}
       - run:
           <<: *obtain-tree-hash
       - restore_cache:
@@ -133,7 +136,7 @@ jobs:
       - run:
           name: Launch Microk8s
           command: |
-            sudo snap install microk8s --classic --channel 1.18/stable
+            sudo snap install microk8s --classic --channel ${MICROK8S_VERSION}
 
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
@@ -187,7 +190,6 @@ jobs:
               sleep 10
             done
             echo "Tekton installed"
-            echo "export MICROK8S_VERSION=$(microk8s.kubectl version --short=true | tail -n 1 | cut -d' ' -f 3)" >> $BASH_ENV
       - run:
           name: "[TEST]"
           command: |
@@ -230,7 +232,7 @@ jobs:
       - save_cache:
           <<: *save-tree-hash
       - save_cache:
-          key: snap-cache-{{ .Environment.GOVERSION }}-{{ .Environment.MICROK8S_VERSION}}
+          key: snap-cache-{{ checksum "/tmp/snap_version" }}
           paths:
             - /snap/
             - /var/snap/
