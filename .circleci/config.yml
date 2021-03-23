@@ -7,7 +7,8 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
-    MICROK8S_VERSION: "1.18/stable"
+    MICROK8S_SNAP_VERSION: "1.18/stable"
+    GOLANG_SNAP_VERSION: "1.16/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
     command: |
@@ -15,9 +16,6 @@ defaults:
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
       sudo rm -rf /usr/local/go
-      echo "export GOVERSION=$(go version | cut -d' ' -f 3)" >> $BASH_ENV
-      echo "${GOVERSION}-$(snap info microk8s | grep "${MICROK8S_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )" > /tmp/snap_version
-      cat /tmp/snap_version
   node-install: &node-install
     name: "Install Node"
     command: |
@@ -98,10 +96,11 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
-            - snap-cache-{{ checksum "/tmp/snap_version" }}
+      - run:
+          name: "Obtain snap cache version"
+          command: |
+            echo "$(snap info go | grep "${GOLANG_SNAP_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )-$(snap info microk8s | grep "${MICROK8S_SNAP_VERSION}:" | tr -s ' ' | cut -d ' ' -f 3 )" > /tmp/snap_version
+            cat /tmp/snap_version
       - run:
           <<: *obtain-tree-hash
       - restore_cache:
@@ -110,6 +109,10 @@ jobs:
           <<: *check-if-build-executed
       - run:
           <<: *skip-e2e-check
+      - restore_cache:
+          keys:
+            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
+            - snap-cache-{{ checksum "/tmp/snap_version" }}
       - run:
           <<: *golang-install
       - run:
