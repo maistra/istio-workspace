@@ -6,6 +6,7 @@ defaults:
     command: |
       sudo snap install go --classic --channel 1.16/stable
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
+      echo "export GOVERSION=$(go version | cut -d' ' -f 3)" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
       sudo rm -rf /usr/local/go
   node-install: &node-install
@@ -97,6 +98,7 @@ jobs:
       - restore_cache:
           keys:
             - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
+            - snap-cache-{{ .Environment.GOVERSION }}-{{ .Environment.MICROK8S_VERSION}}
       - run:
           <<: *obtain-tree-hash
       - restore_cache:
@@ -185,6 +187,12 @@ jobs:
               sleep 10
             done
             echo "Tekton installed"
+            echo "export MICROK8S_VERSION=$(microk8s.kubectl version --short=true | tail -n 1 | cut -d' ' -f 3)" >> $BASH_ENV
+      - run:
+          name: "[TEST]"
+          command: |
+            echo $MICROK8S_VERSION
+            echo $GOVERSION
       - run:
           name: "Run end-to-end tests"
           command: |
@@ -221,6 +229,13 @@ jobs:
             - ./vendor
       - save_cache:
           <<: *save-tree-hash
+      - save_cache:
+          key: snap-cache-{{ .Environment.GOVERSION }}-{{ .Environment.MICROK8S_VERSION}}
+          paths:
+            - /snap/
+            - /var/snap/
+            - /var/lib/snapd/
+            - ~/snap
 
   release:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
