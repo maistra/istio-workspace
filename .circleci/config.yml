@@ -15,7 +15,7 @@ defaults:
       ## TODO adjust release job
       cd ~/.snaps
       sudo snap ack golang.assert
-      sudo snap install golang.snap
+      sudo snap install golang.snap --classic
 
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
@@ -156,7 +156,7 @@ jobs:
           command: |
             cd ~/.snaps
             sudo snap ack microk8s.assert
-            sudo snap install microk8s.snap
+            sudo snap install microk8s.snap --classic
       - save_cache:
           ## We want to save cache only if both installations were successful
           key: snaps-cache-{{ checksum "/tmp/snaps_version" }}
