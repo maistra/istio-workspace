@@ -113,7 +113,7 @@ jobs:
             - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - snap-cache-{{ checksum "/tmp/snap_version" }}
+            - snap-cache-{{ arch }}-{{ checksum "/tmp/snap_version" }}
       - run:
           <<: *golang-install
       - run:
@@ -195,7 +195,7 @@ jobs:
             done
             echo "Tekton installed"
       - save_cache:
-          key: snap-cache-{{ checksum "/tmp/snap_version" }}
+          key: snap-cache-{{ arch }}-{{ checksum "/tmp/snap_version" }}
           paths:
             - /snap/
             - /var/snap/
