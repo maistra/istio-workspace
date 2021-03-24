@@ -113,7 +113,11 @@ jobs:
             - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
-            - snap-cache-{{ arch }}-{{ checksum "/tmp/snap_version" }}
+            - snap-cache-tar-{{ checksum "/tmp/snap_version" }}
+      - run:
+          name: "Restoring snap cache"
+          command: sudo tar xzfv ~/snap.tar -C /
+
       - run:
           <<: *golang-install
       - run:
@@ -194,12 +198,14 @@ jobs:
               sleep 10
             done
             echo "Tekton installed"
+      - run:
+          name: "Tar snap folders"
+          command: |
+            sudo tar -cfzh ~/snap.tar /snap/ /var/snap/ /var/lib/snapd/
       - save_cache:
-          key: snap-cache-{{ arch }}-{{ checksum "/tmp/snap_version" }}
+          key: snap-cache-tar-{{ checksum "/tmp/snap_version" }}
           paths:
-            - /snap/
-            - /var/snap/
-            - /var/lib/snapd/
+            - ~/snap.tar
       - run:
           name: "Run end-to-end tests"
           command: |
