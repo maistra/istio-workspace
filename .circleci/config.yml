@@ -12,7 +12,11 @@ defaults:
   golang-install: &golang-install
     name: "Install latest Golang"
     command: |
-      sudo snap install go --classic --channel 1.16/stable
+      ## TODO adjust release job
+      cd ~/.snaps
+      sudo snap ack golang.assert
+      sudo snap install golang.snap
+
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
       sudo rm -rf /usr/local/go
@@ -97,10 +101,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Obtain snap cache version"
-          command: |
-            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snap_version
-      - run:
           <<: *obtain-tree-hash
       - restore_cache:
           <<: *restore-tree-hash
@@ -111,14 +111,23 @@ jobs:
       - restore_cache:
           keys:
             - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
+      - run:
+          name: "Calculate snap cache key"
+          command: |
+            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
       - restore_cache:
           keys:
-            - snap-cache-tar-{{ checksum "/tmp/snap_version" }}
+            - snaps-cache-{{ checksum "/tmp/snaps_version" }}
       - run:
-          name: "Restoring snap cache"
+          name: "Downloading snaps (if not restored)"
           command: |
-            [[ -f ~/snap.tar ]] && sudo tar xzfv ~/snap.tar -C / || true
-
+            cd ~
+            if [[ ! -d .snaps ]]; then
+                mkdir -p .snaps
+                cd .snaps
+                sudo snap download microk8s --channel ${MICROK8S_SNAP_VERSION} --basename microk8s
+                sudo snap download go --channel ${GOLANG_SNAP_VERSION} --basename golang
+            fi
       - run:
           <<: *golang-install
       - run:
@@ -143,10 +152,19 @@ jobs:
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
+          name: Install Microk8s
+          command: |
+            cd ~/.snaps
+            sudo snap ack microk8s.assert
+            sudo snap install microk8s.snap
+      - save_cache:
+          ## We want to save cache only if both installations were successful
+          key: snaps-cache-{{ checksum "/tmp/snaps_version" }}
+          paths:
+            - ~/.snaps
+      - run:
           name: Launch Microk8s
           command: |
-            sudo snap install microk8s --classic --channel ${MICROK8S_SNAP_VERSION}
-
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
 
@@ -199,14 +217,6 @@ jobs:
               sleep 10
             done
             echo "Tekton installed"
-      - run:
-          name: "Tar snap folders"
-          command: |
-            sudo tar -cfzh ~/snap.tar /snap/ /var/snap/ /var/lib/snapd/
-      - save_cache:
-          key: snap-cache-tar-{{ checksum "/tmp/snap_version" }}
-          paths:
-            - ~/snap.tar
       - run:
           name: "Run end-to-end tests"
           command: |
