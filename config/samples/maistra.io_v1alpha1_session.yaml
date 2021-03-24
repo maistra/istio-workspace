@@ -5,7 +5,10 @@ metadata:
 spec:
   route:
     type: header
-    name: end-user
-    value: jason
+    name: x-workspace-route
+    value: feature-x
   ref:
     - name: ratings-v1
+      strategy: prepared-image
+      args:
+        image: quay.io/maistra-dev/istio-workspace-test:latest
