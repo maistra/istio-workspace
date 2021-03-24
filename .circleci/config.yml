@@ -116,7 +116,7 @@ jobs:
             - snap-cache-tar-{{ checksum "/tmp/snap_version" }}
       - run:
           name: "Restoring snap cache"
-          command: sudo tar xzfv ~/snap.tar -C /
+          command: [[ -f ~/snap.tar ]] && sudo tar xzfv ~/snap.tar -C /
 
       - run:
           <<: *golang-install
