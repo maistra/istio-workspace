@@ -1,10 +1,22 @@
 version: 2.1
 
 defaults:
+  env-vars: &env-vars
+    GOPATH: /home/circleci/.go_workspace
+    IKE_E2E_KEEP_NS: "false"
+    IKE_E2E_MANAGE_CLUSTER: "false"
+    IKE_LOG_DEBUG: "true"
+    BUILD_CACHE_FOLDER: ".circleci/cache"
+    MICROK8S_SNAP_VERSION: "1.18/stable"
+    GOLANG_SNAP_VERSION: "1.16/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
     command: |
-      sudo snap install go --classic --channel 1.16/stable
+      ## Requires snap caching to be also used in the job
+      cd ~/.snaps
+      sudo snap ack golang.assert
+      sudo snap install golang.snap --classic
+
       echo "export GOROOT=/snap/go/current" >> $BASH_ENV
       ## cleaning up path: remove pre-installed golang version
       sudo rm -rf /usr/local/go
@@ -25,16 +37,6 @@ defaults:
         echo "/skip-e2e directive detected. Explictly stopping e2e tests."
         circleci step halt
       fi
-  obtain-tree-hash: &obtain-tree-hash
-    name: "Obtain git tree hash"
-    command: |
-      mkdir -p ${BUILD_CACHE_FOLDER}
-      export TREE_SHA1=$(git rev-parse HEAD:)
-      echo "export TREE_SHA1=${TREE_SHA1}" >> $BASH_ENV
-      echo ${TREE_SHA1} > /tmp/tree.sha1
-  restore-tree-hash: &restore-tree-hash
-      keys:
-        - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }} # workaround for https://discuss.circleci.com/t/cannot-use-circle-yml-environment-variables-in-cache-keys/10994/20
   check-if-build-executed: &check-if-build-executed
     name: "Check if build with this content was already executed"
     command: |
@@ -45,16 +47,27 @@ defaults:
         echo "New build - if succeeds build git hash will be cached"
         echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/${CIRCLE_JOB}.githash
       fi
+  obtain-tree-hash: &obtain-tree-hash
+    name: "Obtain git tree hash"
+    command: |
+      mkdir -p ${BUILD_CACHE_FOLDER}
+      export TREE_SHA1=$(git rev-parse HEAD:)
+      echo "export TREE_SHA1=${TREE_SHA1}" >> $BASH_ENV
+      echo ${TREE_SHA1} > /tmp/tree.sha1
+  restore-tree-hash: &restore-tree-hash
+      keys:
+        - job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }} # workaround for https://discuss.circleci.com/t/cannot-use-circle-yml-environment-variables-in-cache-keys/10994/20
   save-tree-hash: &save-tree-hash
     key: job-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "/tmp/tree.sha1" }}
     paths:
-      - ./.circleci/cache # Can't use env variable here - needs to be explicit value
-  env-vars: &env-vars
-    GOPATH: /home/circleci/.go_workspace
-    IKE_E2E_KEEP_NS: "false"
-    IKE_E2E_MANAGE_CLUSTER: "false"
-    IKE_LOG_DEBUG: "true"
-    BUILD_CACHE_FOLDER: ".circleci/cache"
+    - ./.circleci/cache # Can't use env variable here - needs to be explicit value
+  save-snaps: &save-snaps
+    key: snap-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/snaps_version" }}
+    paths:
+      - ~/.snaps
+  restore-snaps: &restore-snaps
+    keys:
+      - snap-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/snaps_version" }}
 
 jobs:
 
@@ -94,9 +107,6 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
       - run:
           <<: *obtain-tree-hash
       - restore_cache:
@@ -105,10 +115,30 @@ jobs:
           <<: *check-if-build-executed
       - run:
           <<: *skip-e2e-check
+      - restore_cache:
+          keys:
+            - golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
+      - run:
+          name: "Calculate snap cache key"
+          command: |
+            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
+      - restore_cache:
+          <<: *restore-snaps
+      - run:
+          name: "Downloading snaps (if not restored)"
+          command: |
+            cd ~
+            if [[ ! -d .snaps ]]; then
+                mkdir -p .snaps
+                cd .snaps
+                snap download microk8s --channel ${MICROK8S_SNAP_VERSION} --basename microk8s
+                snap download core --channel stable --basename core
+                snap download go --channel ${GOLANG_SNAP_VERSION} --basename golang
+            fi
       - run:
           <<: *golang-install
       - run:
-          name: "Install telepresence"
+          name: "Install Telepresence"
           command: |
             cd ~
             pyenv global 3.9.1
@@ -125,14 +155,22 @@ jobs:
       - run:
           name: Install official kubectl
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.2/bin/linux/amd64/kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
+          name: Install Microk8s
+          command: |
+            cd ~/.snaps
+            sudo snap ack core.assert
+            sudo snap install core.snap
+            sudo snap ack microk8s.assert
+            sudo snap install microk8s.snap --classic
+      - save_cache:
+          <<: *save-snaps
+      - run:
           name: Launch Microk8s
           command: |
-            sudo snap install microk8s --classic --channel 1.18/stable
-
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
 
@@ -186,7 +224,7 @@ jobs:
             done
             echo "Tekton installed"
       - run:
-          name: "Run end-to-end tests"
+          name: "Runs end-to-end tests"
           command: |
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
 
@@ -230,6 +268,23 @@ jobs:
       <<: *env-vars
     steps:
       - checkout
+      - run:
+          name: "Calculate snap cache key"
+          command: |
+            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
+      - restore_cache:
+          <<: *restore-snaps
+      - run:
+          name: "Downloading snaps (if not restored)"
+          command: |
+            cd ~
+            if [[ ! -d .snaps ]]; then
+                mkdir -p .snaps
+                cd .snaps
+                snap download go --channel ${GOLANG_SNAP_VERSION} --basename golang
+            fi
+      - save_cache:
+          <<: *save-snaps
       - run:
           <<: *golang-install
       - run:
