@@ -117,7 +117,7 @@ jobs:
       - run:
           name: "Restoring snap cache"
           command: |
-            [[ -f ~/snap.tar ]] && sudo tar xzfv ~/snap.tar -C /
+            [[ -f ~/snap.tar ]] && sudo tar xzfv ~/snap.tar -C / || true
 
       - run:
           <<: *golang-install
