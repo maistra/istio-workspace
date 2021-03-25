@@ -91,6 +91,10 @@ spec:
                           kind:
                             description: The Resource Kind
                             type: string
+                          lastTransitionTime:
+                            description: LastTransitionTime is the last time this action was applied
+                            format: date-time
+                            type: string
                           name:
                             description: The Resource Name
                             type: string
@@ -119,6 +123,10 @@ spec:
                             additionalProperties:
                               type: string
                             type: object
+                          lastTransitionTime:
+                            description: LastTransitionTime is the last time this action was applied
+                            format: date-time
+                            type: string
                           name:
                             description: The Resource Name
                             type: string

@@ -80,6 +80,8 @@ type RefResource struct {
 	Name *string `json:"name,omitempty"`
 	// The Action that was performed, e.g. created, failed, manipulated
 	Action *string `json:"action,omitempty"`
+	// LastTransitionTime is the last time this action was applied
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
 	// +optional
 	// Additional properties for special Resources, e.g. hosts for Gateways
 	Prop map[string]string `json:"prop,omitempty"`
