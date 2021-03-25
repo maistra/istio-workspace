@@ -121,7 +121,8 @@ jobs:
       - run:
           name: "Calculate snap cache key"
           command: |
-            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
+            ## Set CACHE_VERSION to any value to force cache reload
+            echo "go-${CACHE_VERSION}-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )-microk8s-$(echo "${MICROK8S_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
       - restore_cache:
           <<: *restore-snaps
       - run:
@@ -271,7 +272,8 @@ jobs:
       - run:
           name: "Calculate snap cache key"
           command: |
-            echo "go-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
+            ## Set CACHE_VERSION to any value to force cache reload
+            echo "go-${CACHE_VERSION}-$(echo "${GOLANG_SNAP_VERSION}" | cut -d '/' -f 1 )" > /tmp/snaps_version
       - restore_cache:
           <<: *restore-snaps
       - run:
