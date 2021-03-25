@@ -71,6 +71,10 @@ func (in *RefResource) DeepCopyInto(out *RefResource) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.LastTransitionTime != nil {
+		in, out := &in.LastTransitionTime, &out.LastTransitionTime
+		*out = (*in).DeepCopy()
+	}
 	if in.Prop != nil {
 		in, out := &in.Prop, &out.Prop
 		*out = make(map[string]string, len(*in))

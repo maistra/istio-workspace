@@ -2,6 +2,9 @@ package session
 
 import (
 	"reflect"
+	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -28,14 +31,26 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 		target := t
 		action := string(target.Action)
 		statusRef.Targets = append(statusRef.Targets, &istiov1alpha1.LabeledRefResource{
-			RefResource: istiov1alpha1.RefResource{Kind: &target.Kind, Name: &target.Name, Action: &action},
-			Labels:      target.Labels,
+			RefResource: istiov1alpha1.RefResource{
+				Kind:               &target.Kind,
+				Name:               &target.Name,
+				Action:             &action,
+				LastTransitionTime: &metav1.Time{Time: target.TimeStamp},
+			},
+			Labels: target.Labels,
 		})
 	}
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
 		action := string(rs.Action)
-		statusRef.Resources = append(statusRef.Resources, &istiov1alpha1.RefResource{Name: &rs.Name, Kind: &rs.Kind, Action: &action, Prop: rs.Prop})
+		statusRef.Resources = append(statusRef.Resources,
+			&istiov1alpha1.RefResource{
+				Name:               &rs.Name,
+				Kind:               &rs.Kind,
+				Action:             &action,
+				Prop:               rs.Prop,
+				LastTransitionTime: &metav1.Time{Time: rs.TimeStamp},
+			})
 	}
 	var existsInStatus bool
 	for i, statRef := range session.Status.Refs {
@@ -76,17 +91,33 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
 		if statusRef.Name == ref.Name {
 			for _, statusTarget := range statusRef.Targets {
+				timeStamp := time.Time{}
+				if statusTarget.LastTransitionTime != nil {
+					timeStamp = statusTarget.LastTransitionTime.Time
+				}
 				ref.AddTargetResource(model.LocatedResourceStatus{
 					ResourceStatus: model.ResourceStatus{
-						Kind:   *statusTarget.Kind,
-						Name:   *statusTarget.Name,
-						Action: model.ResourceAction(*statusTarget.Action)},
+						Kind:      *statusTarget.Kind,
+						Name:      *statusTarget.Name,
+						Action:    model.ResourceAction(*statusTarget.Action),
+						TimeStamp: timeStamp,
+					},
 					Labels: statusTarget.Labels,
 				})
 			}
 			for _, resource := range statusRef.Resources {
 				r := resource
-				ref.AddResourceStatus(model.ResourceStatus{Name: *r.Name, Kind: *r.Kind, Action: model.ResourceAction(*r.Action), Prop: r.Prop})
+				timeStamp := time.Time{}
+				if r.LastTransitionTime != nil {
+					timeStamp = r.LastTransitionTime.Time
+				}
+				ref.AddResourceStatus(model.ResourceStatus{
+					Name:      *r.Name,
+					Kind:      *r.Kind,
+					Action:    model.ResourceAction(*r.Action),
+					Prop:      r.Prop,
+					TimeStamp: timeStamp,
+				})
 			}
 		}
 	}
