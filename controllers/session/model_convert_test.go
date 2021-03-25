@@ -1,6 +1,8 @@
 package session_test
 
 import (
+	"time"
+
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -35,17 +37,17 @@ var _ = Describe("Basic model conversion", func() {
 				Args:      map[string]string{"image": "x"},
 				Targets: []model.LocatedResourceStatus{
 					{
-						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated},
+						ResourceStatus: model.ResourceStatus{Kind: "dc", Name: "dc-n", Action: model.ActionLocated, TimeStamp: time.Now()},
 						Labels:         map[string]string{},
 					},
 					{
-						ResourceStatus: model.ResourceStatus{Kind: "service", Name: "serv-n", Action: model.ActionLocated},
+						ResourceStatus: model.ResourceStatus{Kind: "service", Name: "serv-n", Action: model.ActionLocated, TimeStamp: time.Now()},
 						Labels:         map[string]string{},
 					}},
 				ResourceStatuses: []model.ResourceStatus{
-					{Kind: kind, Name: name, Action: model.ActionCreated},
-					{Kind: "test", Name: "2", Action: model.ActionModified},
-					{Kind: "test-2", Name: "2", Action: model.ActionFailed, Prop: map[string]string{"host": "x"}},
+					{Kind: kind, Name: name, Action: model.ActionCreated, TimeStamp: time.Now()},
+					{Kind: "test", Name: "2", Action: model.ActionModified, TimeStamp: time.Now()},
+					{Kind: "test-2", Name: "2", Action: model.ActionFailed, TimeStamp: time.Now(), Prop: map[string]string{"host": "x"}},
 				}}
 		})
 
@@ -71,11 +73,13 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(sess.Status.Refs[0].Targets[0]).ToNot(BeNil())
 			Expect(*sess.Status.Refs[0].Targets[0].Kind).To(Equal(ref.Targets[0].Kind))
 			Expect(*sess.Status.Refs[0].Targets[0].Name).To(Equal(ref.Targets[0].Name))
+			Expect(*sess.Status.Refs[0].Targets[0].LastTransitionTime).To(Equal(ref.Targets[0].TimeStamp))
 			Expect(*sess.Status.Refs[0].Targets[0].Action).To(Equal("located"))
 
 			Expect(sess.Status.Refs[0].Targets[1]).ToNot(BeNil())
 			Expect(*sess.Status.Refs[0].Targets[1].Kind).To(Equal(ref.Targets[1].Kind))
 			Expect(*sess.Status.Refs[0].Targets[1].Name).To(Equal(ref.Targets[1].Name))
+			Expect(*sess.Status.Refs[0].Targets[1].LastTransitionTime).To(Equal(ref.Targets[1].TimeStamp))
 			Expect(*sess.Status.Refs[0].Targets[1].Action).To(Equal("located"))
 		})
 
@@ -83,16 +87,19 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(sess.Status.Refs).To(HaveLen(1))
 			Expect(*sess.Status.Refs[0].Resources[0].Kind).To(Equal(ref.ResourceStatuses[0].Kind))
 			Expect(*sess.Status.Refs[0].Resources[0].Name).To(Equal(ref.ResourceStatuses[0].Name))
+			Expect(*sess.Status.Refs[0].Resources[0].LastTransitionTime).To(Equal(ref.ResourceStatuses[0].TimeStamp))
 			Expect(*sess.Status.Refs[0].Resources[0].Action).To(Equal(aCreated))
 			Expect(sess.Status.Refs[0].Resources[0].Prop).To(BeEmpty())
 
 			Expect(*sess.Status.Refs[0].Resources[1].Kind).To(Equal(ref.ResourceStatuses[1].Kind))
 			Expect(*sess.Status.Refs[0].Resources[1].Name).To(Equal(ref.ResourceStatuses[1].Name))
+			Expect(*sess.Status.Refs[0].Resources[1].LastTransitionTime).To(Equal(ref.ResourceStatuses[1].TimeStamp))
 			Expect(*sess.Status.Refs[0].Resources[1].Action).To(Equal(aModified))
 			Expect(sess.Status.Refs[0].Resources[1].Prop).To(BeEmpty())
 
 			Expect(*sess.Status.Refs[0].Resources[2].Kind).To(Equal(ref.ResourceStatuses[2].Kind))
 			Expect(*sess.Status.Refs[0].Resources[2].Name).To(Equal(ref.ResourceStatuses[2].Name))
+			Expect(*sess.Status.Refs[0].Resources[2].LastTransitionTime).To(Equal(ref.ResourceStatuses[2].TimeStamp))
 			Expect(*sess.Status.Refs[0].Resources[2].Action).To(Equal(aFailed))
 			Expect(sess.Status.Refs[0].Resources[2].Prop).ToNot(BeEmpty())
 			Expect(sess.Status.Refs[0].Resources[2].Prop["host"]).To(Equal("x"))
@@ -169,11 +176,11 @@ var _ = Describe("Basic model conversion", func() {
 							},
 							Targets: []*v1alpha1.LabeledRefResource{
 								{
-									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated},
+									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &name, Action: &aLocated, LastTransitionTime: &metav1.Time{Time: time.Now()}},
 									Labels:      map[string]string{},
 								},
 								{
-									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &servname, Action: &aLocated},
+									RefResource: v1alpha1.RefResource{Kind: &kind, Name: &servname, Action: &aLocated, LastTransitionTime: &metav1.Time{Time: time.Now()}},
 									Labels:      map[string]string{},
 								},
 							},
@@ -206,6 +213,7 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[0].Args).To(Equal(sess.Status.Refs[0].Args))
 			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
 			Expect(refs[0].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[0].Resources[0].Name))
+			Expect(refs[0].ResourceStatuses[0].TimeStamp).To(Equal(*sess.Status.Refs[0].Resources[0].LastTransitionTime))
 			Expect(refs[0].ResourceStatuses[0].Action).To(Equal(model.ActionCreated))
 
 			Expect(refs[1].Name).To(Equal(sess.Status.Refs[1].Name))
@@ -214,6 +222,7 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[1].Args).To(Equal(sess.Status.Refs[1].Args))
 			Expect(refs[1].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[1].Resources[0].Kind))
 			Expect(refs[1].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[1].Resources[0].Name))
+			Expect(refs[1].ResourceStatuses[0].TimeStamp).To(Equal(*sess.Status.Refs[1].Resources[0].LastTransitionTime))
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
 			Expect(refs[1].ResourceStatuses[0].Action).To(Equal(model.ActionFailed))
 			Expect(refs[1].ResourceStatuses[0].Prop).ToNot(BeEmpty())
@@ -227,10 +236,12 @@ var _ = Describe("Basic model conversion", func() {
 
 			Expect(refs[0].Targets[0].Kind).To(Equal(*sess.Status.Refs[0].Targets[0].Kind))
 			Expect(refs[0].Targets[0].Name).To(Equal(*sess.Status.Refs[0].Targets[0].Name))
+			Expect(refs[0].Targets[0].TimeStamp).To(Equal(*sess.Status.Refs[0].Targets[0].LastTransitionTime))
 			Expect(refs[0].Targets[0].Action).To(Equal(model.ActionLocated))
 
 			Expect(refs[0].Targets[1].Kind).To(Equal(*sess.Status.Refs[0].Targets[1].Kind))
 			Expect(refs[0].Targets[1].Name).To(Equal(*sess.Status.Refs[0].Targets[1].Name))
+			Expect(refs[0].Targets[1].TimeStamp).To(Equal(*sess.Status.Refs[0].Targets[1].LastTransitionTime))
 			Expect(refs[0].Targets[1].Action).To(Equal(model.ActionLocated))
 		})
 	})

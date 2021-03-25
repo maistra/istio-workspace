@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
@@ -155,6 +156,10 @@ func (r *Ref) GetNewVersion(sessionName string) string {
 // AddTargetResource adds the status of an involved Resource to this ref.
 func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
 	replaced := false
+
+	if ref.TimeStamp.IsZero() {
+		ref.TimeStamp = time.Now()
+	}
 	for i, status := range r.Targets {
 		if ref.Name == status.Name && ref.Kind == status.Kind {
 			r.Targets[i] = ref
@@ -169,6 +174,10 @@ func (r *Ref) AddTargetResource(ref LocatedResourceStatus) {
 // AddResourceStatus adds the status of an involved Resource to this ref.
 func (r *Ref) AddResourceStatus(ref ResourceStatus) {
 	replaced := false
+
+	if ref.TimeStamp.IsZero() {
+		ref.TimeStamp = time.Now()
+	}
 	for i, status := range r.ResourceStatuses {
 		if ref.Name == status.Name && ref.Kind == status.Kind {
 			r.ResourceStatuses[i] = ref
@@ -209,11 +218,11 @@ func GetSha(version string) string {
 
 // ResourceStatus holds information about the resources created/changed to fulfill a Ref.
 type ResourceStatus struct {
-	Kind string
-	Name string
-	// created, mutated, failed
-	Action ResourceAction
-	Prop   map[string]string
+	Kind      string
+	Name      string
+	TimeStamp time.Time
+	Action    ResourceAction // created, mutated, failed
+	Prop      map[string]string
 }
 
 // LocatedResourceStatus is a ResourceStatus with labels.
