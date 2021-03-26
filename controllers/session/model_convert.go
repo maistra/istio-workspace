@@ -53,7 +53,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 		}
 		typeDesc := strings.Title(action)
 		reason := strings.Title(action) + " " + result
-		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for " + ref.Name
+		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.Name
 
 		statusRef.Resources = append(statusRef.Resources,
 			&istiov1alpha1.RefResource{
