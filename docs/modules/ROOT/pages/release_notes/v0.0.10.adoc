@@ -5,3 +5,38 @@ Apart from quite a few dependency updates, the `Session` CRD now keeps `conditio
 === All changes in this release
 
 // changelog:generate
+==== Operator
+
+===== New features
+* feat(operator): adds conditions with type, status, reason and msg (https://github.com/maistra/istio-workspace/pull/773[#773]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(operator): add LastTransitionTime to status (https://github.com/maistra/istio-workspace/pull/767[#767]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* fix(bundle): make CSV sample more realistic (https://github.com/maistra/istio-workspace/pull/762[#762]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+===== Bugs
+* fix(operator): set klog to unify loggers (https://github.com/maistra/istio-workspace/pull/760[#760]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Project infrastructure
+
+===== New features
+* feat(circleci): introduces env var to force cache invalidation (https://github.com/maistra/istio-workspace/pull/768[#768]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(circleci): caches snap deps (https://github.com/maistra/istio-workspace/pull/763[#763]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Testing
+
+===== New features
+* feat(circleci): updates microk8s to 1.19 stream (https://github.com/maistra/istio-workspace/pull/764[#764]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+=== Latest dependencies update
+
+ * github.com/golang/protobuf to 1.5.1 (https://github.com/maistra/istio-workspace/pull/750[#750]), by https://github.com/dependabot[@dependabot]
+ * github.com/mikefarah/yq/v4 to 4.6.3 (https://github.com/maistra/istio-workspace/pull/770[#770]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/ginkgo to 1.15.2 (https://github.com/maistra/istio-workspace/pull/745[#745]), by https://github.com/dependabot[@dependabot]
+ * hashicorp/go-multierror to 1.1.1 (https://github.com/maistra/istio-workspace/pull/740[#740]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/apimachinery to 0.20.5 (https://github.com/maistra/istio-workspace/pull/756[#756]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/client-go to 0.20.5 (https://github.com/maistra/istio-workspace/pull/754[#754]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/code-generator to 0.20.5 (https://github.com/maistra/istio-workspace/pull/759[#759]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/klog/v2 to 2.8.0 (https://github.com/maistra/istio-workspace/pull/761[#761]), by https://github.com/dependabot[@dependabot]
+ * prometheus/client_golang to 1.10.0 (https://github.com/maistra/istio-workspace/pull/751[#751]), by https://github.com/dependabot[@dependabot]
+
