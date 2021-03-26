@@ -45,9 +45,16 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
 		action := string(rs.Action)
-		msg := "Because we needed to " + action + " on a " + rs.Kind
-		status := strconv.FormatBool(rs.Action != model.ActionFailed)
-		reason := rs.Kind + strings.Title(action)
+
+		status := strings.Title(strconv.FormatBool(rs.Action != model.ActionFailed))
+		result := "Failed"
+		if rs.Action != model.ActionFailed {
+			result = "Succeeded"
+		}
+		typeDesc := strings.Title(action)
+		reason := strings.Title(action) + " " + result
+		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + result
+
 		statusRef.Resources = append(statusRef.Resources,
 			&istiov1alpha1.RefResource{
 				Name:               &rs.Name,
@@ -58,7 +65,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 				Message:            &msg,
 				Reason:             &reason,
 				Status:             &status,
-				Type:               &rs.Kind,
+				Type:               &typeDesc,
 			})
 	}
 	var existsInStatus bool
