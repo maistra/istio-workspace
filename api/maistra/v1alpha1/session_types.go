@@ -58,6 +58,8 @@ type SessionStatus struct {
 	Route *Route `json:"route,omitempty"`
 	// Status of the Refs in the Session
 	Refs []*RefStatus `json:"refs,omitempty"`
+	// The combined log of changes across all refs
+	Conditions []*RefResource `json:"conditions,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -85,6 +87,14 @@ type RefResource struct {
 	// +optional
 	// Additional properties for special Resources, e.g. hosts for Gateways
 	Prop map[string]string `json:"prop,omitempty"`
+	// Human readable reason for the change
+	Message *string `json:"message,omitempty"`
+	// Programatic reason for the change
+	Reason *string `json:"reason,omitempty"`
+	// Boolean value to indicate success
+	Status *string `json:"status,omitempty"`
+	// The type of change
+	Type *string `json:"type,omitempty"`
 }
 
 // +k8s:openapi-gen=true
