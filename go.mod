@@ -16,7 +16,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mikefarah/yq/v4 v4.6.1
+	github.com/mikefarah/yq/v4 v4.6.3
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/onsi/ginkgo v1.15.2
 	github.com/onsi/gomega v1.11.0
