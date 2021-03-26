@@ -68,6 +68,7 @@ spec:
             description: Status defines the current status of the State
             properties:
               conditions:
+                description: The combined log of changes across all refs
                 items:
                   description: An external Resource that has been manipulated in some way.
                   properties:
@@ -82,6 +83,7 @@ spec:
                       format: date-time
                       type: string
                     message:
+                      description: Human readable reason for the change
                       type: string
                     name:
                       description: The Resource Name
@@ -92,10 +94,13 @@ spec:
                       description: Additional properties for special Resources, e.g. hosts for Gateways
                       type: object
                     reason:
+                      description: Programatic reason for the change
                       type: string
                     status:
+                      description: Boolean value to indicate success
                       type: string
                     type:
+                      description: The type of change
                       type: string
                   type: object
                 type: array
@@ -128,6 +133,7 @@ spec:
                             format: date-time
                             type: string
                           message:
+                            description: Human readable reason for the change
                             type: string
                           name:
                             description: The Resource Name
@@ -138,10 +144,13 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
+                            description: Programatic reason for the change
                             type: string
                           status:
+                            description: Boolean value to indicate success
                             type: string
                           type:
+                            description: The type of change
                             type: string
                         type: object
                       type: array
@@ -168,6 +177,7 @@ spec:
                             format: date-time
                             type: string
                           message:
+                            description: Human readable reason for the change
                             type: string
                           name:
                             description: The Resource Name
@@ -178,10 +188,13 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
+                            description: Programatic reason for the change
                             type: string
                           status:
+                            description: Boolean value to indicate success
                             type: string
                           type:
+                            description: The type of change
                             type: string
                         required:
                         - labels
