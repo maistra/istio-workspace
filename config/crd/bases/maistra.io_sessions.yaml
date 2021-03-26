@@ -67,6 +67,43 @@ spec:
           status:
             description: Status defines the current status of the State
             properties:
+              conditions:
+                description: The combined log of changes across all refs
+                items:
+                  description: An external Resource that has been manipulated in some way.
+                  properties:
+                    action:
+                      description: The Action that was performed, e.g. created, failed, manipulated
+                      type: string
+                    kind:
+                      description: The Resource Kind
+                      type: string
+                    lastTransitionTime:
+                      description: LastTransitionTime is the last time this action was applied
+                      format: date-time
+                      type: string
+                    message:
+                      description: Human readable reason for the change
+                      type: string
+                    name:
+                      description: The Resource Name
+                      type: string
+                    prop:
+                      additionalProperties:
+                        type: string
+                      description: Additional properties for special Resources, e.g. hosts for Gateways
+                      type: object
+                    reason:
+                      description: Programatic reason for the change
+                      type: string
+                    status:
+                      description: Boolean value to indicate success
+                      type: string
+                    type:
+                      description: The type of change
+                      type: string
+                  type: object
+                type: array
               refs:
                 description: Status of the Refs in the Session
                 items:
@@ -95,6 +132,9 @@ spec:
                             description: LastTransitionTime is the last time this action was applied
                             format: date-time
                             type: string
+                          message:
+                            description: Human readable reason for the change
+                            type: string
                           name:
                             description: The Resource Name
                             type: string
@@ -103,6 +143,15 @@ spec:
                               type: string
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
+                          reason:
+                            description: Programatic reason for the change
+                            type: string
+                          status:
+                            description: Boolean value to indicate success
+                            type: string
+                          type:
+                            description: The type of change
+                            type: string
                         type: object
                       type: array
                     strategy:
@@ -127,6 +176,9 @@ spec:
                             description: LastTransitionTime is the last time this action was applied
                             format: date-time
                             type: string
+                          message:
+                            description: Human readable reason for the change
+                            type: string
                           name:
                             description: The Resource Name
                             type: string
@@ -135,6 +187,15 @@ spec:
                               type: string
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
+                          reason:
+                            description: Programatic reason for the change
+                            type: string
+                          status:
+                            description: Boolean value to indicate success
+                            type: string
+                          type:
+                            description: The type of change
+                            type: string
                         required:
                         - labels
                         type: object
