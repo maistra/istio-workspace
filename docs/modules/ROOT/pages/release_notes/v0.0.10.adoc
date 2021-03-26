@@ -1,0 +1,7 @@
+== Highlights of v0.0.10 release
+
+Apart from quite a few dependency updates, the `Session` CRD now keeps `conditions` which makes it easier to view in e.g. https://developers.redhat.com/developer-sandbox[Openshift].
+
+=== All changes in this release
+
+// changelog:generate
