@@ -2,6 +2,8 @@ package session
 
 import (
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,6 +45,9 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	for _, refStat := range ref.ResourceStatuses {
 		rs := refStat
 		action := string(rs.Action)
+		msg := "Because we needed to " + action + " on a " + rs.Kind
+		status := strconv.FormatBool(rs.Action != model.ActionFailed)
+		reason := rs.Kind + strings.Title(action)
 		statusRef.Resources = append(statusRef.Resources,
 			&istiov1alpha1.RefResource{
 				Name:               &rs.Name,
@@ -50,6 +55,10 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 				Action:             &action,
 				Prop:               rs.Prop,
 				LastTransitionTime: &metav1.Time{Time: rs.TimeStamp},
+				Message:            &msg,
+				Reason:             &reason,
+				Status:             &status,
+				Type:               &rs.Kind,
 			})
 	}
 	var existsInStatus bool
@@ -67,6 +76,8 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	if !existsInStatus {
 		session.Status.Refs = append(session.Status.Refs, statusRef)
 	}
+
+	session.Status.Conditions = append(session.Status.Conditions, statusRef.Resources...)
 }
 
 // ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list.
