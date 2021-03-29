@@ -37,6 +37,14 @@ defaults:
         echo "/skip-e2e directive detected. Explictly stopping e2e tests."
         circleci step halt
       fi
+  skip-build-check: &skip-build-check
+    name: "Check for /skip-build directive"
+    command: |
+      COMMIT_MSG=$(git log --format=%B -n 1 $CIRCLE_SHA1)
+      if [[ $COMMIT_MSG == *"/skip-build"* ]]; then
+        echo "/skip-build directive detected. Explictly stopping build."
+        circleci step halt
+      fi
   check-if-build-executed: &check-if-build-executed
     name: "Check if build with this content was already executed"
     command: |
@@ -79,6 +87,8 @@ jobs:
       BUILD_CACHE_FOLDER: ".circleci/cache"
     steps:
       - checkout
+      - run:
+          <<: *skip-build-check
       - run:
           << : *obtain-tree-hash
       - restore_cache:
