@@ -49,29 +49,29 @@ if ! command -v pandoc &>/dev/null; then
   exit 1
 fi
 
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+TASKS_DIR="${PROJECT_DIR}"/integration/tekton/tasks/
+
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-tektoncd}"
 OWNER_REPO="${OWNER_REPO:-catalog}"
+OWNER_BASE_BRANCH="${OWNER_BASE_BRANCH:-main}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/${OWNER_REPO}.git}"
 FORK="${FORK:-maistra}"
 FORK_REPO="${FORK_REPO:-catalog}"
 FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/${FORK_REPO}.git}"
 
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5} # should be provided by Makefile target
-TEKTON_HUB_PATH=${TEKTON_HUB_PATH:-task}
-
-TITLE="Add istio-workspace ${OPERATOR_VERSION} tasks"
-
-CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-PROJECT_DIR="$(git rev-parse --show-toplevel)"
-TASKS_DIR="${PROJECT_DIR}"/integration/tekton/tasks/
-TMP_DIR=$(mktemp -d -t "tekton-${TEKTON_HUB_PATH}.XXXXXXXXXX")
-
-
 source "${CUR_DIR}"/validate_semver.sh
-
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
+TEKTON_HUB_PATH=${TEKTON_HUB_PATH:-task}
+
+TMP_DIR=$(mktemp -d -t "tekton-${TEKTON_HUB_PATH}.XXXXXXXXXX")
+
+TEKTON_TASK_VERSION=$(echo "${OPERATOR_VERSION}" | cut -d'.' -f 1,2)
+TITLE="Add istio-workspace ${TEKTON_TASK_VERSION} tasks"
 if [[ -z $IKE_IMAGE ]]; then
   echo "Please provide IKE_IMAGE with a reference to the image to use for the tasks" && exit 1
 fi
@@ -80,7 +80,7 @@ fi
 #### Prepare PR commit                                                        ####
 ##################################################################################
 
-BRANCH=${BRANCH:-"${TEKTON_HUB_PATH}/istio-workspace-${OPERATOR_VERSION}"}
+BRANCH=${BRANCH:-"${TEKTON_HUB_PATH}/istio-workspace-${TEKTON_TASK_VERSION}"}
 ADOC_INCLUDE=$(LIB=$(mktemp) && wget -q -P "${LIB}" https://raw.githubusercontent.com/maistra/istio-workspace-docs-site/master/lib/include-shell.js && echo "${LIB}/include-shell")
 
 git clone "${HUB_REPO_URL}" "${TMP_DIR}"
@@ -92,17 +92,17 @@ COMMIT_MESSAGE=""
 for taskName in "${TASKS_DIR}"/*; do
   taskName="${taskName##*/}"
   COMMIT_MESSAGE="${COMMIT_MESSAGE}
-* Add Task ${taskName} release ${OPERATOR_VERSION}"
+* Add Task ${taskName} release ${TEKTON_TASK_VERSION}"
 
-  mkdir -p "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}"/
-  cp -a "${TASKS_DIR}/${taskName}"/. "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}"/
+  mkdir -p "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}"/
+  cp -a "${TASKS_DIR}/${taskName}"/. "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}"/
 
   pushd "${PROJECT_DIR}"
-  asciidoctor --require @asciidoctor/docbook-converter --require "${ADOC_INCLUDE}" -a leveloffset=+1 --backend docbook -o - "${PROJECT_DIR}"/docs/modules/ROOT/pages/integration/tekton/tasks/"${taskName}".adoc | pandoc --wrap=preserve --from docbook --to gfm >"${TMP_DIR}/${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}"/README.md
+  asciidoctor --require @asciidoctor/docbook-converter --require "${ADOC_INCLUDE}" -a leveloffset=+1 --backend docbook -o - "${PROJECT_DIR}"/docs/modules/ROOT/pages/integration/tekton/tasks/"${taskName}".adoc | pandoc --wrap=preserve --from docbook --to gfm >"${TMP_DIR}/${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}"/README.md
   popd
 
-  sed -i "s/released-image/${IKE_IMAGE}/g" "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}/${taskName}.yaml"
-  sed -i "s/current-version/${OPERATOR_VERSION}/g" "${TEKTON_HUB_PATH}/${taskName}/${OPERATOR_VERSION}/${taskName}.yaml"
+  sed -i "s/released-image/${IKE_IMAGE}/g" "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}/${taskName}.yaml"
+  sed -i "s/current-version/${TEKTON_TASK_VERSION}/g" "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}/${taskName}.yaml"
 done
 
 COMMIT_MESSAGE="${COMMIT_MESSAGE}
@@ -128,8 +128,9 @@ PAYLOAD=$(mktemp)
 jq -c -n \
   --arg msg "$(awk -v msg="${COMMIT_MESSAGE}" '{gsub(/insert\-changes/,msg)}1' "${CUR_DIR}"/tektoncatalog-pr-template.md)" \
   --arg head "${FORK}:${BRANCH}" \
+  --arg base "${OWNER_BASE_BRANCH}" \
   --arg title "${TITLE}" \
-  '{head: $head, base: "master", title: $title, body: $msg }' >"${PAYLOAD}"
+  '{head: $head, base: $base, title: $title, body: $msg }' >"${PAYLOAD}"
 
 if $dryRun; then
   echo -e "${PAYLOAD}\n------------------"
