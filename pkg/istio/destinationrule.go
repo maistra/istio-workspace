@@ -61,11 +61,11 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			err = ctx.Client.Update(ctx, &mutatedDr)
 			if err != nil {
-				ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionFailed})
+				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionModified, err.Error()))
 				ctx.Log.Error(err, "failed to update DestinationRule", "name", dr.GetName())
 			}
 
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: dr.GetName(), Action: model.ActionModified})
+			ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionModified))
 		}
 	}
 	return nil
@@ -81,7 +81,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
 			}
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
 			break
 		}
 
@@ -92,11 +92,11 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
 			break
 		}
 		// ok, removed
-		ref.RemoveResourceStatus(model.ResourceStatus{Kind: DestinationRuleKind, Name: resource.Name})
+		ref.RemoveResourceStatus(model.NewSuccessResource(DestinationRuleKind, resource.Name, resource.Action))
 	}
 
 	return nil

@@ -46,7 +46,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: gw.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
 			return err
 		}
 
@@ -58,14 +58,15 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: mutatedGw.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
 			return err
 		}
 
 		ref.AddResourceStatus(model.ResourceStatus{
-			Kind:   GatewayKind,
-			Name:   mutatedGw.Name,
-			Action: model.ActionModified,
+			Kind:    GatewayKind,
+			Name:    mutatedGw.Name,
+			Action:  model.ActionModified,
+			Success: true,
 			Prop: map[string]string{
 				"hosts": strings.Join(addedHosts, ","),
 			}})
@@ -83,7 +84,7 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
 			}
-			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
 			break
 		}
 
@@ -94,11 +95,11 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		}
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
-			ref.AddResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
 			break
 		}
 		// ok, removed
-		ref.RemoveResourceStatus(model.ResourceStatus{Kind: GatewayKind, Name: resource.Name})
+		ref.RemoveResourceStatus(model.NewSuccessResource(GatewayKind, resource.Name, resource.Action))
 	}
 
 	return nil

@@ -54,7 +54,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 
 	vss, err := getVirtualServices(ctx, ctx.Namespace)
 	if err != nil {
-		ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: ctx.Namespace, Action: model.ActionFailed})
+		ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, ctx.Namespace, model.ActionLocated, err.Error()))
 		return err
 	}
 
@@ -71,7 +71,11 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 
 			mutatedVs, isNew, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
-				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: model.ActionFailed})
+				if isNew {
+					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionCreated, err.Error()))
+				} else {
+					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionModified, err.Error()))
+				}
 				return err
 			}
 
@@ -81,17 +85,17 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 			if isNew {
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil && !errors.IsAlreadyExists(err) {
-					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
+					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated, err.Error()))
 					return err
 				}
-				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionCreated})
+				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated))
 			} else {
 				err = ctx.Client.Update(ctx, &mutatedVs)
 				if err != nil {
-					ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionFailed})
+					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified, err.Error()))
 					return err
 				}
-				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: mutatedVs.Name, Action: model.ActionModified})
+				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified))
 			}
 		}
 	}
@@ -109,7 +113,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			if errors.IsNotFound(err) { // Not found, nothing to clean
 				break
 			}
-			ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
 			break
 		}
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
@@ -122,13 +126,13 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
-				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
+				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
 				break
 			}
 		case model.ActionCreated:
 			err = ctx.Client.Delete(ctx, vs)
 			if err != nil {
-				ref.AddResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name, Action: model.ActionFailed})
+				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
 				break
 			}
 		}

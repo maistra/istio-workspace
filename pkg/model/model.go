@@ -221,7 +221,9 @@ type ResourceStatus struct {
 	Kind      string
 	Name      string
 	TimeStamp time.Time
-	Action    ResourceAction // created, mutated, failed
+	Action    ResourceAction
+	Success   bool
+	Message   string
 	Prop      map[string]string
 }
 
@@ -236,11 +238,33 @@ type LocatedResourceStatus struct {
 func NewLocatedResource(kind, name string, labels map[string]string) LocatedResourceStatus {
 	return LocatedResourceStatus{
 		ResourceStatus: ResourceStatus{
-			Kind:   kind,
-			Name:   name,
-			Action: ActionLocated,
+			Kind:    kind,
+			Name:    name,
+			Action:  ActionLocated,
+			Success: true,
 		},
 		Labels: labels,
+	}
+}
+
+// NewFailedResource is a simple helper to create ResourceStatus with failed status.
+func NewFailedResource(kind, name string, action ResourceAction, message string) ResourceStatus {
+	return ResourceStatus{
+		Kind:    kind,
+		Name:    name,
+		Action:  action,
+		Success: false,
+		Message: message,
+	}
+}
+
+// NewSuccessResource is a simple helper to create ResourceStatus with success status.
+func NewSuccessResource(kind, name string, action ResourceAction) ResourceStatus {
+	return ResourceStatus{
+		Kind:    kind,
+		Name:    name,
+		Action:  action,
+		Success: true,
 	}
 }
 
@@ -252,8 +276,6 @@ const (
 	ActionCreated ResourceAction = "created"
 	// ActionModified imply the Named Kind has been modified and needs to be reverted to get back to original state
 	ActionModified ResourceAction = "modified"
-	// ActionFailed imply what ever was attempted failed. Assume current state is ok in clean up?
-	ActionFailed ResourceAction = "failed"
 	// ActionLocated imply the resource was found, but nothing was changed.
 	ActionLocated ResourceAction = "located"
 )

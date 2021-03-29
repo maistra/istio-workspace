@@ -46,14 +46,19 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 		rs := refStat
 		action := string(rs.Action)
 
-		status := strings.Title(strconv.FormatBool(rs.Action != model.ActionFailed))
+		status := strings.Title(strconv.FormatBool(rs.Success))
+
 		result := "Failed"
-		if rs.Action != model.ActionFailed {
+		if rs.Success {
 			result = "Succeeded"
 		}
 		typeDesc := strings.Title(action)
 		reason := strings.Title(action) + " " + result
+
 		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.Name
+		if rs.Message != "" {
+			msg = rs.Message
+		}
 
 		statusRef.Resources = append(statusRef.Resources,
 			&istiov1alpha1.RefResource{
@@ -129,10 +134,18 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 				if r.LastTransitionTime != nil {
 					timeStamp = r.LastTransitionTime.Time
 				}
+				var success bool
+				if r.Status != nil {
+					var err error
+					if success, err = strconv.ParseBool(*r.Status); err != nil {
+						success = false
+					}
+				}
 				ref.AddResourceStatus(model.ResourceStatus{
 					Name:      *r.Name,
 					Kind:      *r.Kind,
 					Action:    model.ResourceAction(*r.Action),
+					Success:   success,
 					Prop:      r.Prop,
 					TimeStamp: timeStamp,
 				})
