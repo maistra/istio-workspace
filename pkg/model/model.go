@@ -222,6 +222,7 @@ type ResourceStatus struct {
 	Name      string
 	TimeStamp time.Time
 	Action    ResourceAction // created, mutated, failed
+	Success   bool
 	Prop      map[string]string
 }
 
@@ -236,11 +237,32 @@ type LocatedResourceStatus struct {
 func NewLocatedResource(kind, name string, labels map[string]string) LocatedResourceStatus {
 	return LocatedResourceStatus{
 		ResourceStatus: ResourceStatus{
-			Kind:   kind,
-			Name:   name,
-			Action: ActionLocated,
+			Kind:    kind,
+			Name:    name,
+			Action:  ActionLocated,
+			Success: true,
 		},
 		Labels: labels,
+	}
+}
+
+// NewFailedResource is a simple helper to create ResourceStatus with failed status.
+func NewFailedResource(kind, name string, action ResourceAction) ResourceStatus {
+	return ResourceStatus{
+		Kind:    kind,
+		Name:    name,
+		Action:  action,
+		Success: false,
+	}
+}
+
+// NewSuccessResource is a simple helper to create ResourceStatus with success status.
+func NewSuccessResource(kind, name string, action ResourceAction) ResourceStatus {
+	return ResourceStatus{
+		Kind:    kind,
+		Name:    name,
+		Action:  action,
+		Success: true,
 	}
 }
 
