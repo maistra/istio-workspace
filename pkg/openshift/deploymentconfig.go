@@ -99,11 +99,11 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionFailed})
+			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated, err.Error()))
 			return err
 		}
 		ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
-		ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deploymentClone.Name, Action: model.ActionCreated})
+		ref.AddResourceStatus(model.NewSuccessResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated))
 		return nil
 	}
 }
@@ -121,11 +121,11 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			if errors.IsNotFound(err) {
 				return nil
 			}
-			ctx.Log.Info("Failed to delete DeploymentConfig", "name", deployment.Name)
-			ref.AddResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deployment.Name, Action: model.ActionFailed})
+			ctx.Log.Info("Failed to delete DeploymentConfig", "name", status.Name)
+			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, status.Name, status.Action, err.Error()))
 			return err
 		}
-		ref.RemoveResourceStatus(model.ResourceStatus{Kind: DeploymentConfigKind, Name: deployment.Name})
+		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentConfigKind, status.Name, status.Action))
 	}
 	return nil
 }
