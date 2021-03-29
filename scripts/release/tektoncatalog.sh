@@ -52,6 +52,7 @@ fi
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-tektoncd}"
 OWNER_REPO="${OWNER_REPO:-catalog}"
+OWNER_BASE_BRANCH="${OWNER_BASE_BRANCH:-main}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/${OWNER_REPO}.git}"
 FORK="${FORK:-maistra}"
 FORK_REPO="${FORK_REPO:-catalog}"
@@ -128,8 +129,9 @@ PAYLOAD=$(mktemp)
 jq -c -n \
   --arg msg "$(awk -v msg="${COMMIT_MESSAGE}" '{gsub(/insert\-changes/,msg)}1' "${CUR_DIR}"/tektoncatalog-pr-template.md)" \
   --arg head "${FORK}:${BRANCH}" \
+  --arg base "${OWNER_BASE_BRANCH}" \
   --arg title "${TITLE}" \
-  '{head: $head, base: "master", title: $title, body: $msg }' >"${PAYLOAD}"
+  '{head: $head, base: $base, title: $title, body: $msg }' >"${PAYLOAD}"
 
 if $dryRun; then
   echo -e "${PAYLOAD}\n------------------"

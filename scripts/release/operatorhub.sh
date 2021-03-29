@@ -59,6 +59,7 @@ done
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
+HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-master}"
 FORK="${FORK:-maistra}"
 FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
 
@@ -110,8 +111,9 @@ PAYLOAD=$(mktemp)
 jq -c -n \
   --arg msg "$(cat "${CUR_DIR}"/operatorhub-pr-template.md)" \
   --arg head "${FORK}:${BRANCH}" \
+  --arg base "${HUB_BASE_BRANCH}" \
   --arg title "${TITLE}" \
-   '{head: $head, base: "master", title: $title, body: $msg }' > "${PAYLOAD}"
+   '{head: $head, base: $base, title: $title, body: $msg }' > "${PAYLOAD}"
 
 if $dryRun; then
   echo -e "${PAYLOAD}\n------------------"
