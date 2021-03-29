@@ -125,7 +125,7 @@ format: $(SRCS) ## Removes unneeded imports and formats source code
 	goimports -l -w -e $(SRC_DIRS) $(TEST_DIRS)
 
 .PHONY: lint-prepare
-lint-prepare: deps tools generate compile
+lint-prepare: deps tools generate
 
 .PHONY: release-prepare
 release-prepare: deps tools generate format
