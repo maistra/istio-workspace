@@ -118,6 +118,7 @@ deps: ## Fetches all dependencies
 	$(call header,"Fetching dependencies")
 	go mod download
 	go mod vendor
+	go mod tidy
 
 .PHONY: format
 format: $(SRCS) ## Removes unneeded imports and formats source code
