@@ -42,8 +42,8 @@ require (
 	gopkg.in/h2non/gock.v1 v1.0.16
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
-	istio.io/api v0.0.0-20210218044411-561dc276d04d
-	istio.io/client-go v1.9.1
+	istio.io/api v0.0.0-20210318170531-e6e017e575c5
+	istio.io/client-go v1.9.2
 	k8s.io/api v0.20.5
 	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.5
