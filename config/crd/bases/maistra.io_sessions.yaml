@@ -16,7 +16,31 @@ spec:
     singular: session
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: ref name
+      jsonPath: .spec.ref[*].name
+      name: Ref Names
+      type: string
+    - description: strategy used by session
+      jsonPath: .spec.ref[*].strategy
+      name: Strategies
+      type: string
+    - description: type of the route
+      jsonPath: .status.route.type
+      name: Route Type
+      type: string
+    - description: name of the route
+      jsonPath: .status.route.name
+      name: Route Name
+      type: string
+    - description: type of the route
+      jsonPath: .status.route.value
+      name: Route Value
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Session controls the creation of the specialized hidden routes.

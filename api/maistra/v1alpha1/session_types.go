@@ -109,6 +109,12 @@ type LabeledRefResource struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ref Names",type="string",JSONPath=".spec.ref[*].name",description="ref name"
+// +kubebuilder:printcolumn:name="Strategies",type="string",JSONPath=".spec.ref[*].strategy",description="strategy used by session"
+// +kubebuilder:printcolumn:name="Route Type",type="string",JSONPath=".status.route.type",description="type of the route"
+// +kubebuilder:printcolumn:name="Route Name",type="string",JSONPath=".status.route.name",description="name of the route"
+// +kubebuilder:printcolumn:name="Route Value",type="string",JSONPath=".status.route.value",description="type of the route"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:path=sessions,scope=Namespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
