@@ -184,6 +184,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	// update session.status.Route if it was not provided
 	session.Status.Route = ConvertModelRouteToAPIRoute(route)
+	session.Status.RouteExpression = session.Status.Route.String()
 	if err := r.client.Status().Update(ctx, session); err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
@@ -271,7 +272,29 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 			return err
 		}
 	}
-	return nil
+
+	session.Status.RefNames = []string{}
+	session.Status.Strategies = []string{}
+	session.Status.Hosts = []string{}
+	for _, statusRef := range session.Status.Refs {
+		session.Status.RefNames = append(session.Status.RefNames, statusRef.Name)
+		session.Status.Strategies = append(session.Status.Strategies, statusRef.Strategy)
+		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
+	}
+	session.Status.Hosts = unique(session.Status.Hosts)
+	return ctx.Client.Status().Update(ctx, session)
+}
+
+func unique(s []string) []string {
+	uniqueSlice := []string{}
+	entries := make(map[string]bool)
+	for _, entry := range s {
+		entries[entry] = true
+	}
+	for k := range entries {
+		uniqueSlice = append(uniqueSlice, k)
+	}
+	return uniqueSlice
 }
 
 func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {

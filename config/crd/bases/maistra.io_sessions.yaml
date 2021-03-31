@@ -16,7 +16,27 @@ spec:
     singular: session
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: refs being manipulated by this session
+      jsonPath: .status._refNames
+      name: Ref Names
+      type: string
+    - description: strategies used by session
+      jsonPath: .status._strategies
+      name: Strategies
+      type: string
+    - description: exposed hosts for this session
+      jsonPath: .status._hosts
+      name: Hosts
+      type: string
+    - description: route expression used for this session
+      jsonPath: .status._routeExp
+      name: Route
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Session controls the creation of the specialized hidden routes.
@@ -67,6 +87,21 @@ spec:
           status:
             description: Status defines the current status of the State
             properties:
+              _hosts:
+                items:
+                  type: string
+                type: array
+              _refNames:
+                items:
+                  type: string
+                type: array
+              _routeExp:
+                description: RouteExpression represents the Route object as single string expression
+                type: string
+              _strategies:
+                items:
+                  type: string
+                type: array
               conditions:
                 description: The combined log of changes across all refs
                 items:
@@ -94,7 +129,7 @@ spec:
                       description: Additional properties for special Resources, e.g. hosts for Gateways
                       type: object
                     reason:
-                      description: Programatic reason for the change
+                      description: Programmatic reason for the change
                       type: string
                     status:
                       description: Boolean value to indicate success
@@ -144,7 +179,7 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
-                            description: Programatic reason for the change
+                            description: Programmatic reason for the change
                             type: string
                           status:
                             description: Boolean value to indicate success
@@ -188,7 +223,7 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
-                            description: Programatic reason for the change
+                            description: Programmatic reason for the change
                             type: string
                           status:
                             description: Boolean value to indicate success
