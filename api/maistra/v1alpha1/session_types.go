@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -50,6 +52,10 @@ type Route struct {
 	Value string `json:"value,omitempty"`
 }
 
+func (r *Route) String() string {
+	return fmt.Sprintf("%s:%s=%s", r.Type, r.Name, r.Value)
+}
+
 // +k8s:openapi-gen=true
 // SessionStatus defines the observed state of Session.
 type SessionStatus struct {
@@ -60,6 +66,15 @@ type SessionStatus struct {
 	Refs []*RefStatus `json:"refs,omitempty"`
 	// The combined log of changes across all refs
 	Conditions []*RefResource `json:"conditions,omitempty"`
+
+	// Fields below are solely for UX when inspecting CRDs from CLI, as the `additionalPrinterColumns` support only simple JSONPath expressions right now
+	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
+
+	// RouteExpression represents the Route object as single string expression
+	RouteExpression string   `json:"_routeExp,omitempty"`
+	Strategies      []string `json:"_strategies,omitempty"`
+	RefNames        []string `json:"_refNames,omitempty"`
+	Hosts           []string `json:"_hosts,omitempty"`
 }
 
 // +k8s:openapi-gen=true
@@ -89,7 +104,7 @@ type RefResource struct {
 	Prop map[string]string `json:"prop,omitempty"`
 	// Human readable reason for the change
 	Message *string `json:"message,omitempty"`
-	// Programatic reason for the change
+	// Programmatic reason for the change
 	Reason *string `json:"reason,omitempty"`
 	// Boolean value to indicate success
 	Status *string `json:"status,omitempty"`
@@ -109,11 +124,10 @@ type LabeledRefResource struct {
 // +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Ref Names",type="string",JSONPath=".spec.ref[*].name",description="ref name"
-// +kubebuilder:printcolumn:name="Strategies",type="string",JSONPath=".spec.ref[*].strategy",description="strategy used by session"
-// +kubebuilder:printcolumn:name="Route Type",type="string",JSONPath=".status.route.type",description="type of the route"
-// +kubebuilder:printcolumn:name="Route Name",type="string",JSONPath=".status.route.name",description="name of the route"
-// +kubebuilder:printcolumn:name="Route Value",type="string",JSONPath=".status.route.value",description="type of the route"
+// +kubebuilder:printcolumn:name="Ref Names",type="string",JSONPath=".status._refNames",description="refs being manipulated by this session"
+// +kubebuilder:printcolumn:name="Strategies",type="string",JSONPath=".status._strategies",description="strategies used by session"
+// +kubebuilder:printcolumn:name="Hosts",type="string",JSONPath=".status._hosts",description="exposed hosts for this session"
+// +kubebuilder:printcolumn:name="Route",type="string",JSONPath=".status._routeExp",description="route expression used for this session"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:path=sessions,scope=Namespaced
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

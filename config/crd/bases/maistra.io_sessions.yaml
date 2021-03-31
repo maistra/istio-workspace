@@ -17,25 +17,21 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: ref name
-      jsonPath: .spec.ref[*].name
+    - description: refs being manipulated by this session
+      jsonPath: .status._refNames
       name: Ref Names
       type: string
-    - description: strategy used by session
-      jsonPath: .spec.ref[*].strategy
+    - description: strategies used by session
+      jsonPath: .status._strategies
       name: Strategies
       type: string
-    - description: type of the route
-      jsonPath: .status.route.type
-      name: Route Type
+    - description: exposed hosts for this session
+      jsonPath: .status._hosts
+      name: Hosts
       type: string
-    - description: name of the route
-      jsonPath: .status.route.name
-      name: Route Name
-      type: string
-    - description: type of the route
-      jsonPath: .status.route.value
-      name: Route Value
+    - description: route expression used for this session
+      jsonPath: .status._routeExp
+      name: Route
       type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
@@ -91,6 +87,21 @@ spec:
           status:
             description: Status defines the current status of the State
             properties:
+              _hosts:
+                items:
+                  type: string
+                type: array
+              _refNames:
+                items:
+                  type: string
+                type: array
+              _routeExp:
+                description: RouteExpression represents the Route object as single string expression
+                type: string
+              _strategies:
+                items:
+                  type: string
+                type: array
               conditions:
                 description: The combined log of changes across all refs
                 items:
@@ -118,7 +129,7 @@ spec:
                       description: Additional properties for special Resources, e.g. hosts for Gateways
                       type: object
                     reason:
-                      description: Programatic reason for the change
+                      description: Programmatic reason for the change
                       type: string
                     status:
                       description: Boolean value to indicate success
@@ -168,7 +179,7 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
-                            description: Programatic reason for the change
+                            description: Programmatic reason for the change
                             type: string
                           status:
                             description: Boolean value to indicate success
@@ -212,7 +223,7 @@ spec:
                             description: Additional properties for special Resources, e.g. hosts for Gateways
                             type: object
                           reason:
-                            description: Programatic reason for the change
+                            description: Programmatic reason for the change
                             type: string
                           status:
                             description: Boolean value to indicate success
