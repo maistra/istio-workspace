@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -86,6 +87,15 @@ type RefStatus struct {
 	// +optional
 	// A list of the Resources involved in maintaining this route
 	Resources []*RefResource `json:"resources,omitempty"`
+}
+
+func (r *RefStatus) GetHostNames() []string {
+	for _, resource := range r.Resources {
+		if val, ok := resource.Prop["hosts"]; ok {
+			return strings.Split(val, ",")
+		}
+	}
+	return []string{}
 }
 
 // +k8s:openapi-gen=true

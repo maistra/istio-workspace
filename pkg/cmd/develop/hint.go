@@ -2,7 +2,6 @@ package develop
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
@@ -47,15 +46,10 @@ func getTemplate() (*template.Template, error) {
 			if ref == nil {
 				return []string{}
 			}
-			for _, resource := range ref.Resources {
-				if val, ok := resource.Prop["hosts"]; ok {
-					return strings.Split(val, ",")
-				}
-			}
-			return []string{}
+			return ref.GetHostNames()
 		},
 	})
-	t, err = t.Parse(string(urlHint))
+	t, err = t.Parse(urlHint)
 	if err != nil {
 		return nil, err
 	}

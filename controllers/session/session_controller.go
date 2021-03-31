@@ -275,11 +275,29 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 
 	session.Status.RefNames = []string{}
 	session.Status.Strategies = []string{}
+	session.Status.Hosts = []string{}
 	for _, statusRef := range session.Status.Refs {
 		session.Status.RefNames = append(session.Status.RefNames, statusRef.Name)
 		session.Status.Strategies = append(session.Status.Strategies, statusRef.Strategy)
+		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
 	}
+	session.Status.Hosts = unique(session.Status.Hosts)
 	return ctx.Client.Status().Update(ctx, session)
+}
+
+func unique(s []string) []string {
+	var uniqueSlice []string
+
+	entries := make(map[string]bool)
+	for _, entry := range s {
+		entries[entry] = true
+	}
+
+	for k, _ := range entries {
+		uniqueSlice = append(uniqueSlice, k)
+	}
+
+	return uniqueSlice
 }
 
 func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
