@@ -286,17 +286,14 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 }
 
 func unique(s []string) []string {
-	var uniqueSlice []string
-
+	uniqueSlice := []string{}
 	entries := make(map[string]bool)
 	for _, entry := range s {
 		entries[entry] = true
 	}
-
-	for k, _ := range entries {
+	for k := range entries {
 		uniqueSlice = append(uniqueSlice, k)
 	}
-
 	return uniqueSlice
 }
 
