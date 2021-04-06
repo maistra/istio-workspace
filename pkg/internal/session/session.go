@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"fmt"
 	"os/user"
 	"strings"
@@ -162,7 +163,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 
 func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, string, error) {
 	session, result, err := h.waitForRefToComplete()
-	if _, deploymentNotFound := err.(DeploymentNotFoundError); deploymentNotFound {
+	if errors.As(err, &DeploymentNotFoundError{}) {
 		h.removeOrLeaveSession()
 	}
 

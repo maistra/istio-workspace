@@ -1,9 +1,11 @@
 package session_test
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
@@ -61,7 +63,11 @@ var _ = Describe("Session Client operations", func() {
 
 			_, getErr := client.Get("sample-session")
 			Expect(getErr).To(HaveOccurred())
-			Expect((getErr.(*errors.StatusError)).Status().Code).To(Equal(int32(404)))
+
+			var statusError *k8serrors.StatusError
+			Expect(errors.As(getErr, &statusError)).To(BeTrue())
+
+			Expect(statusError.Status().Code).To(Equal(int32(404)))
 		})
 
 	})

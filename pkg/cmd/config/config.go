@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -49,7 +50,7 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 			return err
 		}
 
-		if _, fileDoesNotExist := err.(viper.ConfigFileNotFoundError); !fileDoesNotExist {
+		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			return err
 		}
 	}

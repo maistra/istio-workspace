@@ -124,7 +124,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		return fmt.Errorf("error introspecting filePath %s: %v", filePath, err)
+		return fmt.Errorf("error introspecting filePath %s: %w", filePath, err)
 	}
 
 	if !file.IsDir() {
@@ -142,7 +142,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		if err != nil {
 			// "no space left on device" issues are usually resolved via
 			// $ sudo sysctl fs.inotify.max_user_watches=65536
-			return fmt.Errorf("error adding watcher for filePath %s: %v", v, err)
+			return fmt.Errorf("error adding watcher for filePath %s: %w", v, err)
 		}
 	}
 
