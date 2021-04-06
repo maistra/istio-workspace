@@ -31,6 +31,7 @@ func GetDevRepositoryName() string {
 			return repository
 		}
 	}
+
 	return GetRepositoryName()
 }
 
@@ -49,6 +50,7 @@ func SetDockerRegistryExternal() string {
 		registry = externalRegistry
 	}
 	setDockerRegistry(registry)
+
 	return registry
 }
 
@@ -71,5 +73,6 @@ func GetDockerRegistryInternal() string {
 	if internalRegistry, found := os.LookupEnv("IKE_INTERNAL_DOCKER_REGISTRY"); found {
 		return internalRegistry
 	}
+
 	return "image-registry.openshift-image-registry.svc:5000"
 }

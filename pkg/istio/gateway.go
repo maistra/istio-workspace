@@ -45,6 +45,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
+
 			return err
 		}
 
@@ -57,6 +58,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
+
 			return err
 		}
 
@@ -69,6 +71,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 				"hosts": strings.Join(addedHosts, ","),
 			}})
 	}
+
 	return nil
 }
 
@@ -83,6 +86,7 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 				break
 			}
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 
@@ -94,6 +98,7 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 		// ok, removed
@@ -133,6 +138,7 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 		server.Hosts = hosts
 	}
 	source.Annotations[LabelIkeHosts] = strings.Join(existingHosts, ",")
+
 	return source, addedHosts
 }
 
@@ -172,6 +178,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
+
 	return &Gateway, err
 }
 
@@ -181,6 +188,7 @@ func existInList(hosts []string, host string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -188,8 +196,10 @@ func removeFromList(hosts []string, host string) []string {
 	for i, eh := range hosts {
 		if eh == host {
 			hosts = append(hosts[:i], hosts[i+1:]...)
+
 			return hosts
 		}
 	}
+
 	return hosts
 }

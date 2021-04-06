@@ -139,5 +139,6 @@ func removeFlagFromSet(flags *pflag.FlagSet, flagToRemove string) *pflag.FlagSet
 			f.AddFlag(flag)
 		}
 	})
+
 	return f
 }

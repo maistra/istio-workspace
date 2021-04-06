@@ -22,6 +22,7 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	services, err := getServices(ctx, ctx.Namespace)
 	if err != nil {
 		ctx.Log.Error(err, "Could not get Services")
+
 		return false
 	}
 	found := false
@@ -34,11 +35,13 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 			}
 		}
 	}
+
 	return found
 }
 
 func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) {
 	services := corev1.ServiceList{}
 	err := ctx.Client.List(ctx, &services, client.InNamespace(namespace))
+
 	return &services, err
 }

@@ -46,6 +46,7 @@ func getTemplate() (*template.Template, error) {
 			if ref == nil {
 				return []string{}
 			}
+
 			return ref.GetHostNames()
 		},
 	})
@@ -53,5 +54,6 @@ func getTemplate() (*template.Template, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return t, nil
 }

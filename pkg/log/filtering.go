@@ -19,11 +19,13 @@ func newFilteringEncoder(delegate zapcore.Encoder, includedFields ...string) fil
 	for _, field := range includedFields {
 		fields[field] = struct{}{}
 	}
+
 	return filteringEncoder{delegate: delegate, fieldsToInclude: fields}
 }
 
 func (f filteringEncoder) shouldSkip(key string) bool {
 	_, ok := f.fieldsToInclude[key]
+
 	return !ok
 }
 
@@ -31,6 +33,7 @@ func (f filteringEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler)
 	if f.shouldSkip(key) {
 		return nil
 	}
+
 	return f.delegate.AddArray(key, marshaler)
 }
 
@@ -38,6 +41,7 @@ func (f filteringEncoder) AddObject(key string, marshaler zapcore.ObjectMarshale
 	if f.shouldSkip(key) {
 		return nil
 	}
+
 	return f.delegate.AddObject(key, marshaler)
 }
 
@@ -192,6 +196,7 @@ func (f filteringEncoder) AddReflected(key string, value interface{}) error {
 	if f.shouldSkip(key) {
 		return nil
 	}
+
 	return f.delegate.AddReflected(key, value)
 }
 

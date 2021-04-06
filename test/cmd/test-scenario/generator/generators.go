@@ -37,6 +37,7 @@ func (e *Entry) HostName() string {
 	if e.Namespace != "" {
 		return e.Name + "." + e.Namespace + ".svc.cluster.local"
 	}
+
 	return e.Name
 }
 
@@ -85,6 +86,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 		return nil
 	}
 	template := template(service.Name)
+
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
@@ -111,6 +113,7 @@ func Deployment(service Entry) runtime.Object {
 		return nil
 	}
 	replica := int32(1)
+
 	return &appsv1.Deployment{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "apps/v1",

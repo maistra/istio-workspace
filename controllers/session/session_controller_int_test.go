@@ -366,5 +366,6 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 			objects = append(objects, robj)
 		}
 	}
+
 	return objects, nil
 }

@@ -19,6 +19,7 @@ func BuildTestService() (registry string) {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
+
 	return
 }
 
@@ -32,6 +33,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
+
 	return
 }
 
@@ -64,6 +66,7 @@ func CleanupTestScenario(namespace string) {
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "kubectl get namespace "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
+
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
@@ -94,6 +97,7 @@ func stringWithCharset(length int, charset string) string {
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
+
 	return string(b)
 }
 

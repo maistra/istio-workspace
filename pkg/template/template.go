@@ -72,6 +72,7 @@ func NewPatchEngine(patches Patches) Engine {
 func NewJSON(data []byte) (JSON, error) {
 	t := JSON{}
 	err := json.Unmarshal(data, &t)
+
 	return t, err
 }
 
@@ -135,9 +136,11 @@ func (t JSON) Value(path string) (interface{}, error) {
 			if i == len(parts)-1 {
 				return l, nil
 			}
+
 			return nil, nil
 		}
 	}
+
 	return level, nil
 }
 
@@ -147,6 +150,7 @@ func (t JSON) Has(path string) bool {
 	if err != nil || v == nil {
 		return false
 	}
+
 	return true
 }
 
@@ -219,9 +223,11 @@ func (e patchEngine) findPatch(name string) *Patch {
 	for i, p := range e.patches {
 		if p.Name == name {
 			patch = &e.patches[i]
+
 			break
 		}
 	}
+
 	return patch
 }
 
@@ -232,6 +238,7 @@ func parseTemplate(patches Patches) (*template.Template, error) {
 			if vars == nil || vars[name] == "" {
 				return "", fmt.Errorf("expected %s variable to be set", name)
 			}
+
 			return "", nil
 		},
 	})
@@ -241,5 +248,6 @@ func parseTemplate(patches Patches) (*template.Template, error) {
 			return nil, err
 		}
 	}
+
 	return t, nil
 }

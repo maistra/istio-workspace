@@ -25,5 +25,6 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
+
 	return string(content), nil
 }

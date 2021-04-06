@@ -34,6 +34,7 @@ func DefaultClient(namespace string) (*Client, error) {
 			return c2, err2
 		}
 	}
+
 	return defaultClient, nil
 }
 
@@ -46,12 +47,14 @@ func createDefaultClient(namespace string) (*Client, error) {
 	restCfg, err := kubeCfg.ClientConfig()
 	if err != nil {
 		logger().Error(err, "failed to create default client")
+
 		return nil, err
 	}
 
 	c, err := versioned.NewForConfig(restCfg)
 	if err != nil {
 		logger().Error(err, "failed to create default client")
+
 		return nil, err
 	}
 
@@ -59,14 +62,17 @@ func createDefaultClient(namespace string) (*Client, error) {
 		namespace, _, err = kubeCfg.Namespace()
 		if err != nil {
 			logger().Error(err, "failed to create default client")
+
 			return nil, err
 		}
 	}
 	defaultClient, err = NewClient(c, namespace)
 	if err != nil {
 		logger().Error(err, "failed to create default client")
+
 		return nil, err
 	}
+
 	return defaultClient, nil
 }
 
@@ -75,6 +81,7 @@ func (c *Client) Create(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Create(context.Background(), session, metav1.CreateOptions{}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -83,6 +90,7 @@ func (c *Client) Update(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Update(context.Background(), session, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -97,5 +105,6 @@ func (c *Client) Get(sessionName string) (*istiov1alpha1.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return session, nil
 }

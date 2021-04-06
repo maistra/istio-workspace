@@ -143,6 +143,7 @@ func NewTestCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			value, _ := cmd.Flags().GetString("arg")
 			cmd.Println(expectedOutput, ":", value)
+
 			return nil
 		},
 	}

@@ -144,6 +144,7 @@ func testYaml(name string) func() (*asset, error) {
 
 		info := bindataFileInfo{name: name, size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 		a := &asset{bytes: bytes, info: info}
+
 		return a, nil
 	}
 }

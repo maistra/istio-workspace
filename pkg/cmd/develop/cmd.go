@@ -32,6 +32,7 @@ func NewCmd() *cobra.Command {
 			if !telepresence.BinaryAvailable() {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 			}
+
 			return config.SyncFullyQualifiedFlags(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -68,6 +69,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			finalStatus := <-done
+
 			return finalStatus.Error
 		},
 	}
@@ -152,10 +154,12 @@ func createWrapperCmd(cmd *cobra.Command) []string {
 			"--interval", cmd.Flag("watch-interval").Value.String(),
 		)
 	}
+
 	return executeArgs
 }
 
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
 	slice, _ := flags.GetStringSlice(name)
+
 	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

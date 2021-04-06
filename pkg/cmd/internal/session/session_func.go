@@ -96,6 +96,7 @@ func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Opt
 	if val, found := annotations[AnnotationRevert]; found && val == "true" {
 		revert = true
 	}
+
 	return session.Options{
 		Revert:         revert,
 		NamespaceName:  n,

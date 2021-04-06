@@ -81,6 +81,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 				Eventually(func() string {
 					session := testshell.ExecuteInDir(tmpDir, "kubectl", "get", "sessions", "-n", namespace)
 					<-session.Done()
+
 					return strings.Join(session.Status().Stderr, " ")
 				}, 10*time.Minute, 5*time.Second).Should(ContainSubstring("No resources found"))
 

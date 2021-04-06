@@ -53,6 +53,7 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -67,6 +68,7 @@ func contains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -83,6 +85,7 @@ func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	if value != "" && !cmd.Flag(flagName).Changed {
 		return cmd.Flags().Set(flagName, value)
 	}
+
 	return nil
 }
 
@@ -97,6 +100,7 @@ func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 		syncFlagErr := SyncFullyQualifiedFlag(cmd, flag.Name)
 		accErrors = multierror.Append(accErrors, syncFlagErr)
 	})
+
 	return accErrors.ErrorOrNil()
 }
 

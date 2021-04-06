@@ -13,6 +13,7 @@ func OnlyContain(chars string) types.GomegaMatcher {
 	for _, char := range chars {
 		allowedChars[char] = struct{}{}
 	}
+
 	return &onlyContainsMatcher{chars: allowedChars, asString: chars}
 }
 

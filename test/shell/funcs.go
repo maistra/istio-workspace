@@ -14,12 +14,14 @@ import (
 // Execute executes given command in the current directory.
 func Execute(command string) *gocmd.Cmd {
 	cmd, _ := shlex.Split(command)
+
 	return ExecuteInDir("", cmd[0], cmd[1:]...)
 }
 
 // ExecuteInProjectRoot runs given command in project root folder (e.g. handy for make).
 func ExecuteInProjectRoot(command string) *gocmd.Cmd {
 	cmd, _ := shlex.Split(command)
+
 	return ExecuteInDir(GetProjectDir(), cmd[0], cmd[1:]...)
 }
 
@@ -44,6 +46,7 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 	} else {
 		fmt.Println("executing [oc login .....]")
 	}
+
 	return command
 }
 
@@ -52,5 +55,6 @@ func GetProjectDir() string {
 	if !found {
 		return "."
 	}
+
 	return projectDir
 }

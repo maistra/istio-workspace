@@ -141,6 +141,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 							}
 						}
 					}
+
 					return nil
 				}
 				var (

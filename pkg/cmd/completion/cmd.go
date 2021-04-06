@@ -34,6 +34,7 @@ func NewCmd() *cobra.Command {
 			case "zsh":
 				return runCompletionZsh(os.Stdout, cmd.Root())
 			}
+
 			return nil
 		},
 	}
@@ -73,5 +74,6 @@ _complete ike 2>/dev/null
 	if _, err := out.Write([]byte(zshTail)); err != nil {
 		return err
 	}
+
 	return nil
 }

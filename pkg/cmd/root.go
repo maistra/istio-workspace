@@ -51,6 +51,7 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
+
 			return config.SetupConfigSources(loadConfigFileName(cmd))
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,6 +61,7 @@ func NewCmd() *cobra.Command {
 			} else {
 				fmt.Print(cmd.UsageString())
 			}
+
 			return nil
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
@@ -75,6 +77,7 @@ func NewCmd() *cobra.Command {
 					// do nothing, just timeout
 				}
 			}
+
 			return nil
 		},
 	}
@@ -106,5 +109,6 @@ func loadConfigFileName(cmd *cobra.Command) (configFileName string, defaultConfi
 		}
 	}
 	defaultConfigSource = configFlag.DefValue == configFileName
+
 	return
 }

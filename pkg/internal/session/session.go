@@ -39,6 +39,7 @@ func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
 	if o.WaitCondition == nil {
 		o.WaitCondition = defaultWaitCondition
 	}
+
 	return o.WaitCondition(res)
 }
 
@@ -102,6 +103,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	if route == nil {
 		route = &istiov1alpha1.Route{}
 	}
+
 	return State{
 			DeploymentName: serviceName,
 			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
@@ -117,6 +119,7 @@ func getCurrentRef(deploymentName string, session istiov1alpha1.Session) istiov1
 			return *ref
 		}
 	}
+
 	return istiov1alpha1.RefStatus{}
 }
 
@@ -128,6 +131,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		if err != nil {
 			return session, "", err
 		}
+
 		return h.removeSessionIfDeploymentNotFound()
 	}
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
@@ -143,6 +147,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		if err != nil {
 			return session, "", err
 		}
+
 		return h.removeSessionIfDeploymentNotFound()
 	}
 	// join session
@@ -151,6 +156,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 	if err != nil {
 		return session, "", err
 	}
+
 	return h.removeSessionIfDeploymentNotFound()
 }
 
@@ -159,6 +165,7 @@ func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, s
 	if _, deploymentNotFound := err.(DeploymentNotFoundError); deploymentNotFound {
 		h.removeOrLeaveSession()
 	}
+
 	return session, result, err
 }
 
@@ -185,6 +192,7 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 	if r != nil {
 		session.Spec.Route = *r
 	}
+
 	return &session, h.c.Create(&session)
 }
 
@@ -207,17 +215,21 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 					if h.opts.ConditionFound(res) {
 						name = *res.Name
 						logger().Info("target found", *res.Kind, name)
+
 						return true, nil
 					}
 				}
 			}
 		}
+
 		return false, nil
 	})
 	if err != nil {
 		logger().Error(err, "failed waiting for deployment to create")
+
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
+
 	return sessionStatus, name, nil
 }
 
@@ -225,6 +237,7 @@ func (h *handler) removeOrLeaveSession() {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
 		logger().Error(err, "failed removing or leaving session")
+
 		return // assume missing, nothing to clean?
 	}
 	// more than one participant, update session
@@ -253,6 +266,7 @@ func getOrCreateSessionName(sessionName string) string {
 	if err != nil {
 		return random
 	}
+
 	return u.Username + "-" + random
 }
 
@@ -274,6 +288,7 @@ func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
 	}
 	n, v = pair[0], pair[1]
+
 	return &istiov1alpha1.Route{
 		Type:  t,
 		Name:  n,

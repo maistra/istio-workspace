@@ -47,5 +47,6 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref *model.Ref) bool
 			}
 		}
 	}
+
 	return located
 }

@@ -27,6 +27,7 @@ func NewCmd() *cobra.Command {
 			if err == nil {
 				remove()
 			}
+
 			return err
 		},
 	}

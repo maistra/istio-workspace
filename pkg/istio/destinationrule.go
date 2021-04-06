@@ -67,6 +67,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionModified))
 		}
 	}
+
 	return nil
 }
 
@@ -81,6 +82,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 				break
 			}
 			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 
@@ -92,6 +94,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 		// ok, removed
@@ -107,6 +110,7 @@ func alreadyMutated(dr istionetwork.DestinationRule, name string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -117,6 +121,7 @@ func mutateDestinationRule(dr istionetwork.DestinationRule, name string) istione
 			"version": name,
 		},
 	})
+
 	return dr
 }
 
@@ -124,15 +129,18 @@ func revertDestinationRule(dr istionetwork.DestinationRule, name string) istione
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
 		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
+
 			break
 		}
 	}
+
 	return dr
 }
 
 func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
+
 	return &destinationRule, err
 }
 

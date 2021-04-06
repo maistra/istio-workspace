@@ -40,6 +40,7 @@ func NewCmd() *cobra.Command {
 		Short: "Starts istio-workspace operator in the cluster",
 		RunE:  startOperator,
 	}
+
 	return serveCmd
 }
 
@@ -47,6 +48,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	namespace, err := getWatchNamespace()
 	if err != nil {
 		logger().Error(err, "Failed to get watch namespace")
+
 		return err
 	}
 
@@ -57,6 +59,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
 		logger().Error(err, "")
+
 		return err
 	}
 
@@ -77,6 +80,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
 		logger().Error(err, "")
+
 		return err
 	}
 
@@ -85,12 +89,14 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Setup Scheme for all resources
 	if err = api.AddToScheme(mgr.GetScheme()); err != nil {
 		logger().Error(err, "")
+
 		return nil
 	}
 
 	// Setup all Controllers
 	if err = controllers.AddToManager(mgr); err != nil {
 		logger().Error(err, "")
+
 		return err
 	}
 
@@ -100,10 +106,12 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add healthz check")
+
 		return err
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add readyz check")
+
 		return err
 	}
 
@@ -113,6 +121,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		logger().Error(err, "Manager exited non-zero")
+
 		return err
 	}
 
@@ -125,5 +134,6 @@ func getWatchNamespace() (string, error) {
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
+
 	return ns, nil
 }

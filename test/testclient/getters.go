@@ -51,6 +51,7 @@ func Session(c client.Client) func(namespace, name string) v1alpha1.Session {
 		s := v1alpha1.Session{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -61,6 +62,7 @@ func Gateway(c client.Client) func(namespace, name string) istionetwork.Gateway 
 		s := istionetwork.Gateway{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -71,6 +73,7 @@ func DestinationRule(c client.Client) func(namespace, name string) istionetwork.
 		s := istionetwork.DestinationRule{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -81,6 +84,7 @@ func VirtualService(c client.Client) func(namespace, name string) istionetwork.V
 		s := istionetwork.VirtualService{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -91,6 +95,7 @@ func Deployment(c client.Client) func(namespace, name string) appsv1.Deployment 
 		s := appsv1.Deployment{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -100,6 +105,7 @@ func DeploymentWithError(c client.Client) func(namespace, name string) (appsv1.D
 	return func(namespace, name string) (appsv1.Deployment, error) {
 		s := appsv1.Deployment{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+
 		return s, err
 	}
 }
@@ -110,6 +116,7 @@ func DeploymentConfig(c client.Client) func(namespace, name string) osappsv1.Dep
 		s := osappsv1.DeploymentConfig{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }
@@ -119,6 +126,7 @@ func DeploymentConfigWithError(c client.Client) func(namespace, name string) (os
 	return func(namespace, name string) (osappsv1.DeploymentConfig, error) {
 		s := osappsv1.DeploymentConfig{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+
 		return s, err
 	}
 }
@@ -129,6 +137,7 @@ func VirtualServices(c client.Client) func(namespace string) istionetwork.Virtua
 		s := istionetwork.VirtualServiceList{}
 		err := c.List(context.Background(), &s, client.InNamespace(namespace))
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
 		return s
 	}
 }

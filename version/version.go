@@ -15,5 +15,6 @@ var (
 
 func Released() bool {
 	released, _ := strconv.ParseBool(Release)
+
 	return released
 }

@@ -184,6 +184,7 @@ func expectFileChange(fileName string, done chan<- struct{}) watch.Handler {
 		defer GinkgoRecover()
 		Expect(events[0].Name).To(Equal(fileName))
 		close(done)
+
 		return nil
 	}
 }
@@ -196,10 +197,12 @@ func notExpectFileChange(fileNames ...string) watch.Handler {
 				if event.Name == fileName {
 					errMsg := fmt.Sprintf("expected %s to not change", fileName)
 					Fail(errMsg)
+
 					return errors.New(errMsg)
 				}
 			}
 		}
+
 		return nil
 	}
 }

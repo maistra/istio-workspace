@@ -40,6 +40,7 @@ func GetVersion() (string, error) {
 			"%s\n"+
 			"you can specify the version using TELEPRESENCE_VERSION environment variable", BinaryName, installHint)
 	}
+
 	return tpVersion, nil
 }
 

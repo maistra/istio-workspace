@@ -31,6 +31,7 @@ func NewCmd() *cobra.Command {
 				b, _ := json.MarshalIndent(&state.RefStatus, "", "  ")
 				fmt.Println(string(b))
 			}
+
 			return err
 		},
 	}

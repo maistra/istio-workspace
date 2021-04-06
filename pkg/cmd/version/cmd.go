@@ -32,11 +32,12 @@ func NewCmd() *cobra.Command {
 			} else {
 				LogVersion()
 			}
+
 			return nil
 		},
 	}
-
 	versionCmd.Flags().BoolP("short", "s", false, "prints only version without build details")
+
 	return versionCmd
 }
 

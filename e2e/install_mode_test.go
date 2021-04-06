@@ -85,6 +85,7 @@ var _ = Describe("Operator installation", func() {
 						<-operatorLog.Done()
 
 						log := strings.Join(operatorLog.Status().Stdout, "")
+
 						return strings.Contains(log, contain)
 					}
 				}(watchNs), 1*time.Minute, 5*time.Second).Should(BeTrue())

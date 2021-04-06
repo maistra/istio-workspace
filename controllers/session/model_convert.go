@@ -82,6 +82,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 				session.Status.Refs[i] = statusRef
 			}
 			existsInStatus = true
+
 			break
 		}
 	}
@@ -106,6 +107,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 		ConvertAPIStatusToModelRef(session, r)
 		refs = append(refs, r)
 	}
+
 	return refs
 }
 
@@ -178,6 +180,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 			Value: session.Name,
 		}
 	}
+
 	return model.Route{
 		Type:  session.Spec.Route.Type,
 		Name:  session.Spec.Route.Name,
@@ -194,5 +197,6 @@ func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 			}
 		}
 	}
+
 	return false
 }

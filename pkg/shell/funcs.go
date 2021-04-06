@@ -65,6 +65,7 @@ func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
 					_ = cmd.Stop()
 					<-cmd.Done()
 				}
+
 				break OutOfLoop
 			case <-cmd.Done():
 				break OutOfLoop
@@ -106,6 +107,7 @@ func CurrentDir() string {
 	if err != nil {
 		panic(err)
 	}
+
 	return dir
 }
 
@@ -117,6 +119,7 @@ func BinaryExists(binName, hint string) bool {
 		if hint != "" {
 			logger().Error(err, fmt.Sprintf("Couldn't find '%s' installed in your system.\n%s", binName, hint))
 		}
+
 		return false
 	}
 

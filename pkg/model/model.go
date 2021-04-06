@@ -69,6 +69,7 @@ func Any(predicates ...Predicate) Predicate {
 				return true
 			}
 		}
+
 		return false
 	}
 }
@@ -81,6 +82,7 @@ func All(predicates ...Predicate) Predicate {
 				return false
 			}
 		}
+
 		return true
 	}
 }
@@ -105,6 +107,7 @@ func AnyKind(kinds ...string) Predicate {
 	for _, kind := range kinds {
 		pred = append(pred, Kind(kind))
 	}
+
 	return Any(pred...)
 }
 
@@ -116,6 +119,7 @@ func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 			targets = append(targets, target)
 		}
 	}
+
 	return targets
 }
 
@@ -123,6 +127,7 @@ func (r *Ref) GetTargets(predicate Predicate) []LocatedResourceStatus {
 func (h *HostName) Match(name string) bool {
 	equalsShortName := h.Name == name
 	equalsFullDNSName := fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name
+
 	return equalsShortName || equalsFullDNSName
 }
 
@@ -145,6 +150,7 @@ func (r *Ref) GetVersion() string {
 			return val
 		}
 	}
+
 	return "unknown"
 }
 
@@ -206,6 +212,7 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 			refs = append(refs, status)
 		}
 	}
+
 	return refs
 }
 
@@ -213,6 +220,7 @@ func (r *Ref) GetResources(predicate Predicate) []ResourceStatus {
 func GetSha(version string) string {
 	sum := sha256.Sum256([]byte(version))
 	sha := fmt.Sprintf("%x", sum)
+
 	return sha[:8]
 }
 

@@ -82,6 +82,7 @@ func execute(command *cobra.Command, args []string) error {
 					_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 				}
 				restart <- 1
+
 				return nil
 			}).
 			Excluding(excluded...).
@@ -92,6 +93,7 @@ func execute(command *cobra.Command, args []string) error {
 		}
 
 		w.Start()
+
 		return w.Close, nil
 	}
 
@@ -173,6 +175,7 @@ func buildExecutor(command *cobra.Command) executor {
 		if status.Error != nil {
 			logger().Error(status.Error, "failed to run build command")
 		}
+
 		return b.Stop
 	}
 }
@@ -194,6 +197,7 @@ func runExecutor(command *cobra.Command) executor {
 				logger().Error(status.Error, "failed to run run command")
 			}
 		}(r.Start())
+
 		return r.Stop
 	}
 }
@@ -224,6 +228,7 @@ func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hoo
 		default:
 			if command.Flag("kill").Value.String() == enabled {
 				hookChan <- syscall.SIGTERM
+
 				return
 			}
 		}

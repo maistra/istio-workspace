@@ -15,6 +15,7 @@ func Load(filePath string) (data []byte, err error) {
 	} else {
 		data, err = Asset(filePath)
 	}
+
 	return data, err
 }
 
@@ -29,8 +30,10 @@ func ListDir(path string) ([]string, error) {
 		for _, info := range dirInfo {
 			dirs = append(dirs, info.Name())
 		}
+
 		return dirs, nil
 	}
+
 	return AssetDir(path)
 }
 
@@ -40,6 +43,7 @@ func fileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return !info.IsDir()
 }
 
@@ -49,5 +53,6 @@ func dirExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return info.IsDir()
 }

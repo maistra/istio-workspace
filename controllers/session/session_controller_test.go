@@ -39,6 +39,7 @@ var _ = Describe("Basic session manipulation", func() {
 			s := v1alpha1.Session{}
 			err := (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
 			Expect(err).ToNot(HaveOccurred())
+
 			return s
 		}
 	}(&c)
@@ -48,6 +49,7 @@ var _ = Describe("Basic session manipulation", func() {
 				return ref
 			}
 		}
+
 		return nil
 	}
 
@@ -478,6 +480,7 @@ func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref 
 		for _, name := range names {
 			ref.AddTargetResource(model.NewLocatedResource("test", name, map[string]string{}))
 		}
+
 		return true
 	}
 }
@@ -494,6 +497,7 @@ type trackedLocator struct {
 
 func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
 	t.WasCalled = true
+
 	return t.Action(ctx, ref)
 }
 
@@ -501,6 +505,7 @@ func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
 func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error {
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(status)
+
 		return nil
 	}
 }
@@ -527,6 +532,7 @@ type trackedMutator struct {
 
 func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
 	t.WasCalled = true
+
 	return t.Action(ctx, ref)
 }
 
@@ -534,6 +540,7 @@ func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
 func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint:unparam //reason kind is always receiving 'test' so far
 	return func(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})
+
 		return nil
 	}
 }
@@ -545,5 +552,6 @@ type trackedRevertor struct {
 
 func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error {
 	t.WasCalled = true
+
 	return t.Action(ctx, ref)
 }

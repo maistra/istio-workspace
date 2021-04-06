@@ -25,12 +25,14 @@ func CreateWatch(intervalMs int64) *Builder {
 // WithHandlers allows to register instances of Handler which will react on file change events.
 func (wb *Builder) WithHandlers(handlers ...Handler) *Builder {
 	wb.w.handlers = handlers
+
 	return wb
 }
 
 // Excluding allows to define exclusion patterns (as glob expressions).
 func (wb *Builder) Excluding(exclusions ...string) *Builder {
 	wb.exclusions = exclusions
+
 	return wb
 }
 
@@ -41,6 +43,7 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		logger().Error(err, "failed creating fs watch")
+
 		return nil, err
 	}
 

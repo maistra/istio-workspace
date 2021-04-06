@@ -210,6 +210,7 @@ func Get(object client.Object) []types.NamespacedName {
 			typeNames = append(typeNames, parseNamespacedName(ref))
 		}
 	}
+
 	return typeNames
 }
 
@@ -232,6 +233,7 @@ func (e *EnqueueRequestForAnnotation) getAnnotationRequests(object client.Object
 	for _, typeName := range typeNames {
 		requests = append(requests, reconcile.Request{NamespacedName: typeName})
 	}
+
 	return true, requests
 }
 

@@ -95,6 +95,7 @@ func (r *RefStatus) GetHostNames() []string {
 			return strings.Split(val, ",")
 		}
 	}
+
 	return []string{}
 }
 
@@ -160,6 +161,7 @@ func (s *Session) HasFinalizer(finalizer string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
