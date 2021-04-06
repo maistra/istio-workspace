@@ -13,7 +13,7 @@ import (
 // otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
-	var client *session.Client = nil
+	var client *session.Client
 
 	options, err := ToOptions(cmd.Annotations, cmd.Flags())
 	if err != nil {
