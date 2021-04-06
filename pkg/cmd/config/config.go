@@ -50,7 +50,7 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 			return err
 		}
 
-		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
+		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			return err
 		}
 	}
