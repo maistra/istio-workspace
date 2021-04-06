@@ -1,13 +1,13 @@
 package session
 
 import (
-	"errors"
 	"fmt"
 	"os/user"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
