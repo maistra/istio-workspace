@@ -6,7 +6,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/handler"
-	"k8s.io/apimachinery/pkg/api/errors"
+	"github.com/pkg/errors"
+	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -85,13 +86,13 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	// Create a new controller
 	c, err := controller.New("session-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed creating session-controller")
 	}
 
 	// Watch for changes to primary resource Session
 	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}}, &handler.InstrumentedEnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed creating session-controller")
 	}
 
 	for _, object := range r.WatchTypes() {
@@ -99,7 +100,6 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 			if !meta.IsNoMatchError(err) {
 				logger().Error(err, "error checking for type Kind availability")
 			}
-
 			continue
 		}
 
@@ -138,7 +138,6 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 	for _, handler := range r.manipulators.Handlers {
 		objects = append(objects, handler.TargetResourceType())
 	}
-
 	return objects
 }
 
@@ -165,11 +164,11 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	session := &istiov1alpha1.Session{}
 	err := r.client.Get(context.Background(), request.NamespacedName, session)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if errorsK8s.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		return reconcile.Result{}, errors.Wrap(err, "failed reconciling session")
 	}
 
 	route := ConvertAPIRouteToModelRoute(session)
@@ -211,7 +210,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	} else {
 		r.deleteRemovedRefs(ctx, session, refs)
 		if err := r.syncAllRefs(ctx, session); err != nil {
-			return reconcile.Result{}, err
+			return reconcile.Result{}, errors.Wrap(err, "failed reconciling session")
 		}
 	}
 
@@ -221,7 +220,6 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
 		}
 	}
-
 	return reconcile.Result{}, nil
 }
 
@@ -231,7 +229,6 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 		for _, r := range session.Spec.Refs {
 			if ref.Name == r.Name {
 				found = true
-
 				break
 			}
 		}
@@ -262,8 +259,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 		}
 	}
 	ConvertModelRefToAPIStatus(*ref, session)
-
-	return ctx.Client.Status().Update(ctx, session)
+	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed updating session")
 }
 
 func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error {
@@ -285,8 +281,7 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
 	}
 	session.Status.Hosts = unique(session.Status.Hosts)
-
-	return ctx.Client.Status().Update(ctx, session)
+	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing all refs")
 }
 
 func unique(s []string) []string {
@@ -298,7 +293,6 @@ func unique(s []string) []string {
 	for k := range entries {
 		uniqueSlice = append(uniqueSlice, k)
 	}
-
 	return uniqueSlice
 }
 
@@ -328,6 +322,5 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 	}
 
 	ConvertModelRefToAPIStatus(*ref, session)
-
-	return ctx.Client.Status().Update(ctx, session)
+	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing ref")
 }

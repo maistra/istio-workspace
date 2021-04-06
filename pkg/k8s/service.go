@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,7 +23,6 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	services, err := getServices(ctx, ctx.Namespace)
 	if err != nil {
 		ctx.Log.Error(err, "Could not get Services")
-
 		return false
 	}
 	found := false
@@ -42,6 +42,5 @@ func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
 func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) {
 	services := corev1.ServiceList{}
 	err := ctx.Client.List(ctx, &services, client.InNamespace(namespace))
-
-	return &services, err
+	return &services, errors.Wrapf(err, "failed listing services in namespace %s", namespace)
 }

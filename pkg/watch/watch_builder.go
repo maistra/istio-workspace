@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
 )
 
 // Builder is a struct which allows to use fluent API to create underlying instance of Watch.
@@ -25,14 +26,12 @@ func CreateWatch(intervalMs int64) *Builder {
 // WithHandlers allows to register instances of Handler which will react on file change events.
 func (wb *Builder) WithHandlers(handlers ...Handler) *Builder {
 	wb.w.handlers = handlers
-
 	return wb
 }
 
 // Excluding allows to define exclusion patterns (as glob expressions).
 func (wb *Builder) Excluding(exclusions ...string) *Builder {
 	wb.exclusions = exclusions
-
 	return wb
 }
 
@@ -43,17 +42,15 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		logger().Error(err, "failed creating fs watch")
-
-		return nil, err
+		return nil, errors.Wrap(err, "failed creating fs watch")
 	}
 
 	wb.w.watcher = fsWatcher
 
 	for _, path := range paths {
 		dir, err := os.Stat(path)
-
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed checking path %s", path)
 		}
 
 		if !dir.IsDir() {

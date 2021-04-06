@@ -74,13 +74,16 @@ type handler struct {
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session.
-func RemoveHandler(opts Options, client *Client) (State, func(), error) {
+func RemoveHandler(opts Options, client *Client) (State, func()) {
+	if client == nil {
+		return State{}, func() {}
+	}
 	h := &handler{c: client,
 		opts: opts}
 
 	return State{}, func() {
 		h.removeOrLeaveSession()
-	}, nil
+	}
 }
 
 // CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.

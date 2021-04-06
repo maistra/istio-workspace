@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
@@ -23,7 +24,7 @@ func NewCmd() *cobra.Command {
 		Short:        "Creates a new Session",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.SyncFullyQualifiedFlags(cmd)
+			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			state, _, _, err := internal.Sessions(cmd)
@@ -31,8 +32,7 @@ func NewCmd() *cobra.Command {
 				b, _ := json.MarshalIndent(&state.RefStatus, "", "  ")
 				fmt.Println(string(b))
 			}
-
-			return err
+			return errors.Wrapf(err, "failed executing %s command", cmd.Name())
 		},
 	}
 

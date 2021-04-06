@@ -47,11 +47,11 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if !defaultConfigFile {
-			return err
+			return errors.Wrapf(err, "failed reading config file %s", configFile)
 		}
 
 		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			return err
+			return errors.Wrapf(err, "failed reading config file %s", configFile)
 		}
 	}
 
@@ -80,11 +80,13 @@ func contains(s []string, e string) bool {
 func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	value := viper.GetString(cmd.Name() + "." + flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
-		return cmd.Flags().Set(flagName, value)
+		err := cmd.Flags().Set(flagName, value)
+		return errors.Wrapf(err, "failed setting flag %s with value %v", flagName, value)
 	}
 	value = viper.GetString(flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
-		return cmd.Flags().Set(flagName, value)
+		err := cmd.Flags().Set(flagName, value)
+		return errors.Wrapf(err, "failed setting flag %s with value %v", flagName, value)
 	}
 
 	return nil
@@ -101,8 +103,7 @@ func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 		syncFlagErr := SyncFullyQualifiedFlag(cmd, flag.Name)
 		accErrors = multierror.Append(accErrors, syncFlagErr)
 	})
-
-	return accErrors.ErrorOrNil()
+	return errors.Wrap(accErrors.ErrorOrNil(), "failed to sync flags")
 }
 
 // BindFullyQualifiedFlag ensures that each flag used in commands is bound to a key using fully qualified name

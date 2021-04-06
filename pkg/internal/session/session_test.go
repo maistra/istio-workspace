@@ -174,13 +174,11 @@ var _ = Describe("Session operations", func() {
 				opts.DeploymentName = opts.DeploymentName + "-1"
 
 				// when - removing a ref from a session
-				_, remove, err := session.RemoveHandler(opts, client)
-				Expect(err).ToNot(HaveOccurred())
-
+				_, remove := session.RemoveHandler(opts, client)
 				remove()
 
 				// then - expect there to be no session
-				_, err = client.Get(opts.SessionName)
+				_, err := client.Get(opts.SessionName)
 				Expect(err).To(HaveOccurred())
 			})
 		})

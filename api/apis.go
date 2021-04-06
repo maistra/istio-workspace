@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -9,5 +10,5 @@ var AddToSchemes runtime.SchemeBuilder
 
 // AddToScheme adds all Resources to the Scheme.
 func AddToScheme(s *runtime.Scheme) error {
-	return AddToSchemes.AddToScheme(s)
+	return errors.Wrap(AddToSchemes.AddToScheme(s), "failed registering api")
 }

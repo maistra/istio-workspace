@@ -3,8 +3,9 @@ package istio
 import (
 	"strings"
 
+	"github.com/pkg/errors"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -45,7 +46,6 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
-
 			return err
 		}
 
@@ -58,8 +58,7 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
-
-			return err
+			return errors.Wrap(err, "failed updating gateway")
 		}
 
 		ref.AddResourceStatus(model.ResourceStatus{
@@ -82,11 +81,10 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	for _, resource := range resources {
 		gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
-			if errors.IsNotFound(err) { // Not found, nothing to clean
+			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 				break
 			}
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-
 			break
 		}
 
@@ -98,7 +96,6 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-
 			break
 		}
 		// ok, removed
@@ -138,7 +135,6 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 		server.Hosts = hosts
 	}
 	source.Annotations[LabelIkeHosts] = strings.Join(existingHosts, ",")
-
 	return source, addedHosts
 }
 
@@ -178,8 +174,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
-
-	return &Gateway, err
+	return &Gateway, errors.Wrapf(err, "failed finding gateway %s in namespace %s", name, namespace)
 }
 
 func existInList(hosts []string, host string) bool {
@@ -188,7 +183,6 @@ func existInList(hosts []string, host string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -196,10 +190,8 @@ func removeFromList(hosts []string, host string) []string {
 	for i, eh := range hosts {
 		if eh == host {
 			hosts = append(hosts[:i], hosts[i+1:]...)
-
 			return hosts
 		}
 	}
-
 	return hosts
 }

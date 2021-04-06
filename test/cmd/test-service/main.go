@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
@@ -103,7 +104,7 @@ func parseURL(value string) ([]*url.URL, error) {
 	for _, v := range vs {
 		u, err := url.Parse(v)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed parsing URL "+value)
 		}
 		urls = append(urls, u)
 	}

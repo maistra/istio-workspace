@@ -9,6 +9,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	ignore "github.com/sabhiram/go-gitignore"
 
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -47,7 +48,6 @@ func (w *Watch) Start() {
 				}
 				if w.Excluded(event.Name) {
 					logger().V(1).Info("file excluded. skipping change handling", "file", event.Name)
-
 					continue
 				}
 				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
@@ -85,7 +85,6 @@ func (w *Watch) Excluded(path string) bool {
 	for _, basePath := range w.basePaths {
 		if strings.HasPrefix(path, basePath) {
 			reducedPath = strings.TrimPrefix(path, basePath)
-
 			break
 		}
 	}
@@ -94,7 +93,6 @@ func (w *Watch) Excluded(path string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -110,8 +108,7 @@ func (w *Watch) Close() {
 // addPath adds single path (non-recursive) to be watch.
 func (w *Watch) addPath(filePath string) error {
 	w.basePaths = append(w.basePaths, filePath)
-
-	return w.watcher.Add(filePath)
+	return errors.Wrapf(w.watcher.Add(filePath), "failed adding %s path", filePath)
 }
 
 // addRecursiveWatch handles adding watches recursively for the path provided
@@ -124,7 +121,6 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		if os.IsNotExist(err) {
 			return nil
 		}
-
 		return fmt.Errorf("error introspecting filePath %s: %w", filePath, err)
 	}
 
@@ -146,7 +142,6 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 			return fmt.Errorf("error adding watcher for filePath %s: %w", v, err)
 		}
 	}
-
 	return nil
 }
 
@@ -156,10 +151,9 @@ func (w *Watch) addExclusions(exclusions []string) error {
 	}
 	gitIgnore, e := ignore.CompileIgnoreLines(exclusions...)
 	if e != nil {
-		return e
+		return errors.Wrapf(e, "failed adding exclusion list %v", exclusions)
 	}
 	w.gitignores = append(w.gitignores, *gitIgnore)
-
 	return nil
 }
 
@@ -170,11 +164,11 @@ func (w *Watch) addGitIgnore(path string) error {
 	if err == nil {
 		err := file.Close()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed closing file")
 		}
 		gitIgnore, err := ignore.CompileIgnoreFile(gitIgnorePath)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed compiling ignore list from .gitignore")
 		}
 		w.gitignores = append(w.gitignores, *gitIgnore)
 	}
@@ -192,10 +186,8 @@ func allSubFoldersOf(filePath string) (paths []string, err error) {
 		if info.IsDir() {
 			paths = append(paths, newPath)
 		}
-
 		return nil
 	})
-
 	return
 }
 
@@ -207,6 +199,5 @@ func extractEvents(events map[string]fsnotify.Event) []fsnotify.Event {
 		changes[i] = event
 		i++
 	}
-
 	return changes
 }
