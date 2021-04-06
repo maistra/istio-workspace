@@ -48,6 +48,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - exhaustivestruct
     - forbidigo
     - gochecknoinits # k8s/istio generated APIs are using init()
     - gochecknoglobals # FIXME https://github.com/Maistra/istio-workspace/issues/479
@@ -57,6 +58,7 @@ linters:
     - gofumpt
     - gomnd #
     - gomodguard # We are still using dep
+    - paralleltest
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
 
 run:

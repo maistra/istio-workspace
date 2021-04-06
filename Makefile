@@ -134,7 +134,7 @@ release-prepare: deps tools generate format
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
-	golangci-lint run
+	golangci-lint run --fix
 
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
