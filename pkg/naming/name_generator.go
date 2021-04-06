@@ -1,6 +1,9 @@
 package naming
 
-import "math/rand"
+import (
+	"crypto/rand"
+	"math/big"
+)
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 
@@ -19,7 +22,8 @@ func RandName(length int) string {
 
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+		ri, _ := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		b[i] = letters[ri.Int64()]
 	}
 
 	return string(b)

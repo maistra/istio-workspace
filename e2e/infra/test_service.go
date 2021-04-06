@@ -1,8 +1,9 @@
 package infra
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"time"
 
@@ -88,14 +89,12 @@ func GetGatewayHost(namespace string) string {
 
 const charset = "abcdefghijklmnopqrstuvwxyz"
 
-var seededRand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
 // stringWithCharset returns a random string of length based on charset.
 func stringWithCharset(length int, charset string) string {
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+		ri, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[ri.Int64()]
 	}
 
 	return string(b)
