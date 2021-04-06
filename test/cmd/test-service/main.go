@@ -9,24 +9,23 @@ import (
 	"os"
 	"strings"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
 	"github.com/maistra/istio-workspace/pkg/log"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
-	// EnvHTTPAddr name of Env variable that sets the listening address
+	// EnvHTTPAddr name of Env variable that sets the listening address.
 	EnvHTTPAddr = "HTTP_ADDR"
 
-	// EnvGRPCAddr name of Env variable that sets the listening address
+	// EnvGRPCAddr name of Env variable that sets the listening address.
 	EnvGRPCAddr = "GRPC_ADDR"
 
-	// EnvServiceName name of Env variable that sets the Service name used in call stack
+	// EnvServiceName name of Env variable that sets the Service name used in call stack.
 	EnvServiceName = "SERVICE_NAME"
 
-	// EnvServiceCall name of Env variable that holds a colon-separated list of URLs to call
+	// EnvServiceCall name of Env variable that holds a colon-separated list of URLs to call.
 	EnvServiceCall = "SERVICE_CALL"
 )
 

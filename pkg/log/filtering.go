@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"go.uber.org/zap/buffer"
-
 	"go.uber.org/zap/zapcore"
 )
 

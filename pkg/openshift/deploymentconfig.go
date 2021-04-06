@@ -3,17 +3,16 @@ package openshift
 import (
 	"encoding/json"
 
-	"github.com/maistra/istio-workspace/api"
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
-	"github.com/maistra/istio-workspace/pkg/template"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	appsv1 "github.com/openshift/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
+	"github.com/maistra/istio-workspace/pkg/template"
 )
 
 func init() {
@@ -21,7 +20,7 @@ func init() {
 }
 
 const (
-	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig
+	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig.
 	DeploymentConfigKind = "DeploymentConfig"
 )
 

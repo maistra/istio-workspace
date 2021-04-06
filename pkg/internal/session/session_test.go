@@ -3,15 +3,14 @@ package session_test
 import (
 	"time"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
-	"github.com/maistra/istio-workspace/pkg/internal/session"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
 var _ = Describe("Session operations", func() {

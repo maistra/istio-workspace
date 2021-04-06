@@ -21,9 +21,6 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-
-	"github.com/maistra/istio-workspace/pkg/log"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
@@ -31,6 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	crtHandler "sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (

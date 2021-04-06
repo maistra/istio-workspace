@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var (

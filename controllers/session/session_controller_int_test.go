@@ -6,31 +6,26 @@ import (
 	"io"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/template"
-
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
-	"github.com/maistra/istio-workspace/test/testclient"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/template"
+	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/test/testclient"
 )
 
 var _ = Describe("Complete session manipulation", func() {

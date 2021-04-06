@@ -4,8 +4,6 @@ import (
 	"io"
 	"time"
 
-	"sigs.k8s.io/yaml"
-
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -14,6 +12,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/yaml"
 )
 
 const (

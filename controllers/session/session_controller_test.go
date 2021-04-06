@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/model"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -16,8 +14,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 var (

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/maistra/istio-workspace/pkg/watch"
-
 	"github.com/fsnotify/fsnotify"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/maistra/istio-workspace/pkg/watch"
 	. "github.com/maistra/istio-workspace/test"
 )
 

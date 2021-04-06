@@ -48,6 +48,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - forbidigo
     - gochecknoinits # k8s/istio generated APIs are using init()
     - gochecknoglobals # FIXME https://github.com/Maistra/istio-workspace/issues/479
     - gocognit # FIXME https://github.com/Maistra/istio-workspace/issues/478

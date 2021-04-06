@@ -4,10 +4,9 @@ import (
 	"os"
 
 	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-
-	"github.com/onsi/gomega"
 )
 
 // GetRepositoryName returns the name of the repository.

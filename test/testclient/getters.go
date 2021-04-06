@@ -3,14 +3,14 @@ package testclient
 import (
 	"context"
 
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-
 	"github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 )
 
 /*

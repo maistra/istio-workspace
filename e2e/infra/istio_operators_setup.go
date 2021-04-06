@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/maistra/istio-workspace/test/shell"
-
 	"github.com/onsi/gomega"
+
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 // BuildOperator builds istio-workspace operator and pushes it to specified registry.

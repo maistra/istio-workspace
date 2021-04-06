@@ -7,11 +7,9 @@ import (
 
 	"github.com/go-logr/logr"
 	zapr2 "github.com/go-logr/zapr"
-	"k8s.io/klog/v2"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
+	"k8s.io/klog/v2"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )

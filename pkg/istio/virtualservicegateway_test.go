@@ -1,20 +1,19 @@
 package istio_test
 
 import (
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/pkg/istio"
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 var _ = Describe("Location of Gateway connected VirtualService Kind", func() {

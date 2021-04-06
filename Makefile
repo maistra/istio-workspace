@@ -227,7 +227,7 @@ $(PROJECT_DIR)/bin/goimports:
 
 $(PROJECT_DIR)/bin/golangci-lint:
 	$(call header,"Installing")
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.28.3
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.39.0
 
 $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing")

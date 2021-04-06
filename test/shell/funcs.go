@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/shell"
-
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/google/shlex"
+
+	"github.com/maistra/istio-workspace/pkg/shell"
 )
 
 // Execute executes given command in the current directory.

@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/shell"
-
 	gocmd "github.com/go-cmd/cmd"
+
+	"github.com/maistra/istio-workspace/pkg/shell"
 )
 
 const (

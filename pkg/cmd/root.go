@@ -5,6 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
@@ -12,13 +16,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/log"
-
 	v "github.com/maistra/istio-workspace/version"
-
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 var logger = func() logr.Logger {

@@ -1,11 +1,11 @@
 package internal
 
 import (
-	"github.com/maistra/istio-workspace/pkg/internal/session"
-	"github.com/maistra/istio-workspace/pkg/telepresence"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/maistra/istio-workspace/pkg/internal/session"
+	"github.com/maistra/istio-workspace/pkg/telepresence"
 )
 
 // Sessions creates a Handler for the given session operation
@@ -51,7 +51,7 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 }
 
 const (
-	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag
+	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag.
 	AnnotationRevert     = "revert"
 	telepresenceStrategy = "telepresence"
 )

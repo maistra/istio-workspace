@@ -3,10 +3,10 @@ package version
 import (
 	"net/http"
 
-	"github.com/maistra/istio-workspace/version"
-
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/net/context"
+
+	"github.com/maistra/istio-workspace/version"
 )
 
 func LatestRelease() (string, error) {

@@ -1,14 +1,13 @@
 package generator_test
 
 import (
-	. "github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 )
 
 var _ = Describe("Operations for test scenario generator", func() {

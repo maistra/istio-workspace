@@ -4,25 +4,24 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
-
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (
-	// VirtualServiceKind is the k8s Kind for a istio VirtualService
+	// VirtualServiceKind is the k8s Kind for a istio VirtualService.
 	VirtualServiceKind = "VirtualService"
 
-	// LabelIkeMutated is a bool label to indicated we own the resource
+	// LabelIkeMutated is a bool label to indicated we own the resource.
 	LabelIkeMutated = "ike.mutated"
 
-	// LabelIkeMutatedValue is the bool value of the LabelIkeMutated label
+	// LabelIkeMutatedValue is the bool value of the LabelIkeMutated label.
 	LabelIkeMutatedValue = "true"
 )
 

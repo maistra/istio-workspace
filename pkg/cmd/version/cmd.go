@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/version"
-
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
+
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/version"
 )
 
 var logger = func() logr.Logger {

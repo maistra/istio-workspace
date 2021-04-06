@@ -1,10 +1,10 @@
 package template_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/template"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/maistra/istio-workspace/pkg/template"
 )
 
 var _ = Describe("Operations for template system", func() {

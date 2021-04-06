@@ -3,13 +3,12 @@ package telepresence_test
 import (
 	"path"
 
-	"github.com/maistra/istio-workspace/test/shell"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 	. "github.com/maistra/istio-workspace/test"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("telepresence commands wrapper", func() {

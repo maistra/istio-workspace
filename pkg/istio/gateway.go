@@ -3,19 +3,17 @@ package istio
 import (
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (
-	// GatewayKind is the k8s Kind for a istio Gateway
+	// GatewayKind is the k8s Kind for a istio Gateway.
 	GatewayKind = "Gateway"
 )
 

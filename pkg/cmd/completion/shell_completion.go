@@ -3,7 +3,7 @@ package completion
 import "github.com/spf13/cobra"
 
 var (
-	// bashCompletionFlags maps between a flag (ie: namespace) to a custom shell completion
+	// bashCompletionFlags maps between a flag (ie: namespace) to a custom shell completion.
 	bashCompletionFlags = map[string]string{
 		"namespace": "__kubectl_get_object namespace",
 		// Telepresence has one flag (deployment) which works for both k8s Deployment and Openshift DeploymentConfig
@@ -37,7 +37,7 @@ const (
 	// Additional tweaks:
 	// - namespace-aware completion: whenever namespace has been specified before any namespace-bound parameter (such as --deployment)
 	// we are narrowing the results to that specific namespace (see __kubectl_get)
-	// - combining object sets: we can combine results of multiple kubectl_ctl get by calling __kubectl_get_object_combined with multiple types combined
+	// - combining object sets: we can combine results of multiple kubectl_ctl get by calling __kubectl_get_object_combined with multiple types combined.
 	BashCompletionFunc = `
 __ike_get_object()
 {

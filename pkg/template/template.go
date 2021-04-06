@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/maistra/istio-workspace/pkg/assets"
-
 	jsonpatch "github.com/evanphx/json-patch"
+
+	"github.com/maistra/istio-workspace/pkg/assets"
 )
 
 const TemplatePath = "TEMPLATE_PATH"

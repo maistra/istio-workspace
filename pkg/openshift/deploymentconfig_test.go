@@ -3,6 +3,15 @@ package openshift_test
 import (
 	"context"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	appsv1 "github.com/openshift/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -11,17 +20,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	appsv1 "github.com/openshift/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("Operations for openshift DeploymentConfig kind", func() {

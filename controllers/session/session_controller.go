@@ -4,19 +4,8 @@ import (
 	"context"
 	"os"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/pkg/istio"
-	"github.com/maistra/istio-workspace/pkg/k8s"
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/openshift"
-	"github.com/maistra/istio-workspace/pkg/reference"
-	"github.com/maistra/istio-workspace/pkg/template"
-
-	"github.com/operator-framework/operator-lib/handler"
-
 	"github.com/go-logr/logr"
-
+	"github.com/operator-framework/operator-lib/handler"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,10 +16,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/istio"
+	"github.com/maistra/istio-workspace/pkg/k8s"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/reference"
+	"github.com/maistra/istio-workspace/pkg/template"
 )
 
 const (
-	// Finalizer defines the Finalizer name owned by the Session reconciler
+	// Finalizer defines the Finalizer name owned by the Session reconciler.
 	Finalizer = "finalizers.istio.workspace.session"
 )
 

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	// StrategyExisting holds the name of the existing strategy
+	// StrategyExisting holds the name of the existing strategy.
 	StrategyExisting = "existing"
 )
 
@@ -272,9 +272,9 @@ func NewSuccessResource(kind, name string, action ResourceAction) ResourceStatus
 type ResourceAction string
 
 const (
-	// ActionCreated imply the whole Named Kind was created and can be deleted
+	// ActionCreated imply the whole Named Kind was created and can be deleted.
 	ActionCreated ResourceAction = "created"
-	// ActionModified imply the Named Kind has been modified and needs to be reverted to get back to original state
+	// ActionModified imply the Named Kind has been modified and needs to be reverted to get back to original state.
 	ActionModified ResourceAction = "modified"
 	// ActionLocated imply the resource was found, but nothing was changed.
 	ActionLocated ResourceAction = "located"

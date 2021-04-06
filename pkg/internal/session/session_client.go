@@ -3,11 +3,11 @@ package session
 import (
 	"context"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
+
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
 )
 
 // Client interacts with the k8s api server.

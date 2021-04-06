@@ -1,12 +1,12 @@
 package e2e_test
 
 import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Bash Completion Tests", func() {
