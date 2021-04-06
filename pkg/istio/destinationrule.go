@@ -24,7 +24,7 @@ var _ model.Revertor = DestinationRuleRevertor
 var _ model.Manipulator = destinationRuleManipulator{}
 
 // DestinationRuleManipulator represents a model.Manipulator implementation for handling DestinationRule objects.
-func DestinationRuleManipulator() model.Manipulator {
+func DestinationRuleManipulator() model.Manipulator { //nolint:unused //reason to unblock gh-action linter with this false positive
 	return destinationRuleManipulator{}
 }
 
