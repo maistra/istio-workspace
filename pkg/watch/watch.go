@@ -124,6 +124,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		if os.IsNotExist(err) {
 			return nil
 		}
+
 		return fmt.Errorf("error introspecting filePath %s: %w", filePath, err)
 	}
 
