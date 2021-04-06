@@ -48,7 +48,7 @@ func (d virtualServiceManipulator) Revert() model.Revertor {
 }
 
 // VirtualServiceMutator attempts to create a virtual service for forked service.
-func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint:gocyclo //reason it is what it is :D
+func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint:gocyclo,cyclop //reason it is what it is :D
 	targetVersion := ref.GetVersion()
 
 	vss, err := getVirtualServices(ctx, ctx.Namespace)
