@@ -20,6 +20,7 @@ var (
 	logger = func() logr.Logger {
 		return log.Log.WithValues("type", "session")
 	}
+	errorWrongRouteFormat = fmt.Errorf("route in wrong format. expected type:name=value")
 )
 
 // Options holds the variables used by the Session Handler.
@@ -283,13 +284,13 @@ func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 
 	typed := strings.Split(route, ":")
 	if len(typed) != 2 {
-		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
+		return nil, errorWrongRouteFormat
 	}
 	t = typed[0]
 
 	pair := strings.Split(typed[1], "=")
 	if len(pair) != 2 {
-		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
+		return nil, errorWrongRouteFormat
 	}
 	n, v = pair[0], pair[1]
 

@@ -15,6 +15,9 @@ const (
 	installHint = "Head over to https://www.telepresence.io/reference/install for installation instructions.\n"
 )
 
+var errorNoTelepresenceHint = fmt.Errorf("couldn't find '%s' installed in your system.\n%s\n"+
+	"you can specify the version using TELEPRESENCE_VERSION environment variable", BinaryName, installHint)
+
 // GetVersion checks which version of telepresence should be used or is available on the path
 // TELEPRESENCE_VERSION env variable is checked and if is defined takes precedence.
 // If the binary is present on the $PATH then its version is used.
@@ -36,9 +39,7 @@ func GetVersion() (string, error) {
 	}
 
 	if tpVersion == "" {
-		return "", fmt.Errorf("couldn't find '%s' installed in your system.\n"+
-			"%s\n"+
-			"you can specify the version using TELEPRESENCE_VERSION environment variable", BinaryName, installHint)
+		return "", errorNoTelepresenceHint
 	}
 
 	return tpVersion, nil

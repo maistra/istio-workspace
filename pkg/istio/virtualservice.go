@@ -26,9 +26,12 @@ const (
 	LabelIkeMutatedValue = "true"
 )
 
-var _ model.Mutator = VirtualServiceMutator
-var _ model.Revertor = VirtualServiceRevertor
-var _ model.Manipulator = virtualServiceManipulator{}
+var (
+	_                  model.Mutator     = VirtualServiceMutator
+	_                  model.Revertor    = VirtualServiceRevertor
+	_                  model.Manipulator = virtualServiceManipulator{}
+	errorRouteNotFound                   = fmt.Errorf("route not found")
+)
 
 // VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects.
 func VirtualServiceManipulator() model.Manipulator {
@@ -181,7 +184,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 	// Not connected to a Gateway
 	targetsHTTP := findRoutes(clonedSource, hostName, version)
 	if len(targetsHTTP) == 0 {
-		return istionetwork.VirtualService{}, false, fmt.Errorf("route not found")
+		return istionetwork.VirtualService{}, false, errorRouteNotFound
 	}
 	for _, tHTTP := range targetsHTTP {
 		simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)

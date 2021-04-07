@@ -29,7 +29,7 @@ func (matcher *onlyContainsMatcher) Match(actual interface{}) (success bool, err
 
 	s, ok := actual.(string)
 	if !ok {
-		return false, fmt.Errorf("expected string. Got:\n%s", format.Object(actual, 1))
+		return false, fmt.Errorf("expected string. Got:\n%s", format.Object(actual, 1)) //nolint:goerr113 //reason helpful in assertions
 	}
 
 	for _, c := range s {

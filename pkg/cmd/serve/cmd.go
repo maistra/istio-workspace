@@ -29,8 +29,9 @@ var logger = func() logr.Logger {
 }
 
 var (
-	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8080
+	metricsHost                = "0.0.0.0"
+	metricsPort          int32 = 8080
+	errorWatchNsNotFound       = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 )
 
 // NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
@@ -132,7 +133,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 func getWatchNamespace() (string, error) {
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+		return "", errorWatchNsNotFound
 	}
 
 	return ns, nil

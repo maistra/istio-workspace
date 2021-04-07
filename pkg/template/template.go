@@ -16,6 +16,10 @@ import (
 
 const TemplatePath = "TEMPLATE_PATH"
 
+var (
+	errorInvalidPath = fmt.Errorf("given path is not valid")
+)
+
 func loadPatches(tplFolder string) []Patch {
 	tplDir, err := assets.ListDir(tplFolder)
 	if err != nil {
@@ -111,7 +115,7 @@ type patchEngine struct {
 func (t JSON) Value(path string) (interface{}, error) {
 	parts := strings.Split(path, "/")
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("given path is not valid")
+		return nil, errorInvalidPath
 	}
 	parts = parts[1:]
 	var level interface{} = t
@@ -174,7 +178,7 @@ func (e patchEngine) Run(name string, resource []byte, newVersion string, variab
 
 	patch := e.findPatch(name)
 	if patch == nil {
-		return nil, fmt.Errorf("unable to find patch %s", name)
+		return nil, fmt.Errorf("unable to find patch %s", name) //nolint:goerr113 //reason useful to have name in error
 	}
 
 	patchVariables := map[string]string{}
@@ -237,7 +241,7 @@ func parseTemplate(patches Patches) (*template.Template, error) {
 	t := template.New("workspace").Funcs(template.FuncMap{
 		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
 			if vars == nil || vars[name] == "" {
-				return "", fmt.Errorf("expected %s variable to be set", name)
+				return "", fmt.Errorf("expected %s variable to be set", name) //nolint:goerr113 //reason useful to have name in error
 			}
 
 			return "", nil
