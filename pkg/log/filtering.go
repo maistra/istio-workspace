@@ -218,6 +218,5 @@ func (f filteringEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Fiel
 }
 
 func (f filteringEncoder) Clone() zapcore.Encoder {
-
 	return filteringEncoder{f.delegate.Clone(), f.fieldsToInclude}
 }

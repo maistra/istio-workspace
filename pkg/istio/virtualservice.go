@@ -65,7 +65,6 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) ||
 				(!mutationRequired(vs, hostName, targetVersion) && !connected) ||
 				vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
-
 				continue
 			}
 
