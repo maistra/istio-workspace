@@ -58,8 +58,7 @@ linters:
     - goerr113 # FIXME https://github.com/Maistra/istio-workspace/issues/480
     - gofmt # We use goimports and when using them both leads to contradicting errors
     - gofumpt
-    - gomnd #
-    - gomodguard # We are still using dep
+    - gomnd
     - paralleltest
     - wrapcheck # FIXME https://github.com/maistra/istio-workspace/issues/791
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481

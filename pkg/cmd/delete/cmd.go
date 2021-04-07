@@ -1,4 +1,4 @@
-package delete
+package delete //nolint:predeclared //reason to be discussed if we should replace it with remove instead
 
 import (
 	"github.com/go-logr/logr"
