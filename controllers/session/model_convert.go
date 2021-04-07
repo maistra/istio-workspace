@@ -24,7 +24,7 @@ const (
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 	statusRef := &istiov1alpha1.RefStatus{
 		Ref: istiov1alpha1.Ref{
-			Name:     ref.Name,
+			Name:     ref.KindName.String(),
 			Strategy: ref.Strategy,
 			Args:     ref.Args,
 		},
@@ -55,7 +55,7 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 		typeDesc := strings.Title(action)
 		reason := strings.Title(action) + " " + result
 
-		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.Name
+		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.KindName.String()
 		if rs.Message != "" {
 			msg = rs.Message
 		}
@@ -99,7 +99,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	refs := make([]*model.Ref, 0, len(refStatuses))
 	for _, statusRef := range refStatuses {
 		r := &model.Ref{
-			Name:      statusRef.Name,
+			KindName:  model.ParseRefKindName(statusRef.Name),
 			Namespace: session.Namespace,
 			Strategy:  statusRef.Strategy,
 			Args:      statusRef.Args,
@@ -114,7 +114,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 // ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name.
 func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
-		if statusRef.Name == ref.Name {
+		if statusRef.Name == ref.KindName.String() {
 			for _, statusTarget := range statusRef.Targets {
 				timeStamp := time.Time{}
 				if statusTarget.LastTransitionTime != nil {
@@ -158,7 +158,7 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 
 // ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref.
 func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) model.Ref {
-	return model.Ref{Name: ref.Name, Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
+	return model.Ref{KindName: model.ParseRefKindName(ref.Name), Namespace: namespace, Strategy: ref.Strategy, Args: ref.Args}
 }
 
 // ConvertModelRouteToAPIRoute returns Model route as a session Route.
@@ -191,7 +191,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 // RefUpdated check if a Ref has been updated compared to current status.
 func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 	for _, statusRef := range session.Status.Refs {
-		if statusRef.Name == ref.Name {
+		if statusRef.Name == ref.KindName.String() {
 			if statusRef.Strategy != ref.Strategy || !reflect.DeepEqual(statusRef.Args, ref.Args) {
 				return true
 			}

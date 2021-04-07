@@ -99,7 +99,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 			BeforeEach(func() {
 				ref = &model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					Targets: []model.LocatedResourceStatus{
 						model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
 						model.NewLocatedResource("Service", "customer-mutate", nil),
@@ -154,7 +154,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		BeforeEach(func() {
 			ref = &model.Ref{
-				Name: "customer-v1",
+				KindName: model.ParseRefKindName("customer-v1"),
 				Targets: []model.LocatedResourceStatus{
 					model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
 					model.NewLocatedResource("Service", "customer-revert", nil),

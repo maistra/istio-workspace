@@ -29,4 +29,32 @@ var _ = Describe("Operations for model object", func() {
 		})
 
 	})
+
+	Context("refkindname parsing", func() {
+
+		It("should parse name", func() {
+			ref := model.ParseRefKindName("name")
+			Expect(ref.Name).To(Equal("name"))
+			Expect(ref.Kind).To(BeEmpty())
+		})
+
+		It("should parse and trim name", func() {
+			ref := model.ParseRefKindName("      					name		    					")
+			Expect(ref.Name).To(Equal("name"))
+			Expect(ref.Kind).To(BeEmpty())
+		})
+
+		It("should parse kind and name removing spacing characters", func() {
+			ref := model.ParseRefKindName(" dc/name123    ")
+			Expect(ref.Name).To(Equal("name123"))
+			Expect(ref.Kind).To(Equal("dc"))
+		})
+
+		It("should parse name only when more than one / present in the expression", func() {
+			ref := model.ParseRefKindName("dc/marvel/name123")
+			Expect(ref.Name).To(Equal("dc/marvel/name123"))
+			Expect(ref.Kind).To(BeEmpty())
+		})
+
+	})
 })

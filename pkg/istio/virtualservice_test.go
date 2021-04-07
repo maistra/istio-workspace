@@ -162,7 +162,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 				BeforeEach(func() {
 					ref = model.Ref{
-						Name:      "details-v1",
+						KindName: model.RefKindName{
+							Name: "details-v1",
+						},
 						Namespace: "test",
 					}
 				})
@@ -322,7 +324,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 				It("include destinations with no subset", func() {
 					ref.AddTargetResource(targetV6)
-					ref.Name = "x-v5"
+					ref.KindName.Name = "x-v5"
 					ref.AddTargetResource(model.NewLocatedResource("Service", "x", map[string]string{}))
 
 					err := VirtualServiceMutator(ctx, &ref)
@@ -427,7 +429,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 				BeforeEach(func() {
 					ref = model.Ref{
-						Name:      "details-v1",
+						KindName: model.RefKindName{
+							Name: "details-v1",
+						},
 						Namespace: "test",
 						Targets: []model.LocatedResourceStatus{
 							model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"}),
@@ -534,7 +538,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 			It("should attach to a host", func() {
 				ref := model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					Targets: []model.LocatedResourceStatus{
 						model.NewLocatedResource("Service", "customer", nil),
 						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
@@ -550,7 +554,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 			It("should add request headers", func() {
 				ref := model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					Targets: []model.LocatedResourceStatus{
 						model.NewLocatedResource("Service", "customer", nil),
 						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
@@ -566,7 +570,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 
 			It("should duplicate non effected vs", func() {
 				ref := model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					Targets: []model.LocatedResourceStatus{
 						model.NewLocatedResource("Service", "customer", nil),
 						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),

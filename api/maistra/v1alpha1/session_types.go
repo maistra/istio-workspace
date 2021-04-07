@@ -34,7 +34,7 @@ type SessionSpec struct {
 // +k8s:openapi-gen=true
 // Ref defines how to target a single Deployment or DeploymentConfig.
 type Ref struct {
-	// Deployment or DeploymentConfig name
+	// Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
 	Name string `json:"name,omitempty"`
 	// How this deployment should be handled, e.g. telepresence or prepared-image
 	Strategy string `json:"strategy,omitempty"`

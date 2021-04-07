@@ -71,7 +71,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						CreateFile(tmpDir+"/ratings.py", PublisherService)
 
 						ike := RunIke(tmpDir, "develop",
-							"--deployment", "ratings-v1",
+							"--deployment", "deployment/ratings-v1",
 							"--port", "9080",
 							"--method", "inject-tcp",
 							"--watch",
@@ -188,7 +188,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		Context("openshift deploymentconfig", func() {
 
 			BeforeEach(func() {
-				if !RunsAgainstOpenshift {
+				if !RunsOnOpenshift {
 					Skip("DeploymentConfig is Openshift-specific resource and it won't work against plain k8s. " +
 						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
@@ -204,7 +204,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				CreateFile(tmpDir+"/ratings.py", PublisherService)
 
 				ike := RunIke(tmpDir, "develop",
-					"--deployment", "ratings-v1",
+					"--deployment", "dc/ratings-v1",
 					"--port", "9080",
 					"--method", "inject-tcp",
 					"--watch",
@@ -380,7 +380,7 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ..
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike.
 // That only works for oc cli, as kubectl by default uses `default` namespace.
 func ChangeNamespace(namespace string) {
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		<-testshell.Execute("oc project " + namespace).Done()
 	}
 }

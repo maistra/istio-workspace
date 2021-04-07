@@ -46,7 +46,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	ensureRequiredBinaries()
 
 	executeWithTimer(func() {
-		if RunsAgainstOpenshift {
+		if RunsOnOpenshift {
 			LoginAsTestPowerUser()
 
 			// Don't setup shared image namespace if we're not building the images as part of the test flow

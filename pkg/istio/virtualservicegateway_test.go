@@ -111,7 +111,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 
 		It("should expose hosts of located gateway", func() {
 			ref := model.Ref{
-				Name: "customer-v1",
+				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
 			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
@@ -124,7 +124,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 
 		It("should only expose hosts not belonging to other sessions", func() {
 			ref := model.Ref{
-				Name: "customer-v1",
+				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
 			found := istio.VirtualServiceGatewayLocator(ctx, &ref)

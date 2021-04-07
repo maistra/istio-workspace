@@ -230,7 +230,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
-			if ref.Name == r.Name {
+			if ref.KindName.String() == r.Name {
 				found = true
 
 				break
@@ -253,13 +253,13 @@ func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *isti
 }
 
 func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
-	ctx.Log.Info("Remove ref", "name", ref.Name)
+	ctx.Log.Info("Remove ref", "name", ref.KindName.String())
 
 	ConvertAPIStatusToModelRef(*session, ref)
 	for _, handler := range r.manipulators.Handlers {
 		err := handler.Revert()(ctx, ref)
 		if err != nil {
-			ctx.Log.Error(err, "Revert", "name", ref.Name)
+			ctx.Log.Error(err, "Revert", "name", ref.KindName.String())
 		}
 	}
 	ConvertModelRefToAPIStatus(*ref, session)
@@ -323,7 +323,7 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 		for _, handler := range r.manipulators.Handlers {
 			err := handler.Mutate()(ctx, ref)
 			if err != nil {
-				ctx.Log.Error(err, "Mutate", "name", ref.Name)
+				ctx.Log.Error(err, "Mutate", "name", ref.KindName.String())
 			}
 		}
 	}

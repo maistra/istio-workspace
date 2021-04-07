@@ -63,7 +63,7 @@ spec:
                       description: Additional arguments to the given strategy
                       type: object
                     name:
-                      description: Deployment or DeploymentConfig name
+                      description: Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
                       type: string
                     strategy:
                       description: How this deployment should be handled, e.g. telepresence or prepared-image
@@ -150,7 +150,7 @@ spec:
                       description: Additional arguments to the given strategy
                       type: object
                     name:
-                      description: Deployment or DeploymentConfig name
+                      description: Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
                       type: string
                     resources:
                       description: A list of the Resources involved in maintaining this route
