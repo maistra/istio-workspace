@@ -55,8 +55,3 @@ require (
 	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/yaml v1.2.0
 )
-
-replace (
-	gopkg.in/fsnotify.v1 v1.4.9 => github.com/fsnotify/fsnotify v1.4.9
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.7.0
-)
