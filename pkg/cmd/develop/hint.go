@@ -48,9 +48,11 @@ func getTemplate() (*template.Template, error) {
 			if ref == nil {
 				return []string{}
 			}
+
 			return ref.GetHostNames()
 		},
 	})
 	t, err = t.Parse(urlHint)
+
 	return t, errors.Wrap(err, "failed parsing template")
 }

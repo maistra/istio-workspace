@@ -100,6 +100,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 			if !meta.IsNoMatchError(err) {
 				logger().Error(err, "error checking for type Kind availability")
 			}
+
 			continue
 		}
 
@@ -138,6 +139,7 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 	for _, handler := range r.manipulators.Handlers {
 		objects = append(objects, handler.TargetResourceType())
 	}
+
 	return objects
 }
 
@@ -220,6 +222,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
 		}
 	}
+
 	return reconcile.Result{}, nil
 }
 
@@ -229,6 +232,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 		for _, r := range session.Spec.Refs {
 			if ref.Name == r.Name {
 				found = true
+
 				break
 			}
 		}
@@ -259,6 +263,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 		}
 	}
 	ConvertModelRefToAPIStatus(*ref, session)
+
 	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed updating session")
 }
 
@@ -281,6 +286,7 @@ func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov
 		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
 	}
 	session.Status.Hosts = unique(session.Status.Hosts)
+
 	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing all refs")
 }
 
@@ -293,6 +299,7 @@ func unique(s []string) []string {
 	for k := range entries {
 		uniqueSlice = append(uniqueSlice, k)
 	}
+
 	return uniqueSlice
 }
 
@@ -322,5 +329,6 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 	}
 
 	ConvertModelRefToAPIStatus(*ref, session)
+
 	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing ref")
 }

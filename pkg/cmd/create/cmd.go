@@ -32,6 +32,7 @@ func NewCmd() *cobra.Command {
 				b, _ := json.MarshalIndent(&state.RefStatus, "", "  ")
 				fmt.Println(string(b))
 			}
+
 			return errors.Wrapf(err, "failed executing %s command", cmd.Name())
 		},
 	}

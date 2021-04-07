@@ -56,6 +56,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 			return false
 		}
 		ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
+
 		return false
 	}
 	ref.AddTargetResource(model.NewLocatedResource(DeploymentConfigKind, deployment.Name, deployment.Spec.Template.Labels))
@@ -103,10 +104,12 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated, err.Error()))
+
 			return errors.Wrapf(err, "failed to create cloned DeploymentConfig %s", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.NewSuccessResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated))
+
 		return nil
 	}
 }
@@ -126,6 +129,7 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			ctx.Log.Info("Failed to delete DeploymentConfig", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, status.Name, status.Action, err.Error()))
+
 			return errors.Wrapf(err, "failed to delete DeploymentConfig %s", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentConfigKind, status.Name, status.Action))
@@ -150,11 +154,13 @@ func cloneDeployment(engine template.Engine, deployment *appsv1.DeploymentConfig
 	if err != nil {
 		return nil, errors.Wrap(err, "failed unmarshalling json of modified DeploymentConfig")
 	}
+
 	return &clone, nil
 }
 
 func getDeploymentConfig(ctx model.SessionContext, namespace, name string) (*appsv1.DeploymentConfig, error) {
 	deployment := appsv1.DeploymentConfig{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
+
 	return &deployment, errors.Wrapf(err, "failed finding DeploymentConfig %s in namespace %s", name, namespace)
 }

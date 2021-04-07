@@ -20,11 +20,13 @@ func newFilteringEncoder(delegate zapcore.Encoder, includedFields ...string) fil
 	for _, field := range includedFields {
 		fields[field] = struct{}{}
 	}
+
 	return filteringEncoder{delegate: delegate, fieldsToInclude: fields}
 }
 
 func (f filteringEncoder) shouldSkip(key string) bool {
 	_, ok := f.fieldsToInclude[key]
+
 	return !ok
 }
 
@@ -33,6 +35,7 @@ func (f filteringEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler)
 		return nil
 	}
 	err := f.delegate.AddArray(key, marshaler)
+
 	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
@@ -41,6 +44,7 @@ func (f filteringEncoder) AddObject(key string, marshaler zapcore.ObjectMarshale
 		return nil
 	}
 	err := f.delegate.AddObject(key, marshaler)
+
 	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
@@ -196,6 +200,7 @@ func (f filteringEncoder) AddReflected(key string, value interface{}) error {
 		return nil
 	}
 	err := f.delegate.AddReflected(key, value)
+
 	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
@@ -208,9 +213,11 @@ func (f filteringEncoder) OpenNamespace(key string) {
 
 func (f filteringEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
 	encodeEntry, err := f.delegate.EncodeEntry(entry, fields)
+
 	return encodeEntry, errors.Wrapf(err, "failed encoding entry %v", entry)
 }
 
 func (f filteringEncoder) Clone() zapcore.Encoder {
+
 	return filteringEncoder{f.delegate.Clone(), f.fieldsToInclude}
 }

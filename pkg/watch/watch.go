@@ -48,6 +48,7 @@ func (w *Watch) Start() {
 				}
 				if w.Excluded(event.Name) {
 					logger().V(1).Info("file excluded. skipping change handling", "file", event.Name)
+
 					continue
 				}
 				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
@@ -85,6 +86,7 @@ func (w *Watch) Excluded(path string) bool {
 	for _, basePath := range w.basePaths {
 		if strings.HasPrefix(path, basePath) {
 			reducedPath = strings.TrimPrefix(path, basePath)
+
 			break
 		}
 	}
@@ -93,6 +95,7 @@ func (w *Watch) Excluded(path string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -108,6 +111,7 @@ func (w *Watch) Close() {
 // addPath adds single path (non-recursive) to be watch.
 func (w *Watch) addPath(filePath string) error {
 	w.basePaths = append(w.basePaths, filePath)
+
 	return errors.Wrapf(w.watcher.Add(filePath), "failed adding %s path", filePath)
 }
 
@@ -143,6 +147,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 			return fmt.Errorf("error adding watcher for filePath %s: %w", v, err)
 		}
 	}
+
 	return nil
 }
 
@@ -155,6 +160,7 @@ func (w *Watch) addExclusions(exclusions []string) error {
 		return errors.Wrapf(e, "failed adding exclusion list %v", exclusions)
 	}
 	w.gitignores = append(w.gitignores, *gitIgnore)
+
 	return nil
 }
 
@@ -187,8 +193,10 @@ func allSubFoldersOf(filePath string) (paths []string, err error) {
 		if info.IsDir() {
 			paths = append(paths, newPath)
 		}
+
 		return nil
 	})
+
 	return
 }
 
@@ -200,5 +208,6 @@ func extractEvents(events map[string]fsnotify.Event) []fsnotify.Event {
 		changes[i] = event
 		i++
 	}
+
 	return changes
 }

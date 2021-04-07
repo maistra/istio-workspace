@@ -81,11 +81,13 @@ func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 	value := viper.GetString(cmd.Name() + "." + flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
 		err := cmd.Flags().Set(flagName, value)
+
 		return errors.Wrapf(err, "failed setting flag %s with value %v", flagName, value)
 	}
 	value = viper.GetString(flagName)
 	if value != "" && !cmd.Flag(flagName).Changed {
 		err := cmd.Flags().Set(flagName, value)
+
 		return errors.Wrapf(err, "failed setting flag %s with value %v", flagName, value)
 	}
 
@@ -103,6 +105,7 @@ func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 		syncFlagErr := SyncFullyQualifiedFlag(cmd, flag.Name)
 		accErrors = multierror.Append(accErrors, syncFlagErr)
 	})
+
 	return errors.Wrap(accErrors.ErrorOrNil(), "failed to sync flags")
 }
 

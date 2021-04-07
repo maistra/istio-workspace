@@ -19,6 +19,7 @@ func LatestRelease() (string, error) {
 		GetLatestRelease(context.Background(), "maistra", "istio-workspace")
 	if err != nil {
 		logger().Error(err, "unable to determine latest released version")
+
 		return "", errors.Wrap(err, "unable to determine latest released version")
 	}
 

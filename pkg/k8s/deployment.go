@@ -51,6 +51,7 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 			return false
 		}
 		ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
+
 		return false
 	}
 	ref.AddTargetResource(model.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels))
@@ -72,6 +73,7 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 			if k8sErrors.IsNotFound(err) {
 				return nil
 			}
+
 			return err
 		}
 		ctx.Log.Info("Found Deployment", "name", deployment.Name)
@@ -83,6 +85,7 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 		deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
 		if err != nil {
 			ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
+
 			return err
 		}
 		if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
@@ -96,10 +99,12 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, deploymentClone.Name, model.ActionCreated, err.Error()))
+
 			return errors.Wrapf(err, "failed to create cloned Deployment %s", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.NewSuccessResource(DeploymentKind, deploymentClone.Name, model.ActionCreated))
+
 		return nil
 	}
 }
@@ -119,10 +124,12 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			}
 			ctx.Log.Info("Failed to delete Deployment", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, status.Name, status.Action, err.Error()))
+
 			return errors.Wrapf(err, "failed to delete Deployment %s", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentKind, status.Name, status.Action))
 	}
+
 	return nil
 }
 
@@ -142,11 +149,13 @@ func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed unmarshalling json of modified deployment")
 	}
+
 	return &clone, nil
 }
 
 func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
+
 	return &deployment, errors.Wrapf(err, "failed finding deployment %s in namespace %s", name, namespace)
 }

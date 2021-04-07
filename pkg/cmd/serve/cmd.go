@@ -41,6 +41,7 @@ func NewCmd() *cobra.Command {
 		Short: "Starts istio-workspace operator in the cluster",
 		RunE:  startOperator,
 	}
+
 	return serveCmd
 }
 
@@ -48,6 +49,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	namespace, err := getWatchNamespace()
 	if err != nil {
 		logger().Error(err, "Failed to get watch namespace")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
@@ -58,6 +60,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
 		logger().Error(err, "")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
@@ -78,6 +81,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
 		logger().Error(err, "")
+
 		return errors.Wrapf(err, "failed creating manager when executing %s command", cmd.Use)
 	}
 
@@ -93,6 +97,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Setup all Controllers
 	if err = controllers.AddToManager(mgr); err != nil {
 		logger().Error(err, "")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
@@ -101,10 +106,12 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Add readiness and health
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add healthz check")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add readyz check")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
@@ -114,6 +121,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		logger().Error(err, "Manager exited non-zero")
+
 		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
@@ -126,5 +134,6 @@ func getWatchNamespace() (string, error) {
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
+
 	return ns, nil
 }

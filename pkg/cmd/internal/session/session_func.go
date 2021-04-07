@@ -45,6 +45,7 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	}
 	client, err := session.DefaultClient(options.NamespaceName)
 	handler, f := session.RemoveHandler(options, client)
+
 	return handler, f, errors.Wrap(err, "failed removing session")
 }
 

@@ -28,6 +28,7 @@ func NewCmd() *cobra.Command {
 			if err == nil {
 				remove()
 			}
+
 			return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 		},
 	}

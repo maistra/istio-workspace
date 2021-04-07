@@ -55,6 +55,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 	vss, err := getVirtualServices(ctx, ctx.Namespace)
 	if err != nil {
 		ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, ctx.Namespace, model.ActionLocated, err.Error()))
+
 		return err
 	}
 
@@ -64,6 +65,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) ||
 				(!mutationRequired(vs, hostName, targetVersion) && !connected) ||
 				vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
+
 				continue
 			}
 
@@ -76,6 +78,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 				} else {
 					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionModified, err.Error()))
 				}
+
 				return errors.Wrap(err, "failed mutating virtual service")
 			}
 
@@ -86,6 +89,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 				err = ctx.Client.Create(ctx, &mutatedVs)
 				if err != nil && !k8sErrors.IsAlreadyExists(err) {
 					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated, err.Error()))
+
 					return errors.Wrap(err, "failed creating virtual service")
 				}
 				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated))
@@ -93,6 +97,7 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 				err = ctx.Client.Update(ctx, &mutatedVs)
 				if err != nil {
 					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified, err.Error()))
+
 					return errors.Wrap(err, "failed updating virtual service")
 				}
 				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified))
@@ -114,6 +119,7 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 				break
 			}
 			ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
@@ -127,12 +133,14 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
 				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+
 				break
 			}
 		case model.ActionCreated:
 			err = ctx.Client.Delete(ctx, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+
 				break
 			}
 		}
@@ -168,6 +176,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 			targetHTTP := addHeaderRequest(*target.Spec.Http[i], ctx.Route)
 			target.Spec.Http[i] = &targetHTTP
 		}
+
 		return *target, true, nil
 	}
 	// Not connected to a Gateway
@@ -178,6 +187,7 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 	for _, tHTTP := range targetsHTTP {
 		simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
 	}
+
 	return *target, false, nil
 }
 
@@ -199,22 +209,26 @@ func revertVirtualService(subsetName string, vs istionetwork.VirtualService) ist
 			if strings.Contains(http.Route[n].Destination.Subset, subsetName) {
 				vs.Spec.Http = append(vs.Spec.Http[:i], vs.Spec.Http[i+1:]...)
 				i--
+
 				break
 			}
 		}
 	}
+
 	return vs
 }
 
 func getVirtualService(ctx model.SessionContext, namespace, name string) (*istionetwork.VirtualService, error) {
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
+
 	return &virtualService, errors.Wrapf(err, "failed finding virtual service %s in namespace %s", name, namespace)
 }
 
 func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
 	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
+
 	return &virtualServices, errors.Wrapf(err, "failed finding virtual services in namespace %s", namespace)
 }
 
@@ -228,6 +242,7 @@ func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName,
 			}
 		}
 	}
+
 	return false
 }
 
@@ -239,6 +254,7 @@ func vsAlreadyMutated(vs istionetwork.VirtualService, targetHost model.HostName,
 			}
 		}
 	}
+
 	return false
 }
 
@@ -255,6 +271,7 @@ func findRoutes(vs *istionetwork.VirtualService, host model.HostName, subset str
 			}
 		}
 	}
+
 	return routes
 }
 
@@ -265,6 +282,7 @@ func removeOtherRoutes(http v1alpha3.HTTPRoute, host model.HostName, subset stri
 			http.Route = append(http.Route[:i], http.Route[i+1:]...)
 		}
 	}
+
 	return http
 }
 
@@ -272,6 +290,7 @@ func updateSubset(http v1alpha3.HTTPRoute, subset string) v1alpha3.HTTPRoute {
 	for _, r := range http.Route {
 		r.Destination.Subset = subset
 	}
+
 	return http
 }
 
@@ -293,6 +312,7 @@ func addHeaderMatch(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPRou
 		addHeader(m, route)
 		http.Match = append(http.Match, m)
 	}
+
 	return http
 }
 
@@ -310,6 +330,7 @@ func addHeaderRequest(http v1alpha3.HTTPRoute, route model.Route) v1alpha3.HTTPR
 		}
 	}
 	http.Headers.Request.Add[route.Name] = route.Value
+
 	return http
 }
 
@@ -317,6 +338,7 @@ func removeWeight(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
 	for _, r := range http.Route {
 		r.Weight = 0
 	}
+
 	return http
 }
 
@@ -329,5 +351,6 @@ func getHostsFromRef(ctx model.SessionContext, gateways []string, ref *model.Ref
 			}
 		}
 	}
+
 	return hosts
 }

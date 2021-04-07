@@ -32,8 +32,10 @@ func NewCmd() *cobra.Command {
 			switch args[0] {
 			case "bash":
 				err := cmd.Root().GenBashCompletion(os.Stdout)
+
 				return errors.Wrap(err, "failed configuring autocompletion for bash")
 			case "zsh":
+
 				return runCompletionZsh(os.Stdout, cmd.Root())
 			}
 
