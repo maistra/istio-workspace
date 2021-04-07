@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -44,12 +45,47 @@ type Route struct {
 
 // Ref references to a single Reference, e.g. Deployment, DeploymentConfig or GitRepo.
 type Ref struct {
-	Name             string
+	KindName         RefKindName
 	Namespace        string
 	Strategy         string
 	Args             map[string]string
 	Targets          []LocatedResourceStatus
 	ResourceStatuses []ResourceStatus
+}
+
+// RefKindName holds the optionally specified Kind togather with the name, e.g. deploymentconfig/name
+type RefKindName struct {
+	Kind string
+	Name string
+}
+
+// String returns the string formated kind/name
+func (r RefKindName) String() string {
+	if r.Kind == "" {
+		return r.Name
+	}
+	return r.Kind + "/" + r.Name
+}
+
+// From parses a String() representation into a Object
+func ParseRefKindName(exp string) RefKindName { // TODO: return error on wrong format?
+	r := RefKindName{}
+	parts := strings.Split(strings.ToLower(exp), "/")
+	if len(parts) == 2 {
+		r.Kind = parts[0]
+		r.Name = parts[1]
+	} else {
+		r.Name = parts[0]
+	}
+	return r
+}
+
+// SupportsKind will reutrn true if kind match or the kind is empty.
+func (r RefKindName) SupportsKind(kind string) bool {
+	if r.Kind == "" || r.Kind == strings.ToLower(kind) {
+		return true
+	}
+	return false
 }
 
 // HostName represents the Hostname of a service in a given namespace.
