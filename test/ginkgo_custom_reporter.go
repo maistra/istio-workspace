@@ -8,7 +8,8 @@ import (
 )
 
 // RunSpecWithJUnitReporter calls custom ginkgo junit reporter.
-func RunSpecWithJUnitReporter(t *testing.T, description string) { //nolint:unused //reason false negative as this is used by suite files
+func RunSpecWithJUnitReporter(t *testing.T, description string) {
+	t.Helper()
 	junitReporter := reporters.NewJUnitReporter("ginkgo-test-results.xml")
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, description, []ginkgo.Reporter{junitReporter})
 }

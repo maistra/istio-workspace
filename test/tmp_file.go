@@ -38,6 +38,7 @@ func TmpDir(t TestReporter, dir string) string {
 
 	if err := appFs.MkdirAll(fullPath, os.ModePerm); err != nil {
 		t.Errorf("Failed to create the directory: %s. Reason: %s", dir, err)
+
 		return ""
 	}
 
@@ -60,17 +61,20 @@ func TmpFile(t TestReporter, filePath, content string) afero.File {
 
 	if err := appFs.MkdirAll(path.Dir(fullPath), os.ModePerm); err != nil {
 		t.Errorf("Failed to create the file: %s. Reason: %s", fullPath, err)
+
 		return nil
 	}
 
 	file, err := appFs.OpenFile(fullPath, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		t.Errorf("Failed to create the file: %s. Reason: %s", fullPath, err)
+
 		return nil
 	}
 
 	if _, err := file.WriteString(content); err != nil {
 		t.Errorf("Failed writing to a file")
+
 		return nil
 	}
 	Files = append(Files, file.Name())
@@ -93,5 +97,6 @@ func randomAlphaNumeric() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)
 	s := hex.EncodeToString(b)
+
 	return s
 }

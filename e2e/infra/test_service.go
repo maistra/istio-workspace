@@ -1,8 +1,9 @@
 package infra
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"time"
 
@@ -19,6 +20,7 @@ func BuildTestService() (registry string) {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
+
 	return
 }
 
@@ -32,6 +34,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
+
 	return
 }
 
@@ -64,6 +67,7 @@ func CleanupTestScenario(namespace string) {
 func GetProjectLabels(namespace string) string {
 	cmd := shell.ExecuteInDir(".", "bash", "-c", "kubectl get namespace "+namespace+" -o jsonpath={.metadata.labels}")
 	<-cmd.Done()
+
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
@@ -85,15 +89,14 @@ func GetGatewayHost(namespace string) string {
 
 const charset = "abcdefghijklmnopqrstuvwxyz"
 
-var seededRand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
 // stringWithCharset returns a random string of length based on charset.
 func stringWithCharset(length int, charset string) string {
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
+		ri, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[ri.Int64()]
 	}
+
 	return string(b)
 }
 

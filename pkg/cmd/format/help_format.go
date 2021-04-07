@@ -42,6 +42,7 @@ func RegisterTemplateFuncs() {
 				flags = append(flags, *flag)
 			}
 		})
+
 		return flags
 	})
 	cobra.AddTemplateFunc("type", func(flag *pflag.Flag) string {
@@ -49,6 +50,7 @@ func RegisterTemplateFuncs() {
 		if strings.Contains(flagType, "Slice") {
 			return "repeat flag and/or comma-separated list of " + strings.Replace(flagType, "Slice", "", 1) + "s"
 		}
+
 		return "`" + flagType + "`"
 	})
 }

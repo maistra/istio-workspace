@@ -4,6 +4,8 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // GetBodyWithHeaders calls GET on a given URL with a specific set request headers
@@ -11,7 +13,7 @@ import (
 func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
 	req, err := http.NewRequestWithContext(context.Background(), "GET", rawURL, nil)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed creating request")
 	}
 	if v, f := headers["Host"]; f {
 		req.Host = v
@@ -21,9 +23,10 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed executing HTTP call")
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
+
 	return string(content), nil
 }

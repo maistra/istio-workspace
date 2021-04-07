@@ -5,18 +5,18 @@ import (
 	"os"
 	"strings"
 
+	gocmd "github.com/go-cmd/cmd"
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
-
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
-
-	gocmd "github.com/go-cmd/cmd"
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 var logger = func() logr.Logger {
@@ -33,22 +33,23 @@ func NewCmd() *cobra.Command {
 			if !telepresence.BinaryAvailable() {
 				return fmt.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 			}
-			return config.SyncFullyQualifiedFlags(cmd)
+
+			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			dir, err := os.Getwd()
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed executing %s command - obtaining working directory", cmd.Use)
 			}
 			sessionState, _, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 			}
 			defer sessionClose()
 
 			// HACK: need contract with TP cmd?
 			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
-				return err
+				return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 			}
 
 			done := make(chan gocmd.Status, 1)
@@ -69,7 +70,8 @@ func NewCmd() *cobra.Command {
 			}
 
 			finalStatus := <-done
-			return finalStatus.Error
+
+			return errors.Wrapf(finalStatus.Error, "failed executing %s command", cmd.Use)
 		},
 	}
 	if developCmd.Annotations == nil {
@@ -153,10 +155,12 @@ func createWrapperCmd(cmd *cobra.Command) []string {
 			"--interval", cmd.Flag("watch-interval").Value.String(),
 		)
 	}
+
 	return executeArgs
 }
 
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
 	slice, _ := flags.GetStringSlice(name)
+
 	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }

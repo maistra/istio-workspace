@@ -3,6 +3,8 @@ package assets
 import (
 	"io/ioutil"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 // Load loads file asset into byte array
@@ -15,6 +17,7 @@ func Load(filePath string) (data []byte, err error) {
 	} else {
 		data, err = Asset(filePath)
 	}
+
 	return data, err
 }
 
@@ -22,15 +25,17 @@ func ListDir(path string) ([]string, error) {
 	if dirExists(path) {
 		dirInfo, e := ioutil.ReadDir(path)
 		if e != nil {
-			return nil, e
+			return nil, errors.Wrapf(e, "failed reading directory %s", path)
 		}
 
 		dirs := []string{}
 		for _, info := range dirInfo {
 			dirs = append(dirs, info.Name())
 		}
+
 		return dirs, nil
 	}
+
 	return AssetDir(path)
 }
 
@@ -40,6 +45,7 @@ func fileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return !info.IsDir()
 }
 
@@ -49,5 +55,6 @@ func dirExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return info.IsDir()
 }

@@ -4,11 +4,11 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/naming"
-	. "github.com/maistra/istio-workspace/test/matchers"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/maistra/istio-workspace/pkg/naming"
+	. "github.com/maistra/istio-workspace/test/matchers"
 )
 
 var _ = Describe("Name generation (used for k8s objects such as namespaces, sessions etc)", func() {

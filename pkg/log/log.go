@@ -7,11 +7,9 @@ import (
 
 	"github.com/go-logr/logr"
 	zapr2 "github.com/go-logr/zapr"
-	"k8s.io/klog/v2"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
+	"k8s.io/klog/v2"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	zapr "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
@@ -35,6 +33,7 @@ func CreateOperatorAwareLogger(name string) logr.Logger {
 	if isDebugModeEnabled() {
 		level = zap.DebugLevel
 	}
+
 	return CreateOperatorAwareLoggerWithLevel(name, level)
 }
 
@@ -71,6 +70,7 @@ func configureCliLogging() (zapcore.Encoder, []zap.Option) {
 		enc = newFilteringEncoder(zapcore.NewConsoleEncoder(encCfg))
 	}
 	opts = append(opts, zap.Development(), zap.AddStacktrace(zap.ErrorLevel))
+
 	return enc, opts
 }
 
@@ -82,6 +82,7 @@ func configureOperatorLogging() (zapcore.Encoder, []zap.Option) {
 		zap.WrapCore(func(core zapcore.Core) zapcore.Core {
 			return zapcore.NewSamplerWithOptions(core, time.Second, 100, 100)
 		}))
+
 	return enc, opts
 }
 
@@ -96,10 +97,12 @@ func newCliEncoderConfig() zapcore.EncoderConfig {
 
 func isRunningAsOperator() bool {
 	_, runningInCluster := os.LookupEnv("OPERATOR_NAME")
+
 	return runningInCluster
 }
 
 func isDebugModeEnabled() bool {
 	debug, _ := strconv.ParseBool(os.Getenv("IKE_LOG_DEBUG"))
+
 	return debug
 }

@@ -134,7 +134,7 @@ release-prepare: deps tools generate format
 .PHONY: lint
 lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
-	golangci-lint run
+	golangci-lint run --fix
 
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
@@ -227,7 +227,7 @@ $(PROJECT_DIR)/bin/goimports:
 
 $(PROJECT_DIR)/bin/golangci-lint:
 	$(call header,"Installing")
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.28.3
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.39.0
 
 $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing")

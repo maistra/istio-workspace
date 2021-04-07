@@ -30,7 +30,7 @@ func main() {
 		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
 		"demo":         generator.DemoScenario,
 	}
-	scenario := os.Args[1]
+	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if f, ok := scenarios[scenario]; ok {
 		f(os.Stdout)
 	} else {

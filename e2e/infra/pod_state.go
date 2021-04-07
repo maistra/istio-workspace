@@ -66,6 +66,7 @@ func AllPodsReady(ns string) func() bool {
 		for _, pod := range pods {
 			if strings.Contains(pod, "-deploy") {
 				fmt.Printf("Skipping deploy pod %s\n", pod)
+
 				continue
 			}
 			if !isPodInStatus(pod, ns, "Ready") {
@@ -73,6 +74,7 @@ func AllPodsReady(ns string) func() bool {
 				return false
 			}
 		}
+
 		return true
 	}
 }
@@ -87,6 +89,7 @@ func GetAllPods(ns string) []string {
 	if len(podsCmd.Status().Stdout) == 0 {
 		return []string{}
 	}
+
 	return strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
 }
 
@@ -122,6 +125,7 @@ func isPodInStatus(pod, ns, conditionType string) bool {
 	err := json.Unmarshal([]byte(jsonBody), &conditions)
 	if err != nil {
 		fmt.Println(err)
+
 		return false
 	}
 
@@ -137,5 +141,6 @@ func isPodInStatus(pod, ns, conditionType string) bool {
 	if !status && strings.EqualFold(condition.Reason, "podcompleted") {
 		return true
 	}
+
 	return status
 }

@@ -3,14 +3,13 @@ package execute_test
 import (
 	"testing"
 
-	. "github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/test/shell"
-
-	"go.uber.org/goleak"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"go.uber.org/goleak"
+
+	. "github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 func TestWatchCommand(t *testing.T) {

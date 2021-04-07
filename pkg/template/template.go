@@ -8,9 +8,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/maistra/istio-workspace/pkg/assets"
-
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/pkg/errors"
+
+	"github.com/maistra/istio-workspace/pkg/assets"
 )
 
 const TemplatePath = "TEMPLATE_PATH"
@@ -72,7 +73,8 @@ func NewPatchEngine(patches Patches) Engine {
 func NewJSON(data []byte) (JSON, error) {
 	t := JSON{}
 	err := json.Unmarshal(data, &t)
-	return t, err
+
+	return t, errors.Wrap(err, "failed constructing JSON object")
 }
 
 // JSON is a parsed json structure with helper functions to access the data based on json paths.
@@ -123,7 +125,7 @@ func (t JSON) Value(path string) (interface{}, error) {
 		case []interface{}:
 			p, err := strconv.ParseInt(part, 10, 0)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, "failed parsing int %s", part)
 			}
 			l = v[p]
 		}
@@ -135,9 +137,11 @@ func (t JSON) Value(path string) (interface{}, error) {
 			if i == len(parts)-1 {
 				return l, nil
 			}
+
 			return nil, nil
 		}
 	}
+
 	return level, nil
 }
 
@@ -147,6 +151,7 @@ func (t JSON) Has(path string) bool {
 	if err != nil || v == nil {
 		return false
 	}
+
 	return true
 }
 
@@ -197,18 +202,18 @@ func (e patchEngine) Run(name string, resource []byte, newVersion string, variab
 	rawPatch := new(bytes.Buffer)
 	err = t.ExecuteTemplate(rawPatch, name, c)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed parsing template")
 	}
 
 	// Apply patch
 	jsonPatch, err := jsonpatch.DecodePatch(rawPatch.Bytes())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed decoding JSON")
 	}
 
 	modified, err := jsonPatch.ApplyIndent(resource, "  ")
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed applying indent in JSON")
 	}
 
 	return modified, nil
@@ -219,9 +224,11 @@ func (e patchEngine) findPatch(name string) *Patch {
 	for i, p := range e.patches {
 		if p.Name == name {
 			patch = &e.patches[i]
+
 			break
 		}
 	}
+
 	return patch
 }
 
@@ -232,14 +239,16 @@ func parseTemplate(patches Patches) (*template.Template, error) {
 			if vars == nil || vars[name] == "" {
 				return "", fmt.Errorf("expected %s variable to be set", name)
 			}
+
 			return "", nil
 		},
 	})
 	for _, p := range patches {
 		t, err = t.New(p.Name).Parse(string(p.Template))
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed parsing template")
 		}
 	}
+
 	return t, nil
 }

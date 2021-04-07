@@ -1,12 +1,13 @@
-package delete
+package delete //nolint:predeclared //reason to be discussed if we should replace it with remove instead
 
 import (
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
-
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
 )
 
 var logger = func() logr.Logger {
@@ -20,14 +21,15 @@ func NewCmd() *cobra.Command {
 		Short:        "Deletes an existing Session",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.SyncFullyQualifiedFlags(cmd)
+			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, remove, err := internal.RemoveSessions(cmd)
 			if err == nil {
 				remove()
 			}
-			return err
+
+			return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 		},
 	}
 

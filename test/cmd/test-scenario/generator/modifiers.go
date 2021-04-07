@@ -66,6 +66,7 @@ func Call(proto Protocol, target Entry) Modifier {
 					found = true
 					envvar.Value = envvar.Value + "," + value
 					vars[i] = envvar
+
 					break
 				}
 			}
@@ -75,6 +76,7 @@ func Call(proto Protocol, target Entry) Modifier {
 					Value: value,
 				})
 			}
+
 			return vars
 		}
 

@@ -6,18 +6,18 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-
-	"github.com/maistra/istio-workspace/api"
-	"github.com/maistra/istio-workspace/controllers"
-	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/log"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/controllers"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (
@@ -41,6 +41,7 @@ func NewCmd() *cobra.Command {
 		Short: "Starts istio-workspace operator in the cluster",
 		RunE:  startOperator,
 	}
+
 	return serveCmd
 }
 
@@ -48,7 +49,8 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	namespace, err := getWatchNamespace()
 	if err != nil {
 		logger().Error(err, "Failed to get watch namespace")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
 	namespaces := strings.Split(namespace, ",")
@@ -58,7 +60,8 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
 		logger().Error(err, "")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
 	managerOptions := manager.Options{
@@ -78,7 +81,8 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
 		logger().Error(err, "")
-		return err
+
+		return errors.Wrapf(err, "failed creating manager when executing %s command", cmd.Use)
 	}
 
 	logger().Info("Registering Components.")
@@ -86,26 +90,29 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Setup Scheme for all resources
 	if err = api.AddToScheme(mgr.GetScheme()); err != nil {
 		logger().Error(err, "")
+
 		return nil
 	}
 
 	// Setup all Controllers
 	if err = controllers.AddToManager(mgr); err != nil {
 		logger().Error(err, "")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
 	// add CreateService?
 
 	// Add readiness and health
-
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add healthz check")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger().Error(err, "Could not add readyz check")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
 	logger().Info("Starting the operator.")
@@ -114,7 +121,8 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		logger().Error(err, "Manager exited non-zero")
-		return err
+
+		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
 	}
 
 	return nil
@@ -126,5 +134,6 @@ func getWatchNamespace() (string, error) {
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
+
 	return ns, nil
 }

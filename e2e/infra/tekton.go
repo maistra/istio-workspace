@@ -18,6 +18,7 @@ func TaskIsDone(ns, taskName string) func() bool {
 			<-shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "yaml").Done()
 			ginkgo.Fail("Expected " + taskName + " to succeed")
 		}
+
 		return strings.Contains(status, "Succeeded")
 	}
 }
@@ -26,5 +27,6 @@ func TaskIsDone(ns, taskName string) func() bool {
 func TaskResult(ns, taskName, key string) string {
 	taskResultStatus := shell.ExecuteInDir(".", "kubectl", "get", "taskruns", taskName, "-n", ns, "-o", "jsonpath={.status.taskResults[?(.name==\""+key+"\")].value}")
 	<-taskResultStatus.Done()
+
 	return strings.Join(taskResultStatus.Status().Stdout, "")
 }

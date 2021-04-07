@@ -5,6 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
@@ -12,13 +17,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/log"
-
 	v "github.com/maistra/istio-workspace/version"
-
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 var logger = func() logr.Logger {
@@ -53,7 +52,8 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
-			return config.SetupConfigSources(loadConfigFileName(cmd))
+
+			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -62,6 +62,7 @@ func NewCmd() *cobra.Command {
 			} else {
 				fmt.Print(cmd.UsageString())
 			}
+
 			return nil
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
@@ -77,6 +78,7 @@ func NewCmd() *cobra.Command {
 					// do nothing, just timeout
 				}
 			}
+
 			return nil
 		},
 	}
@@ -108,5 +110,6 @@ func loadConfigFileName(cmd *cobra.Command) (configFileName string, defaultConfi
 		}
 	}
 	defaultConfigSource = configFlag.DefValue == configFileName
+
 	return
 }

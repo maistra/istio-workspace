@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -30,10 +31,14 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
 			case "bash":
-				return cmd.Root().GenBashCompletion(os.Stdout)
+				err := cmd.Root().GenBashCompletion(os.Stdout)
+
+				return errors.Wrap(err, "failed configuring autocompletion for bash")
 			case "zsh":
+
 				return runCompletionZsh(os.Stdout, cmd.Root())
 			}
+
 			return nil
 		},
 	}
@@ -49,19 +54,19 @@ func runCompletionZsh(out io.Writer, ike *cobra.Command) error {
 	zshHead := "#compdef ike\n"
 
 	if _, err := out.Write([]byte(zshHead)); err != nil {
-		return err
+		return errors.Wrap(err, "failed configuring autocompletion for zsh")
 	}
 
 	if _, err := out.Write([]byte(zshInitialization)); err != nil {
-		return err
+		return errors.Wrap(err, "failed configuring autocompletion for zsh")
 	}
 
 	buf := new(bytes.Buffer)
 	if err := ike.GenBashCompletion(buf); err != nil {
-		return err
+		return errors.Wrap(err, "failed configuring autocompletion for zsh")
 	}
 	if _, err := out.Write(buf.Bytes()); err != nil {
-		return err
+		return errors.Wrap(err, "failed configuring autocompletion for zsh")
 	}
 
 	zshTail := `
@@ -71,7 +76,8 @@ __ike_bash_source <(__ike_convert_bash_to_zsh)
 _complete ike 2>/dev/null
 `
 	if _, err := out.Write([]byte(zshTail)); err != nil {
-		return err
+		return errors.Wrap(err, "failed configuring autocompletion for zsh")
 	}
+
 	return nil
 }

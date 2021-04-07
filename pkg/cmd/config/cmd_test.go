@@ -3,14 +3,13 @@ package config_test
 import (
 	"fmt"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/spf13/cobra"
+
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	. "github.com/maistra/istio-workspace/test"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -144,6 +143,7 @@ func NewTestCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			value, _ := cmd.Flags().GetString("arg")
 			cmd.Println(expectedOutput, ":", value)
+
 			return nil
 		},
 	}

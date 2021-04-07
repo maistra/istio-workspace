@@ -3,12 +3,11 @@ package openshift_test
 import (
 	"testing"
 
-	. "github.com/maistra/istio-workspace/test"
-
-	"go.uber.org/goleak"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"go.uber.org/goleak"
+
+	. "github.com/maistra/istio-workspace/test"
 )
 
 func TestOpenshift(t *testing.T) {
