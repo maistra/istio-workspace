@@ -91,6 +91,16 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - wrapcheck
     - path: _suite_test\.go
       linters:
         - unused
+    - path: pkg/assets/isto-workspace-deploy.go
+      linters:
+        - wrapcheck
+    - path: cmd/test-service/main.pb.go
+      linters:
+        - wrapcheck
+    - path: pkg/client/clientset
+      linters:
+        - wrapcheck
