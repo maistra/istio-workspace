@@ -21,12 +21,12 @@ var _ = Describe("Operations for k8s Service kind", func() {
 	var objects []runtime.Object
 	var ctx model.SessionContext
 
-	CreateTestRef := func(kind string, lables map[string]string) model.Ref {
+	CreateTestRef := func(kind string, labels map[string]string) model.Ref {
 		return model.Ref{
 			KindName:  model.ParseRefKindName("test-ref"),
 			Namespace: "test",
 			Strategy:  "telepresence",
-			Targets:   []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", lables)},
+			Targets:   []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", labels)},
 			Args:      map[string]string{"version": "0.103"},
 		}
 	}
