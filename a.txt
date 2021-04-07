@@ -1,0 +1,242 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"creationTimestamp":"2021-03-29T19:25:38Z","name":"reviews-v1","namespace":"bundle-test"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"reviews"}},"strategy":{},"template":{"metadata":{"annotations":{"kiali.io/runtimes":"go","prometheus.io/path":"/metrics","prometheus.io/port":"9080","prometheus.io/scheme":"http","prometheus.io/scrape":"true","sidecar.istio.io/inject":"true"},"creationTimestamp":null,"labels":{"app":"reviews","version":"v1"}},"spec":{"containers":[{"env":[{"name":"SERVICE_NAME","value":"reviews-v1"},{"name":"HTTP_ADDR","value":":9080"},{"name":"GRPC_ADDR","value":":9081"},{"name":"SERVICE_CALL","value":"http://ratings.bundle-test.svc.cluster.local:9080"}],"image":"quay.io/maistra-dev/istio-workspace-test:v0.0.10-next","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":10,"httpGet":{"path":"/healthz","port":9080},"initialDelaySeconds":5,"periodSeconds":3},"name":"reviews","ports":[{"containerPort":9080,"name":"http"},{"containerPort":9081,"name":"grpc"}],"readinessProbe":{"httpGet":{"path":"/healthz","port":9080},"initialDelaySeconds":5,"periodSeconds":3},"resources":{}}]}}},"status":{}}
+    maistra.io/istio-workspaces: bundle-test/test
+  creationTimestamp: "2021-04-07T16:14:14Z"
+  generation: 1
+  managedFields:
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:spec:
+        f:template:
+          f:spec:
+            f:containers:
+              k:{"name":"reviews"}:
+                f:livenessProbe:
+                  .: {}
+                  f:failureThreshold: {}
+                  f:httpGet:
+                    .: {}
+                    f:path: {}
+                    f:port: {}
+                    f:scheme: {}
+                  f:initialDelaySeconds: {}
+                  f:periodSeconds: {}
+                  f:successThreshold: {}
+                  f:timeoutSeconds: {}
+                f:readinessProbe:
+                  .: {}
+                  f:failureThreshold: {}
+                  f:httpGet:
+                    .: {}
+                    f:path: {}
+                    f:port: {}
+                    f:scheme: {}
+                  f:initialDelaySeconds: {}
+                  f:periodSeconds: {}
+                  f:successThreshold: {}
+                  f:timeoutSeconds: {}
+    manager: kubectl-client-side-apply
+    operation: Update
+    time: "2021-03-26T13:34:50Z"
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          .: {}
+          f:kubectl.kubernetes.io/last-applied-configuration: {}
+          f:maistra.io/istio-workspaces: {}
+      f:spec:
+        f:progressDeadlineSeconds: {}
+        f:replicas: {}
+        f:revisionHistoryLimit: {}
+        f:selector: {}
+        f:strategy:
+          f:rollingUpdate:
+            .: {}
+            f:maxSurge: {}
+            f:maxUnavailable: {}
+          f:type: {}
+        f:template:
+          f:metadata:
+            f:annotations:
+              .: {}
+              f:kiali.io/runtimes: {}
+              f:prometheus.io/path: {}
+              f:prometheus.io/port: {}
+              f:prometheus.io/scheme: {}
+              f:prometheus.io/scrape: {}
+              f:sidecar.istio.io/inject: {}
+            f:labels:
+              .: {}
+              f:app: {}
+              f:version: {}
+              f:version-source: {}
+          f:spec:
+            f:containers:
+              k:{"name":"reviews"}:
+                .: {}
+                f:env:
+                  .: {}
+                  k:{"name":"GRPC_ADDR"}:
+                    .: {}
+                    f:name: {}
+                    f:value: {}
+                  k:{"name":"HTTP_ADDR"}:
+                    .: {}
+                    f:name: {}
+                    f:value: {}
+                  k:{"name":"SERVICE_CALL"}:
+                    .: {}
+                    f:name: {}
+                    f:value: {}
+                  k:{"name":"SERVICE_NAME"}:
+                    .: {}
+                    f:name: {}
+                    f:value: {}
+                f:image: {}
+                f:imagePullPolicy: {}
+                f:name: {}
+                f:ports:
+                  .: {}
+                  k:{"containerPort":9080,"protocol":"TCP"}:
+                    .: {}
+                    f:containerPort: {}
+                    f:name: {}
+                    f:protocol: {}
+                  k:{"containerPort":9081,"protocol":"TCP"}:
+                    .: {}
+                    f:containerPort: {}
+                    f:name: {}
+                    f:protocol: {}
+                f:resources: {}
+                f:terminationMessagePath: {}
+                f:terminationMessagePolicy: {}
+            f:dnsPolicy: {}
+            f:restartPolicy: {}
+            f:schedulerName: {}
+            f:securityContext: {}
+            f:terminationGracePeriodSeconds: {}
+      f:status:
+        f:availableReplicas: {}
+        f:readyReplicas: {}
+    manager: ike
+    operation: Update
+    time: "2021-04-07T16:14:14Z"
+  - apiVersion: apps/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          f:deployment.kubernetes.io/revision: {}
+      f:status:
+        f:conditions:
+          .: {}
+          k:{"type":"Available"}:
+            .: {}
+            f:lastTransitionTime: {}
+            f:lastUpdateTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+          k:{"type":"Progressing"}:
+            .: {}
+            f:lastTransitionTime: {}
+            f:lastUpdateTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+        f:observedGeneration: {}
+        f:replicas: {}
+        f:unavailableReplicas: {}
+        f:updatedReplicas: {}
+    manager: kube-controller-manager
+    operation: Update
+    time: "2021-04-07T16:14:15Z"
+  name: reviews-v1-3bfc2695-test
+  namespace: bundle-test
+  resourceVersion: "47162212"
+  selfLink: /apis/apps/v1/namespaces/bundle-test/deployments/reviews-v1-3bfc2695-test
+  uid: cf6a3942-a6e3-4e9a-ad75-62bb5895d222
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: reviews
+      version: 3bfc2695-test
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kiali.io/runtimes: go
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9080"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+        sidecar.istio.io/inject: "true"
+      creationTimestamp: null
+      labels:
+        app: reviews
+        version: 3bfc2695-test
+        version-source: v1
+    spec:
+      containers:
+      - env:
+        - name: SERVICE_NAME
+          value: reviews-v1
+        - name: HTTP_ADDR
+          value: :9080
+        - name: GRPC_ADDR
+          value: :9081
+        - name: SERVICE_CALL
+          value: http://ratings.bundle-test.svc.cluster.local:9080
+        image: quay.io/maistra-dev/istio-workspace-test:v0.0.8-next
+        imagePullPolicy: Always
+        name: reviews
+        ports:
+        - containerPort: 9080
+          name: http
+          protocol: TCP
+        - containerPort: 9081
+          name: grpc
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  conditions:
+  - lastTransitionTime: "2021-04-07T16:14:14Z"
+    lastUpdateTime: "2021-04-07T16:14:14Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  - lastTransitionTime: "2021-04-07T16:14:14Z"
+    lastUpdateTime: "2021-04-07T16:14:15Z"
+    message: ReplicaSet "reviews-v1-3bfc2695-test-6756747c95" is progressing.
+    reason: ReplicaSetUpdated
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1

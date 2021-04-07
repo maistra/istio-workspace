@@ -191,7 +191,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 // RefUpdated check if a Ref has been updated compared to current status.
 func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 	for _, statusRef := range session.Status.Refs {
-		if statusRef.Name == ref.KindName.Name {
+		if statusRef.Name == ref.KindName.String() {
 			if statusRef.Strategy != ref.Strategy || !reflect.DeepEqual(statusRef.Args, ref.Args) {
 				return true
 			}

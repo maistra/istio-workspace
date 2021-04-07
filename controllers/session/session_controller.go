@@ -230,7 +230,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
-			if ref.KindName.Name == r.Name {
+			if ref.KindName.String() == r.Name {
 				found = true
 
 				break
