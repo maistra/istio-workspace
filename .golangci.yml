@@ -61,6 +61,7 @@ linters:
     - gomnd #
     - gomodguard # We are still using dep
     - paralleltest
+    - wrapcheck # FIXME https://github.com/maistra/istio-workspace/issues/791
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
 
 run:
