@@ -114,7 +114,7 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 // ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name.
 func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
-		if statusRef.Name == ref.KindName.Name {
+		if statusRef.Name == ref.KindName.String() {
 			for _, statusTarget := range statusRef.Targets {
 				timeStamp := time.Time{}
 				if statusTarget.LastTransitionTime != nil {

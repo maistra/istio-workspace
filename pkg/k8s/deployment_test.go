@@ -73,9 +73,13 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should report true on found", func() {
-			ref := model.Ref{
-				KindName: model.ParseRefKindName("test-ref"),
-			}
+			ref := model.Ref{KindName: model.ParseRefKindName("test-ref")}
+			locatorErr := k8s.DeploymentLocator(ctx, &ref)
+			Expect(locatorErr).To(BeTrue())
+		})
+
+		It("should find with kind", func() {
+			ref := model.Ref{KindName: model.ParseRefKindName("deployment/test-ref")}
 			locatorErr := k8s.DeploymentLocator(ctx, &ref)
 			Expect(locatorErr).To(BeTrue())
 		})

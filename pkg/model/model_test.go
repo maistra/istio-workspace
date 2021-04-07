@@ -29,4 +29,14 @@ var _ = Describe("Operations for model object", func() {
 		})
 
 	})
+
+	Context("refkindname parsing", func() {
+
+		It("should parse name", func() {
+			ref := model.ParseRefKindName("name")
+			Expect(ref.Name).To(Equal("name"))
+			Expect(ref.Kind).To(BeEmpty())
+		})
+
+	})
 })

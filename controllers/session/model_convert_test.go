@@ -1,6 +1,7 @@
 package session_test
 
 import (
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -31,7 +32,7 @@ var _ = Describe("Basic model conversion", func() {
 		})
 		BeforeEach(func() {
 			ref = model.Ref{
-				KindName:  model.ParseRefKindName("ref-name"),
+				KindName:  model.ParseRefKindName("deployment/ref-name"),
 				Namespace: "x",
 				Strategy:  "prepared-image",
 				Args:      map[string]string{"image": "x"},
@@ -51,9 +52,9 @@ var _ = Describe("Basic model conversion", func() {
 				}}
 		})
 
-		It("name mapped", func() {
+		It("kindname mapped", func() {
 			Expect(sess.Status.Refs).To(HaveLen(1))
-			Expect(sess.Status.Refs[0].Name).To(Equal(ref.KindName.Name))
+			Expect(sess.Status.Refs[0].Name).To(Equal(ref.KindName.String()))
 		})
 
 		It("strategy mapped", func() {
@@ -172,7 +173,7 @@ var _ = Describe("Basic model conversion", func() {
 					Refs: []*v1alpha1.RefStatus{
 						{
 							Ref: v1alpha1.Ref{
-								Name:     name + "xxxx",
+								Name:     "deployment/" + name + "xxxx",
 								Strategy: "prepared-image",
 								Args:     map[string]string{"image": "x"},
 							},
@@ -210,19 +211,26 @@ var _ = Describe("Basic model conversion", func() {
 		It("convert all refs", func() {
 			Expect(refs).To(HaveLen(2))
 
-			Expect(refs[0].KindName.Name).To(Equal(sess.Status.Refs[0].Name))
+			Expect(refs[0].KindName.String()).To(Equal(sess.Status.Refs[0].Name))
 			Expect(refs[0].Namespace).To(Equal(sess.Namespace))
 			Expect(refs[0].Strategy).To(Equal(sess.Status.Refs[0].Strategy))
 			Expect(refs[0].Args).To(Equal(sess.Status.Refs[0].Args))
-			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
-			Expect(refs[0].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[0].Resources[0].Name))
-			Expect(refs[0].ResourceStatuses[0].TimeStamp).To(Equal(sess.Status.Refs[0].Resources[0].LastTransitionTime.Time))
-			Expect(refs[0].ResourceStatuses[0].Action).To(Equal(model.ActionCreated))
 
 			Expect(refs[1].KindName.Name).To(Equal(sess.Status.Refs[1].Name))
 			Expect(refs[1].Namespace).To(Equal(sess.Namespace))
 			Expect(refs[1].Strategy).To(Equal(sess.Status.Refs[1].Strategy))
 			Expect(refs[1].Args).To(Equal(sess.Status.Refs[1].Args))
+		})
+		It("resource statues mapped", func() {
+			Expect(refs).To(HaveLen(2))
+
+			fmt.Println("weeerewtrewtew")
+			fmt.Println(refs[0].ResourceStatuses)
+			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
+			Expect(refs[0].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[0].Resources[0].Name))
+			Expect(refs[0].ResourceStatuses[0].TimeStamp).To(Equal(sess.Status.Refs[0].Resources[0].LastTransitionTime.Time))
+			Expect(refs[0].ResourceStatuses[0].Action).To(Equal(model.ActionCreated))
+
 			Expect(refs[1].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[1].Resources[0].Kind))
 			Expect(refs[1].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[1].Resources[0].Name))
 			Expect(refs[1].ResourceStatuses[0].TimeStamp).To(Equal(sess.Status.Refs[1].Resources[0].LastTransitionTime.Time))
@@ -231,11 +239,8 @@ var _ = Describe("Basic model conversion", func() {
 			Expect(refs[1].ResourceStatuses[0].Prop).ToNot(BeEmpty())
 			Expect(refs[1].ResourceStatuses[0].Prop["host"]).To(Equal("x"))
 		})
-
 		It("targets mapped", func() {
 			Expect(refs).To(HaveLen(2))
-
-			Expect(refs[0].KindName.Name).To(Equal(sess.Status.Refs[0].Name))
 
 			Expect(refs[0].Targets[0].Kind).To(Equal(*sess.Status.Refs[0].Targets[0].Kind))
 			Expect(refs[0].Targets[0].Name).To(Equal(*sess.Status.Refs[0].Targets[0].Name))

@@ -85,6 +85,18 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(locatorErr).To(BeTrue())
 		})
 
+		It("should find with kind", func() {
+			ref := model.Ref{KindName: model.ParseRefKindName("deploymentconfig/test-ref")}
+			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
+			Expect(locatorErr).To(BeTrue())
+		})
+
+		It("should find with abbrev kind", func() {
+			ref := model.Ref{KindName: model.ParseRefKindName("dc/test-ref")}
+			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
+			Expect(locatorErr).To(BeTrue())
+		})
+
 	})
 
 	Context("mutators", func() {

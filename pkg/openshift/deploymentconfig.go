@@ -51,7 +51,7 @@ func (d deploymentConfigManipulator) Revert() model.Revertor {
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	if !ref.KindName.SupportsKind(DeploymentConfigKind) || !ref.KindName.SupportsKind(DeploymentConfigAbbrevKind) {
+	if !ref.KindName.SupportsKind(DeploymentConfigKind) && !ref.KindName.SupportsKind(DeploymentConfigAbbrevKind) {
 		return false
 	}
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.KindName.Name)
