@@ -9,7 +9,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-var RunsAgainstOpenshift = func() bool {
+var RunsOnOpenshift = func() bool {
 	cmdGetDefaultServices := shell.Execute("kubectl get services -o=custom-columns='SERVICES:metadata.name' --no-headers -n default")
 	<-cmdGetDefaultServices.Done()
 	defaultServices := strings.Join(cmdGetDefaultServices.Status().Stdout, "")
@@ -79,7 +79,7 @@ func UsePrebuiltImages() bool {
 
 // PrepareEnv sets up a environmental specific things.
 func PrepareEnv(namespace string) {
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		UpdateSecurityConstraintsFor(namespace)
 		if !UsePrebuiltImages() {
 			EnablePullingImages(namespace)

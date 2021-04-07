@@ -22,7 +22,8 @@ func init() {
 
 const (
 	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig.
-	DeploymentConfigKind = "DeploymentConfig"
+	DeploymentConfigKind       = "DeploymentConfig"
+	DeploymentConfigAbbrevKind = "dc"
 )
 
 var _ model.Locator = DeploymentConfigLocator
@@ -50,6 +51,9 @@ func (d deploymentConfigManipulator) Revert() model.Revertor {
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
+	if !ref.KindName.SupportsKind(DeploymentConfigKind) || !ref.KindName.SupportsKind(DeploymentConfigAbbrevKind) {
+		return false
+	}
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.KindName.Name)
 	if err != nil {
 		if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type

@@ -44,7 +44,7 @@ var _ = Describe("Bash Completion Tests", func() {
 		})
 
 		It("should show available deployments for current namespace (datawire-project)", func() {
-			if !RunsAgainstOpenshift {
+			if !RunsOnOpenshift {
 				Skip("This is OpenShift specific test which assumes current namespace/project is set and oc available. " +
 					"Completion for specified namespace is covered in the follow-up test.")
 			}

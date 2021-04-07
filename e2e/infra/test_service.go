@@ -16,7 +16,7 @@ import (
 func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
 	registry = SetDockerRegistryExternal()
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
@@ -30,7 +30,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 	registry = SetDockerRegistryExternal()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
@@ -43,7 +43,7 @@ func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
 	SetDockerRegistryInternal()
 	setDockerEnvForTestServiceDeploy(namespace)
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c",
 			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
 		gomega.Eventually(func() string {
@@ -56,7 +56,7 @@ func DeployTestScenario(scenario, namespace string) {
 }
 
 func CleanupTestScenario(namespace string) {
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		removeNsSubCmd := `oc get ServiceMeshMemberRoll default -n ` + GetIstioNamespace() + ` -o json | jq -c '.spec.members | map(select(. != "` + namespace + `"))'`
 		patchCmd := `oc -n ` + GetIstioNamespace() + ` patch --type='json' smmr default -p "[{\"op\": \"replace\", \"path\": \"/spec/members\", \"value\": $(` + removeNsSubCmd + `) }]"`
 		<-shell.ExecuteInDir(".", "bash", "-c", patchCmd).Done()

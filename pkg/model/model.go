@@ -84,11 +84,7 @@ func ParseRefKindName(exp string) RefKindName { // return error on wrong format?
 
 // SupportsKind returns true if kind match or the kind is empty.
 func (r RefKindName) SupportsKind(kind string) bool {
-	if r.Kind == "" || strings.EqualFold(r.Kind, strings.ToLower(kind)) {
-		return true
-	}
-
-	return false
+	return r.Kind == "" || strings.EqualFold(r.Kind, strings.ToLower(kind))
 }
 
 // HostName represents the Hostname of a service in a given namespace.

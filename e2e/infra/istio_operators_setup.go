@@ -17,7 +17,7 @@ func BuildOperator() (registry string) {
 	setDockerRepository(GetRepositoryName())
 	<-shell.Execute(NewProjectCmd(namespace)).Done()
 	EnablePullingImages(namespace)
-	if RunsAgainstOpenshift {
+	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
 	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle", "bundle-build", "bundle-push").Done()

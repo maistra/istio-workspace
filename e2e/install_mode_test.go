@@ -38,7 +38,7 @@ var _ = Describe("Operator installation", func() {
 			cleanEnvVariable func()
 		)
 		BeforeEach(func() {
-			if RunsAgainstOpenshift {
+			if RunsOnOpenshift {
 				Skip("Only run on microk8s cluster for complete isolation")
 			}
 
