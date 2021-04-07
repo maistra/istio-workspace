@@ -69,17 +69,17 @@ func (r RefKindName) String() string {
 }
 
 // From parses a String() representation into a Object.
-func ParseRefKindName(exp string) RefKindName { // return error on wrong format?
-	r := RefKindName{}
-	parts := strings.Split(strings.ToLower(exp), "/")
+func ParseRefKindName(exp string) RefKindName {
+	trimmedExp := strings.TrimSpace(strings.ToLower(exp))
+	parts := strings.Split(trimmedExp, "/")
 	if len(parts) == 2 {
-		r.Kind = parts[0]
-		r.Name = parts[1]
-	} else {
-		r.Name = parts[0]
+		return RefKindName{
+			Kind: parts[0],
+			Name: parts[1],
+		}
 	}
 
-	return r
+	return RefKindName{Name: trimmedExp}
 }
 
 // SupportsKind returns true if kind match or the kind is empty.
