@@ -138,7 +138,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					},
 				}
 				ref = &model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					Targets: []model.LocatedResourceStatus{
 						model.NewLocatedResource("Gateway", "gateway", nil),
 					},
@@ -288,7 +288,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					},
 				}
 				ref = &model.Ref{
-					Name: "customer-v1",
+					KindName: model.ParseRefKindName("customer-v1"),
 					ResourceStatuses: []model.ResourceStatus{
 						{Kind: "Gateway", Name: "gateway", Action: model.ActionModified},
 					},

@@ -45,7 +45,6 @@ func (d deploymentManipulator) Revert() model.Revertor {
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name.
 func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
-
 	deployment, err := getDeployment(ctx, ctx.Namespace, ref.KindName.Name)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Ref is not a Deployment type

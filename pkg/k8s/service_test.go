@@ -23,7 +23,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 
 	CreateTestRef := func(kind string, lables map[string]string) model.Ref {
 		return model.Ref{
-			Name:      "test-ref",
+			KindName:  model.ParseRefKindName("test-ref"),
 			Namespace: "test",
 			Strategy:  "telepresence",
 			Targets:   []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", lables)},

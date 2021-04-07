@@ -53,22 +53,23 @@ type Ref struct {
 	ResourceStatuses []ResourceStatus
 }
 
-// RefKindName holds the optionally specified Kind togather with the name, e.g. deploymentconfig/name
+// RefKindName holds the optionally specified Kind togather with the name, e.g. deploymentconfig/name.
 type RefKindName struct {
 	Kind string
 	Name string
 }
 
-// String returns the string formated kind/name
+// String returns the string formated kind/name.
 func (r RefKindName) String() string {
 	if r.Kind == "" {
 		return r.Name
 	}
+
 	return r.Kind + "/" + r.Name
 }
 
-// From parses a String() representation into a Object
-func ParseRefKindName(exp string) RefKindName { // TODO: return error on wrong format?
+// From parses a String() representation into a Object.
+func ParseRefKindName(exp string) RefKindName { // return error on wrong format?
 	r := RefKindName{}
 	parts := strings.Split(strings.ToLower(exp), "/")
 	if len(parts) == 2 {
@@ -77,14 +78,16 @@ func ParseRefKindName(exp string) RefKindName { // TODO: return error on wrong f
 	} else {
 		r.Name = parts[0]
 	}
+
 	return r
 }
 
-// SupportsKind will reutrn true if kind match or the kind is empty.
+// SupportsKind returns true if kind match or the kind is empty.
 func (r RefKindName) SupportsKind(kind string) bool {
-	if r.Kind == "" || r.Kind == strings.ToLower(kind) {
+	if r.Kind == "" || strings.EqualFold(r.Kind, strings.ToLower(kind)) {
 		return true
 	}
+
 	return false
 }
 

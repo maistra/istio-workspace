@@ -33,7 +33,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 	CreateTestRef := func() model.Ref {
 		return model.Ref{
-			Name:     "test-ref",
+			KindName: model.ParseRefKindName("test-ref"),
 			Strategy: "telepresence",
 			Targets:  []model.LocatedResourceStatus{model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", map[string]string{"version": "v1"})},
 			Args:     map[string]string{"version": "0.103"},
@@ -74,13 +74,13 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		})
 
 		It("should report false on not found", func() {
-			ref := model.Ref{Name: "test-ref-other"}
+			ref := model.Ref{KindName: model.ParseRefKindName("test-ref-other")}
 			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
 			Expect(locatorErr).To(BeFalse())
 		})
 
 		It("should report true on found", func() {
-			ref := model.Ref{Name: "test-ref"}
+			ref := model.Ref{KindName: model.ParseRefKindName("test-ref")}
 			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
 			Expect(locatorErr).To(BeTrue())
 		})
@@ -146,7 +146,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			dc := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			dc := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(reference.Get(&dc)).To(HaveLen(1))
 		})
 
@@ -155,7 +155,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			_ = get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			_ = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
@@ -163,7 +163,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
@@ -172,7 +172,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
@@ -181,16 +181,16 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
 		It("should only mutate if Target is of kind DeploymentConfig", func() {
-			notMatchingRef := model.Ref{Name: "test-ref", Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "test-ref", nil)}}
+			notMatchingRef := model.Ref{KindName: model.ParseRefKindName("test-ref"), Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "test-ref", nil)}}
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &notMatchingRef)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.Name+"-"+notMatchingRef.GetNewVersion(ctx.Name))
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+notMatchingRef.GetNewVersion(ctx.Name))
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -201,20 +201,20 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 
 			// when DeploymentConfig is deleted
 			c.Delete(ctx, &deployment)
 
-			_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(err).To(HaveOccurred())
 
 			// then it should be recreated on next reconcile
 			mutatorErr = openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			deployment = get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
@@ -225,7 +225,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
@@ -234,7 +234,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -250,7 +250,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 				Expect(mutatorErr).ToNot(HaveOccurred())
 
-				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
@@ -293,13 +293,13 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
 			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			revertorErr := openshift.DeploymentConfigRevertor(ctx, &ref)
 			Expect(revertorErr).ToNot(HaveOccurred())
 
-			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.Name+"-"+ref.GetNewVersion(ctx.Name))
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
