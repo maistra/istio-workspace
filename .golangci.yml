@@ -69,7 +69,14 @@ run:
     - ./pkg/assets/generated
     - ./pkg/client/clientset
 
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
 issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
   exclude-rules:
     - path: pkg/log
       linters:
