@@ -131,10 +131,10 @@ func (e *EnqueueRequestForAnnotation) Generic(evt event.GenericEvent, q workqueu
 // Annotations are accumulated as a comma-separated list.
 func Add(owner types.NamespacedName, object client.Object) error {
 	if owner.Namespace == "" {
-		return fmt.Errorf("%T does not have a namespace, cannot call Add", owner)
+		return fmt.Errorf("%T does not have a namespace, cannot call Add", owner) //nolint:goerr113 //reason useful to have owner in error
 	}
 	if owner.Name == "" {
-		return fmt.Errorf("%T does not have a name, cannot call Add", owner)
+		return fmt.Errorf("%T does not have a name, cannot call Add", owner) //nolint:goerr113 //reason useful to have owner in error
 	}
 
 	annotations := object.GetAnnotations()
@@ -168,10 +168,10 @@ func Add(owner types.NamespacedName, object client.Object) error {
 // and kind. Annotations are accumulated as a comma-separated list, thus removal will change the content of the list.
 func Remove(owner types.NamespacedName, object client.Object) error {
 	if owner.Namespace == "" {
-		return fmt.Errorf("%T does not have a namespace, cannot call Remove", owner)
+		return fmt.Errorf("%T does not have a namespace, cannot call Remove", owner) //nolint:goerr113 //reason useful to have owner in error
 	}
 	if owner.Name == "" {
-		return fmt.Errorf("%T does not have a name, cannot call Remove", owner)
+		return fmt.Errorf("%T does not have a name, cannot call Remove", owner) //nolint:goerr113 //reason useful to have owner in error
 	}
 
 	annotations := object.GetAnnotations()

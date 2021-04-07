@@ -23,6 +23,8 @@ var logger = func() logr.Logger {
 	return log.Log.WithValues("type", "develop")
 }
 
+var errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	developCmd := &cobra.Command{
@@ -31,7 +33,7 @@ func NewCmd() *cobra.Command {
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
-				return fmt.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+				return errorTpNotAvailable
 			}
 
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"path"
 	"strings"
 
@@ -40,7 +39,7 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 	ext := path.Ext(configFile)
 	viper.SetConfigName(strings.TrimSuffix(path.Base(configFile), ext))
 	if !contains(SupportedExtensions(), strings.TrimPrefix(path.Ext(ext), ".")) {
-		return fmt.Errorf("'%s' extension is not supported. Use one of [%s]", ext, strings.Join(SupportedExtensions(), ", "))
+		return errors.Errorf("'%s' extension is not supported. Use one of [%s]", ext, strings.Join(SupportedExtensions(), ", "))
 	}
 	viper.SetConfigType(ext[1:])
 	viper.AddConfigPath(path.Dir(configFile))
