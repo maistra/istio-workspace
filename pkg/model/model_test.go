@@ -1,10 +1,10 @@
 package model_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 var _ = Describe("Operations for model object", func() {

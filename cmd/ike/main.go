@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/log"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/completion"
@@ -15,8 +15,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
-
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 func main() {

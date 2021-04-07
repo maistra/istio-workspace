@@ -4,10 +4,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/maistra/istio-workspace/test"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/maistra/istio-workspace/test"
 )
 
 var _ = Describe("Loading assets", func() {
@@ -144,6 +144,7 @@ func testYaml(name string) func() (*asset, error) {
 
 		info := bindataFileInfo{name: name, size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 		a := &asset{bytes: bytes, info: info}
+
 		return a, nil
 	}
 }

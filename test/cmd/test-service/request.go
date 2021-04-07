@@ -15,5 +15,6 @@ func MultiplexRequestInvoker(log logr.Logger, target *url.URL, headers map[strin
 	if strings.Contains(target.Scheme, "http") {
 		return httpRequestInvoker(log, target, headers)
 	}
+
 	return gRPCRequestInvoker(log, target, headers)
 }

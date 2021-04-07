@@ -3,8 +3,8 @@ package log
 import (
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap/buffer"
-
 	"go.uber.org/zap/zapcore"
 )
 
@@ -20,11 +20,13 @@ func newFilteringEncoder(delegate zapcore.Encoder, includedFields ...string) fil
 	for _, field := range includedFields {
 		fields[field] = struct{}{}
 	}
+
 	return filteringEncoder{delegate: delegate, fieldsToInclude: fields}
 }
 
 func (f filteringEncoder) shouldSkip(key string) bool {
 	_, ok := f.fieldsToInclude[key]
+
 	return !ok
 }
 
@@ -32,14 +34,18 @@ func (f filteringEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler)
 	if f.shouldSkip(key) {
 		return nil
 	}
-	return f.delegate.AddArray(key, marshaler)
+	err := f.delegate.AddArray(key, marshaler)
+
+	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
 func (f filteringEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
 	if f.shouldSkip(key) {
 		return nil
 	}
-	return f.delegate.AddObject(key, marshaler)
+	err := f.delegate.AddObject(key, marshaler)
+
+	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
 func (f filteringEncoder) AddBinary(key string, value []byte) {
@@ -193,7 +199,9 @@ func (f filteringEncoder) AddReflected(key string, value interface{}) error {
 	if f.shouldSkip(key) {
 		return nil
 	}
-	return f.delegate.AddReflected(key, value)
+	err := f.delegate.AddReflected(key, value)
+
+	return errors.Wrapf(err, "failed adding key %s", key)
 }
 
 func (f filteringEncoder) OpenNamespace(key string) {
@@ -204,7 +212,9 @@ func (f filteringEncoder) OpenNamespace(key string) {
 }
 
 func (f filteringEncoder) EncodeEntry(entry zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
-	return f.delegate.EncodeEntry(entry, fields)
+	encodeEntry, err := f.delegate.EncodeEntry(entry, fields)
+
+	return encodeEntry, errors.Wrapf(err, "failed encoding entry %v", entry)
 }
 
 func (f filteringEncoder) Clone() zapcore.Encoder {

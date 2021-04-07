@@ -5,6 +5,8 @@ linters-settings:
     min-confidence: 0
   gocyclo:
     min-complexity: 12
+  cyclop:
+    max-complexity: 12
   dupl:
     threshold: 128
   funlen:
@@ -48,14 +50,17 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - exhaustivestruct
+    - forbidigo
     - gochecknoinits # k8s/istio generated APIs are using init()
     - gochecknoglobals # FIXME https://github.com/Maistra/istio-workspace/issues/479
     - gocognit # FIXME https://github.com/Maistra/istio-workspace/issues/478
     - goerr113 # FIXME https://github.com/Maistra/istio-workspace/issues/480
     - gofmt # We use goimports and when using them both leads to contradicting errors
     - gofumpt
-    - gomnd #
-    - gomodguard # We are still using dep
+    - gomnd
+    - paralleltest
+    - wrapcheck # FIXME https://github.com/maistra/istio-workspace/issues/791
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
 
 run:
@@ -86,6 +91,16 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - wrapcheck
     - path: _suite_test\.go
       linters:
         - unused
+    - path: pkg/assets/isto-workspace-deploy.go
+      linters:
+        - wrapcheck
+    - path: cmd/test-service/main.pb.go
+      linters:
+        - wrapcheck
+    - path: pkg/client/clientset
+      linters:
+        - wrapcheck

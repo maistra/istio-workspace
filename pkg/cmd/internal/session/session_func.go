@@ -1,11 +1,12 @@
 package internal
 
 import (
-	"github.com/maistra/istio-workspace/pkg/internal/session"
-	"github.com/maistra/istio-workspace/pkg/telepresence"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/maistra/istio-workspace/pkg/internal/session"
+	"github.com/maistra/istio-workspace/pkg/telepresence"
 )
 
 // Sessions creates a Handler for the given session operation
@@ -13,7 +14,7 @@ import (
 // otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
-	var client *session.Client = nil
+	var client *session.Client
 
 	options, err := ToOptions(cmd.Annotations, cmd.Flags())
 	if err != nil {
@@ -23,8 +24,8 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 	if offline, e := cmd.Flags().GetBool("offline"); e == nil && !offline {
 		sessionHandler = session.CreateOrJoinHandler
 		c, e2 := session.DefaultClient(options.NamespaceName)
-		if err != nil {
-			return session.State{}, options, func() {}, e2
+		if e2 != nil {
+			return session.State{}, options, func() {}, errors.Wrap(e2, "failed to create default client")
 		}
 		client = c
 	}
@@ -43,15 +44,13 @@ func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 		return session.State{}, nil, err
 	}
 	client, err := session.DefaultClient(options.NamespaceName)
-	if err != nil {
-		return session.State{}, func() {}, err
-	}
+	handler, f := session.RemoveHandler(options, client)
 
-	return session.RemoveHandler(options, client)
+	return handler, f, errors.Wrap(err, "failed removing session")
 }
 
 const (
-	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag
+	// AnnotationRevert is the name of the command annotation that is used to control the Revert flag.
 	AnnotationRevert     = "revert"
 	telepresenceStrategy = "telepresence"
 )
@@ -63,22 +62,22 @@ func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Opt
 
 	n, err := flags.GetString("namespace")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining namespace flag")
 	}
 
 	d, err := flags.GetString("deployment")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining deployment flag")
 	}
 
 	s, err := flags.GetString("session")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining session flag")
 	}
 
 	r, err := flags.GetString("route")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining route flag")
 	}
 
 	i, _ := flags.GetString("image") // ignore error, not a required argument
@@ -89,13 +88,14 @@ func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Opt
 
 	if strategy == telepresenceStrategy {
 		if strategyArgs["version"], err = telepresence.GetVersion(); err != nil {
-			return session.Options{}, err
+			return session.Options{}, errors.Wrap(err, "failed obtaining telepresence version")
 		}
 	}
 	revert := false
 	if val, found := annotations[AnnotationRevert]; found && val == "true" {
 		revert = true
 	}
+
 	return session.Options{
 		Revert:         revert,
 		NamespaceName:  n,
@@ -111,17 +111,17 @@ func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Opt
 func ToRemoveOptions(flags *pflag.FlagSet) (session.Options, error) {
 	n, err := flags.GetString("namespace")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining namespace flag")
 	}
 
 	d, err := flags.GetString("deployment")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining deployment flag")
 	}
 
 	s, err := flags.GetString("session")
 	if err != nil {
-		return session.Options{}, err
+		return session.Options{}, errors.Wrap(err, "failed obtaining session flag")
 	}
 
 	return session.Options{

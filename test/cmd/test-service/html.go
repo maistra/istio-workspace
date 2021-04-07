@@ -18,7 +18,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %w", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -26,10 +26,10 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %w", name, err)
 	}
 	if clErr != nil {
-		return nil, err
+		return nil, fmt.Errorf("read %q: %w", name, clErr)
 	}
 
 	return buf.Bytes(), nil
@@ -208,15 +208,15 @@ func RestoreAsset(dir, name string) error {
 	}
 	err = os.MkdirAll(_filePath(dir, filepath.Dir(name)), os.FileMode(0755))
 	if err != nil {
-		return err
+		return fmt.Errorf("read %q: %w", name, err)
 	}
 	err = ioutil.WriteFile(_filePath(dir, name), data, info.Mode())
 	if err != nil {
-		return err
+		return fmt.Errorf("read %q: %w", name, err)
 	}
 	err = os.Chtimes(_filePath(dir, name), info.ModTime(), info.ModTime())
 	if err != nil {
-		return err
+		return fmt.Errorf("read %q: %w", name, err)
 	}
 	return nil
 }

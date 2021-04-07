@@ -48,6 +48,7 @@ func buildBinary(packagePath, name string, flags ...string) string { //nolint:un
 	if name != path.Base(packagePath) {
 		finalName := copyBinary(appFs, binPath, name)
 		_ = os.Remove(binPath)
+
 		return finalName
 	}
 

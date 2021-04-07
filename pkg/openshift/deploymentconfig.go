@@ -3,17 +3,17 @@ package openshift
 import (
 	"encoding/json"
 
+	appsv1 "github.com/openshift/api/apps/v1"
+	"github.com/pkg/errors"
+	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	appsv1 "github.com/openshift/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func init() {
@@ -21,7 +21,7 @@ func init() {
 }
 
 const (
-	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig
+	// DeploymentConfigKind is the k8s Kind for a openshift DeploymentConfig.
 	DeploymentConfigKind = "DeploymentConfig"
 )
 
@@ -52,13 +52,15 @@ func (d deploymentConfigManipulator) Revert() model.Revertor {
 func DeploymentConfigLocator(ctx model.SessionContext, ref *model.Ref) bool {
 	deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.Name)
 	if err != nil {
-		if errors.IsNotFound(err) { // Ref is not a DeploymentConfig type
+		if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type
 			return false
 		}
 		ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
+
 		return false
 	}
 	ref.AddTargetResource(model.NewLocatedResource(DeploymentConfigKind, deployment.Name, deployment.Spec.Template.Labels))
+
 	return true
 }
 
@@ -73,9 +75,10 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 
 		deployment, err := getDeploymentConfig(ctx, ctx.Namespace, target.Name)
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if errorsK8s.IsNotFound(err) {
 				return nil
 			}
+
 			return err
 		}
 		ctx.Log.Info("Found DeploymentConfig", "name", deployment.Name)
@@ -87,6 +90,7 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 		deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, ref.GetNewVersion(ctx.Name))
 		if err != nil {
 			ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
+
 			return err
 		}
 		if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
@@ -100,10 +104,12 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated, err.Error()))
-			return err
+
+			return errors.Wrapf(err, "failed to create cloned DeploymentConfig %s", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.NewSuccessResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated))
+
 		return nil
 	}
 }
@@ -118,39 +124,43 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		ctx.Log.Info("Found DeploymentConfig", "name", status.Name)
 		err := ctx.Client.Delete(ctx, deployment)
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if errorsK8s.IsNotFound(err) {
 				return nil
 			}
 			ctx.Log.Info("Failed to delete DeploymentConfig", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, status.Name, status.Action, err.Error()))
-			return err
+
+			return errors.Wrapf(err, "failed to delete DeploymentConfig %s", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentConfigKind, status.Name, status.Action))
 	}
+
 	return nil
 }
 
 func cloneDeployment(engine template.Engine, deployment *appsv1.DeploymentConfig, ref *model.Ref, version string) (*appsv1.DeploymentConfig, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed reading DeploymentConfig json")
 	}
 
 	modifiedDeployment, err := engine.Run(ref.Strategy, originalDeployment, version, ref.Args)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to modify DeploymentConfig")
 	}
 
 	clone := appsv1.DeploymentConfig{}
 	err = json.Unmarshal(modifiedDeployment, &clone)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed unmarshalling json of modified DeploymentConfig")
 	}
+
 	return &clone, nil
 }
 
 func getDeploymentConfig(ctx model.SessionContext, namespace, name string) (*appsv1.DeploymentConfig, error) {
 	deployment := appsv1.DeploymentConfig{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
-	return &deployment, err
+
+	return &deployment, errors.Wrapf(err, "failed finding DeploymentConfig %s in namespace %s", name, namespace)
 }

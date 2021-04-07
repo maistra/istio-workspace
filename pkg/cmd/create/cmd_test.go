@@ -1,14 +1,13 @@
 package create_test
 
 import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/spf13/cobra"
+
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/create"
 	. "github.com/maistra/istio-workspace/test"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	"github.com/spf13/cobra"
 )
 
 var _ = Describe("Usage of ike create command", func() {

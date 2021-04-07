@@ -27,11 +27,13 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 			if err != nil {
 				resp.WriteHeader(500)
 				_, _ = resp.Write([]byte(err.Error()))
+
 				return
 			}
 			resp.Header().Set("content-type", "text/html")
 			resp.WriteHeader(200)
 			_, _ = resp.Write(b)
+
 			return
 		}
 
@@ -63,6 +65,7 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 		var err = enc.Encode(&callStack)
 		if err != nil {
 			fmt.Println("Failed to encode", err)
+
 			return
 		}
 	}
@@ -72,6 +75,7 @@ func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	request, err := http.NewRequestWithContext(context.Background(), "GET", target.String(), nil)
 	if err != nil {
 		log.Error(err, "Failed to create request", "target", target)
+
 		return nil
 	}
 	copyHeaders(request, headers)
@@ -79,6 +83,7 @@ func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Error(err, "Failed to call", "target", target)
+
 		return nil
 	}
 	defer resp.Body.Close()
@@ -86,6 +91,7 @@ func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Error(err, "Failed to read", "target", target)
+
 		return nil
 	}
 
@@ -94,8 +100,10 @@ func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	err = dec.Decode(&child)
 	if err != nil {
 		log.Error(err, "Failed to decode", "target", target, "body", string(body))
+
 		return nil
 	}
+
 	return &child
 }
 
@@ -106,6 +114,7 @@ func getHeaders(source *http.Request, headers ...string) map[string]string {
 			m[header] = value
 		}
 	}
+
 	return m
 }
 

@@ -8,16 +8,15 @@ import (
 	"time"
 
 	"github.com/go-cmd/cmd"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 
 	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/types"
 )
 
 var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
@@ -436,6 +435,7 @@ func cleanupNamespace(namespace string) {
 func call(routeURL string, headers map[string]string) func() (string, error) {
 	return func() (string, error) {
 		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
+
 		return GetBodyWithHeaders(routeURL, headers)
 	}
 }

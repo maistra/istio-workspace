@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"text/template"
 
+	"github.com/pkg/errors"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 )
 
@@ -46,12 +48,11 @@ func getTemplate() (*template.Template, error) {
 			if ref == nil {
 				return []string{}
 			}
+
 			return ref.GetHostNames()
 		},
 	})
 	t, err = t.Parse(urlHint)
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
+
+	return t, errors.Wrap(err, "failed parsing template")
 }

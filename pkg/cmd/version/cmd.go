@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/version"
-
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
 )
 
 var logger = func() logr.Logger {
@@ -25,18 +26,19 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			short, err := cmd.Flags().GetBool("short")
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed evaluating flag")
 			}
 			if short {
 				logShortVersion()
 			} else {
 				LogVersion()
 			}
+
 			return nil
 		},
 	}
-
 	versionCmd.Flags().BoolP("short", "s", false, "prints only version without build details")
+
 	return versionCmd
 }
 

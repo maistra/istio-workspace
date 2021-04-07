@@ -5,17 +5,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/cmd/execute"
-
-	"github.com/maistra/istio-workspace/test/shell"
-
-	. "github.com/maistra/istio-workspace/pkg/cmd"
-	. "github.com/maistra/istio-workspace/test"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/spf13/cobra"
+
+	. "github.com/maistra/istio-workspace/pkg/cmd"
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+	. "github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("Usage of ike execute command", func() {

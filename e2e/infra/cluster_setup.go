@@ -13,6 +13,7 @@ var RunsAgainstOpenshift = func() bool {
 	cmdGetDefaultServices := shell.Execute("kubectl get services -o=custom-columns='SERVICES:metadata.name' --no-headers -n default")
 	<-cmdGetDefaultServices.Done()
 	defaultServices := strings.Join(cmdGetDefaultServices.Status().Stdout, "")
+
 	return strings.Contains(defaultServices, "openshift")
 }()
 
@@ -61,6 +62,7 @@ func DumpTelepresenceLog(dir string) {
 	fh, err := os.Open(dir + string(os.PathSeparator) + "telepresence.log")
 	if err != nil {
 		fmt.Println(err)
+
 		return
 	}
 

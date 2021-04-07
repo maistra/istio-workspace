@@ -21,9 +21,6 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-
-	"github.com/maistra/istio-workspace/pkg/log"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
@@ -31,6 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	crtHandler "sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (
@@ -211,6 +210,7 @@ func Get(object client.Object) []types.NamespacedName {
 			typeNames = append(typeNames, parseNamespacedName(ref))
 		}
 	}
+
 	return typeNames
 }
 
@@ -233,6 +233,7 @@ func (e *EnqueueRequestForAnnotation) getAnnotationRequests(object client.Object
 	for _, typeName := range typeNames {
 		requests = append(requests, reconcile.Request{NamespacedName: typeName})
 	}
+
 	return true, requests
 }
 

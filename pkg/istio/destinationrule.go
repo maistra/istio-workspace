@@ -3,19 +3,19 @@ package istio
 import (
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
-
+	"github.com/pkg/errors"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (
-	// DestinationRuleKind is the k8s Kind for a istio DestinationRule
+	// DestinationRuleKind is the k8s Kind for a istio DestinationRule.
 	DestinationRuleKind = "DestinationRule"
 )
 
@@ -68,6 +68,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionModified))
 		}
 	}
+
 	return nil
 }
 
@@ -78,10 +79,11 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 	for _, resource := range resources {
 		dr, err := getDestinationRule(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
-			if errors.IsNotFound(err) { // Not found, nothing to clean
+			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 				break
 			}
 			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 
@@ -93,6 +95,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedDr)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
+
 			break
 		}
 		// ok, removed
@@ -108,6 +111,7 @@ func alreadyMutated(dr istionetwork.DestinationRule, name string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -118,6 +122,7 @@ func mutateDestinationRule(dr istionetwork.DestinationRule, name string) istione
 			"version": name,
 		},
 	})
+
 	return dr
 }
 
@@ -125,16 +130,19 @@ func revertDestinationRule(dr istionetwork.DestinationRule, name string) istione
 	for i := 0; i < len(dr.Spec.Subsets); i++ {
 		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
 			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
+
 			break
 		}
 	}
+
 	return dr
 }
 
 func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
-	return &destinationRule, err
+
+	return &destinationRule, errors.Wrapf(err, "failed obtaining destinationrule %s in namespace %s", name, namespace)
 }
 
 func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostName model.HostName) ([]*istionetwork.DestinationRule, error) {
@@ -149,5 +157,5 @@ func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostN
 		}
 	}
 
-	return matches, err
+	return matches, errors.Wrapf(err, "failed finding destinationrule in namespace %s matching hostname %v", namespace, hostName)
 }

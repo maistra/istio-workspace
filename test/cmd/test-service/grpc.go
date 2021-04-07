@@ -44,6 +44,7 @@ func gRPCRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	conn, err := grpc.Dial(target.String(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Error(err, "Failed to connect", "target", target)
+
 		return nil
 	}
 	defer conn.Close()
@@ -56,6 +57,7 @@ func gRPCRequestInvoker(log logr.Logger, target *url.URL, headers map[string]str
 	if err != nil {
 		log.Error(err, "Failed to call service", "target", target)
 	}
+
 	return r
 }
 
@@ -64,6 +66,7 @@ func mapToArray(m map[string]string) []string {
 	for k, v := range m {
 		s = append(s, k, v)
 	}
+
 	return s
 }
 
@@ -76,5 +79,6 @@ func getMetadata(ctx context.Context, headers ...string) map[string]string {
 			}
 		}
 	}
+
 	return m
 }

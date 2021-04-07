@@ -3,12 +3,11 @@ package model_test
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"go.uber.org/goleak"
 
 	. "github.com/maistra/istio-workspace/test"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestModel(t *testing.T) {

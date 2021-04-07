@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var (
@@ -40,6 +40,7 @@ func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
 	if o.WaitCondition == nil {
 		o.WaitCondition = defaultWaitCondition
 	}
+
 	return o.WaitCondition(res)
 }
 
@@ -73,13 +74,16 @@ type handler struct {
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * session - the name of the session.
-func RemoveHandler(opts Options, client *Client) (State, func(), error) {
+func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocritic //reason too simple to use named results
+	if client == nil {
+		return State{}, func() {}
+	}
 	h := &handler{c: client,
 		opts: opts}
 
 	return State{}, func() {
 		h.removeOrLeaveSession()
-	}, nil
+	}
 }
 
 // CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
@@ -99,10 +103,11 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	if err != nil {
 		return State{}, func() {}, err
 	}
-	route := session.Status.Route
+	route := session.Status.Route //nolint:ifshort // route used in multiple locations
 	if route == nil {
 		route = &istiov1alpha1.Route{}
 	}
+
 	return State{
 			DeploymentName: serviceName,
 			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
@@ -118,6 +123,7 @@ func getCurrentRef(deploymentName string, session istiov1alpha1.Session) istiov1
 			return *ref
 		}
 	}
+
 	return istiov1alpha1.RefStatus{}
 }
 
@@ -129,6 +135,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		if err != nil {
 			return session, "", err
 		}
+
 		return h.removeSessionIfDeploymentNotFound()
 	}
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
@@ -144,6 +151,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		if err != nil {
 			return session, "", err
 		}
+
 		return h.removeSessionIfDeploymentNotFound()
 	}
 	// join session
@@ -152,14 +160,16 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 	if err != nil {
 		return session, "", err
 	}
+
 	return h.removeSessionIfDeploymentNotFound()
 }
 
 func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, string, error) {
 	session, result, err := h.waitForRefToComplete()
-	if _, deploymentNotFound := err.(DeploymentNotFoundError); deploymentNotFound {
+	if errors.As(err, &DeploymentNotFoundError{}) {
 		h.removeOrLeaveSession()
 	}
+
 	return session, result, err
 }
 
@@ -186,6 +196,7 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 	if r != nil {
 		session.Spec.Route = *r
 	}
+
 	return &session, h.c.Create(&session)
 }
 
@@ -208,17 +219,21 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 					if h.opts.ConditionFound(res) {
 						name = *res.Name
 						logger().Info("target found", *res.Kind, name)
+
 						return true, nil
 					}
 				}
 			}
 		}
+
 		return false, nil
 	})
 	if err != nil {
 		logger().Error(err, "failed waiting for deployment to create")
+
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
+
 	return sessionStatus, name, nil
 }
 
@@ -226,6 +241,7 @@ func (h *handler) removeOrLeaveSession() {
 	session, err := h.c.Get(h.opts.SessionName)
 	if err != nil {
 		logger().Error(err, "failed removing or leaving session")
+
 		return // assume missing, nothing to clean?
 	}
 	// more than one participant, update session
@@ -254,6 +270,7 @@ func getOrCreateSessionName(sessionName string) string {
 	if err != nil {
 		return random
 	}
+
 	return u.Username + "-" + random
 }
 
@@ -275,6 +292,7 @@ func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 		return nil, fmt.Errorf("route in wrong format. expected type:name=value")
 	}
 	n, v = pair[0], pair[1]
+
 	return &istiov1alpha1.Route{
 		Type:  t,
 		Name:  n,

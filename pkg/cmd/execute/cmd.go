@@ -7,15 +7,16 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fsnotify/fsnotify"
+	gocmd "github.com/go-cmd/cmd"
+	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/watch"
-
-	"github.com/fsnotify/fsnotify"
-	gocmd "github.com/go-cmd/cmd"
-	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -40,7 +41,7 @@ func NewCmd() *cobra.Command {
 		Hidden:       true,
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.SyncFullyQualifiedFlags(cmd)
+			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: execute,
 	}
@@ -71,7 +72,7 @@ func execute(command *cobra.Command, args []string) error {
 		dirs, _ := command.Flags().GetStringSlice("dir")
 		excluded, e := command.Flags().GetStringSlice("exclude")
 		if e != nil {
-			return nil, e
+			return nil, errors.Wrapf(e, "failed executing %s command", command.Use)
 		}
 		excluded = append(excluded, DefaultExclusions...)
 
@@ -82,16 +83,18 @@ func execute(command *cobra.Command, args []string) error {
 					_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
 				}
 				restart <- 1
+
 				return nil
 			}).
 			Excluding(excluded...).
 			OnPaths(dirs...)
 
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed executing %s command", command.Use)
 		}
 
 		w.Start()
+
 		return w.Close, nil
 	}
 
@@ -104,11 +107,11 @@ func execute(command *cobra.Command, args []string) error {
 	if w, e := command.Flags().GetBool("watch"); w && e == nil {
 		closeWatch, err := watcher(restart)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed executing %s command", command.Use)
 		}
 		defer closeWatch()
 	} else if e != nil {
-		return e
+		return errors.Wrapf(e, "failed executing %s command", command.Use)
 	}
 
 	go func() {
@@ -173,6 +176,7 @@ func buildExecutor(command *cobra.Command) executor {
 		if status.Error != nil {
 			logger().Error(status.Error, "failed to run build command")
 		}
+
 		return b.Stop
 	}
 }
@@ -194,6 +198,7 @@ func runExecutor(command *cobra.Command) executor {
 				logger().Error(status.Error, "failed to run run command")
 			}
 		}(r.Start())
+
 		return r.Stop
 	}
 }
@@ -224,6 +229,7 @@ func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hoo
 		default:
 			if command.Flag("kill").Value.String() == enabled {
 				hookChan <- syscall.SIGTERM
+
 				return
 			}
 		}
