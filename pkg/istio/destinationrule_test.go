@@ -49,11 +49,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			},
 			&istionetwork.DestinationRule{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "customer-revert",
+					Name:      "customer-other",
 					Namespace: "test",
 				},
 				Spec: istionetworkv1alpha3.DestinationRule{
-					Host: "customer-revert",
+					Host: "customer-other",
 					Subsets: []*istionetworkv1alpha3.Subset{
 						{
 							Name: "v1",
@@ -165,7 +165,10 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 
 			It("should remove reference", func() {
-				err := istio.DestinationRuleRevertor(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
@@ -173,7 +176,10 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			})
 
 			It("should not fail on subsequent remove of reference", func() {
-				err := istio.DestinationRuleRevertor(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = istio.DestinationRuleRevertor(ctx, ref)
