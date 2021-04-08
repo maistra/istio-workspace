@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (
@@ -43,7 +44,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 	for _, hostName := range ref.GetTargetHostNames() {
 		newVersion := ref.GetNewVersion(ctx.Name)
 
-		dr := istionetwork.DestinationRule{
+		destinationRule := istionetwork.DestinationRule{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "dr-" + ref.KindName.Name + "-" + hostName.Name + "-" + ctx.Name,
 				Namespace: ctx.Namespace,
@@ -61,13 +62,16 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 			},
 		}
 
-		err := ctx.Client.Create(ctx, &dr)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionCreated, err.Error()))
-			ctx.Log.Error(err, "failed to update DestinationRule", "name", dr.GetName())
+		if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name)
 		}
 
-		ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionCreated))
+		if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
+			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated, err.Error()))
+			ctx.Log.Error(err, "failed to update DestinationRule", "name", destinationRule.GetName())
+		}
+
+		ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated))
 	}
 
 	return nil
