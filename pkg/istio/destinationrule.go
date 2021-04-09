@@ -1,13 +1,14 @@
 package istio
 
 import (
-	"strings"
+	"math"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"istio.io/api/networking/v1alpha3"
+	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -44,118 +45,83 @@ func (d destinationRuleManipulator) Revert() model.Revertor {
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.
 func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
+	var accErrors *multierror.Error
 	for _, hostName := range ref.GetTargetHostNames() {
-		drs, err := getDestinationRulesByHost(ctx, ctx.Namespace, hostName)
-		if err != nil {
-			return err
+		newVersion := ref.GetNewVersion(ctx.Name)
+
+		destinationRule := istionetwork.DestinationRule{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      concatToMax(63, "dr", ref.KindName.Name, hostName.Name, ctx.Name),
+				Namespace: ctx.Namespace,
+			},
+			Spec: istionetworkv1alpha3.DestinationRule{
+				Host: hostName.Name,
+				Subsets: []*istionetworkv1alpha3.Subset{
+					{
+						Name: newVersion,
+						Labels: map[string]string{
+							"version": newVersion,
+						},
+					},
+				},
+			},
 		}
-		for _, dr := range drs {
-			newVersion := ref.GetNewVersion(ctx.Name)
-			if alreadyMutated(*dr, newVersion) {
+
+		if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
+			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name)
+		}
+
+		if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
+			if !k8sErrors.IsAlreadyExists(err) {
+				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated, err.Error()))
+				ctx.Log.Error(err, "failed to create DestinationRule", "name", destinationRule.GetName())
+				accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to create DestinationRule"))
+
 				continue
 			}
-			ctx.Log.Info("Found DestinationRule", "name", dr.GetName())
-			mutatedDr := mutateDestinationRule(*dr, newVersion)
-			if err = reference.Add(ctx.ToNamespacedName(), &mutatedDr); err != nil {
-				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
-			}
-			err = ctx.Client.Update(ctx, &mutatedDr)
-			if err != nil {
-				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionModified, err.Error()))
-				ctx.Log.Error(err, "failed to update DestinationRule", "name", dr.GetName())
-			}
-
-			ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionModified))
 		}
+
+		ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated))
 	}
 
-	return nil
+	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to manipulate destination rules for session %s in namespace %s", ctx.Name, ctx.Namespace)
 }
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
 func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	resources := ref.GetResources(model.Kind(DestinationRuleKind))
+	var accErrors *multierror.Error
+	for _, hostName := range ref.GetTargetHostNames() {
+		dr := istionetwork.DestinationRule{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      concatToMax(63, "dr", ref.KindName.Name, hostName.Name, ctx.Name),
+				Namespace: ctx.Namespace,
+			},
+		}
 
-	for _, resource := range resources {
-		dr, err := getDestinationRule(ctx, ctx.Namespace, resource.Name)
-		if err != nil {
-			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				break
+		if err := ctx.Client.Delete(ctx, &dr); err != nil {
+			if !k8sErrors.IsNotFound(err) { // Not found, nothing to clean
+				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionCreated, err.Error()))
+				accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to delete DestinationRule"))
+
+				continue
 			}
-			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
-
-			break
 		}
 
-		ctx.Log.Info("Found DestinationRule", "name", resource.Name)
-		mutatedDr := revertDestinationRule(*dr, ref.GetNewVersion(ctx.Name))
-		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedDr); err != nil {
-			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedDr.Kind, "name", mutatedDr.Name)
-		}
-		err = ctx.Client.Update(ctx, &mutatedDr)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, resource.Name, resource.Action, err.Error()))
-
-			break
-		}
 		// ok, removed
-		ref.RemoveResourceStatus(model.NewSuccessResource(DestinationRuleKind, resource.Name, resource.Action))
+		ref.RemoveResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionCreated))
 	}
 
-	return nil
+	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to revert destination rules for session %s in namespace %s", ctx.Name, ctx.Namespace)
 }
 
-func alreadyMutated(dr istionetwork.DestinationRule, name string) bool {
-	for _, sub := range dr.Spec.Subsets {
-		if sub.Name == name {
-			return true
-		}
+// concatToMax will cut each section to length based on number of sections to not go beyond max and separate the sections with -.
+func concatToMax(max int, sections ...string) string {
+	sectionLength := (max - len(sections) - 1) / len(sections)
+	name := ""
+
+	for _, section := range sections {
+		name = name + "-" + section[:int32(math.Min(float64(len(section)), float64(sectionLength)))]
 	}
 
-	return false
-}
-
-func mutateDestinationRule(dr istionetwork.DestinationRule, name string) istionetwork.DestinationRule {
-	dr.Spec.Subsets = append(dr.Spec.Subsets, &v1alpha3.Subset{
-		Name: name,
-		Labels: map[string]string{
-			"version": name,
-		},
-	})
-
-	return dr
-}
-
-func revertDestinationRule(dr istionetwork.DestinationRule, name string) istionetwork.DestinationRule {
-	for i := 0; i < len(dr.Spec.Subsets); i++ {
-		if strings.Contains(dr.Spec.Subsets[i].Name, name) {
-			dr.Spec.Subsets = append(dr.Spec.Subsets[:i], dr.Spec.Subsets[i+1:]...)
-
-			break
-		}
-	}
-
-	return dr
-}
-
-func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
-	destinationRule := istionetwork.DestinationRule{}
-	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
-
-	return &destinationRule, errors.Wrapf(err, "failed obtaining destinationrule %s in namespace %s", name, namespace)
-}
-
-func getDestinationRulesByHost(ctx model.SessionContext, namespace string, hostName model.HostName) ([]*istionetwork.DestinationRule, error) {
-	var matches []*istionetwork.DestinationRule
-
-	destinationRules := istionetwork.DestinationRuleList{}
-	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
-	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
-		if hostName.Match(dr.Spec.Host) {
-			match := dr
-			matches = append(matches, &match)
-		}
-	}
-
-	return matches, errors.Wrapf(err, "failed finding destinationrule in namespace %s matching hostname %v", namespace, hostName)
+	return name[1:]
 }

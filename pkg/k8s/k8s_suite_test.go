@@ -10,7 +10,7 @@ import (
 	. "github.com/maistra/istio-workspace/test"
 )
 
-func TestK8(t *testing.T) {
+func TestK8s(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecWithJUnitReporter(t, "k8s object Suite")
 }

@@ -53,13 +53,13 @@ type Ref struct {
 	ResourceStatuses []ResourceStatus
 }
 
-// RefKindName holds the optionally specified Kind togather with the name, e.g. deploymentconfig/name.
+// RefKindName holds the optionally specified Kind together with the name, e.g. deploymentconfig/name.
 type RefKindName struct {
 	Kind string
 	Name string
 }
 
-// String returns the string formated kind/name.
+// String returns the string formatted kind/name.
 func (r RefKindName) String() string {
 	if r.Kind == "" {
 		return r.Name

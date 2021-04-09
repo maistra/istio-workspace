@@ -47,7 +47,7 @@ var _ = Describe("Complete session manipulation", func() {
 		_ = corev1.AddToScheme(schema)
 		_ = appsv1.AddToScheme(schema)
 		_ = istionetwork.AddToScheme(schema)
-		_ = osappsv1.AddToScheme(schema)
+		_ = osappsv1.Install(schema)
 
 		objs, err := Scenario(schema, namespace, scenario)
 		Expect(err).ToNot(HaveOccurred())
@@ -350,22 +350,22 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 
 	buf := new(bytes.Buffer)
 	scenarioGenerator(buf)
-	filecontent := buf.String()
+	fileContent := buf.String()
 
 	var objects []runtime.Object
 
-	filechunks := strings.Split(filecontent, "---")
-	for _, filechuck := range filechunks {
-		if strings.Trim(filechuck, "\n") == "" {
+	fileChunks := strings.Split(fileContent, "---")
+	for _, fileChunk := range fileChunks {
+		if strings.Trim(fileChunk, "\n") == "" {
 			continue
 		}
 		decode := serializer.NewCodecFactory(scheme).UniversalDeserializer().Decode
-		obj, _, err := decode([]byte(filechuck), nil, nil)
+		obj, _, err := decode([]byte(fileChunk), nil, nil)
 		if err != nil {
 			return nil, err
 		}
-		if robj, ok := obj.(runtime.Object); ok {
-			objects = append(objects, robj)
+		if rObj, ok := obj.(runtime.Object); ok {
+			objects = append(objects, rObj)
 		}
 	}
 

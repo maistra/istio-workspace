@@ -32,8 +32,8 @@ var _ = Describe("Operator installation", func() {
 	Context("on bare k8s", func() {
 
 		var (
-			operatorNamepace string
-			namespaces       []string
+			operatorNamespace string
+			namespaces        []string
 
 			cleanEnvVariable func()
 		)
@@ -43,8 +43,8 @@ var _ = Describe("Operator installation", func() {
 			}
 
 			namespaces = []string{}
-			operatorNamepace = generateNamespaceName()
-			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamepace)
+			operatorNamespace = generateNamespaceName()
+			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamespace)
 		})
 
 		AfterEach(func() {
@@ -52,7 +52,7 @@ var _ = Describe("Operator installation", func() {
 			for _, namespace := range namespaces {
 				cleanupNamespace(namespace)
 			}
-			cleanupNamespace(operatorNamepace)
+			cleanupNamespace(operatorNamespace)
 		})
 
 		CreateNamespace := func() {
@@ -80,7 +80,7 @@ var _ = Describe("Operator installation", func() {
 						operatorLog := shell.ExecuteInDir(".",
 							"kubectl", "logs",
 							"deployment/istio-workspace-operator-controller-manager",
-							"-n", operatorNamepace,
+							"-n", operatorNamespace,
 						)
 						<-operatorLog.Done()
 
@@ -100,9 +100,9 @@ var _ = Describe("Operator installation", func() {
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(BeZero())
 
-			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(operatorNamespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
-			VerifyWatchList(operatorNamepace)
+			VerifyWatchList(operatorNamespace)
 		})
 
 		It("should install to the single namespace", func() {
@@ -115,7 +115,7 @@ var _ = Describe("Operator installation", func() {
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(BeZero())
 
-			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(operatorNamespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})
@@ -130,7 +130,7 @@ var _ = Describe("Operator installation", func() {
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(BeZero())
 
-			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(operatorNamespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})
@@ -143,7 +143,7 @@ var _ = Describe("Operator installation", func() {
 			<-bundle.Done()
 			Expect(bundle.Status().Exit).To(BeZero())
 
-			Eventually(AllDeploymentsAndPodsReady(operatorNamepace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(AllDeploymentsAndPodsReady(operatorNamespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			VerifyWatchList(namespaces...)
 		})

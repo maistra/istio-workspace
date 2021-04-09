@@ -331,7 +331,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					Client: ctx.Client,
 					Log:    ctx.Log,
 				}
-				// Another Context would have had another Ref object with the Gateway Resource Status modifed. simulate.
+				// Another Context would have had another Ref object with the Gateway Resource Status modified. simulate.
 				ref.AddResourceStatus(model.ResourceStatus{Kind: "Gateway", Name: "gateway", Action: model.ActionModified})
 				err = istio.GatewayRevertor(ctx2, ref)
 				Expect(err).ToNot(HaveOccurred())

@@ -14,7 +14,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
 
@@ -50,11 +49,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			},
 			&istionetwork.DestinationRule{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "customer-revert",
+					Name:      "customer-other",
 					Namespace: "test",
 				},
 				Spec: istionetworkv1alpha3.DestinationRule{
-					Host: "customer-revert",
+					Host: "customer-other",
 					Subsets: []*istionetworkv1alpha3.Subset{
 						{
 							Name: "v1",
@@ -111,27 +110,27 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-mutate")
-				Expect(reference.Get(&dr)).To(HaveLen(1))
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items).To(HaveLen(1))
 			})
 
-			It("new subset added", func() {
+			It("should have one subset defined", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-mutate")
-				Expect(dr.Spec.Subsets).To(HaveLen(2))
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
 			})
 
-			It("new subset added with name", func() {
+			It("should have one subset defined with name", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-mutate")
-				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
 
-			It("new subset only added once", func() {
+			It("should not create new destination rules for subsequents mutations", func() {
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -139,9 +138,10 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				err = istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-mutate")
-				Expect(dr.Spec.Subsets).To(HaveLen(2))
-				Expect(dr.Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items).To(HaveLen(1))
+				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
 		})
 	})
@@ -165,28 +165,30 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 
 			It("should remove reference", func() {
-				err := istio.DestinationRuleRevertor(ctx, ref)
+				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-revert")
-				Expect(reference.Get(&dr)).To(BeEmpty())
-			})
-
-			It("new subset removed", func() {
-				err := istio.DestinationRuleRevertor(ctx, ref)
+				err = istio.DestinationRuleRevertor(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-revert")
-				Expect(dr.Spec.Subsets).To(HaveLen(2))
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items).To(BeEmpty())
 			})
 
-			It("correct subset removed", func() {
-				err := istio.DestinationRuleRevertor(ctx, ref)
+			It("should not fail on subsequent remove of reference", func() {
+				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).ToNot(HaveOccurred())
 
-				dr := get.DestinationRule("test", "customer-revert")
-				Expect(dr.Spec.Subsets).ToNot(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
+				err = istio.DestinationRuleRevertor(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = istio.DestinationRuleRevertor(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items).To(BeEmpty())
 			})
+
 		})
 	})
 })

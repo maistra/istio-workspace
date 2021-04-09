@@ -75,7 +75,7 @@ var (
 //	annotations:
 //		maistra.io/istio-workspaces: "namespace/session1,session2"
 //
-// Note: multiple sessions can manipulate the same resource, therefore the annonation is a list defined as comma-separated values.
+// Note: multiple sessions can manipulate the same resource, therefore the annotation is a list defined as comma-separated values.
 //
 // Though an annotation-based watch handler removes the boundaries set by native owner reference implementation,
 // the garbage collector still respects the scope restrictions. For example,

@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 /*
@@ -24,6 +25,7 @@ func New(c client.Client) *Getters {
 		Session:                   Session(c),
 		Gateway:                   Gateway(c),
 		DestinationRule:           DestinationRule(c),
+		DestinationRules:          DestinationRules(c),
 		VirtualService:            VirtualService(c),
 		VirtualServices:           VirtualServices(c),
 		Deployment:                Deployment(c),
@@ -38,6 +40,7 @@ type Getters struct {
 	Session                   func(namespace, name string) v1alpha1.Session
 	Gateway                   func(namespace, name string) istionetwork.Gateway
 	DestinationRule           func(namespace, name string) istionetwork.DestinationRule
+	DestinationRules          func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList
 	VirtualService            func(namespace, name string) istionetwork.VirtualService
 	Deployment                func(namespace, name string) appsv1.Deployment
 	DeploymentWithError       func(namespace, name string) (appsv1.Deployment, error)
@@ -73,6 +76,43 @@ func DestinationRule(c client.Client) func(namespace, name string) istionetwork.
 	return func(namespace, name string) istionetwork.DestinationRule {
 		s := istionetwork.DestinationRule{}
 		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+
+		return s
+	}
+}
+
+type Predicate func(c client.Object) bool
+
+var HasRefPredicate Predicate = func(c client.Object) bool {
+	return len(reference.Get(c)) != 0
+}
+
+// DestinationRules returns all DestinationRules in a given namespace.
+// When predicates are provided all of them should be satisfied in order to keep the element on the list.
+func DestinationRules(c client.Client) func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList {
+	return func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList {
+		s := istionetwork.DestinationRuleList{}
+		err := c.List(context.Background(), &s, client.InNamespace(namespace))
+		items := s.Items
+
+		for i := 0; i < len(items); i++ {
+			keep := true
+			for _, predicate := range predicates {
+				if !predicate(&items[i]) {
+					keep = false
+
+					break
+				}
+			}
+			if !keep {
+				items = append(items[:i], items[i+1:]...)
+				i--
+			}
+		}
+
+		s.Items = items
+
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 		return s
