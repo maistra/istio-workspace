@@ -1,0 +1,44 @@
+== Highlights of v0.1.0 release
+
+=== Specifying the exact resource to be manipulated
+
+If you run commands targeting resources, such as `Deployment`, till now you were only able to use `Name`. This resulted in a lookup among the resources we currently handle. First we checked if `Deployment` of the matching name is available. If not - we looked up for `DeploymentConfig`. 
+
+With this release you can be exact:
+
+[source,bash]
+----
+$ ike create --deployment deployment/reviews-v1 --session bartek-icxzt --image docker.io/bmajsak/test:latest --route header:x=y  
+----
+
+=== Better insights from the CLI
+
+When you want to get details about the sessions available in your namespace, the built-in response for `kubectl get sessions` is rather brief:
+
+[source,bash]
+----
+$ kubectl get sessions
+NAME          AGE
+bartek-jcsgl  9s
+----
+
+In this release we reworked it so you can easily see all the relevant information at hand.
+
+[source,bash]
+----
+$ kubectl get sessions
+NAMESPACE   NAME          REF NAMES       STRATEGIES          HOSTS                      ROUTE                    AGE
+test-001    bartek-jcsgl  ["reviews-v1"]  ["prepared-image"]  ["feature-x.ike-demo.io"]  header:ike-id=feature-y  9s
+----
+
+=== Better insights of internal work
+
+We've also enhanced the way we track status of our controller work. When you inspect `Session` CRD you can now easily see the conditions which describe the actions performed by the controller.
+
+This is also exposed in e.g. OpenShift Console
+
+image::session-details.gif[OpenShift Console]
+
+=== All changes in this release
+
+// changelog:generate
