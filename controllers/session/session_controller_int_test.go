@@ -47,7 +47,7 @@ var _ = Describe("Complete session manipulation", func() {
 		_ = corev1.AddToScheme(schema)
 		_ = appsv1.AddToScheme(schema)
 		_ = istionetwork.AddToScheme(schema)
-		_ = osappsv1.AddToScheme(schema)
+		_ = osappsv1.Install(schema)
 
 		objs, err := Scenario(schema, namespace, scenario)
 		Expect(err).ToNot(HaveOccurred())
