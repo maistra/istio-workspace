@@ -1,7 +1,6 @@
 package session_test
 
 import (
-	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -224,8 +223,6 @@ var _ = Describe("Basic model conversion", func() {
 		It("resource statues mapped", func() {
 			Expect(refs).To(HaveLen(2))
 
-			fmt.Println("weeerewtrewtew")
-			fmt.Println(refs[0].ResourceStatuses)
 			Expect(refs[0].ResourceStatuses[0].Kind).To(Equal(*sess.Status.Refs[0].Resources[0].Kind))
 			Expect(refs[0].ResourceStatuses[0].Name).To(Equal(*sess.Status.Refs[0].Resources[0].Name))
 			Expect(refs[0].ResourceStatuses[0].TimeStamp).To(Equal(sess.Status.Refs[0].Resources[0].LastTransitionTime.Time))

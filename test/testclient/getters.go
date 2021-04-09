@@ -88,8 +88,8 @@ var HasRefPredicate Predicate = func(c client.Object) bool {
 	return len(reference.Get(c)) != 0
 }
 
-// DestinationRules returns all DestinationRules in a given namespace. When predicates are provided all of the should be satisfied
-// in order to keep the element on the list.
+// DestinationRules returns all DestinationRules in a given namespace.
+// When predicates are provided all of them should be satisfied in order to keep the element on the list.
 func DestinationRules(c client.Client) func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList {
 	return func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList {
 		s := istionetwork.DestinationRuleList{}

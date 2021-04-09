@@ -44,7 +44,7 @@ var _ = Describe("Operations for template system", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).To(BeEquivalentTo("v1"))
 			})
-			It("should be able to equal numberic values", func() {
+			It("should be able to equal numeric values", func() {
 				v := tj.Equal("/spec/replicas", 1)
 				Expect(v).To(BeTrue())
 			})
@@ -90,7 +90,7 @@ var _ = Describe("Operations for template system", func() {
 				Expect(v).To(BeTrue())
 			})
 
-			It("should error on non numberic slice index", func() {
+			It("should error on non numeric slice index", func() {
 				_, err := tj.Value("/spec/template/spec/containers/X")
 				Expect(err).To(HaveOccurred())
 			})
