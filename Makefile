@@ -487,7 +487,10 @@ release-notes-draft: ## Prepares release notes based on template. e.g. VERSION=v
 		./scripts/release/validate.sh $(VERSION) --skip-release-notes-check && \
 		git checkout -b release_$(VERSION) && \
 		cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-		sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc;\
+		sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
+		git add . && \
+    git commit -m "release: highlights of ${VERSION}" -m "/skip-e2e" -m "/skip-build" && \
+		git show HEAD;\
 	fi
 
 .PHONY: help
