@@ -107,7 +107,7 @@ jobs:
                 }));
                 core.setFailed('Failed generating changelog');
             } else {
-              const pushCmd = `git add . && git commit -m"release: adds changelog for ${version}" -m"/skip-e2e" && git push && git rev-parse --short HEAD`;
+              const pushCmd = `git add . && git commit -m"release: adds changelog for ${version}" -m"/skip-e2e" -m"/skip-build" && git push && git rev-parse --short HEAD`;
               const { status, stderr, stdout } = spawnSync(pushCmd, {shell: true});
               if (status != 0) {
                   core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
