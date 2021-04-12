@@ -426,12 +426,13 @@ bundle-publish:	## Open up a PR to the Operator Hub community catalog
 # ##########################################################################
 ##@ Tekton tasks
 # ##########################################################################
+TEKTON_TASK_VERSION:=$(shell echo "${OPERATOR_VERSION}" | cut -d'.' -f 1,2)
 
 .PHONY: tekton-deploy
 tekton-deploy: ## Deploy the Tekton tasks
-	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
-	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
-	sed "s/released-image/${IKE_IMAGE}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+	sed -e "s/released-image/${IKE_IMAGE}/g" -e "s/current-version/${TEKTON_TASK_VERSION}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-create/ike-create.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+	sed -e "s/released-image/${IKE_IMAGE}/g" -e "s/current-version/${TEKTON_TASK_VERSION}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-session-url/ike-session-url.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
+	sed -e "s/released-image/${IKE_IMAGE}/g" -e "s/current-version/${TEKTON_TASK_VERSION}/g" "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" | $(k8s) apply -f - -n $(TEST_NAMESPACE)
 
 .PHONY: tekton-undeploy
 tekton-undeploy: ## UnDeploy the Tekton tasks
