@@ -1,4 +1,5 @@
 syntax = "proto3";
+option go_package = "github.com/maistra/istio-workspace/test/cmd/test-service;main";
 
 // The Caller service defintion.
 service Caller {

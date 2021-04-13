@@ -160,13 +160,13 @@ $(DIST_DIR)/$(BINARY_NAME): $(DIST_DIR) $(SRCS)
 	$(call header,"Compiling... carry on!")
 	${GOBUILD} go build -v -ldflags ${LDFLAGS} -o $@ ./cmd/$(BINARY_NAME)/
 
-$(DIST_DIR)/$(TEST_BINARY_NAME): $(DIST_DIR) $(SRCS) test/cmd/test-service/html.go
+$(DIST_DIR)/$(TEST_BINARY_NAME): $(DIST_DIR) $(SRCS) test/cmd/test-service/html.go test/cmd/test-service/main.pb.go
 	$(call header,"Compiling test service... carry on!")
 	${GOBUILD} go build -ldflags ${LDFLAGS} -o $@ ./test/cmd/$(TEST_BINARY_NAME)/
 
 test/cmd/test-service/main.pb.go: $(PROJECT_DIR)/bin/protoc test/cmd/test-service/main.proto
 	$(call header,"Compiling test proto... carry on!")
-	$(PROJECT_DIR)/bin/protoc -I test/cmd/test-service/ test/cmd/test-service/main.proto --go_out=plugins=grpc:test/cmd/test-service
+	$(PROJECT_DIR)/bin/protoc -I test/cmd/test-service/ test/cmd/test-service/main.proto --go_out=plugins=grpc:test/cmd/test-service --go_opt=paths=source_relative
 
 test/cmd/test-service/html.go: test/cmd/test-service/assets/index.html
 	$(call header,"Compiling test assets... carry on!")

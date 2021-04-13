@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-protobuf_version="3.12.3"
+protobuf_version="3.15.8"
 
 get_arch() {
   case "$(uname -s)" in
