@@ -43,6 +43,20 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 							Labels: map[string]string{
 								"version": "v1",
 							},
+							TrafficPolicy: &istionetworkv1alpha3.TrafficPolicy{
+								ConnectionPool: &istionetworkv1alpha3.ConnectionPoolSettings{
+									Http: &istionetworkv1alpha3.ConnectionPoolSettings_HTTPSettings{
+										MaxRetries: 100,
+									},
+								},
+							},
+						},
+					},
+					TrafficPolicy: &istionetworkv1alpha3.TrafficPolicy{
+						ConnectionPool: &istionetworkv1alpha3.ConnectionPoolSettings{
+							Http: &istionetworkv1alpha3.ConnectionPoolSettings_HTTPSettings{
+								MaxRetries: 10,
+							},
 						},
 					},
 				},
@@ -59,12 +73,6 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 							Name: "v1",
 							Labels: map[string]string{
 								"version": "v1",
-							},
-						},
-						{
-							Name: "dr-test",
-							Labels: map[string]string{
-								"version": "dr-test",
 							},
 						},
 					},
@@ -143,6 +151,15 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
 			})
+
+			It("should keep traficpolicy from target", func() {
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).ToNot(HaveOccurred())
+
+				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy).ToNot(BeNil())
+				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy.ConnectionPool.Http.MaxRetries).To(Equal(int32(100)))
+			})
 		})
 	})
 
@@ -157,7 +174,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				KindName: model.ParseRefKindName("customer-v1"),
 				Targets: []model.LocatedResourceStatus{
 					model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
-					model.NewLocatedResource("Service", "customer-revert", nil),
+					model.NewLocatedResource("Service", "customer-other", nil),
 				},
 			}
 		})
