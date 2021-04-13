@@ -49,6 +49,13 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 	for _, hostName := range ref.GetTargetHostNames() {
 		newVersion := ref.GetNewVersion(ctx.Name)
 
+		subset, err := getTargetSubset(ctx, ctx.Namespace, hostName, ref.GetVersion())
+		if err != nil {
+			accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to find Subset"))
+
+			continue
+		}
+
 		destinationRule := istionetwork.DestinationRule{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      concatToMax(63, "dr", ref.KindName.Name, hostName.Name, ctx.Name),
@@ -62,6 +69,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 						Labels: map[string]string{
 							"version": newVersion,
 						},
+						TrafficPolicy: subset.TrafficPolicy,
 					},
 				},
 			},
@@ -124,4 +132,20 @@ func concatToMax(max int, sections ...string) string {
 	}
 
 	return name[1:]
+}
+
+func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.HostName, targetVersion string) (*istionetworkv1alpha3.Subset, error) {
+	destinationRules := istionetwork.DestinationRuleList{}
+	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
+	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
+		if hostName.Match(dr.Spec.Host) {
+			for _, subset := range dr.Spec.Subsets {
+				if subset.Labels["version"] == targetVersion {
+					return subset, nil
+				}
+			}
+		}
+	}
+
+	return nil, errors.Wrapf(err, "failed finding destinationrule in namespace %s matching hostname %v and subset version %v", namespace, hostName, targetVersion)
 }
