@@ -37,6 +37,7 @@ jobs:
 
             const prHead = pr.data.head.sha;
             core.setOutput("pr_head", prHead);
+            core.setOutput("pr_title", pr.data.title.trim());
 
             const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
               owner: context.repo.owner,
@@ -64,7 +65,9 @@ jobs:
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            const version = context.payload.comment.body.split(' ')[1]
+            const prTitle = "${{ steps.checkout.outputs.pr_title }}";
+            const prTitleWords = prTitle.split(' ');
+            const version = prTitleWords[prTitleWords.length - 1];
             core.setOutput("version", version);
 
             const { spawnSync } = require("child_process");
@@ -183,6 +186,7 @@ jobs:
 
             const prHead = pr.data.head.sha;
             core.setOutput("pr_head", prHead);
+            core.setOutput("pr_title", pr.data.title.trim());
 
             const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
               owner: context.repo.owner,
@@ -210,7 +214,9 @@ jobs:
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            const version = context.payload.comment.body.split(' ')[1]
+            const prTitle = "${{ steps.checkout.outputs.pr_title }}";
+            const prTitleWords = prTitle.split(' ');
+            const version = prTitleWords[prTitleWords.length - 1];
             core.setOutput("version", version);
 
             const { spawnSync } = require("child_process");
@@ -378,5 +384,5 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: "### ℹ️ Available commands\n\n * `/changelog vX.Y.Z` will append changelog based on the closed PRs since last release to provided release notes.\n\n * `/release vX.Y.Z` will add release-related commits to this PR on your behalf. \n\n * `/shipit` will rebase everything on master branch and trigger actual release process"
+                body: "### ℹ️ Available commands\n\n * `/changelog` will append changelog based on the closed PRs since last release to provided release notes.\n\n * `/release` will add release-related commits to this PR on your behalf. \n\n * `/shipit` will rebase everything on master branch and trigger actual release process"
             });
