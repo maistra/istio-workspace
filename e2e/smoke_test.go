@@ -81,7 +81,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--namespace", namespace,
 						)
 
-						go FailOnCmdError(ike)
+						go FailOnCmdError(ike, GinkgoT())
 
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
@@ -180,7 +180,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--namespace", namespace,
 						)
 
-						go FailOnCmdError(ike)
+						go FailOnCmdError(ike, GinkgoT())
 
 						EnsureAllDeploymentPodsAreReady(namespace)
 
@@ -221,7 +221,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--session", sessionName,
 				)
 
-				go FailOnCmdError(ike)
+				go FailOnCmdError(ike, GinkgoT())
 
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
@@ -409,10 +409,10 @@ func Stop(ike *cmd.Cmd) {
 	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
 }
 
-func FailOnCmdError(command *cmd.Cmd) {
+func FailOnCmdError(command *cmd.Cmd, t GinkgoTInterface) {
 	<-command.Done()
 	if command.Status().Exit != 0 {
-		GinkgoT().FailNow()
+		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
 	}
 }
 
