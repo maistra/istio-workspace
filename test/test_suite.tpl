@@ -26,4 +26,3 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 var _ = SynchronizedAfterSuite(func() {}, func() {
 	goleak.VerifyNone(GinkgoT(), current)
 })
-
