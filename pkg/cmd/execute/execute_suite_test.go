@@ -22,6 +22,7 @@ var current goleak.Option
 var _ = SynchronizedBeforeSuite(func() []byte {
 	current = goleak.IgnoreCurrent()
 	shell.StubShellCommands()
+
 	return []byte{}
 }, func([]byte) {})
 
