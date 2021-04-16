@@ -19,9 +19,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 )
 
-var (
-	kind, name, action = "test", "details", "created"
-)
+var kind, name, action = "test", "details", "created"
 
 var _ = Describe("Basic session manipulation", func() {
 	var (
