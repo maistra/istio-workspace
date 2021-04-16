@@ -217,7 +217,7 @@ var _ = Describe("Operations for template system", func() {
 	})
 })
 
-var testDeployment = `
+const testDeployment = `
 {
     "apiVersion": "extensions/v1beta1",
     "kind": "Deployment",
