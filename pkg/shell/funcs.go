@@ -14,22 +14,24 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 )
 
-var logger = func() logr.Logger {
-	return log.Log.WithValues("type", "shell")
-}
+var (
+	// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
+	StreamOutput gocmd.Options = gocmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}
 
-// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
-var StreamOutput = gocmd.Options{
-	Buffered:  false,
-	Streaming: true,
-}
+	// BufferAndStreamOutput sets buffering and streaming of output when running gocmd.Cmd
+	// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices.
+	BufferAndStreamOutput = gocmd.Options{
+		Buffered:  true,
+		Streaming: true,
+	}
 
-// BufferAndStreamOutput sets buffering and streaming of output when running gocmd.Cmd
-// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices.
-var BufferAndStreamOutput = gocmd.Options{
-	Buffered:  true,
-	Streaming: true,
-}
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "shell")
+	}
+)
 
 // Start starts new process (gocmd) and wait until it's done. Status struct is then propagated back to
 // done channel passed as argument.

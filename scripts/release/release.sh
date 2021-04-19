@@ -49,13 +49,19 @@ while test $# -gt 0; do
   esac
 done
 
+
 ## Check if tag exists
 tag_exists=$(git --no-pager tag --list | grep -c "${version}")
 if [[ ${tag_exists} -ne 0 ]]; then
   die "Tag \`${version}\` already exists!"
 fi
 
-## Replace antora version for docs build
+
+git reset $(git merge-base master HEAD)
+git add -A
+git commit -m "release: highlights of ${version}"
+
+## Replace Antora version for docs build
 sed -i "/version:/c\version: ${version}" docs/antora.yml
 sed -i "/append:release_notes/a include::release_notes\/${version}.adoc[]\n" docs/modules/ROOT/pages/release_notes.adoc
 
@@ -74,4 +80,4 @@ IKE_VERSION="${version}-next" make bundle
 
 git commit -am"release: next iteration" -m"/skip-e2e" -m"/skip-build"
 
-git push
+git push -f

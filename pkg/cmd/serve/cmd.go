@@ -21,17 +21,16 @@ import (
 )
 
 const (
-	watchNamespaceEnvVar = "WATCH_NAMESPACE"
-)
-
-var logger = func() logr.Logger {
-	return log.Log.WithValues("type", "serve")
-}
-
-var (
+	watchNamespaceEnvVar       = "WATCH_NAMESPACE"
 	metricsHost                = "0.0.0.0"
 	metricsPort          int32 = 8080
-	errorWatchNsNotFound       = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+)
+
+var (
+	errorWatchNsNotFound = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	logger               = func() logr.Logger {
+		return log.Log.WithValues("type", "serve")
+	}
 )
 
 // NewCmd creates instance of "ike serve" Cobra Command which is intended to be ran in the
