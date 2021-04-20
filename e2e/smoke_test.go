@@ -104,6 +104,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
+						deploymentCount := GetResourceCount("deployment", namespace)
 
 						ChangeNamespace("default")
 
@@ -118,6 +119,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 
 						// check original response
@@ -137,6 +139,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 
 						// check original response
