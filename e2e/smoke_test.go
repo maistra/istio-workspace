@@ -66,6 +66,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						deploymentCount := GetResourceCount("deployment", namespace)
 
 						// given we have details code locally
 						CreateFile(tmpDir+"/ratings.py", PublisherService)
@@ -83,6 +84,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						defer func() {
 							Stop(ike)
 						}()
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
@@ -134,6 +136,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						)
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
 
+						// ensure the new service is running
+						EnsureAllDeploymentPodsAreReady(namespace)
+
 						// check original response
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV2), Not(ContainSubstring("ratings-v1")))
 
@@ -167,6 +172,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					It("should take over ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						deploymentCount := GetResourceCount("deployment", namespace)
 
 						ike := RunIke(testshell.GetProjectDir(), "develop",
 							"--deployment", "ratings-v1",
@@ -180,6 +186,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						defer func() {
 							Stop(ike)
 						}()
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
@@ -204,6 +211,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				ChangeNamespace(namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+				deploymentCount := GetResourceCount("deployment", namespace)
 
 				// given we have details code locally
 				CreateFile(tmpDir+"/ratings.py", PublisherService)
@@ -220,6 +228,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				defer func() {
 					Stop(ike)
 				}()
+				EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
@@ -347,6 +356,11 @@ func EnsureAllDeploymentPodsAreReady(namespace string) {
 // EnsureAllDeploymentConfigPodsAreReady make sure all Pods are in Ready state in given namespace.
 func EnsureAllDeploymentConfigPodsAreReady(namespace string) {
 	Eventually(AllDeploymentConfigsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+}
+
+// EnsureCorrectNumberOfResources make sure the correct number of given resource are in namespace.
+func EnsureCorrectNumberOfResources(count int, resource, namespace string) {
+	Eventually(MatchResourceCount(count, GetResourceCountFunc(resource, namespace)), 5*time.Minute, 5*time.Second).Should(BeTrue())
 }
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.

@@ -79,6 +79,12 @@ func AllPodsReady(ns string) func() bool {
 	}
 }
 
+func MatchResourceCount(count int, getCount func() int) func() bool {
+	return func() bool {
+		return count == getCount()
+	}
+}
+
 // GetAllPods returns names of all pods from a given namespace.
 func GetAllPods(ns string) []string {
 	podsCmd := shell.ExecuteInDir(".",
@@ -91,6 +97,26 @@ func GetAllPods(ns string) []string {
 	}
 
 	return strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
+}
+
+// GetResourceCountFunc wraps GetResourceCount for to be called repeatedly
+func GetResourceCountFunc(resource, ns string) func() int {
+	return func() int {
+		return GetResourceCount(resource, ns)
+	}
+}
+
+// GetResourceCount returns the number of "resource"s in the given namespace
+func GetResourceCount(resource, ns string) int {
+	cmd := shell.ExecuteInDir(".",
+		"kubectl", "get", resource,
+		"-n", ns)
+	<-cmd.Done()
+	if len(cmd.Status().Stdout) == 0 {
+		return 0
+	}
+
+	return len(cmd.Status().Stdout) - 1
 }
 
 // StateOf returns state of the pod.
