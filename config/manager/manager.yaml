@@ -57,9 +57,9 @@ spec:
           failureThreshold: 10
         resources:
           limits:
-            cpu: 100m
-            memory: 30Mi
+            cpu: 200m
+            memory: 50Mi
           requests:
-            cpu: 100m
-            memory: 20Mi
+            cpu: 200m
+            memory: 50Mi
       terminationGracePeriodSeconds: 30
