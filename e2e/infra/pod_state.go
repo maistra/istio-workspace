@@ -79,6 +79,7 @@ func AllPodsReady(ns string) func() bool {
 	}
 }
 
+// MatchResourceCount evetnually matcher matching count of resources.
 func MatchResourceCount(count int, getCount func() int) func() bool {
 	return func() bool {
 		return count == getCount()
@@ -99,14 +100,14 @@ func GetAllPods(ns string) []string {
 	return strings.Split(strings.Trim(fmt.Sprintf("%s", podsCmd.Status().Stdout), "[]"), " ")
 }
 
-// GetResourceCountFunc wraps GetResourceCount for to be called repeatedly
+// GetResourceCountFunc wraps GetResourceCount for to be called repeatedly.
 func GetResourceCountFunc(resource, ns string) func() int {
 	return func() int {
 		return GetResourceCount(resource, ns)
 	}
 }
 
-// GetResourceCount returns the number of "resource"s in the given namespace
+// GetResourceCount returns the number of "resource"s in the given namespace.
 func GetResourceCount(resource, ns string) int {
 	cmd := shell.ExecuteInDir(".",
 		"kubectl", "get", resource,
