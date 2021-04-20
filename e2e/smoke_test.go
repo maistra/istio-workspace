@@ -80,6 +80,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
+						defer func() {
+							Stop(ike)
+						}()
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
@@ -174,8 +177,10 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--session", sessionName,
 							"--namespace", namespace,
 						)
+						defer func() {
+							Stop(ike)
+						}()
 						EnsureAllDeploymentPodsAreReady(namespace)
-
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
 						Stop(ike)
@@ -212,6 +217,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 				)
+				defer func() {
+					Stop(ike)
+				}()
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
