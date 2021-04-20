@@ -211,7 +211,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				ChangeNamespace(namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-				deploymentCount := GetResourceCount("deployment", namespace)
+				deploymentCount := GetResourceCount("deploymentconfig", namespace)
 
 				// given we have details code locally
 				CreateFile(tmpDir+"/ratings.py", PublisherService)
@@ -228,7 +228,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				defer func() {
 					Stop(ike)
 				}()
-				EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
+				EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
