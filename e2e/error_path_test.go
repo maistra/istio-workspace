@@ -1,7 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -45,17 +44,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 		AfterEach(func() {
 			if CurrentGinkgoTestDescription().Failed {
-				pods := GetAllPods(namespace)
-				for _, pod := range pods {
-					printBanner()
-					fmt.Println("Logs of " + pod)
-					LogsOf(namespace, pod)
-					printBanner()
-					StateOf(namespace, pod)
-					printBanner()
-				}
-				GetEvents(namespace)
-				DumpTelepresenceLog(tmpDir)
+				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			}
 			cleanupNamespace(namespace)
 		})
