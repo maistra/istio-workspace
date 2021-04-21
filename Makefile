@@ -462,8 +462,8 @@ deploy-test-%:
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
-	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
-	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+	command -v oc &>/dev/null && oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
+	command -v oc &>/dev/null && oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
