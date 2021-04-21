@@ -1,9 +1,10 @@
 :cmd-changelog: /changelog
 :cmd-release: /release
 :cmd-shipit: /shipit
-:sample-version: v0.0.4
+:sample-version: v0.1.0 
+:initial-commit: release: highlights of {sample-version}
 :base-branch: master
-:pr-url: https://github.com/bartoszmajsak/istio-workspace/pull/30
+:pr-url: https://github.com/maistra/istio-workspace/pull/800
 
 = Development Guide
 
@@ -63,15 +64,16 @@ IKE_EXTERNAL_DOCKER_REGISTRY=localhost:32000
 
 == Release automation driven by Pull Request
 
-By creating a Pull Request with release notes, we can automate the release process simply by using  two commands in the comments.
+By creating a Pull Request with release notes, we can automate the release process simply by using commands in the comments.
 You can see actual example {pr-url}[here]. 
+
+=== Creating release branch
+
+Running `make draft-release-notes VERSION={sample-version}` creates new release notes file and initial commit titled `{initial-commit}`. This commit will also become a title of the Pull Request. If there are noteworthy highlights you can write a few paragraphs in the created file `docs/modules/ROOT/pages/release_notes/{sample-version}.adoc`.
 
 === Changelog generation using `{cmd-changelog}` command
 
-An owner, committer, or a member of our organization can use `{cmd-changelog}` command to trigger changelog generation. `{cmd-changelog}`
-command takes a version as an argument that needs to conform https://semver.org/[semantic versioning]. 
-
-For example, commenting `{cmd-changelog} {sample-version}` will trigger changelog generation for the `{sample-version}` version.
+An owner, committer, or a member of our organization can use `{cmd-changelog}` command to trigger changelog generation for the `{sample-version}` version (which is inferred from PR title).
 
 Such a comment results in adding commits to created PR which consists of:
 
@@ -79,7 +81,7 @@ Such a comment results in adding commits to created PR which consists of:
 
 Changelog generation job performs validation and will fail if one of the issues listed below occurs:
 
-* `version` parameter does not conform with https://semver.org/[semantic versioning]
+* `version` in the title does not conform with https://semver.org/[semantic versioning]
 * `version` has been already released
 * release notes do not exist (submitting this file is the only thing needed for this {pr-url}[PR])
 * any of the PRs created since the last release have no labels and thus cannot be categorized by
@@ -89,7 +91,9 @@ by the bot. You can see that in the {pr-url}[comments of the sample PR].
 
 === Preparing the release using `{cmd-release}` command
 
-This command will trigger the following commits:
+This command will squash all previous commits to `{initial-commit}` for streamlined history.
+
+Next it will create the following commits:
 
 * "version commit" (e.g. `release: {sample-version}`) which consist of documentation version lock to `{sample-version}` and special `/tag` directive in the message. 
 This directive later used to create actual tag when PR is rebased onto `{base-branch}` branch.
@@ -98,19 +102,20 @@ This directive later used to create actual tag when PR is rebased onto `{base-br
 
 === Triggering release process by invoking `{cmd-shipit}`
 
-Once both steps above succeeds, we can trigger the actual release process. This can be done by commenting with `{cmd-shipit}` command without
-any parameters.
+Once both steps above succeeds, we can trigger the actual release process. This can be done by commenting with `{cmd-shipit}`.
 
 This will result in rebasing this PR on top of the target branch if all the required checks have been successful. Once "release commit" appears
 on the target branch it will be automatically tagged based on `/tag VERSION` comment in its message. That tag will trigger the
 actual release process which consists of:
 
-. build and push tagged container image to `quay.io` registry
-. push cross-compiled binaries and release notes to GitHub
-. generation documentation for released version
+. building and pushing tagged container images to `quay.io` registry
+. opening Pull Request with new operator version in Operator Hub
+. opening Pull Request with new version of Tekton tasks.
+. pushing cross-compiled binaries and release notes to GitHub
+. generating documentation for released version
 
 Diagram below describes the entire process and its artifacts.
 
 .Release automation
-image::diagrams/automation-release.svg[Release automation]
+image::diagrams/release-automation.svg[Release automation]
 // Source: https://drive.google.com/file/d/1m0r9AH3LntqgZ5K_IuF6KVcz5QGF2XhX/view?usp=sharing through draw.io
