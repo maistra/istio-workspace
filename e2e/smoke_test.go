@@ -48,8 +48,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		AfterEach(func() {
 			if CurrentGinkgoTestDescription().Failed {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
+			} else {
+				cleanupNamespace(namespace)
 			}
-			cleanupNamespace(namespace)
 		})
 
 		Context("k8s deployment", func() {
@@ -372,7 +373,7 @@ func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatche
 
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
-		5*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // EnsureSessionRouteIsReachable the manipulated route is reachable.
@@ -383,12 +384,12 @@ func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...ty
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		5*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(And(matchers...))
 
 	// check original response using host route
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionName + "." + GetGatewayHost(namespace)}),
-		5*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable.
@@ -399,7 +400,7 @@ func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ..
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		5*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
 // ChangeNamespace switch to different namespace - so we also test -n parameter of $ ike.
@@ -425,21 +426,8 @@ func Stop(ike *cmd.Cmd) {
 
 // DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
 func DumpEnvironmentDebugInfo(namespace, dir string) {
-	pods := GetAllPods(namespace)
-	for _, pod := range pods {
-		printBanner()
-		fmt.Println("Logs of " + pod)
-		LogsOf(namespace, pod)
-		printBanner()
-		StateOf(namespace, pod)
-		printBanner()
-	}
 	GetEvents(namespace)
 	DumpTelepresenceLog(dir)
-}
-
-func printBanner() {
-	fmt.Println("---------------------------------------------------------------------")
 }
 
 func generateNamespaceName() string {
