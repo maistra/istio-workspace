@@ -87,7 +87,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						}()
 						go FailOnCmdError(ike, GinkgoT())
 
-            EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
@@ -196,7 +196,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						}()
 						go FailOnCmdError(ike, GinkgoT())
 
-            EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
+						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
 
@@ -240,7 +240,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				}()
 				go FailOnCmdError(ike, GinkgoT())
 
-        EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
+				EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
