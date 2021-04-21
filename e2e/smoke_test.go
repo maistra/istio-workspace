@@ -48,8 +48,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 		AfterEach(func() {
 			if CurrentGinkgoTestDescription().Failed {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
+			} else {
+				cleanupNamespace(namespace)
 			}
-			cleanupNamespace(namespace)
 		})
 
 		Context("k8s deployment", func() {
@@ -425,21 +426,8 @@ func Stop(ike *cmd.Cmd) {
 
 // DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
 func DumpEnvironmentDebugInfo(namespace, dir string) {
-	pods := GetAllPods(namespace)
-	for _, pod := range pods {
-		printBanner()
-		fmt.Println("Logs of " + pod)
-		LogsOf(namespace, pod)
-		printBanner()
-		StateOf(namespace, pod)
-		printBanner()
-	}
 	GetEvents(namespace)
 	DumpTelepresenceLog(dir)
-}
-
-func printBanner() {
-	fmt.Println("---------------------------------------------------------------------")
 }
 
 func generateNamespaceName() string {
