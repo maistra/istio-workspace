@@ -290,7 +290,7 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/Dockerfile $(DIST_DIR)
+		-f $(BUILD_DIR)/Containerfile $(DIST_DIR)
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
@@ -321,7 +321,7 @@ docker-build-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTest $(DIST_DIR)
+		-f $(BUILD_DIR)/ContainerfileTest $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
@@ -350,7 +350,7 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
 		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
-		-f $(BUILD_DIR)/DockerfileTestPrepared $(DIST_DIR)
+		-f $(BUILD_DIR)/ContainerfileTestPrepared $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
 		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
@@ -375,8 +375,8 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
-	mv bundle.Dockerfile build
-	sed -i 's/COPY bundle\//COPY /g' build/bundle.Dockerfile
+	mv bundle.Dockerfile build/bundle.Containerfile
+	sed -i 's/COPY bundle\//COPY /g' build/bundle.Containerfile
 	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
 	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
 	cat $(PROJECT_DIR)/README.md | awk '/tag::description/{flag=1;next}/end::description/{flag=0}flag' > $(PROJECT_DIR)/$(DESC_FILE)
@@ -388,7 +388,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 
 .PHONY: bundle-build
 bundle-build:	## Build the bundle image
-	$(IMG_BUILDER) build -f build/bundle.Dockerfile -t $(BUNDLE_IMG) bundle/
+	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
