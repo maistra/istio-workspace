@@ -432,7 +432,7 @@ func Stop(ike *cmd.Cmd) {
 	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
 }
 
-func FailOnCmdError(command *cmd.Cmd, t GinkgoTInterface) {
+func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 	<-command.Done()
 	if command.Status().Exit != 0 {
 		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
