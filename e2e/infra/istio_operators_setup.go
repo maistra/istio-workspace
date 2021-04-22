@@ -15,12 +15,16 @@ func BuildOperator() (registry string) {
 	namespace := setOperatorNamespace()
 	registry = SetDockerRegistryExternal()
 	setDockerRepository(GetRepositoryName())
-	<-shell.Execute(NewProjectCmd(namespace)).Done()
-	EnablePullingImages(namespace)
+	shell.Execute(NewProjectCmd(namespace)).Done() // Ignore failure if ns already exists
 	if RunsOnOpenshift {
-		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+		EnablePullingImages(namespace)
+		shell.WaitForSuccess(
+			shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry),
+		)
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle", "bundle-build", "bundle-push").Done()
+	shell.WaitForSuccess(
+		shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle", "bundle-build", "bundle-push"),
+	)
 
 	return
 }
@@ -30,7 +34,9 @@ func InstallLocalOperator(namespace string) {
 
 	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-	<-shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run").Done()
+	shell.WaitForSuccess(
+		shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run"),
+	)
 }
 
 func setOperatorNamespace() (namespace string) {
