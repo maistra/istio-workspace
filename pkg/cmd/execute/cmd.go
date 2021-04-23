@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
@@ -119,7 +120,7 @@ func execute(command *cobra.Command, args []string) error {
 			if i > 0 { // not initial restart
 				kill <- struct{}{}
 			}
-			go buildAndRun(buildExecutor(command), runExecutor(command), kill)
+			go buildAndRun(buildExecutor(command), runExecutor(command), kill, restart)
 		}
 	}()
 
@@ -145,10 +146,10 @@ func execute(command *cobra.Command, args []string) error {
 }
 
 type stopper func() error
-type executor func() stopper
+type executor func(restart chan int32) stopper
 
 func buildExecutor(command *cobra.Command) executor {
-	return func() stopper {
+	return func(chan int32) stopper {
 		buildFlag := command.Flag(BuildFlagName)
 
 		skipBuild, _ := command.Flags().GetBool(NoBuildFlagName)
@@ -182,7 +183,7 @@ func buildExecutor(command *cobra.Command) executor {
 }
 
 func runExecutor(command *cobra.Command) executor {
-	return func() stopper {
+	return func(restart chan int32) stopper {
 		runCmd := command.Flag("run").Value.String()
 		runArgs := strings.Split(runCmd, " ")
 		r := gocmd.NewCmdOptions(shell.StreamOutput, runArgs[0], runArgs[1:]...)
@@ -194,8 +195,10 @@ func runExecutor(command *cobra.Command) executor {
 		)
 		go func(statusChan <-chan gocmd.Status) {
 			status := <-statusChan
-			if status.Error != nil {
+			if status.Exit != 0 {
 				logger().Error(status.Error, "failed to run run command")
+				time.Sleep(1 * time.Second)
+				restart <- 10
 			}
 		}(r.Start())
 
@@ -203,9 +206,9 @@ func runExecutor(command *cobra.Command) executor {
 	}
 }
 
-func buildAndRun(builder, runner executor, kill chan struct{}) {
-	_ = builder()
-	stopRun := runner()
+func buildAndRun(builder, runner executor, kill chan struct{}, restart chan int32) {
+	_ = builder(restart)
+	stopRun := runner(restart)
 
 	<-kill
 
