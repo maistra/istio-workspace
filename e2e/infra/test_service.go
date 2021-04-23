@@ -55,7 +55,7 @@ func DeployTestScenario(scenario, namespace string) {
 		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	} else {
 		shell.WaitForSuccess(
-			shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled"),
+			shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled --overwrite=true"),
 		)
 	}
 	shell.WaitForSuccess(
