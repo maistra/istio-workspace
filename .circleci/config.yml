@@ -317,7 +317,7 @@ jobs:
           command: |
             mkdir -p ~/.docker && chmod 0700 ~/.docker
             touch ~/.docker/config.json && chmod 0600 ~/.docker/config.json
-            echo $QUAY_AUTH_JSON > ~/.docker/config.json
+            echo $QUAY_RELEASE_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
           name: "Sets up Git credentials"
