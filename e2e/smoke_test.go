@@ -85,6 +85,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						defer func() {
 							Stop(ike)
 						}()
+						go FailOnCmdError(ike, GinkgoT())
+
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
@@ -137,6 +139,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV2+":"+GetImageTag(),
 							"--session", sessionName,
 						)
+
 						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
 
 						// ensure the new service is running
@@ -155,6 +158,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 							"-n", namespace,
 							"--session", sessionName,
 						)
+
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 
 						// check original response
@@ -190,6 +194,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						defer func() {
 							Stop(ike)
 						}()
+						go FailOnCmdError(ike, GinkgoT())
+
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
@@ -232,6 +238,8 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				defer func() {
 					Stop(ike)
 				}()
+				go FailOnCmdError(ike, GinkgoT())
+
 				EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
 				EnsureAllDeploymentConfigPodsAreReady(namespace)
 				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
@@ -253,7 +261,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 				scenario = "scenario-1"
 			})
 
-			It("should watch for changes in ratings service and serve it", func() {
+			It("should create/delete deployment with prepared image", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
@@ -422,6 +430,13 @@ func Stop(ike *cmd.Cmd) {
 	Expect(stopFailed).ToNot(HaveOccurred())
 
 	Eventually(ike.Done(), 1*time.Minute).Should(BeClosed())
+}
+
+func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
+	<-command.Done()
+	if command.Status().Exit != 0 {
+		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
+	}
 }
 
 // DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
