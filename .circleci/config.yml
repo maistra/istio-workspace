@@ -255,7 +255,7 @@ jobs:
 
             make deps tools
 
-            ./bin/operator-sdk olm install
+            ./bin/operator-sdk olm install --version v0.17.0 # pins to working version for now, see: https://github.com/operator-framework/operator-sdk/issues/4833
 
             make docker-build docker-push-versioned
             make docker-build-test docker-push-test
