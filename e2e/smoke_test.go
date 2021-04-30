@@ -102,7 +102,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 					})
 				})
 
-				Context("deployment create/delete operations", func() {
+				FContext("deployment create/delete operations", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)

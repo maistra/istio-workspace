@@ -67,7 +67,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			BuildTestServicePreparedImage(PreparedImageV1)
 			BuildTestServicePreparedImage(PreparedImageV2)
 		}
-		createProjectsForCompletionTests()
+		//createProjectsForCompletionTests()
 	})
 
 	return nil
@@ -76,7 +76,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		deleteProjectsForCompletionTests()
+		//deleteProjectsForCompletionTests()
 		tmpPath.Restore()
 
 		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
