@@ -246,7 +246,7 @@ $(PROJECT_DIR)/bin/protoc:
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
 
-OPERATOR_SDK_VERSION=v1.3.0
+OPERATOR_SDK_VERSION=v1.6.1
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
@@ -371,7 +371,7 @@ DESC_FILE:=dist/operatorhub_description.md
 CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
-bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize	## Generate bundle manifests and metadata, then validate generated files
+bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR) ## Generate bundle manifests and metadata, then validate generated files
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
@@ -394,25 +394,27 @@ bundle-build:	## Build the bundle image
 bundle-push:	## Push the bundle image
 	$(IMG_BUILDER) push $(BUNDLE_IMG)
 
+BUNDLE_TIMEOUT?=5m
+
 .PHONY: bundle-run
 bundle-run:		## Run the bundle image in OwnNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace --timeout $(BUNDLE_TIMEOUT)
 
 .PHONY: bundle-run-single
 bundle-run-single:		## Run the bundle image in SingleNamespace(OPERATOR_NAMESPACE) install mode targeting OPERATOR_WATCH_NAMESPACE
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode SingleNamespace=${OPERATOR_WATCH_NAMESPACE}
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode SingleNamespace=${OPERATOR_WATCH_NAMESPACE} --timeout $(BUNDLE_TIMEOUT)
 
 .PHONY: bundle-run-multi
 bundle-run-multi:		## Run the bundle image in MultiNamespace(OPERATOR_NAMESPACE) install mode targeting OPERATOR_WATCH_NAMESPACE
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode MultiNamespace=${OPERATOR_WATCH_NAMESPACE}
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode MultiNamespace=${OPERATOR_WATCH_NAMESPACE} --timeout $(BUNDLE_TIMEOUT)
 
 .PHONY: bundle-run-all
 bundle-run-all:		## Run the bundle image in AllNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespaces
+	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespaces --timeout $(BUNDLE_TIMEOUT)
 
 
 .PHONY: bundle-clean

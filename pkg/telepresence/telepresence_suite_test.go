@@ -16,11 +16,15 @@ func TestTelepresenceWrapper(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "Telepresence Wrapper Suite")
 }
 
-var _ = BeforeSuite(shell.StubShellCommands)
+var current goleak.Option
+
+var _ = SynchronizedBeforeSuite(func() []byte {
+	shell.StubShellCommands()
+	current = goleak.IgnoreCurrent()
+
+	return []byte{}
+}, func([]byte) {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	goleak.VerifyNone(GinkgoT(),
-		goleak.IgnoreTopFunction("k8s.io/klog/v2.(*loggingT).flushDaemon"),
-		goleak.IgnoreTopFunction("github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
-	)
+	goleak.VerifyNone(GinkgoT(), current)
 })

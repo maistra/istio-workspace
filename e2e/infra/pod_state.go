@@ -79,7 +79,7 @@ func AllPodsReady(ns string) func() bool {
 	}
 }
 
-// MatchResourceCount evetnually matcher matching count of resources.
+// MatchResourceCount eventually matcher matching count of resources.
 func MatchResourceCount(count int, getCount func() int) func() bool {
 	return func() bool {
 		return count == getCount()
@@ -118,18 +118,6 @@ func GetResourceCount(resource, ns string) int {
 	}
 
 	return len(cmd.Status().Stdout) - 1
-}
-
-// StateOf returns state of the pod.
-func StateOf(ns, pod string) {
-	state := shell.Execute("kubectl get pod " + pod + " -n " + ns + " -o yaml")
-	<-state.Done()
-}
-
-// LogsOf returns logs of all containers in the pod.
-func LogsOf(ns, pod string) {
-	logs := shell.Execute("kubectl logs " + pod + " -n " + ns + " --all-containers=true")
-	<-logs.Done()
 }
 
 type conditionStruct struct {

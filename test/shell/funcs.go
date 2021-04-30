@@ -7,9 +7,18 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/google/shlex"
+	"github.com/onsi/gomega"
 
 	"github.com/maistra/istio-workspace/pkg/shell"
 )
+
+// WaitForSuccess checks if cmds ended just fine.
+func WaitForSuccess(cmds ...*gocmd.Cmd) {
+	for _, cmd := range cmds {
+		<-cmd.Done()
+		gomega.Expect(cmd.Status().Exit).To(gomega.BeZero())
+	}
+}
 
 // Execute executes given command in the current directory.
 func Execute(command string) *gocmd.Cmd {

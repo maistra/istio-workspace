@@ -19,7 +19,7 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio (maistra)", func() {
+var _ = Describe("Smoke End To End Tests", func() {
 
 	Context("using ike with scenarios", func() {
 
@@ -112,14 +112,15 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						ChangeNamespace("default")
 
 						// when we start ike to create
-						ike1 := RunIke(tmpDir, "create",
+						ikeCreate1 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
 							"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV1+":"+GetImageTag(),
 							"--session", sessionName,
 						)
-						Eventually(ike1.Done(), 1*time.Minute).Should(BeClosed())
+						Eventually(ikeCreate1.Done(), 1*time.Minute).Should(BeClosed())
+						testshell.WaitForSuccess(ikeCreate1)
 
 						// ensure the new service is running
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
@@ -132,15 +133,15 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
 						// when we start ike to create with a updated v
-						ike2 := RunIke(tmpDir, "create",
+						ikeCreate2 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
 							"--route", "header:x-test-suite=smoke",
 							"--image", registry+"/"+GetDevRepositoryName()+"/istio-workspace-test-prepared-"+PreparedImageV2+":"+GetImageTag(),
 							"--session", sessionName,
 						)
-
-						Eventually(ike2.Done(), 1*time.Minute).Should(BeClosed())
+						Eventually(ikeCreate2.Done(), 1*time.Minute).Should(BeClosed())
+						testshell.WaitForSuccess(ikeCreate2)
 
 						// ensure the new service is running
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
@@ -160,6 +161,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 						)
 
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
+						testshell.WaitForSuccess(ikeDel)
 
 						// check original response
 						EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
@@ -274,6 +276,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--session", sessionName,
 				)
 				Eventually(ikeCreate.Done(), 1*time.Minute).Should(BeClosed())
+				testshell.WaitForSuccess(ikeCreate)
 
 				// ensure the new service is running
 				EnsureAllDeploymentPodsAreReady(namespace)
@@ -300,6 +303,7 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					"--session", sessionName,
 				)
 				Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
+				testshell.WaitForSuccess(ikeDel)
 
 				// check original response
 				EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
@@ -323,17 +327,25 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 
 					host := sessionName + "." + GetGatewayHost(namespace)
 
-					<-testshell.ExecuteInProjectRoot("make tekton-deploy").Done()
+					testshell.WaitForSuccess(
+						testshell.ExecuteInProjectRoot("make tekton-deploy"),
+					)
 
 					EnsureAllDeploymentPodsAreReady(namespace)
 					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
-					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-create").Done()
+					testshell.WaitForSuccess(
+						testshell.ExecuteInProjectRoot("make tekton-test-ike-create"),
+					)
+
 					Eventually(TaskIsDone(namespace, "ike-create-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
 					Expect(TaskResult(namespace, "ike-create-run", "url")).To(Equal(host))
 
 					// verify session url
-					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-session-url").Done()
+					testshell.WaitForSuccess(
+						testshell.ExecuteInProjectRoot("make tekton-test-ike-session-url"),
+					)
+
 					Eventually(TaskIsDone(namespace, "ike-session-url-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
 					Expect(TaskResult(namespace, "ike-session-url-run", "url")).To(Equal(host))
 
@@ -346,7 +358,9 @@ var _ = Describe("Smoke End To End Tests - against OpenShift Cluster with Istio 
 					// but also check if prod is intact
 					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
-					<-testshell.ExecuteInProjectRoot("make tekton-test-ike-delete").Done()
+					testshell.WaitForSuccess(
+						testshell.ExecuteInProjectRoot("make tekton-test-ike-delete"),
+					)
 					Eventually(TaskIsDone(namespace, "ike-delete-run"), 5*time.Minute, 5*time.Second).Should(BeTrue())
 
 					// check original response

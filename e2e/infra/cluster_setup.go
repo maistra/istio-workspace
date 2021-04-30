@@ -19,9 +19,10 @@ var RunsOnOpenshift = func() bool {
 
 // UpdateSecurityConstraintsFor applies anyuid and privileged constraints to a given namespace.
 func UpdateSecurityConstraintsFor(namespace string) {
-	shell.ExecuteAll(
-		"oc adm policy add-scc-to-user anyuid -z default -n "+namespace,
-		"oc adm policy add-scc-to-user privileged -z default -n "+namespace)
+	shell.WaitForSuccess(
+		shell.Execute("oc adm policy add-scc-to-user anyuid -z default -n "+namespace),
+		shell.Execute("oc adm policy add-scc-to-user privileged -z default -n "+namespace),
+	)
 }
 
 func EnablePullingImages(namespace string) {
