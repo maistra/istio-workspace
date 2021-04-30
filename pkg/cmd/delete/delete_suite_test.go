@@ -17,13 +17,17 @@ func TestDeleteCmd(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "Delete Command Suite")
 }
 
-var _ = BeforeSuite(shell.StubShellCommands)
+var current goleak.Option
 
-var _ = AfterSuite(func() {
+var _ = SynchronizedBeforeSuite(func() []byte {
+	shell.StubShellCommands()
+	current = goleak.IgnoreCurrent()
+
+	return []byte{}
+}, func([]byte) {})
+
+var _ = SynchronizedAfterSuite(func() {}, func() {
 	CleanUpTmpFiles(GinkgoT())
 	gexec.CleanupBuildArtifacts()
-	goleak.VerifyNone(GinkgoT(),
-		goleak.IgnoreTopFunction("k8s.io/klog/v2.(*loggingT).flushDaemon"),
-		goleak.IgnoreTopFunction("github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
-	)
+	goleak.VerifyNone(GinkgoT(), current)
 })

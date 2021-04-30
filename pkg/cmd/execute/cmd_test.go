@@ -20,7 +20,6 @@ var _ = Describe("Usage of ike execute command", func() {
 	var executeCmd *cobra.Command
 
 	BeforeEach(func() {
-
 		executeCmd = execute.NewCmd()
 		executeCmd.SilenceUsage = true
 		executeCmd.SilenceErrors = false
@@ -35,6 +34,7 @@ var _ = Describe("Usage of ike execute command", func() {
 		BeforeEach(func() {
 			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin), path.Dir(shell.JavaBin))
 		})
+
 		AfterEach(tmpPath.Restore)
 
 		It("should re-build and re-run java process", func() {

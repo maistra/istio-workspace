@@ -314,7 +314,8 @@ var _ = Describe("Complete session manipulation", func() {
 			tmpDir := test.TmpDir(GinkgoT(), "template")
 			test.TmpFile(GinkgoT(), tmpDir+"/telepresence.tpl", `
 [
-	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"}
+	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"},
+	{"op": "remove", "path": "/metadata/resourceVersion"}
 ]
 `)
 			restoreEnvVars = test.TemporaryEnvVars(template.TemplatePath, tmpDir)

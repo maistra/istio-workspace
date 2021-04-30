@@ -17,9 +17,13 @@ func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
 	registry = SetDockerRegistryExternal()
 	if RunsOnOpenshift {
-		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
+		shell.WaitForSuccess(
+			shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry),
+		)
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test").Done()
+	shell.WaitForSuccess(
+		shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test"),
+	)
 
 	return
 }
@@ -50,9 +54,13 @@ func DeployTestScenario(scenario, namespace string) {
 			return GetProjectLabels(namespace)
 		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
 	} else {
-		<-shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled").Done()
+		shell.WaitForSuccess(
+			shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled --overwrite=true"),
+		)
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario).Done()
+	shell.WaitForSuccess(
+		shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario),
+	)
 }
 
 func CleanupTestScenario(namespace string) {

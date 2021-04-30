@@ -15,9 +15,14 @@ func TestVersion(t *testing.T) {
 	RunSpecWithJUnitReporter(t, "Version Suite")
 }
 
+var current goleak.Option
+
+var _ = SynchronizedBeforeSuite(func() []byte {
+	current = goleak.IgnoreCurrent()
+
+	return []byte{}
+}, func([]byte) {})
+
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	goleak.VerifyNone(GinkgoT(),
-		goleak.IgnoreTopFunction("k8s.io/klog/v2.(*loggingT).flushDaemon"),
-		goleak.IgnoreTopFunction("github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).registerForInterrupts"),
-	)
+	goleak.VerifyNone(GinkgoT(), current)
 })
