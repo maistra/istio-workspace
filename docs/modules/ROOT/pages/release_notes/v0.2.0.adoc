@@ -1,0 +1,54 @@
+== Highlights of v0.2.0 release
+
+=== DestinationRule TrafficPolicy
+
+Starting from this release we will reuse the `TrafficPolicy` rules defined for the source version on the cloned version when
+setting up a new route.
+
+=== All changes in this release
+
+// changelog:generate
+==== Build System Integration
+
+
+===== Bugs
+* fix(tekton): reworks shell scripts to comply with SC (https://github.com/maistra/istio-workspace/pull/817[#817]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Documentation
+
+===== New features
+* chore(docs): updates release process description (https://github.com/maistra/istio-workspace/pull/816[#816]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Operator
+
+===== New features
+* feat(operator): new destinationrule use the same trafficPolicy (https://github.com/maistra/istio-workspace/pull/808[#808]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+===== Bugs
+* fix(operator): increase operator resource limits (https://github.com/maistra/istio-workspace/pull/814[#814]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Project infrastructure
+
+===== New features
+* fix: rename Dockerfile to Containerfile (https://github.com/maistra/istio-workspace/pull/819[#819]), by https://github.com/aslakknutsen[@aslakknutsen]
+* feat(gh-actions): squashes pre-release commits (https://github.com/maistra/istio-workspace/pull/813[#813]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(gh-actions): infers version from title (https://github.com/maistra/istio-workspace/pull/812[#812]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* fix(release): add skip-build directive to release commits (https://github.com/maistra/istio-workspace/pull/806[#806]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+===== Bugs
+* fix(build): set go_package in protoc to comply with new v (https://github.com/maistra/istio-workspace/pull/807[#807]), by https://github.com/aslakknutsen[@aslakknutsen]
+* fix(release): add quotes to tekton version in yaml (https://github.com/maistra/istio-workspace/pull/805[#805]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Testing
+
+===== New features
+* fix(e2e): fails test if background develop cmd fails (https://github.com/maistra/istio-workspace/pull/810[#810]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+===== Bugs
+* fix(makefile): executes OC cli only if needed (https://github.com/maistra/istio-workspace/pull/809[#809]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+=== Latest dependencies update
+
+ * github.com/operator-framework/operator-sdk to 1.6.1 (https://github.com/maistra/istio-workspace/pull/811[#811]), by https://github.com/aslakknutsen[@aslakknutsen]
+
