@@ -76,7 +76,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		//deleteProjectsForCompletionTests()
 		tmpPath.Restore()
 
 		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
