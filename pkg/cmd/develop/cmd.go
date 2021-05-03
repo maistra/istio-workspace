@@ -3,6 +3,7 @@ package develop
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	gocmd "github.com/go-cmd/cmd"
@@ -137,8 +138,10 @@ func createTpCommand(cmd *cobra.Command) []string {
 
 func createWrapperCmd(cmd *cobra.Command) []string {
 	run := cmd.Flag(execute.RunFlagName).Value.String()
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	cmdFullPath := dir + string(os.PathSeparator) + "ike"
 	executeArgs := []string{
-		"ike", "execute",
+		cmdFullPath, "execute",
 		"--" + execute.RunFlagName, run,
 	}
 	if cmd.Flag(execute.NoBuildFlagName).Changed {

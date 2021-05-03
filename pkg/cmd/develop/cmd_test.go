@@ -246,7 +246,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
+			Expect(output).To(ContainSubstring("ike execute --run java -jar rating.jar --build mvn clean install"))
 
 		})
 
