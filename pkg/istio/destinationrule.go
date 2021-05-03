@@ -92,7 +92,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated))
 	}
 
-	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to manipulate destination rules for session %s in namespace %s", ctx.Name, ctx.Namespace)
+	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to manipulate destination rules for session [%s] in namespace [%s]", ctx.Name, ctx.Namespace)
 }
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
@@ -119,7 +119,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionCreated))
 	}
 
-	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to revert destination rules for session %s in namespace %s", ctx.Name, ctx.Namespace)
+	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to revert destination rules for session [%s] in namespace [%s]", ctx.Name, ctx.Namespace)
 }
 
 // concatToMax will cut each section to length based on number of sections to not go beyond max and separate the sections with -.
@@ -137,6 +137,9 @@ func concatToMax(max int, sections ...string) string {
 func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.HostName, targetVersion string) (*istionetworkv1alpha3.Subset, error) {
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get destinationrules in namespace [%s]", namespace)
+	}
 	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
 		if hostName.Match(dr.Spec.Host) {
 			for _, subset := range dr.Spec.Subsets {
@@ -147,5 +150,5 @@ func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.
 		}
 	}
 
-	return nil, errors.Wrapf(err, "failed finding destinationrule in namespace %s matching hostname %v and subset version %v", namespace, hostName, targetVersion)
+	return nil, errors.Errorf("failed finding destinationrule in namespace [%s] matching hostname [%s] and subset version [%s]", namespace, hostName.String(), targetVersion)
 }

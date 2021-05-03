@@ -180,7 +180,7 @@ func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 
-	return &Gateway, errors.Wrapf(err, "failed finding gateway %s in namespace %s", name, namespace)
+	return &Gateway, errors.Wrapf(err, "failed finding gateway [%s] in namespace [%s]", name, namespace)
 }
 
 func existInList(hosts []string, host string) bool {

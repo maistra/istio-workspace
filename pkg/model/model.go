@@ -166,6 +166,14 @@ func (h *HostName) Match(name string) bool {
 	return equalsShortName || equalsFullDNSName
 }
 
+// String returns the String representation of a HostName
+func (h *HostName) String() string {
+	if h.Namespace != "" {
+		return fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local")
+	}
+	return h.Name
+}
+
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.
 func (r *Ref) GetTargetHostNames() []HostName {
 	targets := r.GetTargets(Kind("Service"))

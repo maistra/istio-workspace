@@ -224,14 +224,14 @@ func getVirtualService(ctx model.SessionContext, namespace, name string) (*istio
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 
-	return &virtualService, errors.Wrapf(err, "failed finding virtual service %s in namespace %s", name, namespace)
+	return &virtualService, errors.Wrapf(err, "failed finding virtual service %s in namespace [%s]", name, namespace)
 }
 
 func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
 	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
 
-	return &virtualServices, errors.Wrapf(err, "failed finding virtual services in namespace %s", namespace)
+	return &virtualServices, errors.Wrapf(err, "failed finding virtual services in namespace [%s]", namespace)
 }
 
 func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {

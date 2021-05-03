@@ -128,7 +128,7 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			ctx.Log.Info("Failed to delete Deployment", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, status.Name, status.Action, err.Error()))
 
-			return errors.Wrapf(err, "failed to delete Deployment %s", status.Name)
+			return errors.Wrapf(err, "failed to delete Deployment [%s]", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentKind, status.Name, status.Action))
 	}
@@ -160,5 +160,5 @@ func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.De
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
-	return &deployment, errors.Wrapf(err, "failed finding deployment %s in namespace %s", name, namespace)
+	return &deployment, errors.Wrapf(err, "failed finding deployment [%s] in namespace [%s]", name, namespace)
 }
