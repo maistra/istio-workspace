@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
+	. "github.com/maistra/istio-workspace/pkg/cmd"
+	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	. "github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("Usage of ike develop command", func() {
