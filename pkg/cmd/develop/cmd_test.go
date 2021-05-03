@@ -9,10 +9,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
-	. "github.com/maistra/istio-workspace/pkg/cmd"
-	"github.com/maistra/istio-workspace/pkg/cmd/develop"
-	. "github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("Usage of ike develop command", func() {
@@ -247,7 +243,17 @@ var _ = Describe("Usage of ike develop command", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("ike execute --run java -jar rating.jar --build mvn clean install"))
+		})
 
+		It("should call ike execute with full parent command path", func() {
+			output, err := Run(developCmd).Passing("--deployment", "rating-service",
+				"--run", "java -jar rating.jar",
+				"--port", "4321",
+				"--method", "vpn-tcp",
+				"--offline")
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(ContainSubstring(string(os.PathSeparator) + "ike execute")) // Path separator somewhat ;) indicates that wrapped command is provided with expanded path
 		})
 
 		It("should pass --no-build to execute command when specified", func() {
