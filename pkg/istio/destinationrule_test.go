@@ -164,7 +164,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		Context("missing rule", func() {
 
-			It("no rules found", func() {
+			It("should fail when no rules found", func() {
 				ref := &model.Ref{
 					KindName: model.ParseRefKindName("customer-v5"),
 					Targets: []model.LocatedResourceStatus{
