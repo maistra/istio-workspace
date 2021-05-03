@@ -16,9 +16,9 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mikefarah/yq/v4 v4.6.3
+	github.com/mikefarah/yq/v4 v4.7.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
-	github.com/onsi/ginkgo v1.16.0
+	github.com/onsi/ginkgo v1.16.1
 	github.com/onsi/gomega v1.11.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.4.0
