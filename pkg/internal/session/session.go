@@ -3,12 +3,15 @@ package session
 import (
 	"fmt"
 	"os/user"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
@@ -94,11 +97,13 @@ func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocr
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
-	sessionName := getOrCreateSessionName(opts.SessionName)
+	sessionName, err := getOrCreateSessionName(opts.SessionName)
+	if err != nil {
+		return State{}, func() {}, err
+	}
 	opts.SessionName = sessionName
 
-	h := &handler{c: client,
-		opts: opts}
+	h := &handler{c: client, opts: opts}
 
 	session, serviceName, err := h.createOrJoinSession()
 	if err != nil {
@@ -262,17 +267,32 @@ func (h *handler) removeOrLeaveSession() {
 	}
 }
 
-func getOrCreateSessionName(sessionName string) string {
+var nonAlphaNumeric = regexp.MustCompile("[^A-Za-z0-9]+")
+
+func getOrCreateSessionName(sessionName string) (string, error) {
 	if sessionName != "" {
-		return sessionName
-	}
-	random := naming.RandName(5)
-	u, err := user.Current()
-	if err != nil {
-		return random
+		namingErrors := validation.IsDNS1123Label(sessionName)
+		if len(namingErrors) != 0 {
+			var nErrors *multierror.Error
+			for _, namingError := range namingErrors {
+				nErrors = multierror.Append(nErrors, errors.New(namingError))
+			}
+
+			return "", errors.Wrap(nErrors, "your suggested session name is not a valid k8s value")
+		}
 	}
 
-	return u.Username + "-" + random
+	if sessionName == "" {
+		random := naming.RandName(5)
+		u, err := user.Current()
+		if err != nil {
+			sessionName = random
+		} else {
+			sessionName = naming.ConcatToMax(63, "user", u.Username, random)
+		}
+	}
+
+	return nonAlphaNumeric.ReplaceAllString(sessionName, "-"), nil
 }
 
 // ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
