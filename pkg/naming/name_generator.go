@@ -2,6 +2,7 @@ package naming
 
 import (
 	"crypto/rand"
+	"math"
 	"math/big"
 )
 
@@ -27,4 +28,16 @@ func RandName(length int) string {
 	}
 
 	return string(b)
+}
+
+// ConcatToMax will cut each section to length based on number of sections to not go beyond max and separate the sections with -.
+func ConcatToMax(max int, sections ...string) string {
+	sectionLength := (max - len(sections) - 1) / len(sections)
+	name := ""
+
+	for _, section := range sections {
+		name = name + "-" + section[:int32(math.Min(float64(len(section)), float64(sectionLength)))]
+	}
+
+	return name[1:]
 }
