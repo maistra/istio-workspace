@@ -44,5 +44,5 @@ func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceLis
 	services := corev1.ServiceList{}
 	err := ctx.Client.List(ctx, &services, client.InNamespace(namespace))
 
-	return &services, errors.Wrapf(err, "failed listing services in namespace %s", namespace)
+	return &services, errors.Wrapf(err, "failed listing services in namespace [%s]", namespace)
 }
