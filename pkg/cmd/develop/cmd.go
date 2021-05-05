@@ -137,8 +137,13 @@ func createTpCommand(cmd *cobra.Command) []string {
 
 func createWrapperCmd(cmd *cobra.Command) []string {
 	run := cmd.Flag(execute.RunFlagName).Value.String()
+	executable, err := os.Executable()
+	if err != nil {
+		logger().Error(err, "unable to execute wrapped command")
+		panic(err)
+	}
 	executeArgs := []string{
-		"ike", "execute",
+		executable, "execute",
 		"--" + execute.RunFlagName, run,
 	}
 	if cmd.Flag(execute.NoBuildFlagName).Changed {
