@@ -7,7 +7,7 @@ on:
 jobs:
   golangci:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       REPOSITORY: ${{ github.repository }}
     steps:

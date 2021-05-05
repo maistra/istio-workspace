@@ -11,7 +11,7 @@ jobs:
       && (contains(github.event.comment.author_association, 'MEMBER')
           || contains(github.event.comment.author_association, 'OWNER')
           || contains(github.event.comment.author_association, 'COLLABORATOR'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Fetch all tags
