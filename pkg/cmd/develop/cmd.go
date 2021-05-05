@@ -3,7 +3,6 @@ package develop
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	gocmd "github.com/go-cmd/cmd"
@@ -138,10 +137,17 @@ func createTpCommand(cmd *cobra.Command) []string {
 
 func createWrapperCmd(cmd *cobra.Command) []string {
 	run := cmd.Flag(execute.RunFlagName).Value.String()
-	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	cmdFullPath := dir + string(os.PathSeparator) + "ike"
+	executable, err := os.Executable()
+	if err != nil {
+		logger().Error(err, "unable to execute wrapped command")
+		panic(err)
+	}
+	if !strings.HasSuffix(executable, "ike") {
+		// Command was not executed by the binary, but e.g. tests
+		executable = "ike"
+	}
 	executeArgs := []string{
-		cmdFullPath, "execute",
+		executable, "execute",
 		"--" + execute.RunFlagName, run,
 	}
 	if cmd.Flag(execute.NoBuildFlagName).Changed {

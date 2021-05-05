@@ -246,7 +246,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("ike execute --run java -jar rating.jar --build mvn clean install"))
+			Expect(output).To(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
 		})
 
 		It("should call ike execute with full parent command path", func() {
@@ -257,7 +257,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring(string(os.PathSeparator) + "ike execute")) // Path separator somewhat ;) indicates that wrapped command is provided with expanded path
+			Expect(output).To(ContainSubstring("--run ike execute"))
 		})
 
 		It("should pass --no-build to execute command when specified", func() {
