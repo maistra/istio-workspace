@@ -27,7 +27,7 @@ var _ = Describe("Session operations", func() {
 			updateRemover func()
 		)
 		BeforeEach(func() {
-			duration := 10 * time.Millisecond
+			duration := 100 * time.Millisecond
 			opts = session.Options{
 				NamespaceName:  "test-namespace",
 				SessionName:    "test-session",

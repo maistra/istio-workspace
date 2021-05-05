@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -48,9 +48,7 @@ func NewCmd() *cobra.Command {
 func startOperator(cmd *cobra.Command, args []string) error {
 	namespace, err := getWatchNamespace()
 	if err != nil {
-		logger().Error(err, "Failed to get watch namespace")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "failed to get watch namespace")
 	}
 
 	namespaces := strings.Split(namespace, ",")
@@ -59,9 +57,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Get a config to talk to the apiserver
 	cfg, err := k8sConfig.GetConfig()
 	if err != nil {
-		logger().Error(err, "")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "could not get kube config")
 	}
 
 	managerOptions := manager.Options{
@@ -80,39 +76,29 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	// Create a new Cmd to provide shared dependencies and Start components
 	mgr, err := manager.New(cfg, managerOptions)
 	if err != nil {
-		logger().Error(err, "")
-
-		return errors.Wrapf(err, "failed creating manager when executing %s command", cmd.Use)
+		return errors.Wrapf(err, "failed creating manager")
 	}
 
 	logger().Info("Registering Components.")
 
 	// Setup Scheme for all resources
 	if err = api.AddToScheme(mgr.GetScheme()); err != nil {
-		logger().Error(err, "")
-
-		return nil
+		return errors.Wrapf(err, "failed to add scheme")
 	}
 
 	// Setup all Controllers
 	if err = controllers.AddToManager(mgr); err != nil {
-		logger().Error(err, "")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "failed to add controller to manager")
 	}
 
 	// add CreateService?
 
 	// Add readiness and health
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		logger().Error(err, "Could not add healthz check")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "could not add healthz check")
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		logger().Error(err, "Could not add readyz check")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "could not add readyz check")
 	}
 
 	logger().Info("Starting the operator.")
@@ -120,9 +106,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 
 	// Start the Cmd
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
-		logger().Error(err, "Manager exited non-zero")
-
-		return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+		return errors.Wrapf(err, "manager exited non-zero")
 	}
 
 	return nil

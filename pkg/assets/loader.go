@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 // Load loads file asset into byte array
@@ -25,7 +25,7 @@ func ListDir(path string) ([]string, error) {
 	if dirExists(path) {
 		dirInfo, e := ioutil.ReadDir(path)
 		if e != nil {
-			return nil, errors.Wrapf(e, "failed reading directory %s", path)
+			return nil, errors.WrapWithDetails(e, "failed reading directory", "path", path)
 		}
 
 		dirs := []string{}

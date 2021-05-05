@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -25,7 +25,7 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 		sessionHandler = session.CreateOrJoinHandler
 		c, e2 := session.DefaultClient(options.NamespaceName)
 		if e2 != nil {
-			return session.State{}, options, func() {}, errors.Wrap(e2, "failed to create default client")
+			return session.State{}, options, func() {}, errors.WrapIf(e2, "failed to get default client")
 		}
 		client = c
 	}
@@ -41,12 +41,15 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	options, err := ToRemoveOptions(cmd.Flags())
 	if err != nil {
-		return session.State{}, nil, err
+		return session.State{}, nil, errors.WrapIf(err, "failed to create options")
 	}
 	client, err := session.DefaultClient(options.NamespaceName)
+	if err != nil {
+		return session.State{}, nil, errors.WrapIf(err, "failed to get default client")
+	}
 	handler, f := session.RemoveHandler(options, client)
 
-	return handler, f, errors.Wrap(err, "failed removing session")
+	return handler, f, nil
 }
 
 const (

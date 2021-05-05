@@ -3,7 +3,7 @@ package log
 import (
 	"time"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 )

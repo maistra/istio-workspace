@@ -1,15 +1,13 @@
 package session
 
 import (
-	"fmt"
 	"os/user"
 	"regexp"
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -23,7 +21,7 @@ var (
 	logger = func() logr.Logger {
 		return log.Log.WithValues("type", "session")
 	}
-	errorWrongRouteFormat = fmt.Errorf("route in wrong format. expected type:name=value")
+	errorWrongRouteFormat = errors.Sentinel("route in wrong format. expected type:name=value")
 )
 
 // Options holds the variables used by the Session Handler.
@@ -235,8 +233,6 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		return false, nil
 	})
 	if err != nil {
-		logger().Error(err, "failed waiting for deployment to create")
-
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 
@@ -273,12 +269,12 @@ func getOrCreateSessionName(sessionName string) (string, error) {
 	if sessionName != "" {
 		namingErrors := validation.IsDNS1123Label(sessionName)
 		if len(namingErrors) != 0 {
-			var nErrors *multierror.Error
+			var errs []error
 			for _, namingError := range namingErrors {
-				nErrors = multierror.Append(nErrors, errors.New(namingError))
+				errs = append(errs, errors.New(namingError))
 			}
 
-			return "", errors.Wrap(nErrors, "your suggested session name is not a valid k8s value")
+			return "", errors.WrapIfWithDetails(errors.Combine(errs...), "your suggested session name is not a valid k8s value", "name", sessionName)
 		}
 	}
 

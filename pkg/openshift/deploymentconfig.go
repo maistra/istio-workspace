@@ -3,8 +3,8 @@ package openshift
 import (
 	"encoding/json"
 
+	"emperror.dev/errors"
 	appsv1 "github.com/openshift/api/apps/v1"
-	"github.com/pkg/errors"
 	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -109,7 +109,7 @@ func DeploymentConfigMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to create cloned DeploymentConfig", "name", deploymentClone.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated, err.Error()))
 
-			return errors.Wrapf(err, "failed to create cloned DeploymentConfig %s", deploymentClone.Name)
+			return errors.WrapWithDetails(err, "failed to create cloned DeploymentConfig", "kind", DeploymentConfigKind, "name", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned DeploymentConfig", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.NewSuccessResource(DeploymentConfigKind, deploymentClone.Name, model.ActionCreated))
@@ -134,7 +134,7 @@ func DeploymentConfigRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			ctx.Log.Info("Failed to delete DeploymentConfig", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentConfigKind, status.Name, status.Action, err.Error()))
 
-			return errors.Wrapf(err, "failed to delete DeploymentConfig [%s]", status.Name)
+			return errors.WrapWithDetails(err, "failed to delete DeploymentConfig", "kind", DeploymentConfigKind, "name", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentConfigKind, status.Name, status.Action))
 	}
@@ -166,5 +166,5 @@ func getDeploymentConfig(ctx model.SessionContext, namespace, name string) (*app
 	deployment := appsv1.DeploymentConfig{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
-	return &deployment, errors.Wrapf(err, "failed finding DeploymentConfig [%s] in namespace [%s]", name, namespace)
+	return &deployment, errors.WrapWithDetails(err, "failed finding DeploymentConfig", "kind", DeploymentConfigKind, "name", name, "namespace", namespace)
 }

@@ -1,8 +1,7 @@
 package istio
 
 import (
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -44,13 +43,13 @@ func (d destinationRuleManipulator) Revert() model.Revertor {
 // DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.
 func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
-	var accErrors *multierror.Error
+	var errs []error
 	for _, hostName := range ref.GetTargetHostNames() {
 		newVersion := ref.GetNewVersion(ctx.Name)
 
 		subset, err := getTargetSubset(ctx, ctx.Namespace, hostName, ref.GetVersion())
 		if err != nil {
-			accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to find Subset"))
+			errs = append(errs, errors.WrapIfWithDetails(err, "failed to find Subset", "version", ref.GetVersion(), "host", hostName))
 
 			continue
 		}
@@ -75,14 +74,15 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 
 		if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
-			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name)
+			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", hostName)
 		}
 
 		if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 			if !k8sErrors.IsAlreadyExists(err) {
 				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated, err.Error()))
-				ctx.Log.Error(err, "failed to create DestinationRule", "name", destinationRule.GetName())
-				accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to create DestinationRule"))
+				errs = append(errs, errors.WrapWithDetails(
+					err, "failed to create DestinationRule",
+					"kind", DestinationRuleKind, "name", destinationRule.Name, "host", hostName))
 
 				continue
 			}
@@ -91,12 +91,14 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		ref.AddResourceStatus(model.NewSuccessResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated))
 	}
 
-	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to manipulate destination rules for session [%s] in namespace [%s]", ctx.Name, ctx.Namespace)
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to manipulate destination rules for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
 // DestinationRuleRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
 func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	var accErrors *multierror.Error
+	var errs []error
 	for _, hostName := range ref.GetTargetHostNames() {
 		dr := istionetwork.DestinationRule{
 			ObjectMeta: metav1.ObjectMeta{
@@ -108,7 +110,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		if err := ctx.Client.Delete(ctx, &dr); err != nil {
 			if !k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionCreated, err.Error()))
-				accErrors = multierror.Append(accErrors, errors.Wrap(err, "failed to delete DestinationRule"))
+				errs = append(errs, errors.WrapWithDetails(err, "failed to delete DestinationRule", "kind", DestinationRuleKind, "name", dr.Name, "host", hostName))
 
 				continue
 			}
@@ -118,14 +120,16 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.NewSuccessResource(DestinationRuleKind, dr.GetName(), model.ActionCreated))
 	}
 
-	return errors.Wrapf(accErrors.ErrorOrNil(), "failed to revert destination rules for session [%s] in namespace [%s]", ctx.Name, ctx.Namespace)
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to revert destination rules for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
 func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.HostName, targetVersion string) (*istionetworkv1alpha3.Subset, error) {
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get destinationrules in namespace [%s]", namespace)
+		return nil, errors.WrapWithDetails(err, "failed to get destinationrules in namespace", "namespace", namespace)
 	}
 	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
 		if hostName.Match(dr.Spec.Host) {
@@ -137,5 +141,5 @@ func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.
 		}
 	}
 
-	return nil, errors.Errorf("failed finding destinationrule in namespace [%s] matching hostname [%s] and subset version [%s]", namespace, hostName.String(), targetVersion)
+	return nil, errors.NewWithDetails("failed finding subset with given host and version", "host", hostName, "version", targetVersion, "namespace", namespace)
 }
