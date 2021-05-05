@@ -246,7 +246,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
+			Expect(output).To(ContainSubstring("execute --run java -jar rating.jar --build mvn clean install"))
 		})
 
 		It("should call ike execute with full parent command path", func() {
@@ -257,7 +257,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).To(ContainSubstring("--run ike execute"))
+			Expect(output).To(ContainSubstring("execute"))
 		})
 
 		It("should pass --no-build to execute command when specified", func() {
@@ -270,7 +270,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				"--offline")
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(output).ToNot(ContainSubstring("--run ike execute --run java -jar rating.jar --build mvn clean install"))
+			Expect(output).ToNot(ContainSubstring("execute --run java -jar rating.jar --build mvn clean install"))
 		})
 
 	})

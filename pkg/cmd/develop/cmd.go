@@ -142,10 +142,6 @@ func createWrapperCmd(cmd *cobra.Command) []string {
 		logger().Error(err, "unable to execute wrapped command")
 		panic(err)
 	}
-	if !strings.HasSuffix(executable, "ike") {
-		// Command was not executed by the binary, but e.g. tests
-		executable = "ike"
-	}
 	executeArgs := []string{
 		executable, "execute",
 		"--" + execute.RunFlagName, run,
