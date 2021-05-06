@@ -91,7 +91,7 @@ func execute(command *cobra.Command, args []string) error {
 			OnPaths(dirs...)
 
 		if err != nil {
-			return nil, errors.WrapIf(err, "failed handling watch evet")
+			return nil, errors.WrapIf(err, "failed handling watch event")
 		}
 
 		w.Start()
