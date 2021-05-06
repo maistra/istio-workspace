@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/handler"
-	"github.com/pkg/errors"
 	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -170,7 +170,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, errors.Wrap(err, "failed reconciling session")
+		return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
 	}
 
 	route := ConvertAPIRouteToModelRoute(session)
@@ -212,7 +212,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	} else {
 		r.deleteRemovedRefs(ctx, session, refs)
 		if err := r.syncAllRefs(ctx, session); err != nil {
-			return reconcile.Result{}, errors.Wrap(err, "failed reconciling session")
+			return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
 		}
 	}
 

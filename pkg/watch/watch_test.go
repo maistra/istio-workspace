@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pkg/errors"
 
 	"github.com/maistra/istio-workspace/pkg/watch"
 	. "github.com/maistra/istio-workspace/test"

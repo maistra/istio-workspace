@@ -3,7 +3,7 @@ package k8s
 import (
 	"encoding/json"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,7 +103,7 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, deploymentClone.Name, model.ActionCreated, err.Error()))
 
-			return errors.Wrapf(err, "failed to create cloned Deployment %s", deploymentClone.Name)
+			return errors.WrapWithDetails(err, "failed to create cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
 		ref.AddResourceStatus(model.NewSuccessResource(DeploymentKind, deploymentClone.Name, model.ActionCreated))
@@ -128,7 +128,7 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			ctx.Log.Info("Failed to delete Deployment", "name", status.Name)
 			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, status.Name, status.Action, err.Error()))
 
-			return errors.Wrapf(err, "failed to delete Deployment [%s]", status.Name)
+			return errors.WrapWithDetails(err, "failed to delete Deployment", "kind", DeploymentKind, "name", status.Name)
 		}
 		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentKind, status.Name, status.Action))
 	}
@@ -160,5 +160,5 @@ func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.De
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
-	return &deployment, errors.Wrapf(err, "failed finding deployment [%s] in namespace [%s]", name, namespace)
+	return &deployment, errors.WrapWithDetails(err, "failed finding deployment in namespace ", "kind", DeploymentKind, "name", name, "namespace", namespace)
 }

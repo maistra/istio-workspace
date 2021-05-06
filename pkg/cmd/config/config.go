@@ -4,8 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -46,11 +45,11 @@ func SetupConfigSources(configFile string, defaultConfigFile bool) error {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if !defaultConfigFile {
-			return errors.Wrapf(err, "failed reading config file %s", configFile)
+			return errors.WrapWithDetails(err, "failed reading config file", "path", configFile)
 		}
 
 		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
-			return errors.Wrapf(err, "failed reading config file %s", configFile)
+			return errors.WrapWithDetails(err, "failed reading config file", "path", configFile)
 		}
 	}
 
@@ -99,13 +98,13 @@ func SyncFullyQualifiedFlag(cmd *cobra.Command, flagName string) error {
 // This function iterates over all flags defined for cobra.Command and accumulates errors if they occur while
 // calling SyncFullyQualifiedFlag for every flag.
 func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
-	var accErrors *multierror.Error
+	var errs []error
 	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 		syncFlagErr := SyncFullyQualifiedFlag(cmd, flag.Name)
-		accErrors = multierror.Append(accErrors, syncFlagErr)
+		errs = append(errs, syncFlagErr)
 	})
 
-	return errors.Wrap(accErrors.ErrorOrNil(), "failed to sync flags")
+	return errors.Wrap(errors.Combine(errs...), "failed to sync flags")
 }
 
 // BindFullyQualifiedFlag ensures that each flag used in commands is bound to a key using fully qualified name

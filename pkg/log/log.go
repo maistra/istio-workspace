@@ -57,7 +57,7 @@ func CreateOperatorAwareLoggerWithLevel(name string, level zapcore.Level) logr.L
 	log := zap.New(zapcore.NewCore(encoder, sink, zap.NewAtomicLevelAt(level)))
 	log = log.Named(name).WithOptions(opts...)
 
-	return zapr2.NewLogger(log)
+	return Emperror{zapr2.NewLogger(log)}
 }
 
 func configureCliLogging() (zapcore.Encoder, []zap.Option) {

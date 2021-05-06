@@ -1,6 +1,8 @@
 package istio_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
@@ -174,7 +176,8 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				}
 				err := istio.DestinationRuleMutator(ctx, ref)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("failed finding destinationrule in namespace [test] matching hostname [customer-missing] and subset version [v5]"))
+				fmt.Println(err)
+				Expect(err.Error()).To(ContainSubstring("failed finding subset with given host and version"))
 			})
 		})
 	})

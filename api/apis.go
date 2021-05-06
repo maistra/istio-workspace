@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -30,7 +30,8 @@ func NewCmd() *cobra.Command {
 	releaseInfo := make(chan string, 1)
 
 	rootCmd := &cobra.Command{
-		Use: "ike",
+		SilenceErrors: true,
+		Use:           "ike",
 		Short: "ike lets you safely develop and test on production without a sweat!\n\n" +
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,

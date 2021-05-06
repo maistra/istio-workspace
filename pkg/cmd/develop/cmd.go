@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -41,17 +41,17 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			dir, err := os.Getwd()
 			if err != nil {
-				return errors.Wrapf(err, "failed executing %s command - obtaining working directory", cmd.Use)
+				return errors.Wrap(err, "failed obtaining working directory")
 			}
 			sessionState, _, sessionClose, err := internal.Sessions(cmd)
 			if err != nil {
-				return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+				return errors.Wrap(err, "failed setting up session")
 			}
 			defer sessionClose()
 
 			// HACK: need contract with TP cmd?
 			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
-				return errors.Wrapf(err, "failed executing %s command", cmd.Use)
+				return errors.Wrapf(err, "failed to set deployment flag")
 			}
 
 			done := make(chan gocmd.Status, 1)
@@ -73,7 +73,7 @@ func NewCmd() *cobra.Command {
 
 			finalStatus := <-done
 
-			return errors.Wrapf(finalStatus.Error, "failed executing %s command", cmd.Use)
+			return errors.WrapIf(finalStatus.Error, "failed executing sub command")
 		},
 	}
 	if developCmd.Annotations == nil {
