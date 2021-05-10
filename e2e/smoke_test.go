@@ -391,7 +391,7 @@ func EnsureCorrectNumberOfResources(count int, resource, namespace string) {
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.
 func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
@@ -400,7 +400,7 @@ func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatche
 
 // EnsureSessionRouteIsReachable the manipulated route is reachable.
 func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	// check original response using headers
 	Eventually(call(productPageURL, map[string]string{
@@ -416,7 +416,7 @@ func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...ty
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable.
 func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	// check original response using headers
 	Eventually(call(productPageURL, map[string]string{
