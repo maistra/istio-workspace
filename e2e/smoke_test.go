@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-cmd/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -409,13 +410,13 @@ func (s *stableCountMatcher) Match(actual interface{}) (success bool, err error)
 	match, err := s.delegate.Match(actual)
 	if !match {
 		s.matchCount = 0
-		return false, nil // TODO ERROR?
+		return false, err
 	} else  {
 		s.matchCount++
 	}
 
 	if s.matchCount < s.subsequentOccurrences {
-		return false, nil
+		return false, errors.Errorf("not enough matches in sequence yet [%d/%d]", s.matchCount, s.subsequentOccurrences)
 	}
 
 	return match, err
