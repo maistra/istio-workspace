@@ -64,20 +64,20 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 				Context("basic deployment modifications", func() {
 
-					It("should watch for changes in ratings service and serve it", func() {
+					It("should watch for changes in connected service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 						deploymentCount := GetResourceCount("deployment", namespace)
 
 						// given we have details code locally
-						CreateFile(tmpDir+"/ratings.py", PublisherService)
+						CreateFile(tmpDir+"/productpage.py", PublisherService)
 
 						ike := RunIke(tmpDir, "develop",
-							"--deployment", "deployment/ratings-v1",
+							"--deployment", "deployment/productpage-v1",
 							"--port", "9080",
 							"--method", "inject-tcp",
 							"--watch",
-							"--run", "python ratings.py 9080",
+							"--run", "python productpage.py 9080",
 							"--route", "header:x-test-suite=smoke",
 							"--session", sessionName,
 							"--namespace", namespace,
@@ -98,7 +98,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
 						Stop(ike)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 					})
 				})
 
@@ -179,6 +179,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 				})
 
 				Context("basic deployment modifications", func() {
+
 					It("should take over ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
