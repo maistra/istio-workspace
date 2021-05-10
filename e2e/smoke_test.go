@@ -93,7 +93,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 						// then modify the service
 						modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
-						CreateFile(tmpDir+"/ratings.py", modifiedDetails)
+						CreateFile(tmpDir+"/productpage.py", modifiedDetails)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
