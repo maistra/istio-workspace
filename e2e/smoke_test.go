@@ -399,6 +399,40 @@ func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatche
 		10*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
+type stableCountMatcher struct {
+	delegate              types.GomegaMatcher
+	matchCount            int32
+	subsequentOccurrences int32
+}
+
+func (s *stableCountMatcher) Match(actual interface{}) (success bool, err error) {
+	match, err := s.delegate.Match(actual)
+	if !match {
+		s.matchCount = 0
+		return false, nil // TODO ERROR?
+	} else  {
+		s.matchCount++
+	}
+
+	if s.matchCount < s.subsequentOccurrences {
+		return false, nil
+	}
+
+	return match, err
+}
+
+func (s *stableCountMatcher) FailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("failed to receive stable response after %d times. latest cause: %s", s.subsequentOccurrences, s.delegate.FailureMessage(actual))
+}
+
+func (s *stableCountMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf("failed to receive stable response after %d times. latest cause: %s", s.subsequentOccurrences, s.delegate.NegatedFailureMessage(actual))
+}
+
+func beStableInSeries(occurrences int32, matcher types.GomegaMatcher) types.GomegaMatcher {
+	return &stableCountMatcher{subsequentOccurrences: occurrences, delegate: matcher}
+}
+
 // EnsureSessionRouteIsReachable the manipulated route is reachable.
 func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/productpage"
@@ -407,12 +441,12 @@ func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...ty
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		10*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
 
 	// check original response using host route
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionName + "." + GetGatewayHost(namespace)}),
-		10*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
 }
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable.
