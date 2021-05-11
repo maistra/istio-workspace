@@ -410,10 +410,11 @@ func (s *stableCountMatcher) Match(actual interface{}) (success bool, err error)
 	match, err := s.delegate.Match(actual)
 	if !match {
 		s.matchCount = 0
+
 		return false, err
-	} else  {
-		s.matchCount++
 	}
+
+	s.matchCount++
 
 	if s.matchCount < s.subsequentOccurrences {
 		return false, errors.Errorf("not enough matches in sequence yet [%d/%d]", s.matchCount, s.subsequentOccurrences)
