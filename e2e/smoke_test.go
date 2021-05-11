@@ -428,11 +428,15 @@ func (s *stableCountMatcher) Match(actual interface{}) (success bool, err error)
 }
 
 func (s *stableCountMatcher) FailureMessage(actual interface{}) (message string) {
-	return fmt.Sprintf("failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s", s.subsequentOccurrences, s.flipping, s.delegate.FailureMessage(actual))
+	return fmt.Sprintf(
+		"failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s",
+		s.subsequentOccurrences, s.flipping, s.delegate.FailureMessage(actual))
 }
 
 func (s *stableCountMatcher) NegatedFailureMessage(actual interface{}) (message string) {
-	return fmt.Sprintf("failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s", s.subsequentOccurrences, s.flipping, s.delegate.NegatedFailureMessage(actual))
+	return fmt.Sprintf(
+		"failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s",
+		s.subsequentOccurrences, s.flipping, s.delegate.NegatedFailureMessage(actual))
 }
 
 func beStableInSeries(occurrences int32, matcher types.GomegaMatcher) types.GomegaMatcher {
