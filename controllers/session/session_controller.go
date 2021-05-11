@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"os"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -311,7 +310,6 @@ func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1
 		if err != nil {
 			return err
 		}
-		time.Sleep(10 * time.Second)
 	}
 
 	ConvertAPIStatusToModelRef(*session, ref)
