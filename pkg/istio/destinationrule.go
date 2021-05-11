@@ -49,7 +49,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 
 		subset, err := getTargetSubset(ctx, ctx.Namespace, hostName, ref.GetVersion())
 		if err != nil {
-			errs = append(errs, errors.WrapIfWithDetails(err, "failed to find Subset", "version", ref.GetVersion(), "host", hostName))
+			errs = append(errs, errors.WrapIfWithDetails(err, "failed to find Subset", "version", ref.GetVersion(), "host", hostName.String()))
 
 			continue
 		}
@@ -74,7 +74,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 		}
 
 		if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
-			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", hostName)
+			ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", hostName.String())
 		}
 
 		if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
@@ -82,7 +82,7 @@ func DestinationRuleMutator(ctx model.SessionContext, ref *model.Ref) error {
 				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, destinationRule.GetName(), model.ActionCreated, err.Error()))
 				errs = append(errs, errors.WrapWithDetails(
 					err, "failed to create DestinationRule",
-					"kind", DestinationRuleKind, "name", destinationRule.Name, "host", hostName))
+					"kind", DestinationRuleKind, "name", destinationRule.Name, "host", hostName.String()))
 
 				continue
 			}
@@ -110,7 +110,7 @@ func DestinationRuleRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		if err := ctx.Client.Delete(ctx, &dr); err != nil {
 			if !k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 				ref.AddResourceStatus(model.NewFailedResource(DestinationRuleKind, dr.GetName(), model.ActionCreated, err.Error()))
-				errs = append(errs, errors.WrapWithDetails(err, "failed to delete DestinationRule", "kind", DestinationRuleKind, "name", dr.Name, "host", hostName))
+				errs = append(errs, errors.WrapWithDetails(err, "failed to delete DestinationRule", "kind", DestinationRuleKind, "name", dr.Name, "host", hostName.String()))
 
 				continue
 			}
@@ -141,5 +141,5 @@ func getTargetSubset(ctx model.SessionContext, namespace string, hostName model.
 		}
 	}
 
-	return nil, errors.NewWithDetails("failed finding subset with given host and version", "host", hostName, "version", targetVersion, "namespace", namespace)
+	return nil, errors.NewWithDetails("failed finding subset with given host and version", "host", hostName.String(), "version", targetVersion, "namespace", namespace)
 }

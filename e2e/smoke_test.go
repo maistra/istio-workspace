@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-cmd/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -64,20 +65,20 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 				Context("basic deployment modifications", func() {
 
-					It("should watch for changes in ratings service and serve it", func() {
+					It("should watch for changes in connected service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 						deploymentCount := GetResourceCount("deployment", namespace)
 
 						// given we have details code locally
-						CreateFile(tmpDir+"/ratings.py", PublisherService)
+						CreateFile(tmpDir+"/productpage.py", PublisherService)
 
 						ike := RunIke(tmpDir, "develop",
-							"--deployment", "deployment/ratings-v1",
+							"--deployment", "deployment/productpage-v1",
 							"--port", "9080",
 							"--method", "inject-tcp",
 							"--watch",
-							"--run", "python ratings.py 9080",
+							"--run", "python productpage.py 9080",
 							"--route", "header:x-test-suite=smoke",
 							"--session", sessionName,
 							"--namespace", namespace,
@@ -93,12 +94,12 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 						// then modify the service
 						modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
-						CreateFile(tmpDir+"/ratings.py", modifiedDetails)
+						CreateFile(tmpDir+"/productpage.py", modifiedDetails)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
 						Stop(ike)
-						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 					})
 				})
 
@@ -179,6 +180,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 				})
 
 				Context("basic deployment modifications", func() {
+
 					It("should take over ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
@@ -391,32 +393,75 @@ func EnsureCorrectNumberOfResources(count int, resource, namespace string) {
 
 // EnsureProdRouteIsReachable can be reached with no special arguments.
 func EnsureProdRouteIsReachable(namespace string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	Eventually(call(productPageURL, map[string]string{
 		"Host": GetGatewayHost(namespace)}),
 		10*time.Minute, 1*time.Second).Should(And(matchers...))
 }
 
+type stableCountMatcher struct {
+	delegate              types.GomegaMatcher
+	matchCount            int32
+	subsequentOccurrences int32
+	flipping              bool
+}
+
+func (s *stableCountMatcher) Match(actual interface{}) (success bool, err error) {
+	match, err := s.delegate.Match(actual)
+	if !match {
+		if s.matchCount > 0 {
+			s.flipping = true
+		}
+		s.matchCount = 0
+
+		return false, err
+	}
+
+	s.matchCount++
+
+	if s.matchCount < s.subsequentOccurrences {
+		return false, errors.Errorf("not enough matches in sequence yet [%d/%d]", s.matchCount, s.subsequentOccurrences)
+	}
+
+	return match, err
+}
+
+func (s *stableCountMatcher) FailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf(
+		"failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s",
+		s.subsequentOccurrences, s.flipping, s.delegate.FailureMessage(actual))
+}
+
+func (s *stableCountMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return fmt.Sprintf(
+		"failed to receive stable response after %d times. Response is flipping:%v. latest cause: %s",
+		s.subsequentOccurrences, s.flipping, s.delegate.NegatedFailureMessage(actual))
+}
+
+func beStableInSeries(occurrences int32, matcher types.GomegaMatcher) types.GomegaMatcher {
+	return &stableCountMatcher{subsequentOccurrences: occurrences, delegate: matcher}
+}
+
 // EnsureSessionRouteIsReachable the manipulated route is reachable.
 func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	// check original response using headers
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
-		10*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
 
 	// check original response using host route
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionName + "." + GetGatewayHost(namespace)}),
-		10*time.Minute, 1*time.Second).Should(And(matchers...))
+		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
 }
 
 // EnsureSessionRouteIsNotReachable the manipulated route is reachable.
 func EnsureSessionRouteIsNotReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
-	productPageURL := GetIstioIngressHostname() + "/test-service/productpage"
+	productPageURL := GetIstioIngressHostname() + "/productpage"
 
 	// check original response using headers
 	Eventually(call(productPageURL, map[string]string{
