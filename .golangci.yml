@@ -72,7 +72,6 @@ linters:
     - gofumpt
     - gomnd
     - paralleltest
-    - revive
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
 
 run:
@@ -91,6 +90,12 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude-rules:
+    - path: e2e/
+      linters:
+        - revive
+    - path: test/
+      linters:
+        - revive
     - path: pkg/log
       linters:
         - depguard
@@ -110,9 +115,11 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - revive
         - wrapcheck
     - path: _suite_test\.go
       linters:
+        - revive
         - unused
     - path: pkg/assets/isto-workspace-deploy.go
       linters:

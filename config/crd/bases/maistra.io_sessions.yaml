@@ -105,7 +105,7 @@ spec:
               conditions:
                 description: The combined log of changes across all refs
                 items:
-                  description: An external Resource that has been manipulated in some way.
+                  description: RefResource is an external Resource that has been manipulated in some way.
                   properties:
                     action:
                       description: The Action that was performed, e.g. created, failed, manipulated
@@ -142,7 +142,7 @@ spec:
               refs:
                 description: Status of the Refs in the Session
                 items:
-                  description: Status of an individual Ref in the Session.
+                  description: RefStatus of an individual Ref in the Session.
                   properties:
                     args:
                       additionalProperties:
@@ -155,7 +155,7 @@ spec:
                     resources:
                       description: A list of the Resources involved in maintaining this route
                       items:
-                        description: An external Resource that has been manipulated in some way.
+                        description: RefResource is an external Resource that has been manipulated in some way.
                         properties:
                           action:
                             description: The Action that was performed, e.g. created, failed, manipulated

@@ -68,7 +68,7 @@ func (r RefKindName) String() string {
 	return r.Kind + "/" + r.Name
 }
 
-// From parses a String() representation into a Object.
+// ParseRefKindName parses a String() representation into a Object.
 func ParseRefKindName(exp string) RefKindName {
 	trimmedExp := strings.TrimSpace(strings.ToLower(exp))
 	parts := strings.Split(trimmedExp, "/")

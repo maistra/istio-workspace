@@ -21,11 +21,15 @@ import (
 )
 
 const (
-	BuildFlagName   = "build"
+	// BuildFlagName is a name of the flag defining build process.
+	BuildFlagName = "build"
+	// NoBuildFlagName is a nme of the flag which disables build execution.
 	NoBuildFlagName = "no-build"
-	RunFlagName     = "run"
+	// RunFlagName is a name of the flag which defines process to be executed.
+	RunFlagName = "run"
 )
 
+// DefaultExclusions is a slices with glob patterns excluded by default.
 var DefaultExclusions = []string{"*.log", ".git/"}
 
 var logger = func() logr.Logger {
