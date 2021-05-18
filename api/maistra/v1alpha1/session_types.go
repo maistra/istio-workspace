@@ -72,10 +72,10 @@ type SessionStatus struct {
 	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
 
 	// RouteExpression represents the Route object as single string expression
-	RouteExpression string   `json:"_routeExp,omitempty"`
-	Strategies      []string `json:"_strategies,omitempty"`
-	RefNames        []string `json:"_refNames,omitempty"`
-	Hosts           []string `json:"_hosts,omitempty"`
+	RouteExpression string   `json:"_routeExp,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
+	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason used by CLI when printing additional columns
+	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
+	Hosts           []string `json:"_hosts,omitempty"`      //nolint:tagliatelle //reason used by CLI when printing additional columns
 }
 
 // +k8s:openapi-gen=true
