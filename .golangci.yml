@@ -46,6 +46,19 @@ linters-settings:
     check-exported: true
   gocognit:
     min-complexity: 16
+  wrapcheck:
+    ignoreSigs:
+      - .Errorf(
+      - errors.New(
+      - errors.Unwrap(
+      - .Wrap(
+      - .Wrapf(
+      - .WithMessage(
+      - errors.WrapIfWithDetails
+      - errors.WithDetails(
+      - errors.WrapWithDetails(
+      - errors.WrapIf(
+      - errors.NewWithDetails(
 
 linters:
   enable-all: true
@@ -59,7 +72,6 @@ linters:
     - gofumpt
     - gomnd
     - paralleltest
-    - wrapcheck # FIXME https://github.com/maistra/istio-workspace/issues/791
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
 
 run:
@@ -78,6 +90,12 @@ issues:
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude-rules:
+    - path: e2e/
+      linters:
+        - revive
+    - path: test/
+      linters:
+        - revive
     - path: pkg/log
       linters:
         - depguard
@@ -97,9 +115,11 @@ issues:
         - errcheck
         - dupl
         - gosec
+        - revive
         - wrapcheck
     - path: _suite_test\.go
       linters:
+        - revive
         - unused
     - path: pkg/assets/isto-workspace-deploy.go
       linters:

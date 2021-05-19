@@ -125,7 +125,9 @@ func createTpCommand(cmd *cobra.Command) []string {
 	}
 
 	tpArgs = append(tpArgs, "--run")
-	tpCmd := append(tpArgs, createWrapperCmd(cmd)...)
+	var tpCmd []string
+	tpCmd = tpArgs
+	tpCmd = append(tpCmd, createWrapperCmd(cmd)...)
 
 	namespaceFlag := cmd.Flag("namespace")
 	if namespaceFlag.Changed {

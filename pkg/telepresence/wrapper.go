@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// BinaryName is a name of telepresence binary we assume be available on the $PATH.
 	BinaryName  = "telepresence"
 	installHint = "Head over to https://www.telepresence.io/reference/install for installation instructions.\n"
 )

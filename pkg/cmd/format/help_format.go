@@ -25,9 +25,9 @@ func EnhanceHelper(command *cobra.Command) {
 			return
 		}
 
-		cmd.SetHelpTemplate(OnlyUsageString)
+		cmd.SetHelpTemplate(onlyUsageString)
 		if helpFormat == "adoc" {
-			cmd.SetUsageTemplate(ADocHelpTable)
+			cmd.SetUsageTemplate(asciiDocHelpTable)
 		} else {
 			fmt.Printf("unknown help format: [%s]. using standard one\n", helpFormat)
 		}
@@ -56,8 +56,8 @@ func RegisterTemplateFuncs() {
 }
 
 const (
-	OnlyUsageString = "{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}"
-	ADocHelpTable   = `{{if .HasAvailableLocalFlags}}{{ $tick := "` + "`" + `" }}
+	onlyUsageString   = "{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}"
+	asciiDocHelpTable = `{{if .HasAvailableLocalFlags}}{{ $tick := "` + "`" + `" }}
 [cols="2,4,2,1"]
 |===
 |Option|Purpose|Format|Default
