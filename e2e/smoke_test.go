@@ -318,7 +318,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		Context("verify external integrations", func() {
 
-			FContext("Tekton", func() {
+			Context("Tekton", func() {
 
 				BeforeEach(func() {
 					scenario = "scenario-1"
