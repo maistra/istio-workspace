@@ -375,7 +375,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
-	mv bundle.Dockerfile build/bundle.Containerfile
+	mv -f bundle.Dockerfile build/bundle.Containerfile
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Containerfile
 	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
 	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
