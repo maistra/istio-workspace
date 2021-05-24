@@ -62,7 +62,6 @@ endif
 
 IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
-export OPERATOR_VERSION
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
 	ifeq ($(origin IKE_VERSION),file)
@@ -70,6 +69,7 @@ ifneq ($(GIT_TAG),0)
 		OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 	endif
 endif
+export OPERATOR_VERSION
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
