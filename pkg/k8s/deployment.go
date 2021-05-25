@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 )
@@ -20,12 +20,12 @@ const (
 	DeploymentKind = "Deployment"
 )
 
-var _ model.Locator = DeploymentLocator
-var _ model.Revertor = DeploymentRevertor
-var _ model.Manipulator = deploymentManipulator{}
+var _ new.Locator = DeploymentLocator
+var _ new.Revertor = DeploymentRevertor
+var _ new.Manipulator = deploymentManipulator{}
 
-// DeploymentManipulator represents a model.Manipulator implementation for handling Deployment objects.
-func DeploymentManipulator(engine template.Engine) model.Manipulator {
+// DeploymentManipulator represents a new.Manipulator implementation for handling Deployment objects.
+func DeploymentManipulator(engine template.Engine) new.Manipulator {
 	return deploymentManipulator{engine: engine}
 }
 
@@ -36,15 +36,15 @@ type deploymentManipulator struct {
 func (d deploymentManipulator) TargetResourceType() client.Object {
 	return &appsv1.Deployment{}
 }
-func (d deploymentManipulator) Mutate() model.Mutator {
+func (d deploymentManipulator) Mutate() new.Mutator {
 	return DeploymentMutator(d.engine)
 }
-func (d deploymentManipulator) Revert() model.Revertor {
+func (d deploymentManipulator) Revert() new.Revertor {
 	return DeploymentRevertor
 }
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name.
-func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
+func DeploymentLocator(ctx new.SessionContext, ref *new.Ref) bool {
 	if !ref.KindName.SupportsKind(DeploymentKind) {
 		return false
 	}
@@ -57,15 +57,15 @@ func DeploymentLocator(ctx model.SessionContext, ref *model.Ref) bool {
 
 		return false
 	}
-	ref.AddTargetResource(model.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels))
+	ref.AddTargetResource(new.NewLocatedResource(DeploymentKind, deployment.Name, deployment.Spec.Template.Labels))
 
 	return true
 }
 
 // DeploymentMutator attempts to clone the located Deployment.
-func DeploymentMutator(engine template.Engine) model.Mutator {
-	return func(ctx model.SessionContext, ref *model.Ref) error {
-		targets := ref.GetTargets(model.Kind(DeploymentKind))
+func DeploymentMutator(engine template.Engine) new.Mutator {
+	return func(ctx new.SessionContext, ref *new.Ref) error {
+		targets := ref.GetTargets(new.Kind(DeploymentKind))
 		if len(targets) == 0 {
 			return nil
 		}
@@ -81,7 +81,7 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 		}
 		ctx.Log.Info("Found Deployment", "name", deployment.Name)
 
-		if ref.Strategy == model.StrategyExisting {
+		if ref.Strategy == new.StrategyExisting {
 			return nil
 		}
 
@@ -101,20 +101,20 @@ func DeploymentMutator(engine template.Engine) model.Mutator {
 		err = ctx.Client.Create(ctx, deploymentClone)
 		if err != nil {
 			ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
-			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, deploymentClone.Name, model.ActionCreated, err.Error()))
+			ref.AddResourceStatus(new.NewFailedResource(DeploymentKind, deploymentClone.Name, new.ActionCreated, err.Error()))
 
 			return errors.WrapWithDetails(err, "failed to create cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)
 		}
 		ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
-		ref.AddResourceStatus(model.NewSuccessResource(DeploymentKind, deploymentClone.Name, model.ActionCreated))
+		ref.AddResourceStatus(new.NewSuccessResource(DeploymentKind, deploymentClone.Name, new.ActionCreated))
 
 		return nil
 	}
 }
 
 // DeploymentRevertor attempts to delete the cloned Deployment.
-func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	statuses := ref.GetResources(model.Kind(DeploymentKind))
+func DeploymentRevertor(ctx new.SessionContext, ref *new.Ref) error {
+	statuses := ref.GetResources(new.Kind(DeploymentKind))
 	for _, status := range statuses {
 		deployment := &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{Name: status.Name, Namespace: ctx.Namespace},
@@ -126,17 +126,17 @@ func DeploymentRevertor(ctx model.SessionContext, ref *model.Ref) error {
 				return nil
 			}
 			ctx.Log.Info("Failed to delete Deployment", "name", status.Name)
-			ref.AddResourceStatus(model.NewFailedResource(DeploymentKind, status.Name, status.Action, err.Error()))
+			ref.AddResourceStatus(new.NewFailedResource(DeploymentKind, status.Name, status.Action, err.Error()))
 
 			return errors.WrapWithDetails(err, "failed to delete Deployment", "kind", DeploymentKind, "name", status.Name)
 		}
-		ref.RemoveResourceStatus(model.NewSuccessResource(DeploymentKind, status.Name, status.Action))
+		ref.RemoveResourceStatus(new.NewSuccessResource(DeploymentKind, status.Name, status.Action))
 	}
 
 	return nil
 }
 
-func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref *model.Ref, version string) (*appsv1.Deployment, error) {
+func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref *new.Ref, version string) (*appsv1.Deployment, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed reading deployment json")
@@ -156,7 +156,7 @@ func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref 
 	return &clone, nil
 }
 
-func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
+func getDeployment(ctx new.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
