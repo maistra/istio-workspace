@@ -62,7 +62,6 @@ endif
 
 IKE_VERSION?=$(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 OPERATOR_VERSION:=$(IKE_VERSION:v%=%)
-export OPERATOR_VERSION
 GIT_TAG?=$(shell git describe --tags --abbrev=0 --exact-match > /dev/null 2>&1; echo $$?)
 ifneq ($(GIT_TAG),0)
 	ifeq ($(origin IKE_VERSION),file)
@@ -70,6 +69,7 @@ ifneq ($(GIT_TAG),0)
 		OPERATOR_VERSION:=$(OPERATOR_VERSION)-next
 	endif
 endif
+export OPERATOR_VERSION
 
 GOBUILD:=GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0
 RELEASE?=false
@@ -375,7 +375,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
-	mv bundle.Dockerfile build/bundle.Containerfile
+	mv -f bundle.Dockerfile build/bundle.Containerfile
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Containerfile
 	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
 	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
