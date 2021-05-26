@@ -14,8 +14,8 @@ func TestDesign(t *testing.T) {
 
 	// Semi static configuration?
 	validators := []Validator{IsDryRun(dryRun)}
-	locators := []Locator{DeploymentLocator}
-	modificators := []ModificatorRegistrar{DeploymentRegistrar}
+	var locators []Locator
+	var modificators []ModificatorRegistrar
 	extractModificators := func(registrars []ModificatorRegistrar) []Modificator {
 		var mods []Modificator
 		for _, reg := range registrars {

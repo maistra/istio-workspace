@@ -46,10 +46,7 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			return
 		}
 
-		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionLocated})
-
-		newVersion := new.GetNewVersion(store, ctx.Name)
-		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name + "-" + newVersion, Action: new.ActionCreate})
+		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
 	}
 }
@@ -67,9 +64,7 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 			switch target.Action {
 			case new.ActionCreate:
 
-				locatedDeployment := store(DeploymentKind)[0] // TODO: HACK
-
-				deployment, err := getDeployment(ctx, locatedDeployment.Namespace, locatedDeployment.Name)
+				deployment, err := getDeployment(ctx, target.Namespace, target.Name)
 				if err != nil {
 					report(new.ModificatorStatus{
 						LocatorStatus: target,

@@ -97,7 +97,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			ref := CreateTestRef()
 			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "x"})
 			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
-			Expect(store.Store(k8s.ServiceKind)).To(HaveLen(0))
+			Expect(store.Store(k8s.ServiceKind)).To(HaveLen(1))
 		})
 
 		It("should find services for Deployment", func() {

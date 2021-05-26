@@ -147,6 +147,7 @@ type Modificator func(context SessionContext, ref Ref, store LocatorStatusStore,
 
 type Sync func(SessionContext, Ref, ModificatorController, LocatedReporter, ModificatorStatusReporter)
 
+// TODO dummy impl for testing purposes
 type LocatorStore struct {
 	stored []LocatorStatus
 }
@@ -171,6 +172,15 @@ func (l *LocatorStore) Report(status LocatorStatus) {
 	l.stored = append(l.stored, status)
 }
 
+// TODO dummy impl for testing purposes
+type ModificatorStore struct {
+	Stored []ModificatorStatus
+}
+
+func (m *ModificatorStore) Report(status ModificatorStatus) {
+	m.Stored = append(m.Stored, status)
+}
+
 // String returns the string formatted kind/name.
 func (r RefKindName) String() string {
 	if r.Kind == "" {
@@ -180,7 +190,7 @@ func (r RefKindName) String() string {
 	return r.Kind + "/" + r.Name
 }
 
-// From parses a String() representation into a Object.
+// ParseRefKindName parses a String() representation into a Object.
 func ParseRefKindName(exp string) RefKindName {
 	trimmedExp := strings.TrimSpace(strings.ToLower(exp))
 	parts := strings.Split(trimmedExp, "/")
@@ -216,7 +226,7 @@ func GetTargetHostNames(store LocatorStatusStore) []HostName {
 	targets := store("Service")
 	hosts := make([]HostName, 0, len(targets))
 	for _, service := range targets {
-		hosts = append(hosts, HostName{Name: service.Name, Namespace: r.Namespace})
+		hosts = append(hosts, HostName{Name: service.Name, Namespace: service.Namespace})
 	}
 
 	return hosts
@@ -279,33 +289,4 @@ func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 		}
 	}
 
-}
-
-func DeploymentLocator(context SessionContext, ref Ref, store LocatorStatusStore, report LocatorStatusReporter) {
-	//deployment, err := getDeployment(ctx, ctx.Namespace, ref.KindName.Name)
-
-	//report(LocatorStatus{Kind: "Deployment", name: deployment.Name, Namespace: ctx.Namespace, Create: true})
-	report(LocatorStatus{Kind: "Deployment", Name: "test", Namespace: "namespace-test", Action: "Create"})
-}
-
-func DeploymentRegistrar() (client.Object, Modificator) {
-	return nil, DeploymentModificator
-}
-
-func DeploymentModificator(context SessionContext, ref Ref, store LocatorStatusStore, reporter ModificatorStatusReporter) {
-	for _, located := range store("Deployment") {
-
-		// get Deployment
-		// clone
-
-		if located.Action == "Create" {
-			/*
-				// create clone.. contexxt.Client.Create(clone...)
-				if err != nil {
-					reporter(ModificatorStatus{LocatorStatus: located, Details: err.Error(), Success: false})
-				}
-			*/
-			reporter(ModificatorStatus{LocatorStatus: located, Success: true})
-		}
-	}
 }
