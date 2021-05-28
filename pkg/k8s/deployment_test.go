@@ -219,6 +219,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
+		// TODO: ??
 		//It("should recreate cloned Deployment if deleted externally", func() {
 		//	// given a normal setup
 		//	ref := CreateTestRef("test-ref")

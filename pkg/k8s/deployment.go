@@ -22,7 +22,7 @@ const (
 
 var _ new.Locator = DeploymentLocator
 
-func DeploymentRegistrarCreator(engine template.Engine) new.ModificatorRegistrar {
+func DeploymentRegistrar(engine template.Engine) new.ModificatorRegistrar {
 	return func() (client.Object, new.Modificator) {
 		return &appsv1.Deployment{}, DeploymentModificator(engine)
 	}
@@ -89,7 +89,7 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 		report(new.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapWithDetails(err, "failed to cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
+			Error:         errors.WrapWithDetails(err, "failed to cloned Deployment", "kind", DeploymentKind)})
 
 		return
 	}
