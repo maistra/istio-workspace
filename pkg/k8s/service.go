@@ -40,8 +40,6 @@ func ServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatus
 			}
 		}
 	}
-
-	return
 }
 
 func getServices(ctx new.SessionContext, namespace string) (*corev1.ServiceList, error) {

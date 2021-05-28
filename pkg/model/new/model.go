@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
@@ -71,7 +72,7 @@ const (
 	ActionCreate StatusAction = "create"
 	// ActionCreate imply the whole Named Kind was created and should be deleted.
 	ActionDelete StatusAction = "delete"
-	// ActionModify imply the Named Kind should be modified
+	// ActionModify imply the Named Kind should be modified.
 	ActionModify StatusAction = "modify"
 	// ActionModify imply the Named Kind was modified and should be reverted to original state.
 	ActionRevert StatusAction = "revert"
@@ -87,6 +88,7 @@ type SessionContext struct {
 
 	Name      string
 	Namespace string
+	Route     Route
 	Client    client.Client
 	Log       logr.Logger
 }
@@ -97,6 +99,13 @@ func (s *SessionContext) ToNamespacedName() types.NamespacedName {
 		Namespace: s.Namespace,
 		Name:      s.Name,
 	}
+}
+
+// Route references the strategy used to route to the target Refs.
+type Route struct {
+	Type  string
+	Name  string
+	Value string
 }
 
 type Ref struct {
@@ -122,6 +131,7 @@ type LocatorStatus struct {
 	Namespace string
 	Kind      string
 	Name      string
+	TimeStamp time.Time
 	Labels    map[string]string
 	Action    StatusAction // Create, Modify, Located
 }
@@ -140,6 +150,7 @@ type ModificatorStatus struct {
 	LocatorStatus
 	Error   error
 	Success bool
+	Prop    map[string]string
 }
 
 type ModificatorRegistrar func() (targetResourceType client.Object, modificator Modificator)
@@ -147,7 +158,7 @@ type Modificator func(context SessionContext, ref Ref, store LocatorStatusStore,
 
 type Sync func(SessionContext, Ref, ModificatorController, LocatedReporter, ModificatorStatusReporter)
 
-// TODO dummy impl for testing purposes
+// TODO dummy impl for testing purposes.
 type LocatorStore struct {
 	stored []LocatorStatus
 }
@@ -161,18 +172,37 @@ func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
 		for _, k := range kind {
 			if loc.Kind == k {
 				f = append(f, loc)
+
 				break
 			}
 		}
 	}
+
 	return f
 }
 
 func (l *LocatorStore) Report(status LocatorStatus) {
-	l.stored = append(l.stored, status)
+	replaced := false
+
+	if status.TimeStamp.IsZero() {
+		status.TimeStamp = time.Now()
+	}
+	for i, stored := range l.stored {
+		if stored.Name == status.Name && stored.Kind == status.Kind {
+			l.stored[i] = status
+			replaced = true
+		}
+	}
+	if !replaced {
+		l.stored = append(l.stored, status)
+	}
 }
 
-// TODO dummy impl for testing purposes
+func (l *LocatorStore) Clear() {
+	l.stored = []LocatorStatus{}
+}
+
+// TODO dummy impl for testing purposes.
 type ModificatorStore struct {
 	Stored []ModificatorStatus
 }
@@ -221,6 +251,33 @@ func GetVersion(store LocatorStatusStore) string {
 	return "unknown"
 }
 
+// Match returns true if this Hostname is equal to the short or long v of a dns name.
+func (h *HostName) Match(name string) bool {
+	equalsShortName := h.Name == name
+	equalsFullDNSName := fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name
+
+	return equalsShortName || equalsFullDNSName
+}
+
+// String returns the String representation of a HostName.
+func (h *HostName) String() string {
+	if h.Namespace != "" {
+		return fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local")
+	}
+
+	return h.Name
+}
+
+func ParseHostName(host string) HostName {
+	if strings.Contains(host, ".svc.cluster.local") {
+		parts := strings.Split(host, ".")
+
+		return HostName{Name: parts[0], Namespace: parts[1]}
+	}
+
+	return HostName{Name: host}
+}
+
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.
 func GetTargetHostNames(store LocatorStatusStore) []HostName {
 	targets := store("Service")
@@ -267,7 +324,6 @@ type Condition struct {
  */
 
 func EngineImpl(locators []Locator, modificators []Modificator) Sync {
-
 	return func(context SessionContext, ref Ref, modify ModificatorController, locatedReporter LocatedReporter, modificationReporter ModificatorStatusReporter) {
 		located := LocatorStore{}
 		for _, locator := range locators {
@@ -288,5 +344,4 @@ func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 			modificator(context, ref, located.Store, modificationReporter)
 		}
 	}
-
 }

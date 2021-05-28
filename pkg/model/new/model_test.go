@@ -9,7 +9,6 @@ import (
 )
 
 func TestDesign(t *testing.T) {
-
 	dryRun := false
 
 	// Semi static configuration?
@@ -51,7 +50,6 @@ func TestDesign(t *testing.T) {
 				return len(errs) == 0
 			},
 			func(located LocatorStatusStore) {
-
 				fmt.Println("located: ", located())
 				/* updateComponents(session.components + unique(located)) */
 			},

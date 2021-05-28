@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
@@ -18,108 +18,92 @@ const (
 	GatewayKind = "Gateway"
 )
 
-var _ model.Mutator = GatewayMutator
-var _ model.Revertor = GatewayRevertor
-var _ model.Manipulator = gatewayManipulator{}
+var _ new.Modificator = GatewayModificator
+var _ new.ModificatorRegistrar = GatewayRegistrar
 
-// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects.
-func GatewayManipulator() model.Manipulator {
-	return gatewayManipulator{}
+func GatewayRegistrar() (client.Object, new.Modificator) {
+	return &istionetwork.Gateway{}, GatewayModificator
 }
 
-type gatewayManipulator struct {
-}
-
-func (d gatewayManipulator) TargetResourceType() client.Object {
-	return &istionetwork.Gateway{}
-}
-func (d gatewayManipulator) Mutate() model.Mutator {
-	return GatewayMutator
-}
-func (d gatewayManipulator) Revert() model.Revertor {
-	return GatewayRevertor
-}
-
-// GatewayMutator attempts to expose a external host on the gateway.
-func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
-	var errs []error
-	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
-		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
-			errs = append(errs, err)
-
-			continue
+// GatewayModificator attempts to expose a external host on the gateway.
+func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+	for _, resource := range store(GatewayKind) {
+		switch resource.Action {
+		case new.ActionModify:
+			actionModifyGateway(ctx, ref, store, report, resource)
+		case new.ActionRevert:
+			actionRevertGateway(ctx, ref, store, report, resource)
+		default:
+			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
+	}
+}
 
-		ctx.Log.Info("Found Gateway", "name", gw.Name)
-		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
+func actionModifyGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
+	if err != nil {
+		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
 
-		if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
-			ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
-		}
-		err = ctx.Client.Update(ctx, &mutatedGw)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
-			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
-
-			continue
-		}
-
-		ref.AddResourceStatus(model.ResourceStatus{
-			Kind:    GatewayKind,
-			Name:    mutatedGw.Name,
-			Action:  model.ActionModified,
-			Success: true,
-			Prop: map[string]string{
-				"hosts": strings.Join(addedHosts, ","),
-			}})
+		return
 	}
 
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to manipulate gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
-}
+	ctx.Log.Info("Found Gateway", "name", gw.Name)
+	mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
-// GatewayRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
-func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	var errs []error
-	resources := ref.GetResources(model.Kind(GatewayKind))
+	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+	}
+	err = ctx.Client.Update(ctx, &mutatedGw)
+	if err != nil {
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
-	for _, resource := range resources {
-		gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
-		if err != nil {
-			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				continue
-			}
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-			errs = append(errs, err)
-
-			continue
-		}
-
-		ctx.Log.Info("Found Gateway", "name", resource.Name)
-		mutatedGw := revertGateway(ctx, *gw)
-		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
-			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
-		}
-		err = ctx.Client.Update(ctx, &mutatedGw)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
-
-			continue
-		}
-		// ok, removed
-		ref.RemoveResourceStatus(model.NewSuccessResource(GatewayKind, resource.Name, resource.Action))
+		return
 	}
 
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to reverting gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Prop: map[string]string{
+			"hosts": strings.Join(addedHosts, ","),
+		},
+	})
 }
 
-func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
+func actionRevertGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
+			report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+
+			return
+		}
+		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+
+		return
+	}
+
+	ctx.Log.Info("Found Gateway", "name", resource.Name)
+	mutatedGw := revertGateway(ctx, *gw)
+	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+	}
+	err = ctx.Client.Update(ctx, &mutatedGw)
+	if err != nil {
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+
+		return
+	}
+	// ok, removed
+	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+}
+
+func mutateGateway(ctx new.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -153,7 +137,7 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 	return source, addedHosts
 }
 
-func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istionetwork.Gateway {
+func revertGateway(ctx new.SessionContext, source istionetwork.Gateway) istionetwork.Gateway {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -186,7 +170,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 	return source
 }
 
-func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
+func getGateway(ctx new.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 

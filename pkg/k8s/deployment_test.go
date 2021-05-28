@@ -2,7 +2,6 @@ package k8s_test
 
 import (
 	"context"
-	"github.com/maistra/istio-workspace/pkg/openshift"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,6 +18,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/model/new"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test/testclient"

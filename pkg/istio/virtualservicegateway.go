@@ -3,7 +3,7 @@ package istio
 import (
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 const (
@@ -11,19 +11,17 @@ const (
 	LabelIkeHosts = "ike.hosts"
 )
 
-var _ model.Locator = VirtualServiceGatewayLocator
+var _ new.Locator = VirtualServiceGatewayLocator
 
 // VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
-func VirtualServiceGatewayLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	located := false
+func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
 	vss, err := getVirtualServices(ctx, ctx.Namespace)
 	if err != nil {
-		return false
+		return
 	}
 
 	for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 		if gateways, connected := connectedToGateway(vs); connected {
-			located = true
 			for _, gwName := range gateways {
 				gw, err := getGateway(ctx, ctx.Namespace, gwName)
 				if err != nil {
@@ -43,10 +41,8 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref *model.Ref) bool
 						}
 					}
 				}
-				ref.AddTargetResource(model.NewLocatedResource(GatewayKind, gwName, map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}))
+				report(new.LocatorStatus{Kind: GatewayKind, Name: gwName, Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionLocated})
 			}
 		}
 	}
-
-	return located
 }

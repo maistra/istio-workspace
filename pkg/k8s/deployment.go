@@ -54,88 +54,89 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 // DeploymentModificator attempts to clone the located Deployment.
 func DeploymentModificator(engine template.Engine) new.Modificator {
 	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
-		targets := store(DeploymentKind)
-		if len(targets) == 0 {
-			return
-		}
-
-		for _, target := range targets {
-
-			switch target.Action {
+		for _, resource := range store(DeploymentKind) {
+			switch resource.Action {
 			case new.ActionCreate:
-
-				deployment, err := getDeployment(ctx, target.Namespace, target.Name)
-				if err != nil {
-					report(new.ModificatorStatus{
-						LocatorStatus: target,
-						Success:       false,
-						Error:         errors.WrapWithDetails(err, "failed to load target Deployment", "kind", DeploymentKind, "name", target.Name)})
-
-					continue
-				}
-				ctx.Log.Info("Found Deployment", "name", deployment.Name)
-
-				if ref.Strategy == new.StrategyExisting {
-					continue
-				}
-
-				deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetNewVersion(store, ctx.Name))
-				if err != nil {
-					ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
-					report(new.ModificatorStatus{
-						LocatorStatus: target,
-						Success:       false,
-						Error:         errors.WrapWithDetails(err, "failed to cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
-
-					continue
-				}
-				if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
-					ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
-				}
-				if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
-					report(new.ModificatorStatus{LocatorStatus: target, Success: true})
-					continue
-				}
-
-				err = ctx.Client.Create(ctx, deploymentClone)
-				if err != nil {
-					ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
-					report(new.ModificatorStatus{
-						LocatorStatus: target,
-						Success:       false,
-						Error:         errors.WrapWithDetails(err, "failed to create cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
-					continue
-				}
-				ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
-				report(new.ModificatorStatus{LocatorStatus: target, Success: true})
-
+				actionCreateDeployment(ctx, ref, store, report, engine, resource)
 			case new.ActionDelete:
-				deployment := &appsv1.Deployment{
-					ObjectMeta: metav1.ObjectMeta{Name: target.Name, Namespace: ctx.Namespace},
-				}
-				ctx.Log.Info("Found Deployment", "name", target.Name)
-				err := ctx.Client.Delete(ctx, deployment)
-				if err != nil {
-					if k8sErrors.IsNotFound(err) {
-						report(new.ModificatorStatus{LocatorStatus: target, Success: true})
-						continue
-					}
-					ctx.Log.Info("Failed to delete Deployment", "name", target.Name)
-					report(new.ModificatorStatus{
-						LocatorStatus: target,
-						Success:       false,
-						Error:         errors.WrapWithDetails(err, "failed to delete Deployment", "kind", DeploymentKind, "name", target.Name)})
-
-					continue
-				}
-				report(new.ModificatorStatus{LocatorStatus: target, Success: true})
-
-			case new.ActionModify:
-			case new.ActionRevert:
+				actionDeleteDeployment(ctx, ref, store, report, resource)
+			default:
+				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}
-
 	}
+}
+
+func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
+	deployment, err := getDeployment(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed to load target Deployment", "kind", DeploymentKind, "name", resource.Name)})
+
+		return
+	}
+	ctx.Log.Info("Found Deployment", "name", deployment.Name)
+
+	if ref.Strategy == new.StrategyExisting {
+		return
+	}
+
+	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetNewVersion(store, ctx.Name))
+	if err != nil {
+		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed to cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
+
+		return
+	}
+	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
+	}
+	if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
+		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+
+		return
+	}
+
+	err = ctx.Client.Create(ctx, deploymentClone)
+	if err != nil {
+		ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed to create cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
+
+		return
+	}
+	ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
+	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+}
+
+func actionDeleteDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: ctx.Namespace},
+	}
+	ctx.Log.Info("Found Deployment", "name", resource.Name)
+	err := ctx.Client.Delete(ctx, deployment)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+
+			return
+		}
+		ctx.Log.Info("Failed to delete Deployment", "name", resource.Name)
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed to delete Deployment", "kind", DeploymentKind, "name", resource.Name)})
+
+		return
+	}
+	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
 func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref new.Ref, version string) (*appsv1.Deployment, error) {

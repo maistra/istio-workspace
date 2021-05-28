@@ -13,7 +13,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
@@ -21,9 +21,10 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 	Context("gateway attachment", func() {
 
 		var (
-			objects []runtime.Object
-			c       client.Client
-			ctx     model.SessionContext
+			objects  []runtime.Object
+			c        client.Client
+			ctx      new.SessionContext
+			locators new.LocatorStore
 		)
 
 		BeforeEach(func() {
@@ -100,37 +101,36 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				&istionetwork.Gateway{}).Build()
 
 			c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
-			ctx = model.SessionContext{
+			ctx = new.SessionContext{
 				Name:      "test",
 				Namespace: "bookinfo",
-				Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
+				Route:     new.Route{Type: "Header", Name: "x", Value: "y"},
 				Client:    c,
 				Log:       log.CreateOperatorAwareLogger("session").WithValues("type", "controller"),
 			}
+			locators = new.LocatorStore{}
 		})
 
 		It("should expose hosts of located gateway", func() {
-			ref := model.Ref{
-				KindName: model.ParseRefKindName("customer-v1"),
+			ref := new.Ref{
+				KindName: new.ParseRefKindName("customer-v1"),
 			}
 
-			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
-			Expect(found).To(BeTrue())
+			istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
 
-			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
+			gws := locators.Store(istio.GatewayKind)
 			Expect(gws).To(HaveLen(1))
 			Expect(gws[0].Labels[istio.LabelIkeHosts]).ToNot(BeEmpty())
 		})
 
 		It("should only expose hosts not belonging to other sessions", func() {
-			ref := model.Ref{
-				KindName: model.ParseRefKindName("customer-v1"),
+			ref := new.Ref{
+				KindName: new.ParseRefKindName("customer-v1"),
 			}
 
-			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
-			Expect(found).To(BeTrue())
+			istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
 
-			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
+			gws := locators.Store(istio.GatewayKind)
 			Expect(gws).To(HaveLen(1))
 			Expect(gws[0].Labels[istio.LabelIkeHosts]).To(Equal("redhat-kubecon.io,redhat-devcon.io"))
 		})

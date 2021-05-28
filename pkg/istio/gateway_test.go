@@ -13,7 +13,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
@@ -21,11 +21,13 @@ import (
 var _ = Describe("Operations for istio gateway kind", func() {
 
 	var (
-		objects []runtime.Object
-		c       client.Client
-		ctx     model.SessionContext
-		get     *testclient.Getters
-		ref     *model.Ref
+		objects      []runtime.Object
+		c            client.Client
+		ctx          new.SessionContext
+		get          *testclient.Getters
+		ref          new.Ref
+		locators     new.LocatorStore
+		modificators new.ModificatorStore
 	)
 
 	JustBeforeEach(func() {
@@ -35,10 +37,10 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
-		ctx = model.SessionContext{
+		ctx = new.SessionContext{
 			Name:      "test",
 			Namespace: "test",
-			Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
+			Route:     new.Route{Type: "Header", Name: "x", Value: "y"},
 			Client:    c,
 			Log:       log.CreateOperatorAwareLogger("gateway"),
 		}
@@ -137,25 +139,27 @@ var _ = Describe("Operations for istio gateway kind", func() {
 						},
 					},
 				}
-				ref = &model.Ref{
-					KindName: model.ParseRefKindName("customer-v1"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Gateway", "gateway", nil),
-					},
+				ref = new.Ref{
+					KindName: new.ParseRefKindName("customer-v1"),
 				}
+				locators = new.LocatorStore{}
+				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionModify})
+				modificators = new.ModificatorStore{}
 			})
 
 			It("should add reference", func() {
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(reference.Get(&gw)).To(HaveLen(1))
 			})
 
 			It("add single session", func() {
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
@@ -163,27 +167,29 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("add single session - verify ref", func() {
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				Expect(ref.ResourceStatuses).To(HaveLen(1))
-				Expect(ref.ResourceStatuses[0].Name).To(Equal("gateway"))
-				Expect(ref.ResourceStatuses[0].Kind).To(Equal("Gateway"))
-				Expect(ref.ResourceStatuses[0].Prop["hosts"]).To(Equal("test.domain.com"))
+				reported := modificators.Stored[0]
+				Expect(reported.Name).To(Equal("gateway"))
+				Expect(reported.Kind).To(Equal("Gateway"))
+				Expect(reported.Prop["hosts"]).To(Equal("test.domain.com"))
 			})
 
 			It("add multiple session", func() {
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 
-				ctx2 := model.SessionContext{
+				ctx2 := new.SessionContext{
 					Name:      "test2",
 					Namespace: "test",
-					Route: model.Route{
+					Route: new.Route{
 						Type:  "header",
 						Name:  "test",
 						Value: "x",
@@ -191,8 +197,12 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					Client: ctx.Client,
 					Log:    ctx.Log,
 				}
-				err = istio.GatewayMutator(ctx2, ref)
-				Expect(err).ToNot(HaveOccurred())
+				locators2 := new.LocatorStore{}
+				locators2.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionModify})
+				modificators2 := new.ModificatorStore{}
+				istio.GatewayModificator(ctx2, ref, locators2.Store, modificators2.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(3))
@@ -200,15 +210,16 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("add multiple refs", func() {
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
 
-				err = istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(2))
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
@@ -216,27 +227,24 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("should only return added hosts once", func() {
-				ref.Targets = []model.LocatedResourceStatus{
-					model.NewLocatedResource("Gateway", "gateway-mutated", nil),
-				}
+				locators.Clear()
+				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway-mutated", Action: new.ActionModify})
 
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				statuss := ref.GetResources(model.Kind(istio.GatewayKind))
-				Expect(statuss).To(HaveLen(1))
-
-				status := statuss[0]
+				status := modificators.Stored[0]
 				Expect(status.Prop["hosts"]).To(Equal("test.domain.com"))
 			})
 
 			It("should reapply found ike hosts if gateway out of sync", func() {
-				ref.Targets = []model.LocatedResourceStatus{
-					model.NewLocatedResource("Gateway", "gateway-force-updated", nil),
-				}
+				locators.Clear()
+				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway-force-updated", Action: new.ActionModify})
 
-				err := istio.GatewayMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway-force-updated")
 				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test.domain.com"))
@@ -287,25 +295,27 @@ var _ = Describe("Operations for istio gateway kind", func() {
 						},
 					},
 				}
-				ref = &model.Ref{
-					KindName: model.ParseRefKindName("customer-v1"),
-					ResourceStatuses: []model.ResourceStatus{
-						{Kind: "Gateway", Name: "gateway", Action: model.ActionModified},
-					},
+				ref = new.Ref{
+					KindName: new.ParseRefKindName("customer-v1"),
 				}
+				locators = new.LocatorStore{}
+				locators.Report(new.LocatorStatus{Namespace: "test", Kind: "Gateway", Name: "gateway", Action: new.ActionRevert})
+				modificators = new.ModificatorStore{}
 			})
 
 			It("remove reference", func() {
-				err := istio.GatewayRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(reference.Get(&gw)).To(BeEmpty())
 			})
 
 			It("single remove session", func() {
-				err := istio.GatewayRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
@@ -313,17 +323,18 @@ var _ = Describe("Operations for istio gateway kind", func() {
 			})
 
 			It("multiple remove sessions", func() {
-				err := istio.GatewayRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				gw := get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 				Expect(gw.Spec.Servers[0].Hosts).To(ConsistOf("domain.com", "test2.domain.com"))
 
-				ctx2 := model.SessionContext{
+				ctx2 := new.SessionContext{
 					Name:      "test2",
 					Namespace: "test",
-					Route: model.Route{
+					Route: new.Route{
 						Type:  "header",
 						Name:  "test",
 						Value: "x",
@@ -332,9 +343,11 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					Log:    ctx.Log,
 				}
 				// Another Context would have had another Ref object with the Gateway Resource Status modified. simulate.
-				ref.AddResourceStatus(model.ResourceStatus{Kind: "Gateway", Name: "gateway", Action: model.ActionModified})
-				err = istio.GatewayRevertor(ctx2, ref)
-				Expect(err).ToNot(HaveOccurred())
+				locators2 := new.LocatorStore{}
+				modificators2 := new.ModificatorStore{}
+				locators2.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionRevert})
+				istio.GatewayModificator(ctx2, ref, locators2.Store, modificators2.Report)
+				Expect(modificators2.Stored).To(HaveLen(1))
 
 				gw = get.Gateway("test", "gateway")
 				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(1))
