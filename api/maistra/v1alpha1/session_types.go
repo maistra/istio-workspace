@@ -63,10 +63,8 @@ type SessionStatus struct {
 	State *string `json:"state,omitempty"`
 	// The current configured route
 	Route *Route `json:"route,omitempty"`
-	// Status of the Refs in the Session
-	Refs []*RefStatus `json:"refs,omitempty"`
 	// The combined log of changes across all refs
-	Conditions []*RefResource `json:"conditions,omitempty"`
+	Conditions []*Condition `json:"conditions,omitempty"`
 
 	// Fields below are solely for UX when inspecting CRDs from CLI, as the `additionalPrinterColumns` support only simple JSONPath expressions right now
 	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
@@ -76,6 +74,23 @@ type SessionStatus struct {
 	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason used by CLI when printing additional columns
 	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
 	Hosts           []string `json:"_hosts,omitempty"`      //nolint:tagliatelle //reason used by CLI when printing additional columns
+}
+
+// Condition .... .
+// +k8s:openapi-gen=true
+type Condition struct {
+	// Key is a key to everything.
+	Key string `json:"key"`
+	// Message explains the reason for a change.
+	Message *string `json:"message,omitempty"`
+	// Reason is a programmatic reason for the change.
+	Reason *string `json:"reason,omitempty"`
+	// Status indicates success.
+	Status *string `json:"status,omitempty"`
+	// Type the type of change
+	Type *string `json:"type,omitempty"`
+	// LastTransitionTime is the last time this action was applied
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
 }
 
 // RefStatus of an individual Ref in the Session.
