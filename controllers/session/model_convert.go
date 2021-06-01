@@ -171,9 +171,9 @@ func ConvertModelRouteToAPIRoute(route model.Route) *istiov1alpha1.Route {
 }
 
 // ConvertAPIRouteToModelRoute returns the defined route from the session or the Default.
-func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
+func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) n.Route {
 	if session.Spec.Route.Type == "" {
-		return model.Route{
+		return n.Route{
 			Type: RouteStrategyHeader,
 			Name: DefaultRouteHeaderName,
 			//Value: uuid.New().String(),
@@ -181,7 +181,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) model.Route {
 		}
 	}
 
-	return model.Route{
+	return n.Route{
 		Type:  session.Spec.Route.Type,
 		Name:  session.Spec.Route.Name,
 		Value: session.Spec.Route.Value,

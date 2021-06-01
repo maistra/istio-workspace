@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"emperror.dev/errors"
@@ -22,7 +23,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
 	n "github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
@@ -56,12 +56,12 @@ func DefaultManipulators() Manipulators {
 			k8s.ServiceLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
-		Handlers: []n.Modificator{
-			k8s.DeploymentModificator(engine),
-			openshift.DeploymentConfigModificator(engine),
-			istio.DestinationRuleModificator,
-			istio.GatewayModificator,
-			istio.VirtualServiceModificator,
+		Handlers: []n.ModificatorRegistrar{
+			k8s.DeploymentRegistrar(engine),
+			openshift.DeploymentConfigRegistrar(engine),
+			istio.DestinationRuleRegistrar,
+			istio.GatewayRegistrar,
+			istio.VirtualServiceRgistrar,
 		},
 	}
 }
@@ -120,7 +120,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 // Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
 	Locators []n.Locator
-	Handlers []n.Modificator
+	Handlers []n.ModificatorRegistrar
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}
@@ -175,7 +175,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	route := ConvertAPIRouteToModelRoute(session)
-	ctx := model.SessionContext{
+	ctx := n.SessionContext{
 		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
@@ -189,6 +189,31 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	session.Status.RouteExpression = session.Status.Route.String()
 	if err := r.client.Status().Update(ctx, session); err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
+	}
+
+	extractModificators := func(registrars []n.ModificatorRegistrar) []n.Modificator {
+		var mods []n.Modificator
+		for _, reg := range registrars {
+			_, mod := reg()
+			mods = append(mods, mod)
+		}
+		return mods
+	}
+
+	refs := []n.Ref{}
+
+	sync := n.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+
+	for _, ref := range refs {
+		sync(ctx, ref,
+			func(located n.LocatorStatusStore) bool {
+				return true
+			},
+			func(located n.LocatorStatusStore) {
+				fmt.Println("located: ", located())
+			},
+			func(modified n.ModificatorStatus) {
+			})
 	}
 
 	deleted := session.DeletionTimestamp != nil
@@ -227,7 +252,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
+func (r *ReconcileSession) deleteRemovedRefs(ctx n.SessionContext, session *istiov1alpha1.Session, refs []n.Ref) {
 	for _, ref := range refs {
 		found := false
 		for _, r := range session.Spec.Refs {
@@ -245,7 +270,7 @@ func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *
 	}
 }
 
-func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
+func (r *ReconcileSession) deleteAllRefs(ctx n.SessionContext, session *istiov1alpha1.Session, refs []n.Ref) {
 	for _, ref := range refs {
 		if err := r.delete(ctx, session, ref); err != nil {
 			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
@@ -253,7 +278,7 @@ func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *isti
 	}
 }
 
-func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
+func (r *ReconcileSession) delete(ctx n.SessionContext, session *istiov1alpha1.Session, ref n.Ref) error {
 	ctx.Log.Info("Remove ref", "name", ref.KindName.String())
 
 	ConvertAPIStatusToModelRef(*session, ref)
@@ -268,7 +293,7 @@ func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alph
 	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed updating session")
 }
 
-func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error {
+func (r *ReconcileSession) syncAllRefs(ctx n.SessionContext, session *istiov1alpha1.Session) error {
 	for _, specRef := range session.Spec.Refs {
 		ctx.Log.Info("Add ref", "name", specRef.Name)
 		ref := ConvertAPIRefToModelRef(specRef, session.Namespace)
@@ -304,7 +329,7 @@ func unique(s []string) []string {
 	return uniqueSlice
 }
 
-func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
+func (r *ReconcileSession) sync(ctx n.SessionContext, session *istiov1alpha1.Session, ref n.Ref) error {
 	// if ref has changed, delete first
 	if RefUpdated(*session, *ref) {
 		err := r.delete(ctx, session, ref)
