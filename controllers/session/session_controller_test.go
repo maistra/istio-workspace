@@ -1,24 +1,9 @@
 package session_test
 
-import (
-	"context"
-	"fmt"
-	"time"
+//. "github.com/onsi/ginkgo"
+//. "github.com/onsi/gomega"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/model"
-)
-
+/*
 var kind, name, action = "test", "details", "created"
 
 var _ = Describe("Basic session manipulation", func() {
@@ -41,14 +26,18 @@ var _ = Describe("Basic session manipulation", func() {
 			return s
 		}
 	}(&c)
-	GetStatusRef := func(name string, session v1alpha1.Session) *v1alpha1.RefStatus {
-		for _, ref := range session.Status.Refs {
-			if ref.Name == name {
-				return ref
+	GetStatusRef := func(name string, session v1alpha1.Session) []v1alpha1.Condition {
+		var conditions []v1alpha1.Condition
+
+		for _, condition := range session.Status.Conditions {
+			split := strings.Split(condition.Key, ";")
+
+			if split[1] == name {
+				conditions = append(conditions, *condition)
 			}
 		}
 
-		return nil
+		return conditions
 	}
 
 	JustBeforeEach(func() {
@@ -56,8 +45,8 @@ var _ = Describe("Basic session manipulation", func() {
 		mutator = &trackedMutator{Action: noOp}
 		revertor = &trackedRevertor{Action: noOp}
 		manipulators := session.Manipulators{
-			Locators: []model.Locator{locator.Do},
-			Handlers: []model.Manipulator{
+			Locators: []new.Locator{locator.Do},
+			Handlers: []new.ModificatorRegistrar{
 				trackedManipulator{mutator: mutator.Do, revertor: revertor.Do},
 			},
 		}
@@ -122,7 +111,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
+				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details", Kind: "test", Action: new.ActionCreated})
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -134,7 +123,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should update the status when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details", Kind: "test", Action: model.ActionCreated})
+				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details", Kind: "test", Action: new.ActionCreated})
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -185,7 +174,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
+				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details2", Kind: "test", Action: new.ActionCreated})
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -197,7 +186,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should update existing status when new mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(model.ResourceStatus{Name: "details2", Kind: "test", Action: model.ActionCreated})
+				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details2", Kind: "test", Action: new.ActionCreated})
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -463,45 +452,43 @@ var _ = Describe("Basic session manipulation", func() {
 })
 
 // notFound Action for Locator tracker.
-func notFoundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	return false
+func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+
 }
 
 // found Action for Locator tracker.
-func foundTestLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	return true
+func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+	report(new.LocatorStatus{Kind: "X", Name: "test", Action: new.ActionCreate})
 }
 
 // found Action for Locator tracker.
-func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref *model.Ref) bool {
-	return func(ctx model.SessionContext, ref *model.Ref) bool {
+func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
 		for _, name := range names {
-			ref.AddTargetResource(model.NewLocatedResource("test", name, map[string]string{}))
+			report(new.LocatorStatus{Kind: "X", Name: name, Action: new.ActionCreate})
 		}
-
-		return true
 	}
 }
 
 // noOp Action for Mutator/Revertor trackers.
-func noOp(ctx model.SessionContext, ref *model.Ref) error {
+func noOp(ctx new.SessionContext, ref *new.Ref) error {
 	return nil
 }
 
 type trackedLocator struct {
 	WasCalled bool
-	Action    model.Locator
+	Action    new.Locator
 }
 
-func (t *trackedLocator) Do(ctx model.SessionContext, ref *model.Ref) bool {
+func (t *trackedLocator) Do(ctx new.SessionContext, ref *new.Ref) bool {
 	t.WasCalled = true
 
 	return t.Action(ctx, ref)
 }
 
 // addResource Action for mutator tracker.
-func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContext, ref *model.Ref) error {
-	return func(ctx model.SessionContext, ref *model.Ref) error {
+func addResourceStatus(status new.ResourceStatus) func(ctx new.SessionContext, ref *new.Ref) error {
+	return func(ctx new.SessionContext, ref *new.Ref) error {
 		ref.AddResourceStatus(status)
 
 		return nil
@@ -509,14 +496,14 @@ func addResourceStatus(status model.ResourceStatus) func(ctx model.SessionContex
 }
 
 type trackedManipulator struct {
-	mutator  model.Mutator
-	revertor model.Revertor
+	mutator  new.Mutator
+	revertor new.Revertor
 }
 
-func (t trackedManipulator) Mutate() model.Mutator {
+func (t trackedManipulator) Mutate() new.Mutator {
 	return t.mutator
 }
-func (t trackedManipulator) Revert() model.Revertor {
+func (t trackedManipulator) Revert() new.Revertor {
 	return t.revertor
 }
 func (t trackedManipulator) TargetResourceType() client.Object {
@@ -525,19 +512,19 @@ func (t trackedManipulator) TargetResourceType() client.Object {
 
 type trackedMutator struct {
 	WasCalled bool
-	Action    model.Mutator
+	Action    new.Mutator
 }
 
-func (t *trackedMutator) Do(ctx model.SessionContext, ref *model.Ref) error {
+func (t *trackedMutator) Do(ctx new.SessionContext, ref *new.Ref) error {
 	t.WasCalled = true
 
 	return t.Action(ctx, ref)
 }
 
 // removeResource Action for revertor tracker.
-func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref *model.Ref) error { //nolint:unparam //reason kind is always receiving 'test' so far
-	return func(ctx model.SessionContext, ref *model.Ref) error {
-		ref.RemoveResourceStatus(model.ResourceStatus{Kind: kind, Name: name})
+func removeResourceStatus(kind, name string) func(ctx new.SessionContext, ref *new.Ref) error { //nolint:unparam //reason kind is always receiving 'test' so far
+	return func(ctx new.SessionContext, ref *new.Ref) error {
+		ref.RemoveResourceStatus(new.ResourceStatus{Kind: kind, Name: name})
 
 		return nil
 	}
@@ -545,11 +532,12 @@ func removeResourceStatus(kind, name string) func(ctx model.SessionContext, ref 
 
 type trackedRevertor struct {
 	WasCalled bool
-	Action    model.Revertor
+	Action    new.Revertor
 }
 
-func (t *trackedRevertor) Do(ctx model.SessionContext, ref *model.Ref) error {
+func (t *trackedRevertor) Do(ctx new.SessionContext, ref *new.Ref) error {
 	t.WasCalled = true
 
 	return t.Action(ctx, ref)
 }
+*/

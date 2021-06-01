@@ -36,7 +36,7 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 
 	switch ref.Deleted {
 	case false:
-		deployment, err := getDeployment(ctx, ctx.Namespace, ref.KindName.Name)
+		deployment, err := getDeployment(ctx, ref.Namespace, ref.KindName.Name)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) { // Ref is not a Deployment type
 				return

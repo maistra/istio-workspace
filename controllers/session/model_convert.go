@@ -1,10 +1,8 @@
 package session
 
 import (
-	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -74,26 +72,29 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 				Type:               &typeDesc,
 			})
 	}
-	var existsInStatus bool
-	for i, statRef := range session.Status.Refs {
-		if statRef.Name == statusRef.Name {
-			if len(statusRef.Resources) == 0 { // Remove
-				session.Status.Refs = append(session.Status.Refs[:i], session.Status.Refs[i+1:]...)
-			} else { // Update
-				session.Status.Refs[i] = statusRef
+
+	/*
+		var existsInStatus bool
+		for i, statRef := range session.Status.Refs {
+			if statRef.Name == statusRef.Name {
+				if len(statusRef.Resources) == 0 { // Remove
+					session.Status.Refs = append(session.Status.Refs[:i], session.Status.Refs[i+1:]...)
+				} else { // Update
+					session.Status.Refs[i] = statusRef
+				}
+				existsInStatus = true
+
+				break
 			}
-			existsInStatus = true
-
-			break
 		}
-	}
-	if !existsInStatus {
-		session.Status.Refs = append(session.Status.Refs, statusRef)
-	}
-
-	session.Status.Conditions = append(session.Status.Conditions, statusRef.Resources...)
+		if !existsInStatus {
+			session.Status.Refs = append(session.Status.Refs, statusRef)
+		}
+		session.Status.Conditions = append(session.Status.Conditions, statusRef.Resources...)
+	*/
 }
 
+/*
 // ConvertAPIStatusesToModelRefs creates a List of Refs based on the Session.Status.Refs list.
 func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 	refStatuses := session.Status.Refs
@@ -111,7 +112,9 @@ func ConvertAPIStatusesToModelRefs(session istiov1alpha1.Session) []*model.Ref {
 
 	return refs
 }
+*/
 
+/*
 // ConvertAPIStatusToModelRef fills the ResourceStatus of a Ref based on the Session.Status.Refs with the same name.
 func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 	for _, statusRef := range session.Status.Refs {
@@ -156,6 +159,7 @@ func ConvertAPIStatusToModelRef(session istiov1alpha1.Session, ref *model.Ref) {
 		}
 	}
 }
+*/
 
 // ConvertAPIRefToModelRef converts a Session.Spec.Ref to a model.Ref.
 func ConvertAPIRefToModelRef(ref istiov1alpha1.Ref, namespace string) n.Ref {
@@ -175,8 +179,8 @@ func ConvertModelRouteToAPIRoute(route n.Route) *istiov1alpha1.Route {
 func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) n.Route {
 	if session.Spec.Route.Type == "" {
 		return n.Route{
-			Type: RouteStrategyHeader,
-			Name: DefaultRouteHeaderName,
+			Type:  RouteStrategyHeader,
+			Name:  DefaultRouteHeaderName,
 			Value: session.Name,
 		}
 	}
@@ -188,6 +192,7 @@ func ConvertAPIRouteToModelRoute(session *istiov1alpha1.Session) n.Route {
 	}
 }
 
+/*
 // RefUpdated check if a Ref has been updated compared to current status.
 func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 	for _, statusRef := range session.Status.Refs {
@@ -200,3 +205,4 @@ func RefUpdated(session istiov1alpha1.Session, ref model.Ref) bool {
 
 	return false
 }
+*/

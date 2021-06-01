@@ -58,14 +58,14 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 					continue
 				}
 
-				report(new.LocatorStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: new.ActionCreate, Labels: map[string]string{"host": hostName.String()}})
+				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionCreate, Labels: map[string]string{"host": hostName.String()}})
 			}
 			for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 				if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, new.GetNewVersion(store, ctx.Name)) {
 					continue
 				}
 
-				report(new.LocatorStatus{Kind: VirtualServiceKind, Name: vs.Name, Action: new.ActionModify, Labels: map[string]string{"host": hostName.String()}})
+				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionModify, Labels: map[string]string{"host": hostName.String()}})
 			}
 		}
 	case true:

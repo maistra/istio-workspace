@@ -55,6 +55,8 @@ func DefaultManipulators() Manipulators {
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
+			istio.VirtualServiceLocator,
+			istio.DestinationRuleLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
 		Handlers: []n.ModificatorRegistrar{
@@ -218,24 +220,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		}
 	}
 
-	var refs []n.Ref
-
-	for _, ref := range session.Spec.Refs {
-		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
-		modelRef.Deleted = deleted
-		refs = append(refs, modelRef)
-	}
-
-
-	for _, condition := range session.Status.Conditions {
-		split := strings.Split(condition.Key, ";")
-		target := split[0]
-		ref := split[1]
-
-	}
-
-
-
+	refs := calculateReferences(ctx, session)
 	sync := n.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
 
 	for _, ref := range refs {
@@ -251,15 +236,15 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	/*
-	refs := ConvertAPIStatusesToModelRefs(*session)
-	if deleted {
-		r.deleteAllRefs(ctx, session, refs)
-	} else {
-		r.deleteRemovedRefs(ctx, session, refs)
-		if err := r.syncAllRefs(ctx, session); err != nil {
-			return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
-		}
-	}*/
+		refs := ConvertAPIStatusesToModelRefs(*session)
+		if deleted {
+			r.deleteAllRefs(ctx, session, refs)
+		} else {
+			r.deleteRemovedRefs(ctx, session, refs)
+			if err := r.syncAllRefs(ctx, session); err != nil {
+				return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
+			}
+		}*/
 
 	if deleted {
 		session.RemoveFinalizer(Finalizer)
@@ -270,6 +255,39 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	return reconcile.Result{}, nil
 }
+
+func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) []n.Ref {
+	var refs []n.Ref
+
+	for _, ref := range session.Spec.Refs {
+		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
+		modelRef.Deleted = session.DeletionTimestamp != nil
+		refs = append(refs, modelRef)
+	}
+
+	var uniqueOldRefs map[string]string
+	for _, condition := range session.Status.Conditions {
+		split := strings.Split(condition.Key, ";")
+		oldRef := split[1]
+		uniqueOldRefs[oldRef] = oldRef
+	}
+	for key, _ := range uniqueOldRefs {
+		found := false
+		for _, ref := range refs {
+			if ref.KindName.String() == key {
+				found = true
+				break
+			}
+		}
+		if !found {
+			deletedRef := n.Ref{KindName: n.ParseRefKindName(key)}
+			deletedRef.Deleted = true
+			refs = append(refs, deletedRef)
+		}
+	}
+	return refs
+}
+
 //
 //func (r *ReconcileSession) deleteRemovedRefs(ctx n.SessionContext, session *istiov1alpha1.Session, refs []n.Ref) {
 //	for _, ref := range refs {
