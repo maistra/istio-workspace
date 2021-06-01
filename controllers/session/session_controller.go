@@ -23,6 +23,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
+	n "github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
@@ -49,18 +50,18 @@ func DefaultManipulators() Manipulators {
 	}
 
 	return Manipulators{
-		Locators: []model.Locator{
+		Locators: []n.Locator{
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
-		Handlers: []model.Manipulator{
-			k8s.DeploymentManipulator(engine),
-			openshift.DeploymentConfigManipulator(engine),
-			istio.DestinationRuleManipulator(),
-			istio.GatewayManipulator(),
-			istio.VirtualServiceManipulator(),
+		Handlers: []n.Modificator{
+			k8s.DeploymentModificator(engine),
+			openshift.DeploymentConfigModificator(engine),
+			istio.DestinationRuleModificator,
+			istio.GatewayModificator,
+			istio.VirtualServiceModificator,
 		},
 	}
 }
@@ -118,8 +119,8 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 
 // Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
-	Locators []model.Locator
-	Handlers []model.Manipulator
+	Locators []n.Locator
+	Handlers []n.Modificator
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}

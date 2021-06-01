@@ -69,10 +69,11 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			}
 		}
 	case true:
+		// TODO shall we use labeling to know if the given resource should be handled by us?
 	}
 }
 
-// VirtualServiceMutator attempts to create a virtual service for forked service.
+// VirtualServiceModificator attempts to create a virtual service for forked service.
 func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
 	for _, resource := range store(VirtualServiceKind) {
 		switch resource.Action {

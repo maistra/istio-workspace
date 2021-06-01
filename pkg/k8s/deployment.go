@@ -48,6 +48,7 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 
 		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
+		// TODO shall we use labeling to know if the given resource should be handled by us?
 	}
 }
 

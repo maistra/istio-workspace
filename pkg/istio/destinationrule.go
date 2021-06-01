@@ -39,11 +39,13 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			}
 
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Name: dr.Name, Action: new.ActionCreate})
+		case true:
+			// TODO shall we use labeling to know if the given resource should be handled by us?
 		}
 	}
 }
 
-// DestinationRuleMutator creates destination rule mutator which is responsible for alternating the traffic for development
+// DestinationRuleModificator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.
 func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
 	for _, resource := range store(DestinationRuleKind) {
