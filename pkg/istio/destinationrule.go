@@ -38,7 +38,7 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 				continue
 			}
 
-			report(new.LocatorStatus{Kind: DestinationRuleKind, Name: dr.Name, Action: new.ActionCreate})
+			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: dr.Namespace, Name: dr.Name, Action: new.ActionCreate})
 		case true:
 			resources, err := getDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
 			if err != nil {

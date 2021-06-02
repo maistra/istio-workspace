@@ -46,7 +46,7 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			return
 		}
 
-		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
+		report(new.LocatorStatus{Kind: DeploymentKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
 		resources, err := getDeployments(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {

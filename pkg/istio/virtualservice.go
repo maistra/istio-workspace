@@ -162,9 +162,8 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 		report(new.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String())})
+			Error:         errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", resource.Name, "host", hostName.String())})
 
-		return
 	}
 
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {

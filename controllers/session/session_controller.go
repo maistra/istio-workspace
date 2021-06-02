@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -225,25 +226,23 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	for _, ref := range refs {
 		sync(ctx, ref,
 			func(located n.LocatorStatusStore) bool {
+				// validate stuff
 				return true
 			},
 			func(located n.LocatorStatusStore) {
+				/* updateComponents(session.components + unique(located)) */
 				fmt.Println("located: ", located())
 			},
 			func(modified n.ModificatorStatus) {
+				/* updateComponent() && callEventAPI() */
+
+				addCondition(session, ref, &modified)
+				err := ctx.Client.Status().Update(ctx, session)
+				if err != nil {
+					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+				}
 			})
 	}
-
-	/*
-		refs := ConvertAPIStatusesToModelRefs(*session)
-		if deleted {
-			r.deleteAllRefs(ctx, session, refs)
-		} else {
-			r.deleteRemovedRefs(ctx, session, refs)
-			if err := r.syncAllRefs(ctx, session); err != nil {
-				return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
-			}
-		}*/
 
 	if deleted {
 		session.RemoveFinalizer(Finalizer)
@@ -253,6 +252,39 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.ModificatorStatus) {
+	getReason := func(a n.StatusAction) string {
+		switch a {
+		case n.ActionCreate:
+		case n.ActionDelete:
+			return "Handled"
+		case n.ActionModify:
+		case n.ActionRevert:
+			return "Configured"
+		}
+		return ""
+	}
+
+	message := ""
+	if modified.Error != nil {
+		message = modified.Error.Error()
+	}
+	reason := getReason(modified.Action)
+	status := strconv.FormatBool(modified.Success)
+	typeStr := string(modified.Action)
+	session.AddCondition(istiov1alpha1.Condition{
+		Target: istiov1alpha1.Target{
+			Kind: modified.Kind,
+			Name: modified.Name,
+			Ref:  ref.KindName.String(),
+		},
+		Message: &message,
+		Reason:  &reason,
+		Status:  &status,
+		Type:    &typeStr,
+	})
 }
 
 func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) []n.Ref {

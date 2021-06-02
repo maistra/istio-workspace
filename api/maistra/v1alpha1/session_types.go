@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -186,6 +187,28 @@ func (s *Session) RemoveFinalizer(finalizer string) {
 		}
 	}
 	s.Finalizers = finalizers
+}
+
+// AddCondition adds or replaces a condition based on Name, Kind and Ref as a key.
+func (s *Session) AddCondition(condition Condition) {
+	replaced := false
+
+	if condition.LastTransitionTime.IsZero() {
+		time := metav1.NewTime(time.Now())
+		condition.LastTransitionTime = &time
+	}
+	for i, stored := range s.Status.Conditions {
+		if stored.Target.Name == condition.Target.Name &&
+			stored.Target.Kind == condition.Target.Kind &&
+			stored.Target.Ref == condition.Target.Ref {
+			s.Status.Conditions[i] = &condition
+			replaced = true
+		}
+	}
+	if !replaced {
+		s.Status.Conditions = append(s.Status.Conditions, &condition)
+	}
+
 }
 
 // +kubebuilder:object:root=true
