@@ -38,18 +38,18 @@ func VirtualServiceRgistrar() (client.Object, new.Modificator) {
 }
 
 func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
-	vss, err := getVirtualServices(ctx, ctx.Namespace)
-	if err != nil {
-		// TODO: report err outside of specific resource?
-
-		return
-	}
-	targetVersion := new.GetVersion(store)
-
 	switch ref.Deleted {
 	case false:
 		// TODO: expand VirtualService Tests with connected vs where not directly triggering a host route?
 		// TODO: Connected GW ignores hostName during find??
+		vss, err := getVirtualServices(ctx, ctx.Namespace)
+		if err != nil {
+			// TODO: report err outside of specific resource?
+
+			return
+		}
+		targetVersion := new.GetVersion(store)
+
 		for _, hostName := range new.GetTargetHostNames(store) {
 			for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 				_, connected := connectedToGateway(vs)
@@ -69,7 +69,17 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			}
 		}
 	case true:
-		// TODO shall we use labeling to know if the given resource should be handled by us?
+		vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(ctx.Name))
+		if err != nil {
+			// TODO: report err outside of specific resource?
+
+			return
+		}
+
+		for _, vs := range vss.Items {
+			action := new.Flip(new.StatusAction(reference.GetLabel(&vs, ctx.Name)))
+			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: action})
+		}
 	}
 }
 
@@ -100,6 +110,12 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	hostName := new.ParseHostName(resource.Labels["host"])
 
 	mutatedVs := mutateConnectedVirtualService(ctx, store, ref, hostName, *vs)
+
+	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+	}
+	reference.AddLabel(&mutatedVs, ctx.Name, string(resource.Action))
+
 	err = ctx.Client.Create(ctx, &mutatedVs)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
 		report(new.ModificatorStatus{
@@ -154,6 +170,8 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
+	reference.AddLabel(&mutatedVs, ctx.Name, string(resource.Action))
+
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
 		report(new.ModificatorStatus{
@@ -178,6 +196,9 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
+
+	reference.RemoveLabel(&mutatedVs, ctx.Name)
+
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
 		report(new.ModificatorStatus{
@@ -279,9 +300,9 @@ func getVirtualService(ctx new.SessionContext, namespace, name string) (*istione
 	return &virtualService, errors.WrapWithDetails(err, "failed finding virtual service in namespace", "name", name, "namespace", namespace)
 }
 
-func getVirtualServices(ctx new.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
+func getVirtualServices(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
-	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
+	err := ctx.Client.List(ctx, &virtualServices, append(opts, client.InNamespace(namespace))...)
 
 	return &virtualServices, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }

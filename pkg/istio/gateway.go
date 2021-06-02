@@ -53,6 +53,8 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorS
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
+	reference.AddLabel(&mutatedGw, ctx.Name, string(resource.Action))
+
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
 		report(new.ModificatorStatus{
@@ -90,6 +92,8 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorS
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
+	reference.RemoveLabel(&mutatedGw, ctx.Name)
+
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
 		report(new.ModificatorStatus{
@@ -175,6 +179,13 @@ func getGateway(ctx new.SessionContext, namespace, name string) (*istionetwork.G
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 
 	return &Gateway, errors.WrapWithDetails(err, "failed finding gateway in namespace", "name", name, "namespace", namespace)
+}
+
+func getGateways(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.GatewayList, error) {
+	gateways := istionetwork.GatewayList{}
+	err := ctx.Client.List(ctx, &gateways, append(opts, client.InNamespace(namespace))...)
+
+	return &gateways, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
 
 func existInList(hosts []string, host string) bool {

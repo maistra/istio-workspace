@@ -83,6 +83,20 @@ const (
 	StrategyExisting = "existing"
 )
 
+func Flip(action StatusAction) StatusAction {
+	switch action {
+	case ActionCreate:
+		return ActionDelete
+	case ActionDelete:
+		return ActionCreate
+	case ActionModify:
+		return ActionRevert
+	case ActionRevert:
+		return ActionModify
+	}
+	return ActionRevert
+}
+
 type SessionContext struct {
 	context.Context
 

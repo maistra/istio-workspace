@@ -40,7 +40,17 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Name: dr.Name, Action: new.ActionCreate})
 		case true:
-			// TODO shall we use labeling to know if the given resource should be handled by us?
+			resources, err := getDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
+			if err != nil {
+				// TODO: report err outside of specific resource?
+
+				return
+			}
+
+			for _, resource := range resources.Items {
+				action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
+				report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
+			}
 		}
 	}
 }
@@ -93,6 +103,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 	if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", dr.Spec.Host)
 	}
+	reference.AddLabel(&destinationRule, ctx.Name, string(resource.Action))
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {
@@ -164,4 +175,11 @@ func getDestinationRule(ctx new.SessionContext, namespace, name string) (*istion
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
 
 	return &destinationRule, errors.WrapWithDetails(err, "failed finding destinationrule in namespace", "name", name, "namespace", namespace)
+}
+
+func getDestinationRules(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.DestinationRuleList, error) {
+	deployments := istionetwork.DestinationRuleList{}
+	err := ctx.Client.List(ctx, &deployments, append(opts, client.InNamespace(namespace))...)
+
+	return &deployments, errors.WrapWithDetails(err, "failed finding destination rules in namespace", "namespace", namespace)
 }

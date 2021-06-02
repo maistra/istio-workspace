@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/maistra/istio-workspace/pkg/model/new"
+	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (
@@ -49,7 +50,17 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			}
 		}
 	case true:
-		// TODO shall we use labeling to know if the given resource should be handled by us?
+		gws, err := getGateways(ctx, ctx.Namespace, reference.Match(ctx.Name))
+		if err != nil {
+			// TODO: report err outside of specific resource?
+
+			return
+		}
+
+		for _, gw := range gws.Items {
+			action := new.Flip(new.StatusAction(reference.GetLabel(&gw, ctx.Name)))
+			report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gw.Name, Action: action})
+		}
 
 	}
 

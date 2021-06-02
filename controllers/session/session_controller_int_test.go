@@ -133,7 +133,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		Context("when there are multiple sessions", func() {
 
-			FIt("should sync resources on delete", func() {
+			It("should sync resources on delete", func() {
 				req1 := reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "test-session1",

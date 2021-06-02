@@ -48,7 +48,17 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 
 		report(new.LocatorStatus{Kind: DeploymentKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
-		// TODO shall we use labeling to know if the given resource should be handled by us?
+		resources, err := getDeployments(ctx, ctx.Namespace, reference.Match(ctx.Name))
+		if err != nil {
+			// TODO: report err outside of specific resource?
+
+			return
+		}
+
+		for _, resource := range resources.Items {
+			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
+			report(new.LocatorStatus{Kind: DeploymentKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
+		}
 	}
 }
 
@@ -97,6 +107,8 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 	}
+	reference.AddLabel(deploymentClone, ctx.Name, string(resource.Action))
+
 	if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 
@@ -165,4 +177,11 @@ func getDeployment(ctx new.SessionContext, namespace, name string) (*appsv1.Depl
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
 	return &deployment, errors.WrapWithDetails(err, "failed finding deployment in namespace ", "kind", DeploymentKind, "name", name, "namespace", namespace)
+}
+
+func getDeployments(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*appsv1.DeploymentList, error) {
+	deployments := appsv1.DeploymentList{}
+	err := ctx.Client.List(ctx, &deployments, append(opts, client.InNamespace(namespace))...)
+
+	return &deployments, errors.WrapWithDetails(err, "failed finding deployments in namespace", "namespace", namespace)
 }

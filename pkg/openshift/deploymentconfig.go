@@ -55,7 +55,17 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		}
 		report(new.LocatorStatus{Kind: DeploymentConfigKind, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
-		// TODO shall we use labeling to know if the given resource should be handled by us?
+		resources, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(ctx.Name))
+		if err != nil {
+			// TODO: report err outside of specific resource?
+
+			return
+		}
+
+		for _, resource := range resources.Items {
+			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
+			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
+		}
 	}
 }
 
@@ -104,6 +114,8 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 	}
+	reference.AddLabel(deploymentClone, ctx.Name, string(resource.Action))
+
 	if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 
@@ -172,4 +184,11 @@ func getDeploymentConfig(ctx new.SessionContext, namespace, name string) (*appsv
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
 	return &deployment, errors.WrapWithDetails(err, "failed finding DeploymentConfig", "kind", DeploymentConfigKind, "name", name, "namespace", namespace)
+}
+
+func getDeploymentConfigs(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*appsv1.DeploymentConfigList, error) {
+	deployments := appsv1.DeploymentConfigList{}
+	err := ctx.Client.List(ctx, &deployments, append(opts, client.InNamespace(namespace))...)
+
+	return &deployments, errors.WrapWithDetails(err, "failed finding deploymentconfig in namespace", "namespace", namespace)
 }
