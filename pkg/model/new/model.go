@@ -64,7 +64,7 @@ Modificator <-- Object | List
  *  MODEL API - Level
  */
 
-// ResourceAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.
+// StatusAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.
 type StatusAction string
 
 const (

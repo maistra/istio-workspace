@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -140,8 +139,8 @@ type ReconcileSession struct {
 // WatchTypes returns a list of client.Objects to watch for changes.
 func (r ReconcileSession) WatchTypes() []client.Object {
 	var objects []client.Object
-	for _, handler := range r.manipulators.Handlers {
-		object, _ := handler()
+	for _, h := range r.manipulators.Handlers {
+		object, _ := h()
 		objects = append(objects, object)
 	}
 
@@ -265,11 +264,9 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 		refs = append(refs, modelRef)
 	}
 
-	var uniqueOldRefs map[string]string
+	uniqueOldRefs := make(map[string]bool, 2)
 	for _, condition := range session.Status.Conditions {
-		split := strings.Split(condition.Key, ";")
-		oldRef := split[1]
-		uniqueOldRefs[oldRef] = oldRef
+		uniqueOldRefs[condition.Target.Ref] = true
 	}
 	for key, _ := range uniqueOldRefs {
 		found := false
@@ -354,7 +351,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 //}
 
 func unique(s []string) []string {
-	uniqueSlice := []string{}
+	var uniqueSlice []string
 	entries := make(map[string]bool)
 	for _, entry := range s {
 		entries[entry] = true

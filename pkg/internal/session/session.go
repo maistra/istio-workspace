@@ -52,9 +52,9 @@ func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
-	DeploymentName string                  // name of the resource to target within the cloned route.
-	RefStatus      istiov1alpha1.RefStatus // the current ref status object
-	Route          istiov1alpha1.Route     // the current route configuration
+	DeploymentName string              // name of the resource to target within the cloned route.
+	Hosts          []string            // currently exposed hosts
+	Route          istiov1alpha1.Route // the current route configuration
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -114,21 +114,11 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 
 	return State{
 			DeploymentName: serviceName,
-			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
+			Hosts:          session.Status.Hosts,
 			Route:          *route,
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil
-}
-
-func getCurrentRef(deploymentName string, session istiov1alpha1.Session) istiov1alpha1.RefStatus {
-	for _, ref := range session.Status.Refs {
-		if ref.Name == deploymentName {
-			return *ref
-		}
-	}
-
-	return istiov1alpha1.RefStatus{}
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
@@ -216,18 +206,6 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		sessionStatus, err = h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
-		}
-		for _, refs := range sessionStatus.Status.Refs {
-			if refs.Name == h.opts.DeploymentName {
-				for _, res := range refs.Resources {
-					if h.opts.ConditionFound(res) {
-						name = *res.Name
-						logger().Info("target found", *res.Kind, name)
-
-						return true, nil
-					}
-				}
-			}
 		}
 
 		return false, nil

@@ -18,9 +18,16 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+type SessionState string
+
+const (
+	StateProcessing SessionState = "Processing"
+	StateSuccess    SessionState = "Success"
+	StateFailed     SessionState = "Failed"
 )
 
 // SessionSpec defines the desired state of Session.
@@ -60,27 +67,27 @@ func (r *Route) String() string {
 // SessionStatus defines the observed state of Session.
 // +k8s:openapi-gen=true
 type SessionStatus struct {
-	State *string `json:"state,omitempty"`
+	State *SessionState `json:"state,omitempty"`
 	// The current configured route
 	Route *Route `json:"route,omitempty"`
 	// The combined log of changes across all refs
 	Conditions []*Condition `json:"conditions,omitempty"`
 
+	Hosts []string `json:"hosts,omitempty"`
+
 	// Fields below are solely for UX when inspecting CRDs from CLI, as the `additionalPrinterColumns` support only simple JSONPath expressions right now
 	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
 
 	// RouteExpression represents the Route object as single string expression
-	RouteExpression string   `json:"_routeExp,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
-	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason used by CLI when printing additional columns
-	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
-	Hosts           []string `json:"_hosts,omitempty"`      //nolint:tagliatelle //reason used by CLI when printing additional columns
+	RouteExpression string   `json:"_routeExp,omitempty"`
+	Strategies      []string `json:"_strategies,omitempty"`
+	RefNames        []string `json:"_refNames,omitempty"`
 }
 
 // Condition .... .
 // +k8s:openapi-gen=true
 type Condition struct {
-	// Key is a key to everything.
-	Key string `json:"key"`
+	Target Target `json:"target"`
 	// Message explains the reason for a change.
 	Message *string `json:"message,omitempty"`
 	// Reason is a programmatic reason for the change.
@@ -93,25 +100,10 @@ type Condition struct {
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
 }
 
-// RefStatus of an individual Ref in the Session.
-// +k8s:openapi-gen=true
-type RefStatus struct {
-	Ref `json:",inline"`
-	// A lit of the Object used as source
-	Targets []*LabeledRefResource `json:"targets,omitempty"`
-	// +optional
-	// A list of the Resources involved in maintaining this route
-	Resources []*RefResource `json:"resources,omitempty"`
-}
-
-func (r *RefStatus) GetHostNames() []string {
-	for _, resource := range r.Resources {
-		if val, ok := resource.Prop["hosts"]; ok {
-			return strings.Split(val, ",")
-		}
-	}
-
-	return []string{}
+type Target struct {
+	Name string `json:"name"`
+	Ref  string `json:"ref"`
+	Kind string `json:"kind"`
 }
 
 // RefResource is an external Resource that has been manipulated in some way.
@@ -152,7 +144,7 @@ type LabeledRefResource struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Ref Names",type="string",JSONPath=".status._refNames",description="refs being manipulated by this session"
 // +kubebuilder:printcolumn:name="Strategies",type="string",JSONPath=".status._strategies",description="strategies used by session"
-// +kubebuilder:printcolumn:name="Hosts",type="string",JSONPath=".status._hosts",description="exposed hosts for this session"
+// +kubebuilder:printcolumn:name="Hosts",type="string",JSONPath=".status.hosts",description="exposed hosts for this session"
 // +kubebuilder:printcolumn:name="Route",type="string",JSONPath=".status._routeExp",description="route expression used for this session"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:resource:path=sessions,scope=Namespaced

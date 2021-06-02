@@ -1,11 +1,6 @@
 package session
 
 import (
-	"strconv"
-	"strings"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
 	n "github.com/maistra/istio-workspace/pkg/model/new"
@@ -21,7 +16,7 @@ const (
 
 // ConvertModelRefToAPIStatus appends/replaces the Ref in the provided Session.Status.Ref list.
 func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
-	statusRef := &istiov1alpha1.RefStatus{
+	/*statusRef := &istiov1alpha1.RefStatus{
 		Ref: istiov1alpha1.Ref{
 			Name:     ref.KindName.String(),
 			Strategy: ref.Strategy,
@@ -40,38 +35,38 @@ func ConvertModelRefToAPIStatus(ref model.Ref, session *istiov1alpha1.Session) {
 			},
 			Labels: target.Labels,
 		})
-	}
-	for _, refStat := range ref.ResourceStatuses {
-		rs := refStat
-		action := string(rs.Action)
+	}*/
+	//for _, refStat := range ref.ResourceStatuses {
+	//rs := refStat
+	//action := string(rs.Action)
 
-		status := strings.Title(strconv.FormatBool(rs.Success))
+	//status := strings.Title(strconv.FormatBool(rs.Success))
 
-		result := "Failed"
-		if rs.Success {
-			result = "Succeeded"
-		}
-		typeDesc := strings.Title(action)
-		reason := strings.Title(action) + " " + result
+	//result := "Failed"
+	//if rs.Success {
+	//	result = "Succeeded"
+	//}
+	//typeDesc := strings.Title(action)
+	//reason := strings.Title(action) + " " + result
 
-		msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.KindName.String()
-		if rs.Message != "" {
-			msg = rs.Message
-		}
+	//msg := strings.Title(action) + " resource " + rs.Kind + "/" + rs.Name + " " + strings.ToLower(result) + " for spec ref " + ref.KindName.String()
+	//if rs.Message != "" {
+	//	msg = rs.Message
+	//}
 
-		statusRef.Resources = append(statusRef.Resources,
-			&istiov1alpha1.RefResource{
-				Name:               &rs.Name,
-				Kind:               &rs.Kind,
-				Action:             &action,
-				Prop:               rs.Prop,
-				LastTransitionTime: &metav1.Time{Time: rs.TimeStamp},
-				Message:            &msg,
-				Reason:             &reason,
-				Status:             &status,
-				Type:               &typeDesc,
-			})
-	}
+	/*statusRef.Resources = append(statusRef.Resources,
+	&istiov1alpha1.RefResource{
+		Name:               &rs.Name,
+		Kind:               &rs.Kind,
+		Action:             &action,
+		Prop:               rs.Prop,
+		LastTransitionTime: &metav1.Time{Time: rs.TimeStamp},
+		Message:            &msg,
+		Reason:             &reason,
+		Status:             &status,
+		Type:               &typeDesc,
+	})*/
+	//}
 
 	/*
 		var existsInStatus bool

@@ -67,7 +67,7 @@ func NewCmd() *cobra.Command {
 				shell.Start(tp, done)
 			}()
 
-			if hint, err := Hint(&sessionState.RefStatus, &sessionState.Route); err == nil {
+			if hint, err := Hint(&sessionState); err == nil {
 				logger().Info(hint)
 			}
 

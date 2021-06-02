@@ -29,7 +29,7 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			state, _, _, err := internal.Sessions(cmd)
 			if outputJSON, _ := cmd.Flags().GetBool("json"); outputJSON {
-				b, _ := json.MarshalIndent(&state.RefStatus, "", "  ")
+				b, _ := json.MarshalIndent(&state.Hosts, "", "  ")
 				fmt.Println(string(b))
 			}
 
