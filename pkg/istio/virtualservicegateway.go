@@ -45,7 +45,7 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 						}
 					}
 
-					report(new.LocatorStatus{Kind: GatewayKind, Name: gwName, Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
+					report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gwName, Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
 				}
 			}
 		}

@@ -208,6 +208,9 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 			return false, err
 		}
 
+		if sessionStatus.Status.State != nil && *sessionStatus.Status.State == istiov1alpha1.StateSuccess {
+			return true, nil
+		}
 		return false, nil
 	})
 	if err != nil {

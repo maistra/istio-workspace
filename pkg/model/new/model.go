@@ -202,7 +202,7 @@ func (l *LocatorStore) Report(status LocatorStatus) {
 		status.TimeStamp = time.Now()
 	}
 	for i, stored := range l.stored {
-		if stored.Name == status.Name && stored.Kind == status.Kind {
+		if stored.Name == status.Name && stored.Kind == status.Kind && stored.Action == status.Action {
 			l.stored[i] = status
 			replaced = true
 		}

@@ -28,9 +28,9 @@ func DestinationRuleRegistrar() (client.Object, new.Modificator) {
 }
 
 func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
-	for _, hostName := range new.GetTargetHostNames(store) {
-		switch ref.Deleted {
-		case false:
+	switch ref.Deleted {
+	case false:
+		for _, hostName := range new.GetTargetHostNames(store) {
 			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, new.GetVersion(store))
 			if err != nil {
 				// TODO: report non found subset as a Locator Status??
@@ -39,18 +39,18 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			}
 
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: dr.Namespace, Name: dr.Name, Action: new.ActionCreate})
-		case true:
-			resources, err := getDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
-			if err != nil {
-				// TODO: report err outside of specific resource?
+		}
+	case true:
+		resources, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
+		if err != nil {
+			// TODO: report err outside of specific resource?
+			ctx.Log.Error(err, "failed to get all destination rules", "ref", ref.KindName.String())
 
-				return
-			}
-
-			for _, resource := range resources.Items {
-				action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
-				report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
-			}
+			return
+		}
+		for _, resource := range resources.Items {
+			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
+			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
 		}
 	}
 }
@@ -177,9 +177,9 @@ func getDestinationRule(ctx new.SessionContext, namespace, name string) (*istion
 	return &destinationRule, errors.WrapWithDetails(err, "failed finding destinationrule in namespace", "name", name, "namespace", namespace)
 }
 
-func getDestinationRules(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.DestinationRuleList, error) {
-	deployments := istionetwork.DestinationRuleList{}
-	err := ctx.Client.List(ctx, &deployments, append(opts, client.InNamespace(namespace))...)
+func GetDestinationRules(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.DestinationRuleList, error) {
+	destinationRules := istionetwork.DestinationRuleList{}
+	err := ctx.Client.List(ctx, &destinationRules, append(opts, client.InNamespace(namespace))...)
 
-	return &deployments, errors.WrapWithDetails(err, "failed finding destination rules in namespace", "namespace", namespace)
+	return &destinationRules, errors.WrapWithDetails(err, "failed finding destination rules in namespace", "namespace", namespace)
 }

@@ -72,7 +72,7 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 		vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
 			// TODO: report err outside of specific resource?
-
+			ctx.Log.Error(err, "failed to get all virtual services", "ref", ref.KindName.String())
 			return
 		}
 
@@ -190,12 +190,10 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 		return
 	}
-
-	mutatedVs := revertVirtualService(new.GetNewVersion(store, ctx.Name), *vs)
+	mutatedVs := revertVirtualService(new.GetVersion(store), *vs)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-
 	reference.RemoveLabel(&mutatedVs, ctx.Name)
 
 	err = ctx.Client.Update(ctx, &mutatedVs)

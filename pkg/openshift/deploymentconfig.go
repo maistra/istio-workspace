@@ -64,7 +64,7 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 
 		for _, resource := range resources.Items {
 			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
-			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
+			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
 		}
 	}
 }

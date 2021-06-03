@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -231,7 +232,9 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			},
 			func(located n.LocatorStatusStore) {
 				/* updateComponents(session.components + unique(located)) */
-				fmt.Println("located: ", located())
+				for _, stored := range located() {
+					fmt.Println("located: ", stored)
+				}
 			},
 			func(modified n.ModificatorStatus) {
 				/* updateComponent() && callEventAPI() */
@@ -243,33 +246,52 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				}
 			})
 	}
+	session.Status.State = calculateSessionState(session)
+	err = ctx.Client.Status().Update(ctx, session)
+	if err != nil {
+		ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+	}
 
-	if deleted {
+	if deleted && *session.Status.State == istiov1alpha1.StateSuccess {
 		session.RemoveFinalizer(Finalizer)
 		if err := r.client.Update(ctx, session); err != nil {
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
+			return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 		}
+	} else if deleted {
+		return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
 	return reconcile.Result{}, nil
 }
 
+func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.SessionState {
+	state := istiov1alpha1.StateSuccess
+	for _, con := range session.Status.Conditions {
+		if con.Status != nil && *con.Status == "false" {
+			state = istiov1alpha1.StateFailed
+			break
+		}
+	}
+	return &state
+}
+
 func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.ModificatorStatus) {
 	getReason := func(a n.StatusAction) string {
 		switch a {
-		case n.ActionCreate:
-		case n.ActionDelete:
+		case n.ActionCreate, n.ActionDelete:
 			return "Handled"
-		case n.ActionModify:
-		case n.ActionRevert:
+		case n.ActionModify, n.ActionRevert:
 			return "Configured"
 		}
 		return ""
 	}
 
-	message := ""
+	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
 	if modified.Error != nil {
-		message = modified.Error.Error()
+		message += modified.Error.Error()
+	} else {
+		message += "ok"
 	}
 	reason := getReason(modified.Action)
 	status := strconv.FormatBool(modified.Success)
