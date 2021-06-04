@@ -1,12 +1,12 @@
 package develop_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/internal/session"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
 var _ = Describe("Hint", func() {

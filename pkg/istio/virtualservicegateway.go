@@ -16,7 +16,6 @@ var _ new.Locator = VirtualServiceGatewayLocator
 
 // VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
 func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
-
 	switch ref.Deleted {
 	case false:
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
@@ -45,7 +44,11 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 						}
 					}
 
-					report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gwName, Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
+					report(new.LocatorStatus{
+						Kind:      GatewayKind,
+						Namespace: gw.Namespace,
+						Name:      gwName,
+						Labels:    map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
 				}
 			}
 		}
@@ -57,11 +60,10 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			return
 		}
 
-		for _, gw := range gws.Items {
+		for i := range gws.Items {
+			gw := gws.Items[i]
 			action := new.Flip(new.StatusAction(reference.GetLabel(&gw, ctx.Name)))
 			report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gw.Name, Action: action})
 		}
-
 	}
-
 }

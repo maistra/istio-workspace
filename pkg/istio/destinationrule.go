@@ -48,7 +48,8 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 
 			return
 		}
-		for _, resource := range resources.Items {
+		for i := range resources.Items {
+			resource := resources.Items[i]
 			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
 		}
@@ -167,6 +168,7 @@ func locateSubset(dr *istionetwork.DestinationRule, targetVersion string) *istio
 			return subset
 		}
 	}
+
 	return nil
 }
 

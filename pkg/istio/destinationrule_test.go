@@ -274,7 +274,6 @@ func TestX(t *testing.T) {
 
 	resources, err := istio.GetDestinationRules(ctx, "aslak-test", reference.Match("test"))
 	if err != nil {
-
 		fmt.Println(err)
 	}
 

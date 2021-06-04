@@ -38,7 +38,6 @@ func DeploymentConfigRegistrar(engine template.Engine) new.ModificatorRegistrar 
 func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
 	if !ref.KindName.SupportsKind(DeploymentConfigKind) && !ref.KindName.SupportsKind(deploymentConfigAbbrevKind) {
 		return
-
 	}
 
 	switch ref.Deleted {
@@ -62,7 +61,8 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			return
 		}
 
-		for _, resource := range resources.Items {
+		for i := range resources.Items {
+			resource := resources.Items[i]
 			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
 			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
 		}
@@ -78,14 +78,15 @@ func DeploymentConfigModificator(engine template.Engine) new.Modificator {
 				actionCreateDeploymentConfig(ctx, ref, store, report, engine, resource)
 			case new.ActionDelete:
 				actionDeleteDeploymentConfig(ctx, ref, store, report, resource)
-			default:
+			default: // TODO Is that also relevant for new.ActionRevert?
 				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}
 	}
 }
 
-func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
+func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore,
+	report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
 	deployment, err := getDeploymentConfig(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{

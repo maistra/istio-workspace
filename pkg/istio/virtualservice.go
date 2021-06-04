@@ -73,10 +73,12 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 		if err != nil {
 			// TODO: report err outside of specific resource?
 			ctx.Log.Error(err, "failed to get all virtual services", "ref", ref.KindName.String())
+
 			return
 		}
 
-		for _, vs := range vss.Items {
+		for i := range vss.Items {
+			vs := vss.Items[i]
 			action := new.Flip(new.StatusAction(reference.GetLabel(&vs, ctx.Name)))
 			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: action})
 		}
@@ -163,7 +165,6 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", resource.Name, "host", hostName.String())})
-
 	}
 
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
@@ -208,7 +209,8 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
+func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
+	ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
 	version := new.GetVersion(store)
 	newVersion := new.GetNewVersion(store, ctx.Name)
 	target := source.DeepCopy()
@@ -225,7 +227,8 @@ func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, 
 	return *target, nil
 }
 
-func mutateConnectedVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
+func mutateConnectedVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
+	ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
 	version := new.GetVersion(store)
 	newVersion := new.GetNewVersion(store, ctx.Name)
 	target := source.DeepCopy()

@@ -149,6 +149,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		CreateTestLocatorStore2 := func(kind string) new.LocatorStore {
 			l := new.LocatorStore{}
 			l.Report(new.LocatorStatus{Kind: kind, Name: "test-ref", Namespace: "test", Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
+
 			return l
 		}
 

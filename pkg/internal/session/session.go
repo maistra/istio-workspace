@@ -195,7 +195,7 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
-	var name string
+	var name string // FIXME never set
 	var err error
 	var sessionStatus *istiov1alpha1.Session
 	duration := 1 * time.Minute
@@ -211,6 +211,7 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		if sessionStatus.Status.State != nil && *sessionStatus.Status.State == istiov1alpha1.StateSuccess {
 			return true, nil
 		}
+
 		return false, nil
 	})
 	if err != nil {

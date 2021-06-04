@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/maistra/istio-workspace/pkg/internal/session"
-
 	"emperror.dev/errors"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
 const urlHint = `Knowing your application url you can now access your new version by using

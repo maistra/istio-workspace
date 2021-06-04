@@ -140,7 +140,7 @@ type ReconcileSession struct {
 
 // WatchTypes returns a list of client.Objects to watch for changes.
 func (r ReconcileSession) WatchTypes() []client.Object {
-	var objects []client.Object
+	objects := []client.Object{}
 	for _, h := range r.manipulators.Handlers {
 		object, _ := h()
 		objects = append(objects, object)
@@ -192,7 +192,8 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	// update session.status.Route if it was not provided
 	session.Status.Route = ConvertModelRouteToAPIRoute(route)
 	session.Status.RouteExpression = session.Status.Route.String()
-	if err := r.client.Status().Update(ctx, session); err != nil {
+	err = r.client.Status().Update(ctx, session)
+	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
 
@@ -202,6 +203,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			_, mod := reg()
 			mods = append(mods, mod)
 		}
+
 		return mods
 	}
 
@@ -215,7 +217,8 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		reqLogger.Info("Added session")
 		if !session.HasFinalizer(Finalizer) {
 			session.AddFinalizer(Finalizer)
-			if err := r.client.Update(ctx, session); err != nil {
+			err = r.client.Update(ctx, session)
+			if err != nil {
 				ctx.Log.Error(err, "Failed to add finalizer on session")
 			}
 		}
@@ -225,6 +228,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	sync := n.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
 
 	for _, ref := range refs {
+		ref := ref // pin
 		sync(ctx, ref,
 			func(located n.LocatorStatusStore) bool {
 				// validate stuff
@@ -240,7 +244,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				/* updateComponent() && callEventAPI() */
 
 				addCondition(session, ref, &modified)
-				err := ctx.Client.Status().Update(ctx, session)
+				err = ctx.Client.Status().Update(ctx, session)
 				if err != nil {
 					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 				}
@@ -256,6 +260,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		session.RemoveFinalizer(Finalizer)
 		if err := r.client.Update(ctx, session); err != nil {
 			ctx.Log.Error(err, "Failed to remove finalizer on session")
+
 			return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 		}
 	} else if deleted {
@@ -270,20 +275,25 @@ func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.Sessio
 	for _, con := range session.Status.Conditions {
 		if con.Status != nil && *con.Status == "false" {
 			state = istiov1alpha1.StateFailed
+
 			break
 		}
 	}
+
 	return &state
 }
 
 func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.ModificatorStatus) {
 	getReason := func(a n.StatusAction) string {
 		switch a {
-		case n.ActionCreate, n.ActionDelete:
+		case n.ActionCreate, n.ActionDelete, n.ActionLocated:
+
 			return "Handled"
 		case n.ActionModify, n.ActionRevert:
+
 			return "Configured"
 		}
+
 		return ""
 	}
 
@@ -310,8 +320,7 @@ func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.Modific
 }
 
 func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) []n.Ref {
-	var refs []n.Ref
-
+	refs := []n.Ref{}
 	for _, ref := range session.Spec.Refs {
 		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
 		modelRef.Deleted = session.DeletionTimestamp != nil
@@ -322,11 +331,12 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 	for _, condition := range session.Status.Conditions {
 		uniqueOldRefs[condition.Target.Ref] = true
 	}
-	for key, _ := range uniqueOldRefs {
+	for key := range uniqueOldRefs {
 		found := false
 		for _, ref := range refs {
 			if ref.KindName.String() == key {
 				found = true
+
 				break
 			}
 		}
@@ -336,6 +346,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 			refs = append(refs, deletedRef)
 		}
 	}
+
 	return refs
 }
 
@@ -405,7 +416,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 //}
 
 func unique(s []string) []string {
-	var uniqueSlice []string
+	uniqueSlice := []string{}
 	entries := make(map[string]bool)
 	for _, entry := range s {
 		entries[entry] = true

@@ -21,6 +21,7 @@ func TestDesign(t *testing.T) {
 			_, mod := reg()
 			mods = append(mods, mod)
 		}
+
 		return mods
 	}
 	/*
@@ -30,6 +31,7 @@ func TestDesign(t *testing.T) {
 				t, _ := reg()
 				types = append(types, t)
 			}
+
 			return types
 		}
 	*/
@@ -47,6 +49,7 @@ func TestDesign(t *testing.T) {
 				for _, err := range errs {
 					addCondition(Condition{Type: "Validation", Reason: "Failed", Status: "false", Message: err.Error()})
 				}
+
 				return len(errs) == 0
 			},
 			func(located LocatorStatusStore) {
@@ -80,6 +83,7 @@ func ValidationChain(located []LocatorStatus, validators ...Validator) []error {
 			errs = append(errs, err)
 		}
 	}
+
 	return errs
 }
 
@@ -88,6 +92,7 @@ func IsDryRun(dryRun bool) Validator {
 		if dryRun {
 			return errors.NewPlain("In dry run mode")
 		}
+
 		return nil
 	}
 }

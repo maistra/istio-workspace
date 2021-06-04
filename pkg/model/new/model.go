@@ -94,6 +94,7 @@ func Flip(action StatusAction) StatusAction {
 	case ActionRevert:
 		return ActionModify
 	}
+
 	return ActionRevert
 }
 
@@ -216,7 +217,7 @@ func (l *LocatorStore) Clear() {
 	l.stored = []LocatorStatus{}
 }
 
-// TODO dummy impl for testing purposes.
+// ModificatorStore Dummy impl for testing purposes.
 type ModificatorStore struct {
 	Stored []ModificatorStatus
 }

@@ -26,9 +26,12 @@ import (
 type SessionState string
 
 const (
+	// StateProcessing indicates that particular action related to the session is ongoing.
 	StateProcessing SessionState = "Processing"
-	StateSuccess    SessionState = "Success"
-	StateFailed     SessionState = "Failed"
+	// StateSuccess indicates that particular action related to the session has finished successfully.
+	StateSuccess SessionState = "Success"
+	// StateFailed indicates that particular action related to the session has failed.
+	StateFailed SessionState = "Failed"
 )
 
 // SessionSpec defines the desired state of Session.
@@ -80,9 +83,9 @@ type SessionStatus struct {
 	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
 
 	// RouteExpression represents the Route object as single string expression
-	RouteExpression string   `json:"_routeExp,omitempty"`
-	Strategies      []string `json:"_strategies,omitempty"`
-	RefNames        []string `json:"_refNames,omitempty"`
+	RouteExpression string   `json:"_routeExp,omitempty"`   //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
+	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
+	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
 }
 
 // Condition .... .
@@ -194,8 +197,8 @@ func (s *Session) AddCondition(condition Condition) {
 	replaced := false
 
 	if condition.LastTransitionTime.IsZero() {
-		time := metav1.NewTime(time.Now())
-		condition.LastTransitionTime = &time
+		now := metav1.NewTime(time.Now())
+		condition.LastTransitionTime = &now
 	}
 	for i, stored := range s.Status.Conditions {
 		if stored.Target.Name == condition.Target.Name &&
@@ -208,7 +211,6 @@ func (s *Session) AddCondition(condition Condition) {
 	if !replaced {
 		s.Status.Conditions = append(s.Status.Conditions, &condition)
 	}
-
 }
 
 // +kubebuilder:object:root=true

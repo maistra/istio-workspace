@@ -55,7 +55,8 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			return
 		}
 
-		for _, resource := range resources.Items {
+		for i := range resources.Items {
+			resource := resources.Items[i]
 			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
 			report(new.LocatorStatus{Kind: DeploymentKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
 		}
@@ -78,7 +79,8 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 	}
 }
 
-func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
+func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore,
+	report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
 	deployment, err := getDeployment(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{
