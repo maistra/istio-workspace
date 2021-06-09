@@ -86,7 +86,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should find with kind", func() {
-			ref := new.Ref{KindName: new.ParseRefKindName("deployment/test-ref")}
+			ref := new.Ref{Namespace: "test", KindName: new.ParseRefKindName("deployment/test-ref")}
 			store := CreateTestLocatorStore()
 			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
 			Expect(store.Store(k8s.DeploymentKind)).To(HaveLen(1))
