@@ -236,13 +236,14 @@ var _ = Describe("Complete session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
+				// Then - same Gateways Hosts still connected, ref01 still need them
+				gw = get.Gateway("test", "test-gateway")
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+
 				// Then - no vs removed (only gateway connected duplicated)
 				vss = get.VirtualServices("test")
 				Expect(vss.Items).To(HaveLen(4))
 
-				// Then - same Gateways Hosts still connected, ref01 still need them
-				gw = get.Gateway("test", "test-gateway")
-				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 			})
 
 			It("should mutate all refs added to Session", func() {

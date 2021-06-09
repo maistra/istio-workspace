@@ -1,9 +1,7 @@
 package istio_test
 
 import (
-	"context"
 	"fmt"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,7 +9,6 @@ import (
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -19,7 +16,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model/new"
-	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
 
@@ -251,31 +247,3 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		})
 	})
 })
-
-func TestX(t *testing.T) {
-	kubeCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		clientcmd.NewDefaultClientConfigLoadingRules(),
-		&clientcmd.ConfigOverrides{},
-	)
-	restCfg, err := kubeCfg.ClientConfig()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	schema := runtime.NewScheme()
-	istionetwork.AddToScheme(schema)
-
-	c, err := client.New(restCfg, client.Options{Scheme: schema})
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	ctx := new.SessionContext{Client: c, Context: context.Background()}
-
-	resources, err := istio.GetDestinationRules(ctx, "aslak-test", reference.Match("test"))
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(resources)
-}

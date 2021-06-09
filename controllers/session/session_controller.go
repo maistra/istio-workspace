@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -347,6 +348,15 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 		}
 	}
 
+	sort.SliceStable(refs, func(i, j int) bool {
+		if refs[i].Deleted && !refs[j].Deleted {
+			return true
+		}
+		if !refs[i].Deleted && refs[j].Deleted {
+			return false
+		}
+		return true
+	})
 	return refs
 }
 
