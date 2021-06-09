@@ -70,11 +70,11 @@ type StatusAction string
 const (
 	// ActionCreate imply the whole Named Kind should be created.
 	ActionCreate StatusAction = "create"
-	// ActionCreate imply the whole Named Kind was created and should be deleted.
+	// ActionDelete imply the whole Named Kind was created and should be deleted.
 	ActionDelete StatusAction = "delete"
 	// ActionModify imply the Named Kind should be modified.
 	ActionModify StatusAction = "modify"
-	// ActionModify imply the Named Kind was modified and should be reverted to original state.
+	// ActionRevert imply the Named Kind was modified and should be reverted to original state.
 	ActionRevert StatusAction = "revert"
 	// ActionLocated imply the resource was found, but nothing was changed.
 	ActionLocated StatusAction = "located"
