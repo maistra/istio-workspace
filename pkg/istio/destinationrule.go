@@ -151,6 +151,7 @@ func locateDestinationRuleWithSubset(ctx new.SessionContext, namespace string, h
 		return nil, errors.WrapWithDetails(err, "failed to get destinationrules in namespace", "namespace", namespace)
 	}
 	for _, dr := range destinationRules.Items { //nolint:gocritic //reason for readability
+		dr := dr
 		if hostName.Match(dr.Spec.Host) {
 			subset := locateSubset(&dr, targetVersion)
 			if subset != nil {
