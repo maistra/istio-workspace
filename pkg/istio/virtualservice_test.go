@@ -457,7 +457,7 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Namespace: "test",
 					}
 					locators = new.LocatorStore{}
-					locators.Report(new.LocatorStatus{Kind: "Deployment", Namespace: "test", Name: "details-v1", Labels: map[string]string{"version": "v1"}})
+					locators.Report(new.LocatorStatus{Kind: "Deployment", Namespace: "test", Name: "details-v1", Labels: map[string]string{"version": new.GetSha("v1") + "-vs-test"}})
 					locators.Report(new.LocatorStatus{Kind: "Service", Namespace: "test", Name: "details"})
 					locators.Report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: "test", Name: "details", Action: new.ActionRevert, Labels: map[string]string{"host": "details"}})
 					modificators = new.ModificatorStore{}
