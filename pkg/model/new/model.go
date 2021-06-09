@@ -96,6 +96,7 @@ func Flip(action StatusAction) StatusAction {
 	case ActionLocated:
 		return ActionLocated
 	}
+
 	return ActionRevert
 }
 

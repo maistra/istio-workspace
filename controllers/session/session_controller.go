@@ -165,7 +165,7 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
-func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) { //nolint:cyclop,gocyclo //reason WIP
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
@@ -257,14 +257,13 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 	}
 
-	if deleted && *session.Status.State == istiov1alpha1.StateSuccess {
-		session.RemoveFinalizer(Finalizer)
-		if err := r.client.Update(ctx, session); err != nil {
-			ctx.Log.Error(err, "Failed to remove finalizer on session")
-
-			return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
+	if deleted {
+		if *session.Status.State == istiov1alpha1.StateSuccess {
+			session.RemoveFinalizer(Finalizer)
+			if err := r.client.Update(ctx, session); err != nil {
+				ctx.Log.Error(err, "Failed to remove finalizer on session")
+			}
 		}
-	} else if deleted {
 		return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
@@ -355,8 +354,10 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 		if !refs[i].Deleted && refs[j].Deleted {
 			return false
 		}
+
 		return true
 	})
+
 	return refs
 }
 

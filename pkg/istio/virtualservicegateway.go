@@ -3,6 +3,9 @@ package istio
 import (
 	"strings"
 
+	"istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
+
 	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
@@ -30,18 +33,11 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 						continue
 					}
 
-					var existingHosts []string
-					if hosts := gw.Annotations[LabelIkeHosts]; hosts != "" {
-						existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
-					}
+					existingHosts := extractExistingHosts(gw)
 
 					var hosts []string
 					for _, server := range gw.Spec.Servers {
-						for _, host := range server.Hosts {
-							if !existInList(existingHosts, host) {
-								hosts = append(hosts, host)
-							}
-						}
+						hosts = findNewHosts(server, existingHosts, hosts)
 					}
 
 					report(new.LocatorStatus{
@@ -66,4 +62,23 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gw.Name, Action: action})
 		}
 	}
+}
+
+func findNewHosts(server *v1alpha3.Server, existingHosts, hosts []string) []string {
+	for _, host := range server.Hosts {
+		if !existInList(existingHosts, host) {
+			hosts = append(hosts, host)
+		}
+	}
+
+	return hosts
+}
+
+func extractExistingHosts(gw *istionetwork.Gateway) []string {
+	var existingHosts []string
+	if hosts := gw.Annotations[LabelIkeHosts]; hosts != "" {
+		existingHosts = strings.Split(hosts, ",") // split on empty string return empty (len(1))
+	}
+
+	return existingHosts
 }

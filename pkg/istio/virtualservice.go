@@ -51,22 +51,8 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 		targetVersion := new.GetVersion(store)
 
 		for _, hostName := range new.GetTargetHostNames(store) {
-			for _, vs := range vss.Items { //nolint:gocritic //reason for readability
-				_, connected := connectedToGateway(vs)
-
-				if !connected || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
-					continue
-				}
-
-				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionCreate, Labels: map[string]string{"host": hostName.String()}})
-			}
-			for _, vs := range vss.Items { //nolint:gocritic //reason for readability
-				if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, new.GetNewVersion(store, ctx.Name)) {
-					continue
-				}
-
-				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionModify, Labels: map[string]string{"host": hostName.String()}})
-			}
+			reportVsToBeCreated(vss, report, hostName)
+			reportVsToBeModified(ctx, vss, hostName, targetVersion, store, report)
 		}
 	case true:
 		vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(ctx.Name))
@@ -82,6 +68,30 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			action := new.Flip(new.StatusAction(reference.GetLabel(&vs, ctx.Name)))
 			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: action})
 		}
+	}
+}
+
+func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.LocatorStatusReporter, hostName new.HostName) {
+	for i := range vss.Items {
+		vs := vss.Items[i]
+		_, connected := connectedToGateway(vs)
+
+		if !connected || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
+			continue
+		}
+
+		report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionCreate, Labels: map[string]string{"host": hostName.String()}})
+	}
+}
+
+func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServiceList, hostName new.HostName, targetVersion string, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+	for i := range vss.Items {
+		vs := vss.Items[i]
+		if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, new.GetNewVersion(store, ctx.Name)) {
+			continue
+		}
+
+		report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionModify, Labels: map[string]string{"host": hostName.String()}})
 	}
 }
 
