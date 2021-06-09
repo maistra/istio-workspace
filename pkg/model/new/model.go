@@ -93,8 +93,9 @@ func Flip(action StatusAction) StatusAction {
 		return ActionRevert
 	case ActionRevert:
 		return ActionModify
+	case ActionLocated:
+		return ActionLocated
 	}
-
 	return ActionRevert
 }
 

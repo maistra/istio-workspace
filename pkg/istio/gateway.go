@@ -33,7 +33,7 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 			actionModifyGateway(ctx, ref, store, report, resource)
 		case new.ActionRevert:
 			actionRevertGateway(ctx, ref, store, report, resource)
-		default:
+		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}

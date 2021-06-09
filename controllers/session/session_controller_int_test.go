@@ -186,7 +186,7 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 		})
 
-		FContext("when there are multiple refs in a session", func() {
+		Context("when there are multiple refs in a session", func() {
 			It("should sync shared resources on delete", func() {
 				req1 := reconcile.Request{
 					NamespacedName: types.NamespacedName{

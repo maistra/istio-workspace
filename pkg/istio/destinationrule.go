@@ -65,7 +65,7 @@ func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.L
 			actionCreateDestinationRule(ctx, ref, store, report, resource)
 		case new.ActionDelete:
 			actionDeleteDestinationRule(ctx, ref, store, report, resource)
-		default:
+		case new.ActionModify, new.ActionRevert, new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}

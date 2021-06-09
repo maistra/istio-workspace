@@ -97,6 +97,8 @@ func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.Lo
 			actionModifyVirtualService(ctx, ref, store, report, resource)
 		case new.ActionRevert:
 			actionRevertVirtualService(ctx, ref, store, report, resource)
+		case new.ActionLocated:
+			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }

@@ -78,7 +78,7 @@ func DeploymentConfigModificator(engine template.Engine) new.Modificator {
 				actionCreateDeploymentConfig(ctx, ref, store, report, engine, resource)
 			case new.ActionDelete:
 				actionDeleteDeploymentConfig(ctx, ref, store, report, resource)
-			default: // TODO Is that also relevant for new.ActionRevert?
+			case new.ActionModify, new.ActionRevert, new.ActionLocated:
 				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}

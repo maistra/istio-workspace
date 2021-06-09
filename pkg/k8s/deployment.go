@@ -72,7 +72,7 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 				actionCreateDeployment(ctx, ref, store, report, engine, resource)
 			case new.ActionDelete:
 				actionDeleteDeployment(ctx, ref, store, report, resource)
-			default:
+			case new.ActionModify, new.ActionRevert, new.ActionLocated:
 				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}
