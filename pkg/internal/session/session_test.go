@@ -236,8 +236,8 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 			}
 			for _, ref := range sess.Spec.Refs {
 				found := false
-				for _, status := range sess.Status.Refs {
-					if status.Name == ref.Name {
+				for _, status := range sess.Status.Conditions {
+					if status.Target.Ref == ref.Name {
 						found = true
 					}
 				}
@@ -246,20 +246,16 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 				}
 				kind := "Deployment"
 				name := "test-deployment-clone"
-				action := "created"
-				sess.Status.Refs = append(sess.Status.Refs, &istiov1alpha1.RefStatus{
-					Ref: istiov1alpha1.Ref{
-						Name: ref.Name,
-					},
-					Resources: []*istiov1alpha1.RefResource{
-						{
-							Kind:   &kind,
-							Name:   &name,
-							Action: &action,
-						},
+				sess.Status.Conditions = append(sess.Status.Conditions, &istiov1alpha1.Condition{
+					Target: istiov1alpha1.Target{
+						Ref:  ref.Name,
+						Kind: kind,
+						Name: name,
 					},
 				})
 			}
+			success := istiov1alpha1.StateSuccess
+			sess.Status.State = &success
 			updateErr := c.Update(sess)
 			Expect(updateErr).ToNot(HaveOccurred())
 		}

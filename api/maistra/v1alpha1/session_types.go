@@ -110,37 +110,6 @@ type Target struct {
 	Kind string `json:"kind"`
 }
 
-// RefResource is an external Resource that has been manipulated in some way.
-// +k8s:openapi-gen=true
-type RefResource struct {
-	// The Resource Kind
-	Kind *string `json:"kind,omitempty"`
-	// The Resource Name
-	Name *string `json:"name,omitempty"`
-	// The Action that was performed, e.g. created, failed, manipulated
-	Action *string `json:"action,omitempty"`
-	// LastTransitionTime is the last time this action was applied
-	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
-	// +optional
-	// Additional properties for special Resources, e.g. hosts for Gateways
-	Prop map[string]string `json:"prop,omitempty"`
-	// Human readable reason for the change
-	Message *string `json:"message,omitempty"`
-	// Programmatic reason for the change
-	Reason *string `json:"reason,omitempty"`
-	// Boolean value to indicate success
-	Status *string `json:"status,omitempty"`
-	// The type of change
-	Type *string `json:"type,omitempty"`
-}
-
-// LabeledRefResource is a RefResource with Labels.
-// +k8s:openapi-gen=true
-type LabeledRefResource struct {
-	RefResource `json:",inline"`
-	Labels      map[string]string `json:"labels"`
-}
-
 // +genclient
 // +genclient:noStatus
 // +k8s:openapi-gen=true
