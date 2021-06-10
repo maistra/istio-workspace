@@ -3,6 +3,7 @@ package istio
 import (
 	"strings"
 
+	"emperror.dev/errors"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
@@ -18,18 +19,22 @@ const (
 var _ new.Locator = VirtualServiceGatewayLocator
 
 // VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
-func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+	var errs error
 	switch ref.Deleted {
 	case false:
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
-			return
+			return err
 		}
-		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
+		for i := range vss.Items {
+			vs := vss.Items[i]
 			if gateways, connected := connectedToGateway(vs); connected {
 				for _, gwName := range gateways {
 					gw, err := getGateway(ctx, ctx.Namespace, gwName)
 					if err != nil {
+						errs = errors.Append(errs, err)
+
 						continue
 					}
 
@@ -51,9 +56,7 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 	case true:
 		gws, err := getGateways(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
-			// TODO: report err outside of specific resource?
-
-			return
+			return err
 		}
 
 		for i := range gws.Items {
@@ -62,6 +65,8 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			report(new.LocatorStatus{Kind: GatewayKind, Namespace: gw.Namespace, Name: gw.Name, Action: action})
 		}
 	}
+
+	return errors.Wrapf(errs, "failed locating the Gateways that are connected to VirtualServices %s", ref.KindName.String())
 }
 
 func findNewHosts(server *v1alpha3.Server, existingHosts, hosts []string) []string {

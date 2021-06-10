@@ -27,13 +27,15 @@ func DestinationRuleRegistrar() (client.Object, new.Modificator) {
 	return &istionetwork.DestinationRule{}, DestinationRuleModificator
 }
 
-func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+	var errs error
+
 	switch ref.Deleted {
 	case false:
 		for _, hostName := range new.GetTargetHostNames(store) {
 			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, new.GetVersion(store))
 			if err != nil {
-				// TODO: report non found subset as a Locator Status??
+				errs = errors.Append(errs, err)
 
 				continue
 			}
@@ -43,10 +45,9 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 	case true:
 		resources, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
-			// TODO: report err outside of specific resource?
 			ctx.Log.Error(err, "failed to get all destination rules", "ref", ref.KindName.String())
 
-			return
+			return err
 		}
 		for i := range resources.Items {
 			resource := resources.Items[i]
@@ -54,6 +55,8 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
 		}
 	}
+
+	return errors.Wrapf(errs, "failed locating destination rule %s", ref.KindName.String())
 }
 
 // DestinationRuleModificator creates destination rule mutator which is responsible for alternating the traffic for development

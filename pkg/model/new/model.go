@@ -157,7 +157,7 @@ type LocatorStatusReporter func(LocatorStatus)
 type LocatedReporter func(LocatorStatusStore)
 type LocatorStatusStore func(kind ...string) []LocatorStatus
 
-type Locator func(context SessionContext, ref Ref, store LocatorStatusStore, reporter LocatorStatusReporter)
+type Locator func(context SessionContext, ref Ref, store LocatorStatusStore, reporter LocatorStatusReporter) error
 
 type ModificatorStatusReporter func(ModificatorStatus)
 
@@ -344,12 +344,16 @@ func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 	return func(context SessionContext, ref Ref, modify ModificatorController, locatedReporter LocatedReporter, modificationReporter ModificatorStatusReporter) {
 		located := LocatorStore{}
 		for _, locator := range locators {
-			locator(
+			err := locator(
 				context,
 				ref,
 				located.Store,
 				located.Report,
 			)
+
+			if err != nil {
+				// TODO what do we do here?
+			}
 		}
 		if !modify(located.Store) {
 			return

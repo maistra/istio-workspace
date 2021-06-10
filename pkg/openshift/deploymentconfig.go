@@ -35,9 +35,9 @@ func DeploymentConfigRegistrar(engine template.Engine) new.ModificatorRegistrar 
 }
 
 // DeploymentConfigLocator attempts to locate a DeploymentConfig kind based on Ref name.
-func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	if !ref.KindName.SupportsKind(DeploymentConfigKind) && !ref.KindName.SupportsKind(deploymentConfigAbbrevKind) {
-		return
+		return nil
 	}
 
 	switch ref.Deleted {
@@ -46,19 +46,17 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.KindName.Name)
 		if err != nil {
 			if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type
-				return
+				return nil
 			}
 			ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
 
-			return
+			return err
 		}
 		report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
 		resources, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
-			// TODO: report err outside of specific resource?
-
-			return
+			return err
 		}
 
 		for i := range resources.Items {
@@ -67,6 +65,8 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
 		}
 	}
+
+	return nil
 }
 
 // DeploymentConfigModificator attempts to clone the located Deployment.

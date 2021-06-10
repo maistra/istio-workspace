@@ -17,14 +17,14 @@ const (
 var _ new.Locator = ServiceLocator
 
 // ServiceLocator attempts to locate the Services for the target Deployment/DeploymentConfig.
-func ServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func ServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	deployments := store("Deployment", "DeploymentConfig")
 
 	services, err := getServices(ctx, ctx.Namespace)
 	if err != nil {
 		ctx.Log.Error(err, "could not get Services")
 
-		return
+		return err
 	}
 	for _, deployment := range deployments {
 		for _, service := range services.Items { //nolint:gocritic //reason for readability
@@ -40,6 +40,8 @@ func ServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatus
 			}
 		}
 	}
+
+	return nil
 }
 
 func getServices(ctx new.SessionContext, namespace string) (*corev1.ServiceList, error) {

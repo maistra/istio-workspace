@@ -29,9 +29,9 @@ func DeploymentRegistrar(engine template.Engine) new.ModificatorRegistrar {
 }
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name.
-func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	if !ref.KindName.SupportsKind(DeploymentKind) {
-		return
+		return nil
 	}
 
 	switch ref.Deleted {
@@ -39,20 +39,18 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 		deployment, err := getDeployment(ctx, ref.Namespace, ref.KindName.Name)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) { // Ref is not a Deployment type
-				return
+				return nil
 			}
 			ctx.Log.Error(err, "Could not get Deployment", "name", deployment.Name)
 
-			return
+			return err
 		}
 
 		report(new.LocatorStatus{Kind: DeploymentKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	case true:
 		resources, err := getDeployments(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
-			// TODO: report err outside of specific resource?
-
-			return
+			return err
 		}
 
 		for i := range resources.Items {
@@ -61,6 +59,8 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			report(new.LocatorStatus{Kind: DeploymentKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
 		}
 	}
+
+	return nil
 }
 
 // DeploymentModificator attempts to clone the located Deployment.
