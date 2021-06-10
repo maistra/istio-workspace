@@ -1,4 +1,4 @@
-package new
+package new_test
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
+
+	. "github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 func TestDesign(t *testing.T) {

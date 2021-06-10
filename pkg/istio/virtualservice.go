@@ -96,24 +96,24 @@ func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServi
 }
 
 // VirtualServiceModificator attempts to create a virtual service for forked service.
-func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) { 
 	for _, resource := range store(VirtualServiceKind) {
 		switch resource.Action {
 		case new.ActionCreate:
-			actionCreateVirtualService(ctx, ref, store, report, resource)
+			actionCreateVirtualService(ctx, store, report, resource)
 		case new.ActionDelete:
-			actionDeleteVirtualService(ctx, ref, store, report, resource)
+			actionDeleteVirtualService(ctx, report, resource)
 		case new.ActionModify:
-			actionModifyVirtualService(ctx, ref, store, report, resource)
+			actionModifyVirtualService(ctx, store, report, resource)
 		case new.ActionRevert:
-			actionRevertVirtualService(ctx, ref, store, report, resource)
+			actionRevertVirtualService(ctx, store, report, resource)
 		case new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }
 
-func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionCreateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -123,7 +123,7 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 	hostName := new.ParseHostName(resource.Labels["host"])
 
-	mutatedVs := mutateConnectedVirtualService(ctx, store, ref, hostName, *vs)
+	mutatedVs := mutateConnectedVirtualService(ctx, store, hostName, *vs)
 
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
@@ -142,7 +142,7 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionDeleteVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionDeleteVirtualService(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs := istionetwork.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resource.Name,
@@ -161,7 +161,7 @@ func actionDeleteVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionModifyVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -171,7 +171,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 	hostName := new.ParseHostName(resource.Labels["host"])
 
-	mutatedVs, err := mutateVirtualService(ctx, store, ref, hostName, *vs)
+	mutatedVs, err := mutateVirtualService(ctx, store, hostName, *vs)
 	if err != nil {
 		report(new.ModificatorStatus{
 			LocatorStatus: resource,
@@ -196,7 +196,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionRevertVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -222,7 +222,7 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 }
 
 func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
-	ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
+	hostName new.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
 	version := new.GetVersion(store)
 	newVersion := new.GetNewVersion(store, ctx.Name)
 	target := source.DeepCopy()
@@ -240,13 +240,13 @@ func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
 }
 
 func mutateConnectedVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
-	ref new.Ref, hostName new.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
+	hostName new.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
 	version := new.GetVersion(store)
 	newVersion := new.GetNewVersion(store, ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	gateways, _ := connectedToGateway(*target)
-	hosts := getHostsFromRef(ctx, store, gateways, ref)
+	hosts := getHostsFromGateway(ctx, store, gateways)
 
 	target.SetName(target.Name + "-" + ctx.Name)
 	target.Spec.Hosts = hosts
@@ -429,7 +429,7 @@ func removeWeight(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
 	return http
 }
 
-func getHostsFromRef(ctx new.SessionContext, store new.LocatorStatusStore, gateways []string, ref new.Ref) []string {
+func getHostsFromGateway(ctx new.SessionContext, store new.LocatorStatusStore, gateways []string) []string {
 	var hosts []string
 	gwByName := func(store new.LocatorStatusStore, gatewayName string) []new.LocatorStatus {
 		var f []new.LocatorStatus

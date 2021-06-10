@@ -264,7 +264,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				ctx.Log.Error(err, "Failed to remove finalizer on session")
 			}
 		}
-		
+
 		return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 

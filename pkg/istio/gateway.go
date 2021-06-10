@@ -30,16 +30,16 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 	for _, resource := range store(GatewayKind) {
 		switch resource.Action {
 		case new.ActionModify:
-			actionModifyGateway(ctx, ref, store, report, resource)
+			actionModifyGateway(ctx, report, resource)
 		case new.ActionRevert:
-			actionRevertGateway(ctx, ref, store, report, resource)
+			actionRevertGateway(ctx, report, resource)
 		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }
 
-func actionModifyGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionModifyGateway(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -74,7 +74,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorS
 	})
 }
 
-func actionRevertGateway(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionRevertGateway(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean

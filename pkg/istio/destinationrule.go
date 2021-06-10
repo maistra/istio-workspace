@@ -64,7 +64,7 @@ func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.L
 		case new.ActionCreate:
 			actionCreateDestinationRule(ctx, ref, store, report, resource)
 		case new.ActionDelete:
-			actionDeleteDestinationRule(ctx, ref, store, report, resource)
+			actionDeleteDestinationRule(ctx, report, resource)
 		case new.ActionModify, new.ActionRevert, new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
@@ -121,7 +121,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionDeleteDestinationRule(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	dr := istionetwork.DestinationRule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resource.Name,

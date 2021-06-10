@@ -71,7 +71,7 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 			case new.ActionCreate:
 				actionCreateDeployment(ctx, ref, store, report, engine, resource)
 			case new.ActionDelete:
-				actionDeleteDeployment(ctx, ref, store, report, resource)
+				actionDeleteDeployment(ctx, report, resource)
 			case new.ActionModify, new.ActionRevert, new.ActionLocated:
 				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
@@ -131,7 +131,7 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionDeleteDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionDeleteDeployment(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: ctx.Namespace},
 	}
