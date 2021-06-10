@@ -84,7 +84,8 @@ func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.Locato
 	}
 }
 
-func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServiceList, hostName new.HostName, targetVersion string, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServiceList, hostName new.HostName,
+	targetVersion string, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
 	for i := range vss.Items {
 		vs := vss.Items[i]
 		if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, new.GetNewVersion(store, ctx.Name)) {
@@ -96,7 +97,7 @@ func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServi
 }
 
 // VirtualServiceModificator attempts to create a virtual service for forked service.
-func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) { 
+func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
 	for _, resource := range store(VirtualServiceKind) {
 		switch resource.Action {
 		case new.ActionCreate:
