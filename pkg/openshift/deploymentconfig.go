@@ -40,9 +40,7 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		return nil
 	}
 
-	switch ref.Deleted {
-	case false:
-
+	if !ref.Deleted {
 		deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.KindName.Name)
 		if err != nil {
 			if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type
@@ -53,7 +51,7 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			return err
 		}
 		report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
-	case true:
+	} else {
 		resources, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
 			return err

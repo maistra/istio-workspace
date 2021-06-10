@@ -21,8 +21,7 @@ var _ new.Locator = VirtualServiceGatewayLocator
 // VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
 func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	var errs error
-	switch ref.Deleted {
-	case false:
+	if !ref.Deleted {
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
 			return err
@@ -53,7 +52,7 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 				}
 			}
 		}
-	case true:
+	} else {
 		gws, err := getGateways(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
 			return err

@@ -30,8 +30,7 @@ func DestinationRuleRegistrar() (client.Object, new.Modificator) {
 func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	var errs error
 
-	switch ref.Deleted {
-	case false:
+	if !ref.Deleted {
 		for _, hostName := range new.GetTargetHostNames(store) {
 			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, new.GetVersion(store))
 			if err != nil {
@@ -42,7 +41,7 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: dr.Namespace, Name: dr.Name, Action: new.ActionCreate})
 		}
-	case true:
+	} else {
 		resources, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
 			ctx.Log.Error(err, "failed to get all destination rules", "ref", ref.KindName.String())

@@ -38,8 +38,7 @@ func VirtualServiceRgistrar() (client.Object, new.Modificator) {
 }
 
 func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-	switch ref.Deleted {
-	case false:
+	if !ref.Deleted {
 		// TODO: expand VirtualService Tests with connected vs where not directly triggering a host route?
 		// TODO: Connected GW ignores hostName during find??
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
@@ -52,7 +51,7 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			reportVsToBeCreated(vss, report, hostName)
 			reportVsToBeModified(ctx, vss, hostName, targetVersion, store, report)
 		}
-	case true:
+	} else {
 		vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(ctx.Name))
 		if err != nil {
 			ctx.Log.Error(err, "failed to get all virtual services", "ref", ref.KindName.String())
