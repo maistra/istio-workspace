@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
@@ -33,7 +33,7 @@ func NewCmd() *cobra.Command {
 				fmt.Println(string(b))
 			}
 
-			return errors.Wrapf(err, "failed executing %s command", cmd.Name())
+			return errors.WrapIf(err, "failed executing command")
 		},
 	}
 

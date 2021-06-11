@@ -37,7 +37,7 @@ func CreateOperatorAwareLogger(name string) logr.Logger {
 	return CreateOperatorAwareLoggerWithLevel(name, level)
 }
 
-// CreateOperatorAwareLogger will set logging format to JSON when ran as operator or plain text when used as CLI.
+// CreateOperatorAwareLoggerWithLevel will set logging format to JSON when ran as operator or plain text when used as CLI.
 func CreateOperatorAwareLoggerWithLevel(name string, level zapcore.Level) logr.Logger {
 	var opts []zap.Option
 	var enc zapcore.Encoder
@@ -57,7 +57,7 @@ func CreateOperatorAwareLoggerWithLevel(name string, level zapcore.Level) logr.L
 	log := zap.New(zapcore.NewCore(encoder, sink, zap.NewAtomicLevelAt(level)))
 	log = log.Named(name).WithOptions(opts...)
 
-	return zapr2.NewLogger(log)
+	return Emperror{zapr2.NewLogger(log)}
 }
 
 func configureCliLogging() (zapcore.Encoder, []zap.Option) {

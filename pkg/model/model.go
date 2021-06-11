@@ -68,7 +68,7 @@ func (r RefKindName) String() string {
 	return r.Kind + "/" + r.Name
 }
 
-// From parses a String() representation into a Object.
+// ParseRefKindName parses a String() representation into a Object.
 func ParseRefKindName(exp string) RefKindName {
 	trimmedExp := strings.TrimSpace(strings.ToLower(exp))
 	parts := strings.Split(trimmedExp, "/")
@@ -164,6 +164,15 @@ func (h *HostName) Match(name string) bool {
 	equalsFullDNSName := fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local") == name
 
 	return equalsShortName || equalsFullDNSName
+}
+
+// String returns the String representation of a HostName.
+func (h *HostName) String() string {
+	if h.Namespace != "" {
+		return fmt.Sprint(h.Name, ".", h.Namespace, ".svc.cluster.local")
+	}
+
+	return h.Name
 }
 
 // GetTargetHostNames returns a list of Host names that the target Deployment can be reached under.

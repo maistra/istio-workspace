@@ -3,7 +3,7 @@ package istio
 import (
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,12 +42,14 @@ func (d gatewayManipulator) Revert() model.Revertor {
 
 // GatewayMutator attempts to expose a external host on the gateway.
 func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
+	var errs []error
 	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
 		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
+			errs = append(errs, err)
 
-			return err
+			continue
 		}
 
 		ctx.Log.Info("Found Gateway", "name", gw.Name)
@@ -59,8 +61,9 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
+			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
 
-			return errors.Wrap(err, "failed updating gateway")
+			continue
 		}
 
 		ref.AddResourceStatus(model.ResourceStatus{
@@ -73,22 +76,26 @@ func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
 			}})
 	}
 
-	return nil
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to manipulate gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
 // GatewayRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
 func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
+	var errs []error
 	resources := ref.GetResources(model.Kind(GatewayKind))
 
 	for _, resource := range resources {
 		gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				break
+				continue
 			}
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
+			errs = append(errs, err)
 
-			break
+			continue
 		}
 
 		ctx.Log.Info("Found Gateway", "name", resource.Name)
@@ -99,14 +106,17 @@ func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		err = ctx.Client.Update(ctx, &mutatedGw)
 		if err != nil {
 			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
+			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
 
-			break
+			continue
 		}
 		// ok, removed
 		ref.RemoveResourceStatus(model.NewSuccessResource(GatewayKind, resource.Name, resource.Action))
 	}
 
-	return nil
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to reverting gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
 func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
@@ -180,7 +190,7 @@ func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 
-	return &Gateway, errors.Wrapf(err, "failed finding gateway %s in namespace %s", name, namespace)
+	return &Gateway, errors.WrapWithDetails(err, "failed finding gateway in namespace", "name", name, "namespace", namespace)
 }
 
 func existInList(hosts []string, host string) bool {

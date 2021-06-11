@@ -1,14 +1,15 @@
 package session
 
 import (
-	"fmt"
 	"os/user"
+	"regexp"
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
@@ -20,7 +21,7 @@ var (
 	logger = func() logr.Logger {
 		return log.Log.WithValues("type", "session")
 	}
-	errorWrongRouteFormat = fmt.Errorf("route in wrong format. expected type:name=value")
+	errorWrongRouteFormat = errors.Sentinel("route in wrong format. expected type:name=value")
 )
 
 // Options holds the variables used by the Session Handler.
@@ -94,11 +95,13 @@ func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocr
 //  * session - the name of the session
 //  * route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
-	sessionName := getOrCreateSessionName(opts.SessionName)
+	sessionName, err := getOrCreateSessionName(opts.SessionName)
+	if err != nil {
+		return State{}, func() {}, err
+	}
 	opts.SessionName = sessionName
 
-	h := &handler{c: client,
-		opts: opts}
+	h := &handler{c: client, opts: opts}
 
 	session, serviceName, err := h.createOrJoinSession()
 	if err != nil {
@@ -230,8 +233,6 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		return false, nil
 	})
 	if err != nil {
-		logger().Error(err, "failed waiting for deployment to create")
-
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 
@@ -262,17 +263,32 @@ func (h *handler) removeOrLeaveSession() {
 	}
 }
 
-func getOrCreateSessionName(sessionName string) string {
+var nonAlphaNumeric = regexp.MustCompile("[^A-Za-z0-9]+")
+
+func getOrCreateSessionName(sessionName string) (string, error) {
 	if sessionName != "" {
-		return sessionName
-	}
-	random := naming.RandName(5)
-	u, err := user.Current()
-	if err != nil {
-		return random
+		namingErrors := validation.IsDNS1123Label(sessionName)
+		if len(namingErrors) != 0 {
+			var errs []error
+			for _, namingError := range namingErrors {
+				errs = append(errs, errors.New(namingError))
+			}
+
+			return "", errors.WrapIfWithDetails(errors.Combine(errs...), "your suggested session name is not a valid k8s value", "name", sessionName)
+		}
 	}
 
-	return u.Username + "-" + random
+	if sessionName == "" {
+		random := naming.RandName(5)
+		u, err := user.Current()
+		if err != nil {
+			sessionName = random
+		} else {
+			sessionName = naming.ConcatToMax(63, "user", u.Username, random)
+		}
+	}
+
+	return nonAlphaNumeric.ReplaceAllString(sessionName, "-"), nil
 }
 
 // ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.

@@ -3,9 +3,9 @@ package testclient
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
-	"github.com/pkg/errors"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"

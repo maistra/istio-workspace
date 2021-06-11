@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 // GetBodyWithHeaders calls GET on a given URL with a specific set request headers
@@ -23,7 +23,7 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", errors.Wrap(err, "failed executing HTTP call")
+		return "", errors.WrapWithDetails(err, "failed executing HTTP call", "url", req.URL.String())
 	}
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)

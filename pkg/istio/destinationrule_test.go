@@ -1,6 +1,8 @@
 package istio_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
@@ -159,6 +161,23 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy).ToNot(BeNil())
 				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy.ConnectionPool.Http.MaxRetries).To(Equal(int32(100)))
+			})
+		})
+
+		Context("missing rule", func() {
+
+			It("should fail when no rules found", func() {
+				ref := &model.Ref{
+					KindName: model.ParseRefKindName("customer-v5"),
+					Targets: []model.LocatedResourceStatus{
+						model.NewLocatedResource("Deployment", "customer-v5", map[string]string{"version": "v5"}),
+						model.NewLocatedResource("Service", "customer-missing", nil),
+					},
+				}
+				err := istio.DestinationRuleMutator(ctx, ref)
+				Expect(err).To(HaveOccurred())
+				fmt.Println(err)
+				Expect(err.Error()).To(ContainSubstring("failed finding subset with given host and version"))
 			})
 		})
 	})

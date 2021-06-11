@@ -27,7 +27,7 @@ var _ = Describe("Session operations", func() {
 			updateRemover func()
 		)
 		BeforeEach(func() {
-			duration := 10 * time.Millisecond
+			duration := 100 * time.Millisecond
 			opts = session.Options{
 				NamespaceName:  "test-namespace",
 				SessionName:    "test-session",
@@ -45,7 +45,7 @@ var _ = Describe("Session operations", func() {
 		})
 		Context("create", func() {
 
-			It("should create a new session if non found", func() {
+			It("should create a new session if none found", func() {
 				// given - no exiting sessions
 				// when - adding a ref to a session
 				_, remove, err := session.CreateOrJoinHandler(opts, client)

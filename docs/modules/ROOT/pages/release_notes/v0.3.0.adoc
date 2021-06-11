@@ -1,0 +1,55 @@
+== Highlights of v0.3.0 release
+
+The main focus of this release has been to improve error handling and bug fixes.
+
+=== Mutate Virtual Services connected to a Gateway
+
+We fixed a bug reported by our new friend https://github.com/jorgermp[Jorge Martinez] that came into play when
+trying to `develop` on a `service` that is connected to a Gateway. Simply put we handled the cases differently if it was connected
+and not. A Connected service was implied to only create a new 'subdomain' handler to support the custom domains, while a non connected one would
+support the header matches. Now this is changed so a connected service supports both, allowing you to `develop` exposed and internal services.
+
+=== The Session Name is now validated to follow RFC 1123
+
+The session name is used as part of the sub domains that are created and needs to follow
+the DNS naming spec. We now validate that it does before failing later. :)
+
+=== Changed to use emperror for more detailed errors
+
+With https://github.com/emperror/emperror[emperror] we've got the ability to attach contextual metadata to the errors which 
+should make it easier to figure out what is wrong. 
+
+=== All changes in this release
+
+// changelog:generate
+==== Build System Integration
+
+===== New features
+* feat(log): introduce emperror for errors with details (https://github.com/maistra/istio-workspace/pull/837[#837]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+
+==== Command line
+
+
+===== Bugs
+* fix: wrapped ike command uses full path of the parent cmd (https://github.com/maistra/istio-workspace/pull/831[#831]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* fix(session): makes sure session name follows RFC 1123 (https://github.com/maistra/istio-workspace/pull/835[#835]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Operator
+
+
+===== Bugs
+* fix(operator): mutate both connected and not vs (https://github.com/maistra/istio-workspace/pull/838[#838]), by https://github.com/aslakknutsen[@aslakknutsen]
+* fix(error): handle no destination rules found error (https://github.com/maistra/istio-workspace/pull/828[#828]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Project infrastructure
+
+===== New features
+* chore(gh-actions): pins ubuntu to ubuntu-20.04 (https://github.com/maistra/istio-workspace/pull/836[#836]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+=== Latest dependencies update
+
+ * github.com/mikefarah/yq/v4 to 4.7.1 (https://github.com/maistra/istio-workspace/pull/830[#830]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/ginkgo to 1.16.1 (https://github.com/maistra/istio-workspace/pull/824[#824]), by https://github.com/dependabot[@dependabot]
+

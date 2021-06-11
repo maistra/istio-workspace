@@ -7,7 +7,7 @@ on:
 jobs:
   golangci:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       REPOSITORY: ${{ github.repository }}
     steps:
@@ -32,5 +32,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2.5.2
         with:
-          version: v1.39
+          version: v1.40
           working-directory: go/src/github.com/${{ env.REPOSITORY }}

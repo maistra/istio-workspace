@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -62,67 +62,70 @@ func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //n
 		return err
 	}
 
+	var errs []error
 	for _, hostName := range ref.GetTargetHostNames() {
 		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
 			_, connected := connectedToGateway(vs)
-			if vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) ||
-				(!mutationRequired(vs, hostName, targetVersion) && !connected) ||
-				vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
+
+			if !connected || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 				continue
 			}
-
 			ctx.Log.Info("Found VirtualService", "name", vs.Name)
+			mutatedVs := mutateConnectedVirtualService(ctx, ref, hostName, vs)
+			err = ctx.Client.Create(ctx, &mutatedVs)
+			if err != nil && !k8sErrors.IsAlreadyExists(err) {
+				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated, err.Error()))
+				errs = append(errs, errors.WrapIfWithDetails(err, "failed creating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
 
-			mutatedVs, isNew, err := mutateVirtualService(ctx, ref, hostName, vs)
+				continue
+			}
+			ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated))
+		}
+		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
+			if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) {
+				continue
+			}
+			ctx.Log.Info("Found VirtualService", "name", vs.Name)
+			mutatedVs, err := mutateVirtualService(ctx, ref, hostName, vs)
 			if err != nil {
-				if isNew {
-					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionCreated, err.Error()))
-				} else {
-					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionModified, err.Error()))
-				}
+				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionModified, err.Error()))
+				errs = append(errs, errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
 
-				return errors.Wrap(err, "failed mutating virtual service")
+				continue
 			}
 
 			if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 			}
-			if isNew {
-				err = ctx.Client.Create(ctx, &mutatedVs)
-				if err != nil && !k8sErrors.IsAlreadyExists(err) {
-					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated, err.Error()))
+			err = ctx.Client.Update(ctx, &mutatedVs)
+			if err != nil {
+				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified, err.Error()))
+				errs = append(errs, errors.WrapIfWithDetails(err, "failed updating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
 
-					return errors.Wrap(err, "failed creating virtual service")
-				}
-				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated))
-			} else {
-				err = ctx.Client.Update(ctx, &mutatedVs)
-				if err != nil {
-					ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified, err.Error()))
-
-					return errors.Wrap(err, "failed updating virtual service")
-				}
-				ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified))
+				continue
 			}
+			ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified))
 		}
 	}
 
-	return nil
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to manipulate virtual service for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
 // VirtualServiceRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
 func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
+	var errs []error
 	resources := ref.GetResources(model.Kind(VirtualServiceKind))
-
 	for _, resource := range resources {
 		vs, err := getVirtualService(ctx, ctx.Namespace, resource.Name)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				break
+				continue
 			}
 			ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
 
-			break
+			continue
 		}
 		ctx.Log.Info("Found VirtualService", "name", resource.Name)
 
@@ -135,15 +138,17 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 			err = ctx.Client.Update(ctx, &mutatedVs)
 			if err != nil {
 				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+				errs = append(errs, errors.WrapWithDetails(err, "failed updating VirtualService", "kind", VirtualServiceKind, "name", vs.Name))
 
-				break
+				continue
 			}
 		case model.ActionCreated:
 			err = ctx.Client.Delete(ctx, vs)
 			if err != nil {
 				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+				errs = append(errs, errors.WrapWithDetails(err, "failed deleting VirtualService", "kind", VirtualServiceKind, "name", vs.Name))
 
-				break
+				continue
 			}
 		}
 
@@ -151,46 +156,64 @@ func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
 		ref.RemoveResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name})
 	}
 
-	return nil
+	return errors.WrapIfWithDetails(
+		errors.Combine(errs...),
+		"failed to revert virtual service for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
-func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, bool, error) {
+func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
 	version := ref.GetVersion()
 	newVersion := ref.GetNewVersion(ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
-	if gateways, connected := connectedToGateway(*target); connected {
-		hosts := getHostsFromRef(ctx, gateways, ref)
 
-		target.SetName(target.Name + "-" + ctx.Name)
-		target.Spec.Hosts = hosts
-		target.ResourceVersion = ""
-		if target.Labels == nil {
-			target.Labels = map[string]string{}
-		}
-		target.Labels[LabelIkeMutated] = LabelIkeMutatedValue
-
-		targetsHTTP := findRoutes(clonedSource, hostName, version)
-		for _, tHTTP := range targetsHTTP {
-			simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
-		}
-		for i := 0; i < len(target.Spec.Http); i++ {
-			targetHTTP := addHeaderRequest(*target.Spec.Http[i], ctx.Route)
-			target.Spec.Http[i] = &targetHTTP
-		}
-
-		return *target, true, nil
-	}
-	// Not connected to a Gateway
 	targetsHTTP := findRoutes(clonedSource, hostName, version)
 	if len(targetsHTTP) == 0 {
-		return istionetwork.VirtualService{}, false, errorRouteNotFound
+		return istionetwork.VirtualService{}, errorRouteNotFound
 	}
 	for _, tHTTP := range targetsHTTP {
 		simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
 	}
 
-	return *target, false, nil
+	return *target, nil
+}
+
+func mutateConnectedVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
+	version := ref.GetVersion()
+	newVersion := ref.GetNewVersion(ctx.Name)
+	target := source.DeepCopy()
+	clonedSource := source.DeepCopy()
+	gateways, _ := connectedToGateway(*target)
+	hosts := getHostsFromRef(ctx, gateways, ref)
+
+	target.SetName(target.Name + "-" + ctx.Name)
+	target.Spec.Hosts = hosts
+	target.ResourceVersion = ""
+	if target.Labels == nil {
+		target.Labels = map[string]string{}
+	}
+	target.Labels[LabelIkeMutated] = LabelIkeMutatedValue
+
+	targetsHTTP := findRoutes(clonedSource, hostName, version)
+	for _, tHTTP := range targetsHTTP {
+		simplifyTargetRouteWithoutMatch(*tHTTP, hostName, version, newVersion, target)
+	}
+	for i := 0; i < len(target.Spec.Http); i++ {
+		targetHTTP := addHeaderRequest(*target.Spec.Http[i], ctx.Route)
+		target.Spec.Http[i] = &targetHTTP
+	}
+
+	return *target
+}
+
+func simplifyTargetRouteWithoutMatch(targetHTTP v1alpha3.HTTPRoute, hostName model.HostName, version, newVersion string, target *istionetwork.VirtualService) {
+	targetHTTP = removeOtherRoutes(targetHTTP, hostName, version)
+	targetHTTP = updateSubset(targetHTTP, newVersion)
+	targetHTTP = removeWeight(targetHTTP)
+	targetHTTP.Mirror = nil
+	targetHTTP.Redirect = nil
+
+	target.Spec.Http = append([]*v1alpha3.HTTPRoute{&targetHTTP}, target.Spec.Http...)
 }
 
 func simplifyTargetRoute(ctx model.SessionContext, targetHTTP v1alpha3.HTTPRoute, hostName model.HostName, version, newVersion string, target *istionetwork.VirtualService) {
@@ -224,14 +247,14 @@ func getVirtualService(ctx model.SessionContext, namespace, name string) (*istio
 	virtualService := istionetwork.VirtualService{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &virtualService)
 
-	return &virtualService, errors.Wrapf(err, "failed finding virtual service %s in namespace %s", name, namespace)
+	return &virtualService, errors.WrapWithDetails(err, "failed finding virtual service in namespace", "name", name, "namespace", namespace)
 }
 
 func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
 	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
 
-	return &virtualServices, errors.Wrapf(err, "failed finding virtual services in namespace %s", namespace)
+	return &virtualServices, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
 
 func mutationRequired(vs istionetwork.VirtualService, targetHost model.HostName, targetVersion string) bool {

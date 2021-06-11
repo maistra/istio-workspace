@@ -31,8 +31,8 @@ type SessionSpec struct {
 	Refs []Ref `json:"ref,omitempty"`
 }
 
-// +k8s:openapi-gen=true
 // Ref defines how to target a single Deployment or DeploymentConfig.
+// +k8s:openapi-gen=true
 type Ref struct {
 	// Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
 	Name string `json:"name,omitempty"`
@@ -42,8 +42,8 @@ type Ref struct {
 	Args map[string]string `json:"args,omitempty"`
 }
 
-// +k8s:openapi-gen=true
 // Route defines the strategy for how the traffic is routed to the Ref.
+// +k8s:openapi-gen=true
 type Route struct {
 	// The type of route to use, e.g. header
 	Type string `json:"type,omitempty"`
@@ -57,8 +57,8 @@ func (r *Route) String() string {
 	return fmt.Sprintf("%s:%s=%s", r.Type, r.Name, r.Value)
 }
 
-// +k8s:openapi-gen=true
 // SessionStatus defines the observed state of Session.
+// +k8s:openapi-gen=true
 type SessionStatus struct {
 	State *string `json:"state,omitempty"`
 	// The current configured route
@@ -72,14 +72,14 @@ type SessionStatus struct {
 	// See discussion on https://github.com/kubernetes/kubectl/issues/517 and linked issues about the limitation and status of the work
 
 	// RouteExpression represents the Route object as single string expression
-	RouteExpression string   `json:"_routeExp,omitempty"`
-	Strategies      []string `json:"_strategies,omitempty"`
-	RefNames        []string `json:"_refNames,omitempty"`
-	Hosts           []string `json:"_hosts,omitempty"`
+	RouteExpression string   `json:"_routeExp,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
+	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason used by CLI when printing additional columns
+	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason used by CLI when printing additional columns
+	Hosts           []string `json:"_hosts,omitempty"`      //nolint:tagliatelle //reason used by CLI when printing additional columns
 }
 
+// RefStatus of an individual Ref in the Session.
 // +k8s:openapi-gen=true
-// Status of an individual Ref in the Session.
 type RefStatus struct {
 	Ref `json:",inline"`
 	// A lit of the Object used as source
@@ -99,8 +99,8 @@ func (r *RefStatus) GetHostNames() []string {
 	return []string{}
 }
 
+// RefResource is an external Resource that has been manipulated in some way.
 // +k8s:openapi-gen=true
-// An external Resource that has been manipulated in some way.
 type RefResource struct {
 	// The Resource Kind
 	Kind *string `json:"kind,omitempty"`
@@ -123,8 +123,8 @@ type RefResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// +k8s:openapi-gen=true
 // LabeledRefResource is a RefResource with Labels.
+// +k8s:openapi-gen=true
 type LabeledRefResource struct {
 	RefResource `json:",inline"`
 	Labels      map[string]string `json:"labels"`

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"text/template"
 
+	"emperror.dev/errors"
 	jsonpatch "github.com/evanphx/json-patch"
-	"github.com/pkg/errors"
 
 	"github.com/maistra/istio-workspace/pkg/assets"
 )
@@ -178,7 +178,7 @@ func (e patchEngine) Run(name string, resource []byte, newVersion string, variab
 
 	patch := e.findPatch(name)
 	if patch == nil {
-		return nil, fmt.Errorf("unable to find patch %s", name) //nolint:goerr113 //reason useful to have name in error
+		return nil, errors.Errorf("unable to find patch %s", name)
 	}
 
 	patchVariables := map[string]string{}
@@ -241,7 +241,7 @@ func parseTemplate(patches Patches) (*template.Template, error) {
 	t := template.New("workspace").Funcs(template.FuncMap{
 		"failIfVariableDoesNotExist": func(vars map[string]string, name string) (string, error) {
 			if vars == nil || vars[name] == "" {
-				return "", fmt.Errorf("expected %s variable to be set", name) //nolint:goerr113 //reason useful to have name in error
+				return "", errors.Errorf("expected %s variable to be set", name)
 			}
 
 			return "", nil

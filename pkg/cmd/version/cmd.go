@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -18,16 +17,13 @@ var logger = func() logr.Logger {
 
 // NewCmd creates version cmd which prints version and Build details of the executed binary.
 func NewCmd() *cobra.Command {
+	var short bool
 	versionCmd := &cobra.Command{
 		Use:          "version",
 		Short:        "Prints the version number of ike cli",
 		Long:         "All software has versions. This is Ike's",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			short, err := cmd.Flags().GetBool("short")
-			if err != nil {
-				return errors.Wrap(err, "failed evaluating flag")
-			}
 			if short {
 				logShortVersion()
 			} else {
@@ -37,7 +33,7 @@ func NewCmd() *cobra.Command {
 			return nil
 		},
 	}
-	versionCmd.Flags().BoolP("short", "s", false, "prints only version without build details")
+	versionCmd.Flags().BoolVarP(&short, "short", "s", false, "prints only version without build details")
 
 	return versionCmd
 }

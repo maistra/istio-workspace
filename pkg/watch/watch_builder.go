@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
-	"github.com/pkg/errors"
 )
 
 // Builder is a struct which allows to use fluent API to create underlying instance of Watch.
@@ -43,8 +43,6 @@ func (wb *Builder) Excluding(exclusions ...string) *Builder {
 func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		logger().Error(err, "failed creating fs watch")
-
 		return nil, errors.Wrap(err, "failed creating fs watch")
 	}
 
@@ -53,7 +51,7 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 	for _, path := range paths {
 		dir, err := os.Stat(path)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed checking path %s", path)
+			return nil, errors.WrapWithDetails(err, "failed checking path", "path", path)
 		}
 
 		if !dir.IsDir() {

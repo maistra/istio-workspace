@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -30,9 +30,9 @@ var defaultClient *Client
 // If namespace parameter is empty default one from the current context is used.
 func DefaultClient(namespace string) (*Client, error) {
 	if defaultClient == nil {
-		c2, err2 := createDefaultClient(namespace)
-		if err2 != nil {
-			return c2, err2
+		c2, err := createDefaultClient(namespace)
+		if err != nil {
+			return c2, errors.WrapIf(err, "failed to create default client")
 		}
 	}
 
@@ -47,31 +47,23 @@ func createDefaultClient(namespace string) (*Client, error) {
 	var err error
 	restCfg, err := kubeCfg.ClientConfig()
 	if err != nil {
-		logger().Error(err, "failed to create default client")
-
-		return nil, errors.Wrap(err, "failed to create default client")
+		return nil, errors.Wrap(err, "failed to get kube config")
 	}
 
 	c, err := versioned.NewForConfig(restCfg)
 	if err != nil {
-		logger().Error(err, "failed to create default client")
-
-		return nil, errors.Wrap(err, "failed to create default client")
+		return nil, errors.Wrap(err, "failed to create client set")
 	}
 
 	if namespace == "" {
 		namespace, _, err = kubeCfg.Namespace()
 		if err != nil {
-			logger().Error(err, "failed to create default client")
-
-			return nil, errors.Wrap(err, "failed to create default client")
+			return nil, errors.Wrap(err, "failed to get current namespace")
 		}
 	}
 	defaultClient, err = NewClient(c, namespace)
 	if err != nil {
-		logger().Error(err, "failed to create default client")
-
-		return nil, errors.Wrap(err, "failed to create default client")
+		return nil, errors.Wrap(err, "failed to create client")
 	}
 
 	return defaultClient, nil
@@ -80,7 +72,7 @@ func createDefaultClient(namespace string) (*Client, error) {
 // Create creates a session instance in a cluster.
 func (c *Client) Create(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Create(context.Background(), session, metav1.CreateOptions{}); err != nil {
-		return errors.Wrapf(err, "failed creating session %v", session)
+		return errors.WrapWithDetails(err, "failed creating session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 	}
 
 	return nil
@@ -89,7 +81,7 @@ func (c *Client) Create(session *istiov1alpha1.Session) error {
 // Update updates a session instance in a cluster.
 func (c *Client) Update(session *istiov1alpha1.Session) error {
 	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Update(context.Background(), session, metav1.UpdateOptions{}); err != nil {
-		return errors.Wrapf(err, "failed updating session %v", session)
+		return errors.WrapWithDetails(err, "failed updating session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 	}
 
 	return nil
@@ -99,12 +91,12 @@ func (c *Client) Update(session *istiov1alpha1.Session) error {
 func (c *Client) Delete(session *istiov1alpha1.Session) error {
 	err := c.MaistraV1alpha1().Sessions(c.namespace).Delete(context.Background(), session.Name, metav1.DeleteOptions{})
 
-	return errors.Wrap(err, "failed deleting session")
+	return errors.WrapWithDetails(err, "failed deleting session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 }
 
 // Get retrieves details of the Session instance matching passed name.
 func (c *Client) Get(sessionName string) (*istiov1alpha1.Session, error) {
 	session, err := c.MaistraV1alpha1().Sessions(c.namespace).Get(context.Background(), sessionName, metav1.GetOptions{})
 
-	return session, errors.Wrapf(err, "failed retrieving session %s", sessionName)
+	return session, errors.WrapWithDetails(err, "failed retrieving session", "kind", "session", "name", sessionName, "namespace", c.namespace)
 }

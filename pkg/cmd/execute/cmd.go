@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
@@ -21,11 +21,15 @@ import (
 )
 
 const (
-	BuildFlagName   = "build"
+	// BuildFlagName is a name of the flag defining build process.
+	BuildFlagName = "build"
+	// NoBuildFlagName is a nme of the flag which disables build execution.
 	NoBuildFlagName = "no-build"
-	RunFlagName     = "run"
+	// RunFlagName is a name of the flag which defines process to be executed.
+	RunFlagName = "run"
 )
 
+// DefaultExclusions is a slices with glob patterns excluded by default.
 var DefaultExclusions = []string{"*.log", ".git/"}
 
 var logger = func() logr.Logger {
@@ -73,7 +77,7 @@ func execute(command *cobra.Command, args []string) error {
 		dirs, _ := command.Flags().GetStringSlice("dir")
 		excluded, e := command.Flags().GetStringSlice("exclude")
 		if e != nil {
-			return nil, errors.Wrapf(e, "failed executing %s command", command.Use)
+			return nil, errors.Wrap(e, "failed obtaining exclude flag")
 		}
 		excluded = append(excluded, DefaultExclusions...)
 
@@ -91,7 +95,7 @@ func execute(command *cobra.Command, args []string) error {
 			OnPaths(dirs...)
 
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed executing %s command", command.Use)
+			return nil, errors.WrapIf(err, "failed handling watch event")
 		}
 
 		w.Start()
@@ -108,11 +112,11 @@ func execute(command *cobra.Command, args []string) error {
 	if w, e := command.Flags().GetBool("watch"); w && e == nil {
 		closeWatch, err := watcher(restart)
 		if err != nil {
-			return errors.Wrapf(err, "failed executing %s command", command.Use)
+			return errors.WrapIf(err, "failed watching")
 		}
 		defer closeWatch()
 	} else if e != nil {
-		return errors.Wrapf(e, "failed executing %s command", command.Use)
+		return errors.Wrap(e, "failed obtaining watch flag")
 	}
 
 	go func() {

@@ -1,0 +1,15 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3
+
+EXPOSE 9080
+
+ARG name=prepared_image
+ENV PREPARED_NAME=$name
+
+RUN microdnf install tar gzip && microdnf clean all && \
+    curl -L "https://github.com/hashicorp/http-echo/releases/download/v0.2.3/http-echo_0.2.3_linux_amd64.tar.gz" > "http-echo.tar.gz" && \
+    tar xzfv http-echo.tar.gz && \
+    mv http-echo /usr/local/bin/ && \
+    rm -rf http-echo.tar.gz && \
+    microdnf remove tar gzip && microdnf clean all
+
+CMD http-echo -listen 0.0.0.0:9080 -text "{\"caller\":\"${PREPARED_NAME}\", \"color\":\"#F00\"}"

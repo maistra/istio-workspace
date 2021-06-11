@@ -2,14 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
@@ -47,10 +46,13 @@ func main() {
 	if v, b := os.LookupEnv(EnvServiceName); b {
 		c.Name = v
 	}
+
+	logger := log.Log.WithName("service").WithValues("name", c.Name)
+
 	if v, b := os.LookupEnv(EnvServiceCall); b {
 		u, err := parseURL(v)
 		if err != nil {
-			fmt.Println("Couldn't parse config", err)
+			logger.Error(err, "Couldn't parse config")
 			os.Exit(-1)
 		}
 		c.Call = u
@@ -71,8 +73,6 @@ func main() {
 	if v, b := os.LookupEnv(EnvGRPCAddr); b {
 		grpcAdr = v
 	}
-
-	logger := log.Log.WithName("service").WithValues("name", c.Name)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", func(resp http.ResponseWriter, req *http.Request) {

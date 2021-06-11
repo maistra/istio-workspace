@@ -3,6 +3,7 @@ module github.com/maistra/istio-workspace
 go 1.15
 
 require (
+	emperror.dev/errors v0.8.0
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-bindata/go-bindata/v3 v3.1.3
@@ -12,18 +13,16 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/hashicorp/go-multierror v1.1.1
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mikefarah/yq/v4 v4.6.3
+	github.com/mikefarah/yq/v4 v4.7.1
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
-	github.com/onsi/ginkgo v1.16.0
+	github.com/onsi/ginkgo v1.16.1
 	github.com/onsi/gomega v1.11.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.4.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/spf13/afero v1.5.1

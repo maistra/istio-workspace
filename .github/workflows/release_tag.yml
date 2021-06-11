@@ -5,7 +5,7 @@ on:
     branches: master
 jobs:
   tag:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: "Tag matching commit (with `/tag vX.Y.Z` directive in the commit message)"
         uses: actions/github-script@v4.0.2

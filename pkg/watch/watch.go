@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	ignore "github.com/sabhiram/go-gitignore"
 
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -112,7 +112,7 @@ func (w *Watch) Close() {
 func (w *Watch) addPath(filePath string) error {
 	w.basePaths = append(w.basePaths, filePath)
 
-	return errors.Wrapf(w.watcher.Add(filePath), "failed adding %s path", filePath)
+	return errors.WrapIfWithDetails(w.watcher.Add(filePath), "failed adding path", "path", filePath)
 }
 
 // addRecursiveWatch handles adding watches recursively for the path provided
@@ -126,7 +126,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 			return nil
 		}
 
-		return fmt.Errorf("error introspecting filePath %s: %w", filePath, err)
+		return errors.WithDetails(err, "error introspecting filePath", "path", filePath)
 	}
 
 	if !file.IsDir() {
@@ -144,7 +144,7 @@ func (w *Watch) addRecursiveWatch(filePath string) error {
 		if err != nil {
 			// "no space left on device" issues are usually resolved via
 			// $ sudo sysctl fs.inotify.max_user_watches=65536
-			return fmt.Errorf("error adding watcher for filePath %s: %w", v, err)
+			return errors.WithDetails(err, "error adding watcher for filePath", "path", v)
 		}
 	}
 
@@ -171,11 +171,11 @@ func (w *Watch) addGitIgnore(path string) error {
 	if err == nil {
 		err := file.Close()
 		if err != nil {
-			return errors.Wrap(err, "failed closing file")
+			return errors.WrapWithDetails(err, "failed closing file", "path", gitIgnorePath)
 		}
 		gitIgnore, err := ignore.CompileIgnoreFile(gitIgnorePath)
 		if err != nil {
-			return errors.Wrap(err, "failed compiling ignore list from .gitignore")
+			return errors.WrapWithDetails(err, "failed compiling ignore list from .gitignore", "path", gitIgnorePath)
 		}
 		w.gitignores = append(w.gitignores, *gitIgnore)
 	}
