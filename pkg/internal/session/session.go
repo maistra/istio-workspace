@@ -181,7 +181,7 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
-	var name string // FIXME never set
+	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
 	duration := 1 * time.Minute
@@ -202,6 +202,15 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 	})
 	if err != nil {
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
+	}
+	for _, condition := range sessionStatus.Status.Conditions {
+		if condition.Target.Ref == h.opts.DeploymentName {
+			if condition.Target.Kind == "DeploymentConfig" || condition.Target.Kind == "Deployment" {
+				name = condition.Target.Name
+
+				break
+			}
+		}
 	}
 
 	return sessionStatus, name, nil
