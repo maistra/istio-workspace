@@ -220,6 +220,31 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
+		It("should recreate cloned Deployment if deleted externally", func() {
+			// given a normal setup
+			ref := CreateTestRef("test-ref")
+			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			modificatorStore := new.ModificatorStore{}
+			
+			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
+
+			// when Deployment is deleted
+			err := c.Delete(ctx, &deployment)
+			Expect(err).To(Not(HaveOccurred()))
+
+			_, err = get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(err).To(HaveOccurred())
+
+			// then it should be recreated on next reconcile
+			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
+		})
+
 		Context("telepresence mutation strategy", func() {
 
 			It("should change container to telepresence", func() {
