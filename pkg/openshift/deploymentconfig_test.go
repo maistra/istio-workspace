@@ -234,6 +234,31 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
 
+		It("should recreate cloned DeploymentConfig if deleted externally", func() {
+			// given a normal setup
+			ref := CreateTestRef()
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := new.ModificatorStore{}
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
+
+			// when DeploymentConfig is deleted
+			err := c.Delete(ctx, &deployment)
+			Expect(err).To(Not(HaveOccurred()))
+
+			_, err = get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(err).To(HaveOccurred())
+
+			// then it should be recreated on next reconcile
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
+		})
+
 		Context("telepresence mutation strategy", func() {
 
 			It("should change container to telepresence", func() {
