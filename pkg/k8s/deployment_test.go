@@ -225,7 +225,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
 			modificatorStore := new.ModificatorStore{}
-			
+
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
 			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
