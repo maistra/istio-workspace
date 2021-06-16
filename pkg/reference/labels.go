@@ -1,6 +1,8 @@
 package reference
 
 import (
+	"strings"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -15,23 +17,27 @@ func Match(session string) client.ListOption {
 }
 
 // AddLabel sets session specific label on a given object.
-func AddLabel(object client.Object, session, value string) {
+func AddLabel(object client.Object, session, value, hash string) {
 	labels := object.GetLabels()
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	labels[labelPrefix+session] = value
+	labels[labelPrefix+session] = value + "-" + hash
 	object.SetLabels(labels)
 }
 
 // GetLabel returns value of a label specific to a given session.
-func GetLabel(object client.Object, session string) string {
+func GetLabel(object client.Object, session string) (value, hash string) {
 	labels := object.GetLabels()
 	if labels == nil {
 		labels = map[string]string{}
 	}
 
-	return labels[labelPrefix+session]
+	vs := strings.Split(labels[labelPrefix+session], "-")
+	if len(vs) == 2 {
+		return vs[0], vs[1]
+	}
+	return vs[0], ""
 }
 
 // RemoveLabel removes label for a specific session. If label does not exists RemoveLabel is no-op.

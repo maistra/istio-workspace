@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -181,20 +183,35 @@ type LocatorStore struct {
 }
 
 func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
+	sorter := func(s []LocatorStatus) func(i, j int) bool {
+		return func(i, j int) bool {
+			if (s[i].Action == ActionDelete || s[i].Action == ActionRevert) && !(s[j].Action == ActionDelete || s[j].Action == ActionRevert) {
+				return true
+			}
+			if !(s[i].Action == ActionDelete || s[i].Action == ActionRevert) && (s[j].Action == ActionDelete || s[j].Action == ActionRevert) {
+				return false
+			}
+
+			return true
+		}
+	}
+
 	if len(kind) == 0 {
-		return l.stored
+		f := l.stored
+		sort.SliceStable(f, sorter(f))
+		return f
 	}
 	var f []LocatorStatus
 	for _, loc := range l.stored {
 		for _, k := range kind {
-			if loc.Kind == k {
+			if strings.EqualFold(loc.Kind, k) {
 				f = append(f, loc)
 
 				break
 			}
 		}
 	}
-
+	sort.SliceStable(f, sorter(f))
 	return f
 }
 
@@ -226,6 +243,29 @@ type ModificatorStore struct {
 
 func (m *ModificatorStore) Report(status ModificatorStatus) {
 	m.Stored = append(m.Stored, status)
+}
+
+// Hash returns a predictable hash version for this object.
+func (r *Ref) Hash() string {
+	digest := r.KindName.String()
+	digest += strconv.FormatBool(r.Deleted)
+	digest += r.Namespace
+	digest += r.Strategy
+
+	var args []string
+	for k := range r.Args {
+		args = append(args, k)
+	}
+	sort.Strings(args)
+
+	for _, k := range args {
+		digest += r.Args[k]
+	}
+
+	sum := sha256.Sum256([]byte(digest))
+	sha := fmt.Sprintf("%x", sum)
+
+	return sha[:8]
 }
 
 // String returns the string formatted kind/name.

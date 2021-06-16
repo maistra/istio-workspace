@@ -10,6 +10,54 @@ import (
 	. "github.com/maistra/istio-workspace/pkg/model/new"
 )
 
+func TestLocatorStoreSort(t *testing.T) {
+
+	store := LocatorStore{}
+	store.Report(LocatorStatus{Name: "X", Kind: "X", Action: ActionCreate})
+	store.Report(LocatorStatus{Name: "X", Kind: "X", Action: ActionDelete})
+	store.Report(LocatorStatus{Name: "Y", Kind: "X", Action: ActionDelete})
+	store.Report(LocatorStatus{Name: "Y", Kind: "X", Action: ActionCreate})
+
+	ls := store.Store("X")
+	for i, l := range ls {
+		if (i == 0 || i == 1) && l.Action != ActionDelete {
+			t.Error("should sort Delete first")
+		}
+		if (i == 2 || i == 3) && l.Action != ActionCreate {
+			t.Error("should sort Delete first")
+		}
+		fmt.Println(l)
+	}
+}
+
+func TestRefHash(t *testing.T) {
+
+	r1 := Ref{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"X": "Y", "Y": "X"}}
+	r2 := Ref{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}}
+
+	refs := []Ref{
+		{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "X"}},
+		{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: false, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "Y", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: ParseRefKindName("x"), Namespace: "X", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Deleted: true},
+		{KindName: ParseRefKindName("Y"), Namespace: "Y", Strategy: "X"},
+		{KindName: ParseRefKindName("Y"), Namespace: "Y"},
+		{KindName: ParseRefKindName("Y")},
+	}
+
+	if r1.Hash() != r2.Hash() {
+		t.Errorf("Should match %v %v %v", r1.Hash() == r2.Hash(), r1.Hash(), r2.Hash())
+	}
+
+	for _, r := range refs {
+		if r1.Hash() == r.Hash() {
+			t.Errorf("Should match %v %v %v", r1.Hash() == r.Hash(), r1.Hash(), r.Hash())
+		}
+	}
+}
+
 func TestDesign(t *testing.T) {
 	dryRun := false
 

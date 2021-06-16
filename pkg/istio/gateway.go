@@ -30,7 +30,7 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 	for _, resource := range store(GatewayKind) {
 		switch resource.Action {
 		case new.ActionModify:
-			actionModifyGateway(ctx, report, resource)
+			actionModifyGateway(ctx, ref, report, resource)
 		case new.ActionRevert:
 			actionRevertGateway(ctx, report, resource)
 		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
@@ -39,7 +39,7 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 	}
 }
 
-func actionModifyGateway(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -53,7 +53,7 @@ func actionModifyGateway(ctx new.SessionContext, report new.ModificatorStatusRep
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
-	reference.AddLabel(&mutatedGw, ctx.Name, string(resource.Action))
+	reference.AddLabel(&mutatedGw, ctx.Name, string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {

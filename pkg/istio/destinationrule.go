@@ -106,7 +106,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 	if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", dr.Spec.Host)
 	}
-	reference.AddLabel(&destinationRule, ctx.Name, string(resource.Action))
+	reference.AddLabel(&destinationRule, ctx.Name, string(resource.Action), ref.Hash())
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {
