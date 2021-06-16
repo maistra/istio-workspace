@@ -40,7 +40,22 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		return nil
 	}
 
+	labelKey := ctx.Name + "-" + ref.KindName.String()
+	deploymentConfigs, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(labelKey))
+	if err != nil {
+		return err
+	}
+
 	if !ref.Deleted {
+		for i := range deploymentConfigs.Items {
+			deploymentConfig := deploymentConfigs.Items[i]
+			action, hash := reference.GetLabel(&deploymentConfig, labelKey)
+			if ref.Hash() != hash {
+				undo := new.Flip(new.StatusAction(action))
+				report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deploymentConfig.Namespace, Name: deploymentConfig.Name, Labels: deploymentConfig.Spec.Template.Labels, Action: undo})
+			}
+		}
+
 		deployment, err := getDeploymentConfig(ctx, ctx.Namespace, ref.KindName.Name)
 		if err != nil {
 			if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type
@@ -52,15 +67,11 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		}
 		report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	} else {
-		resources, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(ctx.Name))
-		if err != nil {
-			return err
-		}
-
-		for i := range resources.Items {
-			resource := resources.Items[i]
-			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
-			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: action})
+		for i := range deploymentConfigs.Items {
+			deploymentConfig := deploymentConfigs.Items[i]
+			action, _ := reference.GetLabel(&deploymentConfig, labelKey)
+			undo := new.Flip(new.StatusAction(action))
+			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deploymentConfig.Namespace, Name: deploymentConfig.Name, Labels: deploymentConfig.Spec.Template.Labels, Action: undo})
 		}
 	}
 
@@ -113,7 +124,7 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 	}
-	reference.AddLabel(deploymentClone, ctx.Name, string(resource.Action), ref.Hash())
+	reference.AddLabel(deploymentClone, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
 
 	if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})

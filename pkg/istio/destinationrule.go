@@ -30,7 +30,22 @@ func DestinationRuleRegistrar() (client.Object, new.Modificator) {
 func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	var errs error
 
+	labelKey := ctx.Name + "-" + ref.KindName.String()
+	destinationRules, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(labelKey))
+	if err != nil {
+		return errors.WrapWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
+	}
+
 	if !ref.Deleted {
+		for i := range destinationRules.Items {
+			destinationRule := destinationRules.Items[i]
+			action, hash := reference.GetLabel(&destinationRule, labelKey)
+			if ref.Hash() != hash {
+				undo := new.Flip(new.StatusAction(action))
+				report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: destinationRule.Namespace, Name: destinationRule.Name, Action: undo})
+			}
+		}
+
 		for _, hostName := range new.GetTargetHostNames(store) {
 			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, new.GetVersion(store))
 			if err != nil {
@@ -42,16 +57,11 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: dr.Namespace, Name: dr.Name, Action: new.ActionCreate})
 		}
 	} else {
-		resources, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(ctx.Name))
-		if err != nil {
-			ctx.Log.Error(err, "failed to get all destination rules", "ref", ref.KindName.String())
-
-			return err
-		}
-		for i := range resources.Items {
-			resource := resources.Items[i]
-			action := new.Flip(new.StatusAction(reference.GetLabel(&resource, ctx.Name)))
-			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: action})
+		for i := range destinationRules.Items {
+			resource := destinationRules.Items[i]
+			action, _ := reference.GetLabel(&resource, labelKey)
+			undo := new.Flip(new.StatusAction(action))
+			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: undo})
 		}
 	}
 
@@ -106,7 +116,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 	if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", dr.Spec.Host)
 	}
-	reference.AddLabel(&destinationRule, ctx.Name, string(resource.Action), ref.Hash())
+	reference.AddLabel(&destinationRule, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {

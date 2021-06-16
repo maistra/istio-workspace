@@ -129,7 +129,7 @@ type Route struct {
 
 type Ref struct {
 	KindName  RefKindName
-	Deleted   bool
+	Deleted   bool // TODO rename to something more indicating the intent vs state (e.g. MarkedForDeletion)
 	Namespace string
 	Strategy  string
 	Args      map[string]string
@@ -247,10 +247,10 @@ func (m *ModificatorStore) Report(status ModificatorStatus) {
 
 // Hash returns a predictable hash version for this object.
 func (r *Ref) Hash() string {
-	digest := r.KindName.String()
-	digest += strconv.FormatBool(r.Deleted)
-	digest += r.Namespace
-	digest += r.Strategy
+	digest := "kind:" + r.KindName.String()
+	digest += ";deleted:" + strconv.FormatBool(r.Deleted)
+	digest += ";namespace:" + r.Namespace
+	digest += ";strategy:" + r.Strategy
 
 	var args []string
 	for k := range r.Args {
@@ -259,7 +259,7 @@ func (r *Ref) Hash() string {
 	sort.Strings(args)
 
 	for _, k := range args {
-		digest += r.Args[k]
+		digest += ";args[" + k + "]:" + r.Args[k]
 	}
 
 	sum := sha256.Sum256([]byte(digest))
