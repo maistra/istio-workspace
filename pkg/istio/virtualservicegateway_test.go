@@ -98,7 +98,8 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 			schema, _ := v1alpha1.SchemeBuilder.Register(
 				&istionetwork.VirtualServiceList{},
 				&istionetwork.VirtualService{},
-				&istionetwork.Gateway{}).Build()
+				&istionetwork.Gateway{},
+				&istionetwork.GatewayList{}).Build()
 
 			c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 			ctx = new.SessionContext{
@@ -116,7 +117,8 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				KindName: new.ParseRefKindName("customer-v1"),
 			}
 
-			istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
+			err := istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
 
 			gws := locators.Store(istio.GatewayKind)
 			Expect(gws).To(HaveLen(1))

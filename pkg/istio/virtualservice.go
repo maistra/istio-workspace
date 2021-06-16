@@ -38,7 +38,24 @@ func VirtualServiceRgistrar() (client.Object, new.Modificator) {
 }
 
 func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+	labelKey := ctx.Name + "-" + ref.KindName.String()
+
+	vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(labelKey))
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to get all virtual services", "ref", ref.KindName.String())
+	}
+
 	if !ref.Deleted {
+
+		for i := range vss.Items {
+			vs := vss.Items[i]
+			action, hash := reference.GetLabel(&vs, labelKey)
+			undo := new.Flip(new.StatusAction(action))
+			if ref.Hash() != hash {
+				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: undo})
+			}
+		}
+
 		// TODO: expand VirtualService Tests with connected vs where not directly triggering a host route?
 		// TODO: Connected GW ignores hostName during find??
 		vss, err := getVirtualServices(ctx, ctx.Namespace)
@@ -52,17 +69,12 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			reportVsToBeModified(ctx, vss, hostName, targetVersion, store, report)
 		}
 	} else {
-		vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(ctx.Name))
-		if err != nil {
-			ctx.Log.Error(err, "failed to get all virtual services", "ref", ref.KindName.String())
-
-			return err
-		}
 
 		for i := range vss.Items {
 			vs := vss.Items[i]
-			action := new.Flip(new.StatusAction(reference.GetLabel(&vs, ctx.Name)))
-			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: action})
+			action, _ := reference.GetLabel(&vs, labelKey)
+			undo := new.Flip(new.StatusAction(action))
+			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: undo})
 		}
 	}
 
@@ -105,7 +117,7 @@ func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.Lo
 		case new.ActionModify:
 			actionModifyVirtualService(ctx, ref, store, report, resource)
 		case new.ActionRevert:
-			actionRevertVirtualService(ctx, store, report, resource)
+			actionRevertVirtualService(ctx, ref, store, report, resource)
 		case new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
@@ -127,7 +139,7 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.AddLabel(&mutatedVs, ctx.Name, string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Create(ctx, &mutatedVs)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
@@ -181,7 +193,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.AddLabel(&mutatedVs, ctx.Name, string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
@@ -195,7 +207,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func actionRevertVirtualService(ctx new.SessionContext, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
@@ -206,7 +218,7 @@ func actionRevertVirtualService(ctx new.SessionContext, store new.LocatorStatusS
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.RemoveLabel(&mutatedVs, ctx.Name)
+	reference.RemoveLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String())
 
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {

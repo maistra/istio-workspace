@@ -33,7 +33,7 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 	labelKey := ctx.Name + "-" + ref.KindName.String()
 	destinationRules, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {
-		return errors.WrapWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
+		return errors.WrapIfWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
 	}
 
 	if !ref.Deleted {

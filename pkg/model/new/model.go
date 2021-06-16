@@ -298,10 +298,12 @@ func (r RefKindName) SupportsKind(kind string) bool {
 
 // GetVersion returns the existing version name.
 func GetVersion(store LocatorStatusStore) string {
-	target := store("Deployment", "DeploymentConfig")
-	if len(target) == 1 {
-		if val, ok := target[0].Labels["version"]; ok {
-			return val
+	targets := store("Deployment", "DeploymentConfig")
+	for _, target := range targets {
+		if target.Action != ActionDelete && target.Action != ActionRevert {
+			if val, ok := target.Labels["version"]; ok {
+				return val
+			}
 		}
 	}
 

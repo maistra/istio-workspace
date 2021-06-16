@@ -32,7 +32,7 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 		case new.ActionModify:
 			actionModifyGateway(ctx, ref, report, resource)
 		case new.ActionRevert:
-			actionRevertGateway(ctx, report, resource)
+			actionRevertGateway(ctx, ref, report, resource)
 		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
 			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
@@ -53,7 +53,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
-	reference.AddLabel(&mutatedGw, ctx.Name, string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedGw, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
@@ -74,7 +74,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	})
 }
 
-func actionRevertGateway(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
@@ -92,7 +92,7 @@ func actionRevertGateway(ctx new.SessionContext, report new.ModificatorStatusRep
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
-	reference.RemoveLabel(&mutatedGw, ctx.Name)
+	reference.RemoveLabel(&mutatedGw, ctx.Name+"-"+ref.KindName.String())
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {

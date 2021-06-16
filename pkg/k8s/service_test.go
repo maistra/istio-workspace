@@ -135,8 +135,14 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			services := store.Store(k8s.ServiceKind)
 			Expect(len(services)).To(Equal(2))
 
-			Expect(services[0].Name).To(Equal("test-2"))
-			Expect(services[1].Name).To(Equal("test-3"))
+			getNames := func(list []new.LocatorStatus) []string {
+				var names []string
+				for _, l := range list {
+					names = append(names, l.Name)
+				}
+				return names
+			}
+			Expect(getNames(services)).To(ConsistOf("test-2", "test-3"))
 		})
 
 	})
