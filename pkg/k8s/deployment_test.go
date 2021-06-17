@@ -321,14 +321,14 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			}
 		})
 
-		It("should revert to original deployment", func() {
+		It("should update strategy when ref change", func() {
 			ref := CreateTestRef("test-ref")
 
 			// Create
 			store := CreateEmptyTestLocatorStore()
+			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
 
-			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
@@ -338,20 +338,24 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
-			ref.Deleted = true
-
-			store = CreateEmptyTestLocatorStore()
-			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
+			imageName := "docker.io/maistra:latest"
+			ref.Strategy = "prepared-image"
+			ref.Args = map[string]string{}
+			ref.Args["image"] = imageName
 
 			// Revert
+			store = CreateEmptyTestLocatorStore()
 			modificatorStore = new.ModificatorStore{}
+			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
+
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
-			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored).To(HaveLen(2))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
-			Expect(revertedFetchErr).To(HaveOccurred())
-			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
+			deployment, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(imageName))
 		})
 
 	})

@@ -340,9 +340,9 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			// Create
 			store := CreateEmptyTestLocatorStore()
+			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
 
-			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
@@ -350,9 +350,10 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
+			// Setup deleted ref
+			ref.Deleted = true
 
 			// Revert
-			ref.Deleted = true
 			store = CreateEmptyTestLocatorStore()
 			modificatorStore = new.ModificatorStore{}
 			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
@@ -366,6 +367,73 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
 
+		It("should be able to detect change in ref", func() {
+			ref := CreateTestRef()
+
+			// Create
+			store := CreateEmptyTestLocatorStore()
+			modificatorStore := new.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			// Setup deleted ref
+			ref.Deleted = true
+
+			// Revert
+			store = CreateEmptyTestLocatorStore()
+			modificatorStore = new.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(revertedFetchErr).To(HaveOccurred())
+			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
+		})
+
+		It("should be able to detect change in ref", func() {
+			ref := CreateTestRef()
+
+			// Create
+			store := CreateEmptyTestLocatorStore()
+			modificatorStore := new.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			// Setup deleted ref
+			imageName := "docker.io/maistra:latest"
+			ref.Strategy = "prepared-image"
+			ref.Args = map[string]string{}
+			ref.Args["image"] = imageName
+
+			// Revert
+			store = CreateEmptyTestLocatorStore()
+			modificatorStore = new.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(2))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			deployment, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(imageName))
+		})
 	})
 
 })
