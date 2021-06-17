@@ -46,7 +46,6 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 	}
 
 	if !ref.Deleted {
-
 		for i := range vss.Items {
 			vs := vss.Items[i]
 			action, hash := reference.GetLabel(&vs, labelKey)
@@ -69,7 +68,6 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			reportVsToBeModified(ctx, vss, hostName, targetVersion, store, report)
 		}
 	} else {
-
 		for i := range vss.Items {
 			vs := vss.Items[i]
 			action, _ := reference.GetLabel(&vs, labelKey)

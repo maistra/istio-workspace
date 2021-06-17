@@ -48,7 +48,6 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 				undo := new.Flip(new.StatusAction(action))
 				report(new.LocatorStatus{Kind: DeploymentKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: undo})
 			}
-
 		}
 		deployment, err := getDeployment(ctx, ref.Namespace, ref.KindName.Name)
 		if err != nil {

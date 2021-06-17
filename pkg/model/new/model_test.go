@@ -11,7 +11,6 @@ import (
 )
 
 func TestLocatorStoreSort(t *testing.T) {
-
 	store := LocatorStore{}
 	store.Report(LocatorStatus{Name: "X", Kind: "X", Action: ActionCreate})
 	store.Report(LocatorStatus{Name: "X", Kind: "X", Action: ActionDelete})
@@ -31,7 +30,6 @@ func TestLocatorStoreSort(t *testing.T) {
 }
 
 func TestRefHash(t *testing.T) {
-
 	r1 := Ref{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"X": "Y", "Y": "X"}}
 	r2 := Ref{KindName: ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}}
 
