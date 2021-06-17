@@ -60,10 +60,10 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		if err != nil {
 			if errorsK8s.IsNotFound(err) { // Ref is not a DeploymentConfig type
 				return nil
-			}
-			ctx.Log.Error(err, "Could not get DeploymentConfig", "name", deployment.Name)
 
-			return err
+			}
+
+			return errors.WrapIfWithDetails(err, "Could not get DeploymentConfig", "name", deployment.Name, "ref", ref.KindName.String())
 		}
 		report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
 	} else {
