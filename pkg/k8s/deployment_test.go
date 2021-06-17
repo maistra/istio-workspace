@@ -16,7 +16,6 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
@@ -202,7 +201,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
 
 		// different action in the store
@@ -229,7 +228,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
 			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 
 			// when Deployment is deleted
 			err := c.Delete(ctx, &deployment)
@@ -242,7 +241,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
 			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
 
 		Context("telepresence mutation strategy", func() {
@@ -275,7 +274,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should not create a clone", func() {
 				ref := CreateTestRef("test-ref")
-				ref.Strategy = model.StrategyExisting
+				ref.Strategy = new.StrategyExisting
 
 				store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
 				modificatorStore := new.ModificatorStore{}
@@ -322,26 +321,31 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			}
 		})
 
-		FIt("should revert to original deployment", func() {
+		It("should revert to original deployment", func() {
 			ref := CreateTestRef("test-ref")
 
 			// Create
-			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			store := CreateEmptyTestLocatorStore()
+			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
+
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			newName := ref.KindName.Name + "-" + new.GetNewVersion(store.Store, ctx.Name)
+			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
 			ref.Deleted = true
 
-			// Reverte
-			store = CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			store = CreateEmptyTestLocatorStore()
+			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
+
+			// Revert
 			modificatorStore = new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
