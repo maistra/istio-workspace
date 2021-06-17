@@ -44,6 +44,13 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 	CreateEmptyTestLocatorStore := func() new.LocatorStore {
 		return new.LocatorStore{}
 	}
+	CreateTestLocatorStoreWithRefToBeCreated := func(kind string) new.LocatorStore {
+		l := new.LocatorStore{}
+		l.Report(new.LocatorStatus{Kind: kind, Name: "test-ref", Namespace: "test", Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
+
+		return l
+	}
+
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()
 		err := appsv1.AddToScheme(schema)
@@ -145,13 +152,6 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				},
 			}
 		})
-
-		CreateTestLocatorStoreWithRefToBeCreated := func(kind string) new.LocatorStore {
-			l := new.LocatorStore{}
-			l.Report(new.LocatorStatus{Kind: kind, Name: "test-ref", Namespace: "test", Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
-
-			return l
-		}
 
 		It("should add reference to cloned deployment", func() {
 			ref := CreateTestRef("test-ref")
@@ -289,54 +289,62 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 	})
 
-	//Context("revertors", func() {
-	//
-	//	BeforeEach(func() {
-	//		objects = []runtime.Object{
-	//			&appsv1.Deployment{
-	//				ObjectMeta: metav1.ObjectMeta{
-	//					Name:      "test-ref",
-	//					Namespace: "test",
-	//					Labels: map[string]string{
-	//						"version": "0.0.1",
-	//					},
-	//					CreationTimestamp: metav1.Now(),
-	//				},
-	//
-	//				Spec: appsv1.DeploymentSpec{
-	//					Selector: &metav1.LabelSelector{
-	//						MatchLabels: map[string]string{},
-	//					},
-	//					Template: v1.PodTemplateSpec{
-	//						Spec: v1.PodSpec{
-	//							Containers: []v1.Container{
-	//								{
-	//									Image: "datawire/hello-world:latest",
-	//									Env:   []v1.EnvVar{},
-	//								},
-	//							},
-	//						},
-	//					},
-	//				},
-	//			},
-	//		}
-	//	})
-	//
-	//	It("should revert to original deployment", func() {
-	//		ref := CreateTestRef("test-ref")
-	//		mutatorErr := k8s.DeploymentMutator(template.NewDefaultEngine())(ctx, &ref)
-	//		Expect(mutatorErr).ToNot(HaveOccurred())
-	//
-	//		_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
-	//		Expect(mutatedFetchErr).ToNot(HaveOccurred())
-	//
-	//		revertorErr := k8s.DeploymentRevertor(ctx, &ref)
-	//		Expect(revertorErr).ToNot(HaveOccurred())
-	//
-	//		_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
-	//		Expect(revertedFetchErr).To(HaveOccurred())
-	//		Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
-	//	})
-	//
-	//})
+	Context("revertors", func() {
+
+		BeforeEach(func() {
+			objects = []runtime.Object{
+				&appsv1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-ref",
+						Namespace: "test",
+						Labels: map[string]string{
+							"version": "0.0.1",
+						},
+						CreationTimestamp: metav1.Now(),
+					},
+
+					Spec: appsv1.DeploymentSpec{
+						Selector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{},
+						},
+						Template: v1.PodTemplateSpec{
+							Spec: v1.PodSpec{
+								Containers: []v1.Container{
+									{
+										Image: "datawire/hello-world:latest",
+										Env:   []v1.EnvVar{},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		FIt("should revert to original deployment", func() {
+			ref := CreateTestRef("test-ref")
+
+			// Create
+			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			modificatorStore := new.ModificatorStore{}
+			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			// Setup deleted ref
+			ref.Deleted = true
+
+			// Reverte
+			store = CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			modificatorStore = new.ModificatorStore{}
+			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			Expect(revertedFetchErr).To(HaveOccurred())
+			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
+		})
+
+	})
 })
