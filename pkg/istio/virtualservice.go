@@ -29,11 +29,11 @@ const (
 
 var (
 	_                  new.Locator              = VirtualServiceLocator
-	_                  new.ModificatorRegistrar = VirtualServiceRgistrar
+	_                  new.ModificatorRegistrar = VirtualServiceRegistrar
 	errorRouteNotFound                          = fmt.Errorf("route not found")
 )
 
-func VirtualServiceRgistrar() (client.Object, new.Modificator) {
+func VirtualServiceRegistrar() (client.Object, new.Modificator) {
 	return &istionetwork.VirtualService{}, VirtualServiceModificator
 }
 

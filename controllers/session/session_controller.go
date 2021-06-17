@@ -66,7 +66,7 @@ func DefaultManipulators() Manipulators {
 			openshift.DeploymentConfigRegistrar(engine),
 			istio.DestinationRuleRegistrar,
 			istio.GatewayRegistrar,
-			istio.VirtualServiceRgistrar,
+			istio.VirtualServiceRegistrar,
 		},
 	}
 }
