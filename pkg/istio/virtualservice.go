@@ -51,7 +51,11 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			action, hash := reference.GetLabel(&vs, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			if ref.Hash() != hash {
-				report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: undo})
+				report(new.LocatorStatus{
+					Kind:      VirtualServiceKind,
+					Namespace: vs.Namespace,
+					Name:      vs.Name,
+					Action:    undo})
 			}
 		}
 
@@ -72,7 +76,11 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			vs := vss.Items[i]
 			action, _ := reference.GetLabel(&vs, labelKey)
 			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: undo})
+			report(new.LocatorStatus{
+				Kind:      VirtualServiceKind,
+				Namespace: vs.Namespace,
+				Name:      vs.Name,
+				Action:    undo})
 		}
 	}
 
@@ -88,7 +96,12 @@ func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.Locato
 			continue
 		}
 
-		report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionCreate, Labels: map[string]string{"host": hostName.String()}})
+		report(new.LocatorStatus{
+			Kind:      VirtualServiceKind,
+			Namespace: vs.Namespace,
+			Name:      vs.Name,
+			Action:    new.ActionCreate,
+			Labels:    map[string]string{"host": hostName.String()}})
 	}
 }
 
@@ -100,7 +113,12 @@ func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServi
 			continue
 		}
 
-		report(new.LocatorStatus{Kind: VirtualServiceKind, Namespace: vs.Namespace, Name: vs.Name, Action: new.ActionModify, Labels: map[string]string{"host": hostName.String()}})
+		report(new.LocatorStatus{
+			Kind:      VirtualServiceKind,
+			Namespace: vs.Namespace,
+			Name:      vs.Name,
+			Action:    new.ActionModify,
+			Labels:    map[string]string{"host": hostName.String()}})
 	}
 }
 
@@ -117,7 +135,10 @@ func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.Lo
 		case new.ActionRevert:
 			actionRevertVirtualService(ctx, ref, store, report, resource)
 		case new.ActionLocated:
-			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+			report(new.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }
@@ -125,7 +146,10 @@ func VirtualServiceModificator(ctx new.SessionContext, ref new.Ref, store new.Lo
 func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
 
 		return
 	}
@@ -167,13 +191,18 @@ func actionDeleteVirtualService(ctx new.SessionContext, report new.ModificatorSt
 
 		return
 	}
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
 }
 
 func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
 
 		return
 	}

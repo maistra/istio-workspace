@@ -46,7 +46,12 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			action, hash := reference.GetLabel(&resource, labelKey) // TODO make the name more self-explanatory - label seems to be a way of storing reference marker on a resource e.g. deployment has been created by us
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
-				report(new.LocatorStatus{Kind: DeploymentKind, Namespace: resource.Namespace, Name: resource.Name, Labels: resource.Spec.Template.Labels, Action: undo})
+				report(new.LocatorStatus{
+					Kind:      DeploymentKind,
+					Namespace: resource.Namespace,
+					Name:      resource.Name,
+					Labels:    resource.Spec.Template.Labels,
+					Action:    undo})
 			}
 		}
 		deployment, err := getDeployment(ctx, ref.Namespace, ref.KindName.Name)
@@ -59,13 +64,23 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			return err
 		}
 
-		report(new.LocatorStatus{Kind: DeploymentKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
+		report(new.LocatorStatus{
+			Kind:      DeploymentKind,
+			Namespace: deployment.Namespace,
+			Name:      deployment.Name,
+			Labels:    deployment.Spec.Template.Labels,
+			Action:    new.ActionCreate})
 	} else {
 		for i := range deployments.Items {
 			deployment := deployments.Items[i]
 			action, _ := reference.GetLabel(&deployment, labelKey)
 			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{Kind: DeploymentKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: undo})
+			report(new.LocatorStatus{
+				Kind:      DeploymentKind,
+				Namespace: deployment.Namespace,
+				Name:      deployment.Name,
+				Labels:    deployment.Spec.Template.Labels,
+				Action:    undo})
 		}
 	}
 
@@ -82,7 +97,10 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 			case new.ActionDelete:
 				actionDeleteDeployment(ctx, report, resource)
 			case new.ActionModify, new.ActionRevert, new.ActionLocated:
-				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+				report(new.ModificatorStatus{
+					LocatorStatus: resource,
+					Success:       false,
+					Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}
 	}

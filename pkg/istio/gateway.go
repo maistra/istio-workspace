@@ -34,7 +34,10 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 		case new.ActionRevert:
 			actionRevertGateway(ctx, ref, report, resource)
 		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
-			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+			report(new.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }
@@ -42,7 +45,10 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
 	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
 
 		return
 	}
@@ -78,11 +84,16 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-			report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+			report(new.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       true})
 
 			return
 		}
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
 
 		return
 	}
@@ -104,7 +115,9 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 		return
 	}
 	// ok, removed
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
 }
 
 func mutateGateway(ctx new.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {

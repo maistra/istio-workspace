@@ -42,7 +42,11 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			action, hash := reference.GetLabel(&destinationRule, labelKey)
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
-				report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: destinationRule.Namespace, Name: destinationRule.Name, Action: undo})
+				report(new.LocatorStatus{
+					Kind:      DestinationRuleKind,
+					Namespace: destinationRule.Namespace,
+					Name:      destinationRule.Name,
+					Action:    undo})
 			}
 		}
 
@@ -54,14 +58,22 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 				continue
 			}
 
-			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: dr.Namespace, Name: dr.Name, Action: new.ActionCreate})
+			report(new.LocatorStatus{
+				Kind:      DestinationRuleKind,
+				Namespace: dr.Namespace,
+				Name:      dr.Name,
+				Action:    new.ActionCreate})
 		}
 	} else {
 		for i := range destinationRules.Items {
 			resource := destinationRules.Items[i]
 			action, _ := reference.GetLabel(&resource, labelKey)
 			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{Kind: DestinationRuleKind, Namespace: resource.Namespace, Name: resource.Name, Action: undo})
+			report(new.LocatorStatus{
+				Kind:      DestinationRuleKind,
+				Namespace: resource.Namespace,
+				Name:      resource.Name,
+				Action:    undo})
 		}
 	}
 
@@ -78,7 +90,10 @@ func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.L
 		case new.ActionDelete:
 			actionDeleteDestinationRule(ctx, report, resource)
 		case new.ActionModify, new.ActionRevert, new.ActionLocated:
-			report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+			report(new.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
 	}
 }
@@ -153,7 +168,9 @@ func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorS
 	}
 
 	// ok, removed
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
 }
 
 func locateDestinationRuleWithSubset(ctx new.SessionContext, namespace string, hostName new.HostName, targetVersion string) (*istionetwork.DestinationRule, error) {

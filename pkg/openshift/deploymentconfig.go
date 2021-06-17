@@ -52,7 +52,12 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			action, hash := reference.GetLabel(&deploymentConfig, labelKey)
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
-				report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deploymentConfig.Namespace, Name: deploymentConfig.Name, Labels: deploymentConfig.Spec.Template.Labels, Action: undo})
+				report(new.LocatorStatus{
+					Kind:      DeploymentConfigKind,
+					Namespace: deploymentConfig.Namespace,
+					Name:      deploymentConfig.Name,
+					Labels:    deploymentConfig.Spec.Template.Labels,
+					Action:    undo})
 			}
 		}
 
@@ -64,13 +69,23 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 
 			return errors.WrapIfWithDetails(err, "Could not get DeploymentConfig", "name", deployment.Name, "ref", ref.KindName.String())
 		}
-		report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deployment.Namespace, Name: deployment.Name, Labels: deployment.Spec.Template.Labels, Action: new.ActionCreate})
+		report(new.LocatorStatus{
+			Kind:      DeploymentConfigKind,
+			Namespace: deployment.Namespace,
+			Name:      deployment.Name,
+			Labels:    deployment.Spec.Template.Labels,
+			Action:    new.ActionCreate})
 	} else {
 		for i := range deploymentConfigs.Items {
 			deploymentConfig := deploymentConfigs.Items[i]
 			action, _ := reference.GetLabel(&deploymentConfig, labelKey)
 			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{Kind: DeploymentConfigKind, Namespace: deploymentConfig.Namespace, Name: deploymentConfig.Name, Labels: deploymentConfig.Spec.Template.Labels, Action: undo})
+			report(new.LocatorStatus{
+				Kind:      DeploymentConfigKind,
+				Namespace: deploymentConfig.Namespace,
+				Name:      deploymentConfig.Name,
+				Labels:    deploymentConfig.Spec.Template.Labels,
+				Action:    undo})
 		}
 	}
 
@@ -87,7 +102,10 @@ func DeploymentConfigModificator(engine template.Engine) new.Modificator {
 			case new.ActionDelete:
 				actionDeleteDeploymentConfig(ctx, report, resource)
 			case new.ActionModify, new.ActionRevert, new.ActionLocated:
-				report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+				report(new.ModificatorStatus{
+					LocatorStatus: resource,
+					Success:       false,
+					Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 			}
 		}
 	}
