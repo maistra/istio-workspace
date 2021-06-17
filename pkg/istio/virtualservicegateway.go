@@ -22,7 +22,7 @@ var _ new.Locator = VirtualServiceGatewayLocator
 func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	var errs error
 
-	labelKey := ctx.Name + "-" + ref.KindName.String()
+	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
 	gws, err := getGateways(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {
 		return err

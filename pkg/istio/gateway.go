@@ -59,7 +59,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
-	reference.AddLabel(&mutatedGw, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedGw, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
@@ -103,7 +103,7 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
 	}
-	reference.RemoveLabel(&mutatedGw, ctx.Name+"-"+ref.KindName.String())
+	reference.RemoveLabel(&mutatedGw, reference.CreateLabel(ctx.Name, ref.KindName.String()))
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {

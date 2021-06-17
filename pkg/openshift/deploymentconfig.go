@@ -40,7 +40,7 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 		return nil
 	}
 
-	labelKey := ctx.Name + "-" + ref.KindName.String()
+	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
 	deploymentConfigs, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 	}
-	reference.AddLabel(deploymentClone, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
+	reference.AddLabel(deploymentClone, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})

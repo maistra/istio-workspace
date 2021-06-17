@@ -30,7 +30,7 @@ func DestinationRuleRegistrar() (client.Object, new.Modificator) {
 func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	var errs error
 
-	labelKey := ctx.Name + "-" + ref.KindName.String()
+	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
 	destinationRules, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
@@ -131,7 +131,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 	if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", dr.Spec.Host)
 	}
-	reference.AddLabel(&destinationRule, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
+	reference.AddLabel(&destinationRule, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {

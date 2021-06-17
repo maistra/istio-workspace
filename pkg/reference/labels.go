@@ -3,12 +3,17 @@ package reference
 import (
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/naming"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
 	labelPrefix = "maistra.io."
 )
+
+func CreateLabel(session, ref string) string {
+	return naming.ConcatToMax(40, session, ref) + "-X"
+}
 
 // Match filters the list operation checking if the set of session specific labels
 // exists without checking their values.

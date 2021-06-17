@@ -38,8 +38,8 @@ func VirtualServiceRegistrar() (client.Object, new.Modificator) {
 }
 
 func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-	labelKey := ctx.Name + "-" + ref.KindName.String()
 
+	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
 	vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to get all virtual services", "ref", ref.KindName.String())
@@ -161,7 +161,7 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.AddLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedVs, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Create(ctx, &mutatedVs)
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
@@ -220,7 +220,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.AddLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String(), string(resource.Action), ref.Hash())
+	reference.AddLabel(&mutatedVs, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
@@ -245,7 +245,7 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
-	reference.RemoveLabel(&mutatedVs, ctx.Name+"-"+ref.KindName.String())
+	reference.RemoveLabel(&mutatedVs, reference.CreateLabel(ctx.Name, ref.KindName.String()))
 
 	err = ctx.Client.Update(ctx, &mutatedVs)
 	if err != nil {
