@@ -1,10 +1,25 @@
 package session_test
 
-//. "github.com/onsi/ginkgo"
-//. "github.com/onsi/gomega"
+import (
+	"context"
+	"fmt"
+	"time"
 
-/*
-var kind, name, action = "test", "details", "created"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/model/new"
+)
+
+var kind, name = "X", "details"
 
 var _ = Describe("Basic session manipulation", func() {
 	var (
@@ -15,7 +30,6 @@ var _ = Describe("Basic session manipulation", func() {
 		c          client.Client
 		locator    *trackedLocator
 		mutator    *trackedMutator
-		revertor   *trackedRevertor
 	)
 	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
 		return func(namespace, name string) v1alpha1.Session {
@@ -26,28 +40,28 @@ var _ = Describe("Basic session manipulation", func() {
 			return s
 		}
 	}(&c)
-	GetStatusRef := func(name string, session v1alpha1.Session) []v1alpha1.Condition {
-		var conditions []v1alpha1.Condition
+	/*
+		GetStatusRef := func(name string, session v1alpha1.Session) []v1alpha1.Condition {
+			var conditions []v1alpha1.Condition
 
-		for _, condition := range session.Status.Conditions {
-			split := strings.Split(condition.Key, ";")
-
-			if split[1] == name {
-				conditions = append(conditions, *condition)
+			for _, condition := range session.Status.Conditions {
+				if condition.Target.Name == name {
+					conditions = append(conditions, *condition)
+				}
 			}
+
+			return conditions
 		}
-
-		return conditions
-	}
-
+	*/
 	JustBeforeEach(func() {
 		locator = &trackedLocator{Action: notFoundTestLocator}
-		mutator = &trackedMutator{Action: noOp}
-		revertor = &trackedRevertor{Action: noOp}
+		mutator = &trackedMutator{Action: noOpModifier}
 		manipulators := session.Manipulators{
 			Locators: []new.Locator{locator.Do},
 			Handlers: []new.ModificatorRegistrar{
-				trackedManipulator{mutator: mutator.Do, revertor: revertor.Do},
+				func() (client.Object, new.Modificator) {
+					return nil, mutator.Do
+				},
 			},
 		}
 
@@ -109,21 +123,9 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
 			})
-			It("should not call revertors when mutation occurs", func() {
-				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details", Kind: "test", Action: new.ActionCreated})
-
-				res, err := controller.Reconcile(context.Background(), req)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(res.Requeue).To(BeFalse())
-
-				Expect(locator.WasCalled).To(BeTrue())
-				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(revertor.WasCalled).ToNot(BeTrue())
-			})
 			It("should update the status when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details", Kind: "test", Action: new.ActionCreated})
+				mutator.Action = addResourceStatus(true, nil)
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -131,8 +133,8 @@ var _ = Describe("Basic session manipulation", func() {
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
-				Expect(modified.Status.Refs).To(HaveLen(1))
-				Expect(modified.Status.Refs[0].Name).To(Equal("details"))
+				Expect(modified.Status.Conditions).To(HaveLen(1))
+				Expect(modified.Status.Conditions[0].Target.Name).To(Equal("test"))
 			})
 			It("should update status with the corresponding route", func() {
 				res, err := controller.Reconcile(context.Background(), req)
@@ -147,7 +149,6 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 		})
 	})
-
 	Context("session modification", func() {
 		Context("new reference", func() {
 			BeforeEach(func() {
@@ -162,11 +163,12 @@ var _ = Describe("Basic session manipulation", func() {
 							Refs: []v1alpha1.Ref{{Name: "details"}, {Name: "details2"}},
 						},
 						Status: v1alpha1.SessionStatus{
-							Refs: []*v1alpha1.RefStatus{
-								{
-									Ref:       v1alpha1.Ref{Name: "details"},
-									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-								},
+							Conditions: []*v1alpha1.Condition{
+								{Target: v1alpha1.Target{
+									Name: name,
+									Kind: kind,
+									Ref:  "details",
+								}},
 							},
 						},
 					},
@@ -174,7 +176,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details2", Kind: "test", Action: new.ActionCreated})
+				mutator.Action = addResourceStatus(true, nil)
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -182,11 +184,11 @@ var _ = Describe("Basic session manipulation", func() {
 
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(revertor.WasCalled).ToNot(BeTrue())
+				Expect(mutator.Refs[0].Deleted).To(BeFalse())
 			})
 			It("should update existing status when new mutation occurs", func() {
-				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(new.ResourceStatus{Name: "details2", Kind: "test", Action: new.ActionCreated})
+				locator.Action = foundTestLocatorTarget("details2")
+				mutator.Action = addResourceStatus(true, nil)
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -194,9 +196,17 @@ var _ = Describe("Basic session manipulation", func() {
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
-				Expect(modified.Status.Refs).To(HaveLen(2))
-				Expect(modified.Status.Refs[0].Name).To(Equal("details"))
-				Expect(modified.Status.Refs[1].Name).To(Equal("details2"))
+				Expect(modified.Status.Conditions).To(HaveLen(2))
+
+				getNames := func(list []*v1alpha1.Condition) []string {
+					var names []string
+					for _, l := range list {
+						names = append(names, l.Target.Name)
+					}
+					return names
+				}
+				Expect(getNames(modified.Status.Conditions)).To(ConsistOf("details2", "details2"))
+				Expect(*modified.Status.State).To(Equal(v1alpha1.StateSuccess))
 			})
 		})
 		Context("removed reference", func() {
@@ -212,11 +222,12 @@ var _ = Describe("Basic session manipulation", func() {
 							Refs: []v1alpha1.Ref{},
 						},
 						Status: v1alpha1.SessionStatus{
-							Refs: []*v1alpha1.RefStatus{
-								{
-									Ref:       v1alpha1.Ref{Name: "details"},
-									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-								},
+							Conditions: []*v1alpha1.Condition{
+								{Target: v1alpha1.Target{
+									Name: name,
+									Kind: kind,
+									Ref:  "details",
+								}},
 							},
 						},
 					},
@@ -224,95 +235,123 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should call revertors when ref is removed", func() {
 				locator.Action = foundTestLocator
-				revertor.Action = removeResourceStatus("test", "details")
+				mutator.Action = addResourceStatus(true, nil)
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				Expect(locator.WasCalled).To(BeFalse())
-				Expect(mutator.WasCalled).To(BeFalse())
-				Expect(revertor.WasCalled).To(BeTrue())
+				Expect(locator.WasCalled).To(BeTrue())
+				Expect(mutator.WasCalled).To(BeTrue())
+				Expect(mutator.Refs[0].Deleted).To(BeTrue())
 			})
 
 			It("should remove status when ref is removed", func() {
 				locator.Action = foundTestLocator
-				revertor.Action = removeResourceStatus("test", "details")
+				mutator.Action = addResourceStatus(true, nil)
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
-				Expect(modified.Status.Refs).To(HaveLen(0))
+				Expect(modified.Status.Conditions).To(HaveLen(0))
+			})
+			Context("updated reference", func() {
+				BeforeEach(func() {
+					// TODO: missing a way to detect that a ref has changed, e.g. new strategy...
+					objects = []runtime.Object{
+						&v1alpha1.Session{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:       "test-session",
+								Namespace:  "test",
+								Finalizers: []string{session.Finalizer},
+							},
+							Spec: v1alpha1.SessionSpec{
+								Refs: []v1alpha1.Ref{
+									{
+										Name:     "details",
+										Strategy: "telepresence",
+									},
+									{
+										Name:     "ratings",
+										Strategy: "prepared-image",
+										Args: map[string]string{
+											"image": "x",
+										},
+									},
+									{
+										Name:     "locations",
+										Strategy: "prepared-image",
+										Args: map[string]string{
+											"image": "y",
+										},
+									}},
+							},
+							Status: v1alpha1.SessionStatus{
+								Conditions: []*v1alpha1.Condition{
+									{
+										Target: v1alpha1.Target{
+											Name: "test",
+											Kind: "X",
+											Ref:  "details",
+										},
+									},
+									{
+										Target: v1alpha1.Target{
+											Name: "test",
+											Kind: "X",
+											Ref:  "ratings",
+										},
+									},
+									{
+										Target: v1alpha1.Target{
+											Name: "locations",
+											Kind: "X",
+											Ref:  "details",
+										},
+									},
+								},
+							},
+						},
+					}
+				})
+				It("should call revert when a status.ref.strategy differs from spec.ref.strategy", func() {
+					locator.Action = foundTestLocator
+					mutator.Action = addResourceStatus(true, nil)
+					res, err := controller.Reconcile(context.Background(), req)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(res.Requeue).To(BeFalse())
+
+					Expect(locator.WasCalled).To(BeTrue())
+					Expect(mutator.WasCalled).To(BeTrue())
+
+					modified := GetSession("test", "test-session")
+					Expect(modified.Status).ToNot(BeNil())
+					Expect(modified.Status.Conditions).To(HaveLen(3))
+				})
 			})
 		})
-		Context("updated reference", func() {
-			locatedTargetName := "test-a"
-			locatedAction := "located"
+
+		Context("session deletion", func() {
 			BeforeEach(func() {
 				objects = []runtime.Object{
 					&v1alpha1.Session{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:       "test-session",
-							Namespace:  "test",
-							Finalizers: []string{session.Finalizer},
+							Name:              "test-session",
+							Namespace:         "test",
+							DeletionTimestamp: &metav1.Time{Time: time.Now()},
+							Finalizers:        []string{session.Finalizer},
 						},
 						Spec: v1alpha1.SessionSpec{
-							Refs: []v1alpha1.Ref{
-								{
-									Name:     "details",
-									Strategy: "telepresence",
-								},
-								{
-									Name:     "ratings",
-									Strategy: "prepared-image",
-									Args: map[string]string{
-										"image": "x",
-									},
-								},
-								{
-									Name:     "locations",
-									Strategy: "prepared-image",
-									Args: map[string]string{
-										"image": "y",
-									},
-								}},
+							Refs: []v1alpha1.Ref{},
 						},
 						Status: v1alpha1.SessionStatus{
-							Refs: []*v1alpha1.RefStatus{
+							Conditions: []*v1alpha1.Condition{
 								{
-									Ref: v1alpha1.Ref{
-										Name:     "details",
-										Strategy: "prepared-image",
-										Args: map[string]string{
-											"image": "x",
-										}},
-									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-								},
-								{
-									Ref: v1alpha1.Ref{
-										Name:     "ratings",
-										Strategy: "telepresence",
-									},
-									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-								},
-								{
-									Ref: v1alpha1.Ref{
-										Name:     "locations",
-										Strategy: "prepared-image",
-										Args: map[string]string{
-											"image":                       "x",
-											"should-be-removed-on-update": "true",
-										}},
-									Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-									Targets: []*v1alpha1.LabeledRefResource{
-										{
-											RefResource: v1alpha1.RefResource{
-												Kind:   &kind,
-												Name:   &locatedTargetName,
-												Action: &locatedAction,
-											},
-										},
+									Target: v1alpha1.Target{
+										Name: "test",
+										Kind: "X",
+										Ref:  "details",
 									},
 								},
 							},
@@ -320,159 +359,66 @@ var _ = Describe("Basic session manipulation", func() {
 					},
 				}
 			})
-			It("should call revert when a status.ref.strategy differs from spec.ref.strategy", func() {
+
+			It("should call revertors when session removed", func() {
 				locator.Action = foundTestLocator
-				revertor.Action = removeResourceStatus("test", "details")
+				mutator.Action = addResourceStatus(true, nil)
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(revertor.WasCalled).To(BeTrue())
+				Expect(mutator.Refs[0].Deleted).To(BeTrue())
+			})
+
+			It("should remove status when session removed", func() {
+				locator.Action = foundTestLocator
+				mutator.Action = addResourceStatus(true, nil)
+				res, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
 
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
-				Expect(modified.Status.Refs).To(HaveLen(3))
+				Expect(modified.Status.Conditions).To(HaveLen(0))
 			})
 
-			Context("ensure updated spec.ref is reflected in status.ref", func() {
+			It("should remove finalizer", func() {
+				res, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res.Requeue).To(BeFalse())
 
-				It("should update the strategy", func() {
-					locator.Action = foundTestLocator
-					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(context.Background(), req)
-					Expect(reconcileErr).ToNot(HaveOccurred())
-
-					modified := GetStatusRef("details", GetSession("test", "test-session"))
-					Expect(modified).ToNot(BeNil())
-					Expect(modified.Strategy).To(Equal("telepresence"))
-					Expect(modified.Args).To(BeNil())
-					Expect(modified.Resources).To(HaveLen(0))
-				})
-
-				It("should replace the args when strategy changes", func() {
-					locator.Action = foundTestLocator
-					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(context.Background(), req)
-					Expect(reconcileErr).ToNot(HaveOccurred())
-
-					modified := GetStatusRef("ratings", GetSession("test", "test-session"))
-					Expect(modified).ToNot(BeNil())
-					Expect(modified.Strategy).To(Equal("prepared-image"))
-					Expect(modified.Args).To(Equal(map[string]string{"image": "x"}))
-					Expect(modified.Resources).To(HaveLen(0))
-				})
-
-				It("should update args for existing strategy", func() {
-					locator.Action = foundTestLocator
-					revertor.Action = removeResourceStatus("test", "details")
-					_, reconcileErr := controller.Reconcile(context.Background(), req)
-					Expect(reconcileErr).ToNot(HaveOccurred())
-
-					modified := GetStatusRef("locations", GetSession("test", "test-session"))
-					Expect(modified).ToNot(BeNil())
-					Expect(modified.Strategy).To(Equal("prepared-image"))
-					Expect(modified.Args).To(Equal(map[string]string{"image": "y"})) // additionally we check if existing old arg has been removed
-				})
-
+				modified := GetSession("test", "test-session")
+				Expect(modified.ObjectMeta.Finalizers).To(HaveLen(0))
 			})
-			Context("ensure targets are reflected on update", func() {
-				It("should update on any change", func() {
-					locator.Action = foundTestLocatorTarget("test-a", "test-b")
-					revertor.Action = noOp
-					_, reconcileErr := controller.Reconcile(context.Background(), req)
-					Expect(reconcileErr).ToNot(HaveOccurred())
-
-					modified := GetStatusRef("locations", GetSession("test", "test-session"))
-					Expect(modified).ToNot(BeNil())
-					Expect(modified.Targets).To(HaveLen(2))
-				})
-			})
-		})
-	})
-	Context("session deletion", func() {
-		BeforeEach(func() {
-			objects = []runtime.Object{
-				&v1alpha1.Session{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:              "test-session",
-						Namespace:         "test",
-						DeletionTimestamp: &metav1.Time{Time: time.Now()},
-						Finalizers:        []string{session.Finalizer},
-					},
-					Spec: v1alpha1.SessionSpec{
-						Refs: []v1alpha1.Ref{{Name: "details"}},
-					},
-					Status: v1alpha1.SessionStatus{
-						Refs: []*v1alpha1.RefStatus{
-							{
-								Ref:       v1alpha1.Ref{Name: "details"},
-								Resources: []*v1alpha1.RefResource{{Kind: &kind, Name: &name, Action: &action}},
-							},
-						},
-					},
-				},
-			}
-		})
-
-		It("should call revertors when session removed", func() {
-			locator.Action = foundTestLocator
-			revertor.Action = removeResourceStatus("test", "details")
-			res, err := controller.Reconcile(context.Background(), req)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res.Requeue).To(BeFalse())
-
-			Expect(locator.WasCalled).To(BeFalse())
-			Expect(mutator.WasCalled).To(BeFalse())
-			Expect(revertor.WasCalled).To(BeTrue())
-		})
-
-		It("should remove status when session removed", func() {
-			locator.Action = foundTestLocator
-			revertor.Action = removeResourceStatus("test", "details")
-			res, err := controller.Reconcile(context.Background(), req)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res.Requeue).To(BeFalse())
-
-			modified := GetSession("test", "test-session")
-			Expect(modified.Status).ToNot(BeNil())
-			Expect(modified.Status.Refs).To(HaveLen(0))
-		})
-
-		It("should remove finalizer", func() {
-			res, err := controller.Reconcile(context.Background(), req)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res.Requeue).To(BeFalse())
-
-			modified := GetSession("test", "test-session")
-			Expect(modified.ObjectMeta.Finalizers).To(HaveLen(0))
 		})
 	})
 })
 
 // notFound Action for Locator tracker.
-func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
-
+func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+	return nil
 }
 
 // found Action for Locator tracker.
-func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	report(new.LocatorStatus{Kind: "X", Name: "test", Action: new.ActionCreate})
+	return nil
 }
 
 // found Action for Locator tracker.
-func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
-	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 		for _, name := range names {
 			report(new.LocatorStatus{Kind: "X", Name: name, Action: new.ActionCreate})
 		}
+		return nil
 	}
 }
 
-// noOp Action for Mutator/Revertor trackers.
-func noOp(ctx new.SessionContext, ref *new.Ref) error {
-	return nil
+// noOpModifier Action for Mutator/Revertor trackers.
+func noOpModifier(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
 }
 
 type trackedLocator struct {
@@ -480,64 +426,30 @@ type trackedLocator struct {
 	Action    new.Locator
 }
 
-func (t *trackedLocator) Do(ctx new.SessionContext, ref *new.Ref) bool {
+func (t *trackedLocator) Do(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	t.WasCalled = true
 
-	return t.Action(ctx, ref)
+	return t.Action(ctx, ref, store, report)
 }
 
 // addResource Action for mutator tracker.
-func addResourceStatus(status new.ResourceStatus) func(ctx new.SessionContext, ref *new.Ref) error {
-	return func(ctx new.SessionContext, ref *new.Ref) error {
-		ref.AddResourceStatus(status)
-
-		return nil
+func addResourceStatus(success bool, err error) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+		for _, l := range store() {
+			report(new.ModificatorStatus{LocatorStatus: l, Success: success, Error: err})
+		}
 	}
-}
-
-type trackedManipulator struct {
-	mutator  new.Mutator
-	revertor new.Revertor
-}
-
-func (t trackedManipulator) Mutate() new.Mutator {
-	return t.mutator
-}
-func (t trackedManipulator) Revert() new.Revertor {
-	return t.revertor
-}
-func (t trackedManipulator) TargetResourceType() client.Object {
-	return nil
 }
 
 type trackedMutator struct {
 	WasCalled bool
-	Action    new.Mutator
+	Action    new.Modificator
+	Refs      []new.Ref
 }
 
-func (t *trackedMutator) Do(ctx new.SessionContext, ref *new.Ref) error {
+func (t *trackedMutator) Do(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
 	t.WasCalled = true
+	t.Refs = append(t.Refs, ref)
 
-	return t.Action(ctx, ref)
+	t.Action(ctx, ref, store, report)
 }
-
-// removeResource Action for revertor tracker.
-func removeResourceStatus(kind, name string) func(ctx new.SessionContext, ref *new.Ref) error { //nolint:unparam //reason kind is always receiving 'test' so far
-	return func(ctx new.SessionContext, ref *new.Ref) error {
-		ref.RemoveResourceStatus(new.ResourceStatus{Kind: kind, Name: name})
-
-		return nil
-	}
-}
-
-type trackedRevertor struct {
-	WasCalled bool
-	Action    new.Revertor
-}
-
-func (t *trackedRevertor) Do(ctx new.SessionContext, ref *new.Ref) error {
-	t.WasCalled = true
-
-	return t.Action(ctx, ref)
-}
-*/

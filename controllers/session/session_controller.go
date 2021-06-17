@@ -227,6 +227,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	refs := calculateReferences(ctx, session)
 	sync := n.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+	session.Status.Conditions = []*istiov1alpha1.Condition{}
 
 	for _, ref := range refs {
 		ref := ref // pin
@@ -388,71 +389,6 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 	return refs
 }
 
-//
-//func (r *ReconcileSession) deleteRemovedRefs(ctx n.SessionContext, session *istiov1alpha1.Session, refs []n.Ref) {
-//	for _, ref := range refs {
-//		found := false
-//		for _, r := range session.Spec.Refs {
-//			if ref.KindName.String() == r.Name {
-//				found = true
-//
-//				break
-//			}
-//		}
-//		if !found {
-//			if err := r.delete(ctx, session, ref); err != nil {
-//				ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
-//			}
-//		}
-//	}
-//}
-//
-//func (r *ReconcileSession) deleteAllRefs(ctx n.SessionContext, session *istiov1alpha1.Session, refs []n.Ref) {
-//	for _, ref := range refs {
-//		if err := r.delete(ctx, session, ref); err != nil {
-//			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
-//		}
-//	}
-//}
-//
-//func (r *ReconcileSession) delete(ctx n.SessionContext, session *istiov1alpha1.Session, ref n.Ref) error {
-//	ctx.Log.Info("Remove ref", "name", ref.KindName.String())
-//
-//	ConvertAPIStatusToModelRef(*session, ref)
-//	for _, handler := range r.manipulators.Handlers {
-//		err := handler.Revert()(ctx, ref)
-//		if err != nil {
-//			ctx.Log.Error(err, "Revert", "name", ref.KindName.String())
-//		}
-//	}
-//	ConvertModelRefToAPIStatus(*ref, session)
-//
-//	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed updating session")
-//}
-//
-//func (r *ReconcileSession) syncAllRefs(ctx n.SessionContext, session *istiov1alpha1.Session) error {
-//	for _, specRef := range session.Spec.Refs {
-//		ctx.Log.Info("Add ref", "name", specRef.Name)
-//		ref := ConvertAPIRefToModelRef(specRef, session.Namespace)
-//		err := r.sync(ctx, session, &ref)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	session.Status.RefNames = []string{}
-//	session.Status.Strategies = []string{}
-//	session.Status.Hosts = []string{}
-//	for _, statusRef := range session.Status.Refs {
-//		session.Status.RefNames = append(session.Status.RefNames, statusRef.Name)
-//		session.Status.Strategies = append(session.Status.Strategies, statusRef.Strategy)
-//		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
-//	}
-//	session.Status.Hosts = unique(session.Status.Hosts)
-//
-//	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing all refs")
-//}
-
 func unique(s []string) []string {
 	uniqueSlice := []string{}
 	entries := make(map[string]bool)
@@ -465,33 +401,3 @@ func unique(s []string) []string {
 
 	return uniqueSlice
 }
-
-//func (r *ReconcileSession) sync(ctx n.SessionContext, session *istiov1alpha1.Session, ref n.Ref) error {
-//	// if ref has changed, delete first
-//	if RefUpdated(*session, *ref) {
-//		err := r.delete(ctx, session, ref)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	ConvertAPIStatusToModelRef(*session, ref)
-//	located := false
-//	for _, locator := range r.manipulators.Locators {
-//		if locator(ctx, ref) {
-//			located = true
-//		}
-//	}
-//	if located {
-//		for _, handler := range r.manipulators.Handlers {
-//			err := handler.Mutate()(ctx, ref)
-//			if err != nil {
-//				ctx.Log.Error(err, "Mutate", "name", ref.KindName.String())
-//			}
-//		}
-//	}
-//
-//	ConvertModelRefToAPIStatus(*ref, session)
-//
-//	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing ref")
-//}
