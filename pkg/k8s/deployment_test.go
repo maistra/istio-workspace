@@ -330,6 +330,8 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
 			newName := ref.KindName.Name + "-" + new.GetNewVersion(store.Store, ctx.Name)
 			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
@@ -344,6 +346,8 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			// Revert
 			modificatorStore = new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
 			_, revertedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
 			Expect(revertedFetchErr).To(HaveOccurred())
