@@ -232,7 +232,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		ref := ref // pin
 		sync(ctx, ref,
 			func(located n.LocatorStatusStore) bool {
-				// validate stuff
+				// TODO validate stuff
 				return true
 			},
 			func(located n.LocatorStatusStore) {
@@ -250,6 +250,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 				}
 			})
+		cleanupRelatedConditionsOnRemoval(ref, session)
 	}
 	session.Status.State = calculateSessionState(session)
 	err = ctx.Client.Status().Update(ctx, session)
@@ -269,6 +270,31 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func cleanupRelatedConditionsOnRemoval(ref n.Ref, session *istiov1alpha1.Session) {
+	if ref.Deleted && refSuccessful(ref, session.Status.Conditions) {
+		var otherConditions []*istiov1alpha1.Condition
+		for i := range session.Status.Conditions {
+			condition := session.Status.Conditions[i]
+			if condition.Target.Ref != ref.KindName.String() {
+				otherConditions = append(otherConditions, condition)
+			}
+		}
+		session.Status.Conditions = otherConditions
+	}
+}
+
+func refSuccessful(ref n.Ref, conditions []*istiov1alpha1.Condition) bool {
+	for i := range conditions {
+		condition := conditions[i]
+		conditionFailed := condition.Status != nil && *condition.Status == "false"
+		if condition.Target.Ref == ref.KindName.String() && conditionFailed {
+			return false
+		}
+	}
+
+	return true
 }
 
 func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.SessionState {
