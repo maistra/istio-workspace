@@ -181,15 +181,13 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
-	var name string
-	var err error
 	var sessionStatus *istiov1alpha1.Session
 	duration := 1 * time.Minute
 	if h.opts.Duration != nil {
 		duration = *h.opts.Duration
 	}
-	err = wait.Poll(2*time.Second, duration, func() (bool, error) {
-		sessionStatus, err = h.c.Get(h.opts.SessionName)
+	err := wait.Poll(2*time.Second, duration, func() (bool, error) {
+		sessionStatus, err := h.c.Get(h.opts.SessionName)
 		if err != nil {
 			return false, err
 		}
@@ -201,22 +199,20 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		return false, nil
 	})
 	if err != nil {
-		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
+		return sessionStatus, "", errors.Wrap(err, "timed out waiting for success")
 	}
 	for _, condition := range sessionStatus.Status.Conditions {
 		if condition.Source.Ref == h.opts.DeploymentName {
 			if condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment" {
 				if condition.Target != nil {
-					name = condition.Target.Name
-
-					break
+					return sessionStatus, condition.Target.Name, nil
 				}
 
 			}
 		}
 	}
 
-	return sessionStatus, name, nil
+	return sessionStatus, "", DeploymentNotFoundError{name: h.opts.DeploymentName}
 }
 
 func (h *handler) removeOrLeaveSession() {
