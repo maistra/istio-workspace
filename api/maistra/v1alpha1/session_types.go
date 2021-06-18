@@ -32,7 +32,7 @@ const (
 	StateSuccess SessionState = "Success"
 	// StateFailed indicates that particular action related to the session has failed.
 	StateFailed SessionState = "Failed"
-	// StatusFailed indicates that overall condition failed
+	// StatusFailed indicates that overall condition failed.
 	StatusFailed string = "false"
 )
 
@@ -93,7 +93,11 @@ type SessionStatus struct {
 // Condition .... .
 // +k8s:openapi-gen=true
 type Condition struct {
-	Target Target `json:"target"`
+
+	// Source contains the resource involved
+	Source Source `json:"source"`
+	// Result contains the resource involved if different from Target, e.g. Create
+	Target *Target `json:"target,omitempty"`
 	// Message explains the reason for a change.
 	Message *string `json:"message,omitempty"`
 	// Reason is a programmatic reason for the change.
@@ -106,9 +110,14 @@ type Condition struct {
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
 }
 
-type Target struct {
+type Source struct {
 	Name string `json:"name"`
 	Ref  string `json:"ref"`
+	Kind string `json:"kind"`
+}
+
+type Target struct {
+	Name string `json:"name"`
 	Kind string `json:"kind"`
 }
 
@@ -172,9 +181,9 @@ func (s *Session) AddCondition(condition Condition) {
 		condition.LastTransitionTime = &now
 	}
 	for i, stored := range s.Status.Conditions {
-		if stored.Target.Name == condition.Target.Name &&
-			stored.Target.Kind == condition.Target.Kind &&
-			stored.Target.Ref == condition.Target.Ref {
+		if stored.Source.Name == condition.Source.Name &&
+			stored.Source.Kind == condition.Source.Kind &&
+			stored.Source.Ref == condition.Source.Ref {
 			s.Status.Conditions[i] = &condition
 			replaced = true
 		}

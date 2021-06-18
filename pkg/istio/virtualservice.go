@@ -51,10 +51,12 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			undo := new.Flip(new.StatusAction(action))
 			if ref.Hash() != hash {
 				report(new.LocatorStatus{
-					Kind:      VirtualServiceKind,
-					Namespace: vs.Namespace,
-					Name:      vs.Name,
-					Action:    undo})
+					Resource: new.Resource{
+						Kind:      VirtualServiceKind,
+						Namespace: vs.Namespace,
+						Name:      vs.Name,
+					},
+					Action: undo})
 			}
 		}
 
@@ -76,10 +78,12 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 			action, _ := reference.GetLabel(&vs, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			report(new.LocatorStatus{
-				Kind:      VirtualServiceKind,
-				Namespace: vs.Namespace,
-				Name:      vs.Name,
-				Action:    undo})
+				Resource: new.Resource{
+					Kind:      VirtualServiceKind,
+					Namespace: vs.Namespace,
+					Name:      vs.Name,
+				},
+				Action: undo})
 		}
 	}
 
@@ -96,11 +100,13 @@ func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.Locato
 		}
 
 		report(new.LocatorStatus{
-			Kind:      VirtualServiceKind,
-			Namespace: vs.Namespace,
-			Name:      vs.Name,
-			Action:    new.ActionCreate,
-			Labels:    map[string]string{"host": hostName.String()}})
+			Resource: new.Resource{
+				Kind:      VirtualServiceKind,
+				Namespace: vs.Namespace,
+				Name:      vs.Name,
+			},
+			Action: new.ActionCreate,
+			Labels: map[string]string{"host": hostName.String()}})
 	}
 }
 
@@ -113,11 +119,13 @@ func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServi
 		}
 
 		report(new.LocatorStatus{
-			Kind:      VirtualServiceKind,
-			Namespace: vs.Namespace,
-			Name:      vs.Name,
-			Action:    new.ActionModify,
-			Labels:    map[string]string{"host": hostName.String()}})
+			Resource: new.Resource{
+				Kind:      VirtualServiceKind,
+				Namespace: vs.Namespace,
+				Name:      vs.Name,
+			},
+			Action: new.ActionModify,
+			Labels: map[string]string{"host": hostName.String()}})
 	}
 }
 
@@ -171,7 +179,13 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 		return
 	}
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Target: &new.Resource{
+			Namespace: mutatedVs.Namespace,
+			Kind:      mutatedVs.Kind,
+			Name:      mutatedVs.Name}})
 }
 
 func actionDeleteVirtualService(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {

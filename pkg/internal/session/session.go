@@ -204,11 +204,14 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
 	}
 	for _, condition := range sessionStatus.Status.Conditions {
-		if condition.Target.Ref == h.opts.DeploymentName {
-			if condition.Target.Kind == "DeploymentConfig" || condition.Target.Kind == "Deployment" {
-				name = condition.Target.Name
+		if condition.Source.Ref == h.opts.DeploymentName {
+			if condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment" {
+				if condition.Target != nil {
+					name = condition.Target.Name
 
-				break
+					break
+				}
+
 			}
 		}
 	}

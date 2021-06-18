@@ -31,7 +31,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 	}
 	CreateTestLocatorStore := func(kind string, labels map[string]string) new.LocatorStore {
 		l := new.LocatorStore{}
-		l.Report(new.LocatorStatus{Kind: kind, Name: "test-ref", Labels: labels, Action: new.ActionLocated})
+		l.Report(new.LocatorStatus{Resource: new.Resource{Kind: kind, Name: "test-ref"}, Labels: labels, Action: new.ActionLocated})
 
 		return l
 	}

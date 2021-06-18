@@ -113,10 +113,8 @@ spec:
                     reason:
                       description: Reason is a programmatic reason for the change.
                       type: string
-                    status:
-                      description: Status indicates success.
-                      type: string
-                    target:
+                    source:
+                      description: Source contains the resource involved
                       properties:
                         kind:
                           type: string
@@ -129,11 +127,25 @@ spec:
                       - name
                       - ref
                       type: object
+                    status:
+                      description: Status indicates success.
+                      type: string
+                    target:
+                      description: Result contains the resource involved if different from Target, e.g. Create
+                      properties:
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - kind
+                      - name
+                      type: object
                     type:
                       description: Type the type of change
                       type: string
                   required:
-                  - target
+                  - source
                   type: object
                 type: array
               hosts:

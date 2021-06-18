@@ -31,11 +31,13 @@ func ServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatus
 			selector := labels.SelectorFromSet(service.Spec.Selector)
 			if selector.Matches(labels.Set(deployment.Labels)) {
 				report(new.LocatorStatus{
-					Namespace: ctx.Namespace,
-					Kind:      ServiceKind,
-					Name:      service.Name,
-					Action:    new.ActionLocated,
-					Labels:    service.Labels,
+					Resource: new.Resource{
+						Namespace: ctx.Namespace,
+						Kind:      ServiceKind,
+						Name:      service.Name,
+					},
+					Action: new.ActionLocated,
+					Labels: service.Labels,
 				})
 			}
 		}

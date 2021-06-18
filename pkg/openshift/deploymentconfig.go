@@ -53,11 +53,13 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
 				report(new.LocatorStatus{
-					Kind:      DeploymentConfigKind,
-					Namespace: deploymentConfig.Namespace,
-					Name:      deploymentConfig.Name,
-					Labels:    deploymentConfig.Spec.Template.Labels,
-					Action:    undo})
+					Resource: new.Resource{
+						Kind:      DeploymentConfigKind,
+						Namespace: deploymentConfig.Namespace,
+						Name:      deploymentConfig.Name,
+					},
+					Labels: deploymentConfig.Spec.Template.Labels,
+					Action: undo})
 			}
 		}
 
@@ -70,22 +72,26 @@ func DeploymentConfigLocator(ctx new.SessionContext, ref new.Ref, store new.Loca
 			return errors.WrapIfWithDetails(err, "Could not get DeploymentConfig", "name", deployment.Name, "ref", ref.KindName.String())
 		}
 		report(new.LocatorStatus{
-			Kind:      DeploymentConfigKind,
-			Namespace: deployment.Namespace,
-			Name:      deployment.Name,
-			Labels:    deployment.Spec.Template.Labels,
-			Action:    new.ActionCreate})
+			Resource: new.Resource{
+				Kind:      DeploymentConfigKind,
+				Namespace: deployment.Namespace,
+				Name:      deployment.Name,
+			},
+			Labels: deployment.Spec.Template.Labels,
+			Action: new.ActionCreate})
 	} else {
 		for i := range deploymentConfigs.Items {
 			deploymentConfig := deploymentConfigs.Items[i]
 			action, _ := reference.GetLabel(&deploymentConfig, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			report(new.LocatorStatus{
-				Kind:      DeploymentConfigKind,
-				Namespace: deploymentConfig.Namespace,
-				Name:      deploymentConfig.Name,
-				Labels:    deploymentConfig.Spec.Template.Labels,
-				Action:    undo})
+				Resource: new.Resource{
+					Kind:      DeploymentConfigKind,
+					Namespace: deploymentConfig.Namespace,
+					Name:      deploymentConfig.Name,
+				},
+				Labels: deploymentConfig.Spec.Template.Labels,
+				Action: undo})
 		}
 	}
 
@@ -159,8 +165,15 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 
 		return
 	}
+
 	ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Target: &new.Resource{
+			Namespace: deploymentClone.Namespace,
+			Kind:      deploymentClone.Kind,
+			Name:      deploymentClone.Name}})
 }
 
 func actionDeleteDeploymentConfig(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {

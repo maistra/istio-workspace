@@ -237,7 +237,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 			for _, ref := range sess.Spec.Refs {
 				found := false
 				for _, status := range sess.Status.Conditions {
-					if status.Target.Ref == ref.Name {
+					if status.Source.Ref == ref.Name {
 						found = true
 					}
 				}
@@ -247,7 +247,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 				kind := "Deployment"
 				name := "test-deployment-clone"
 				sess.Status.Conditions = append(sess.Status.Conditions, &istiov1alpha1.Condition{
-					Target: istiov1alpha1.Target{
+					Source: istiov1alpha1.Source{
 						Ref:  ref.Name,
 						Kind: kind,
 						Name: name,

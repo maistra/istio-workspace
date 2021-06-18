@@ -35,10 +35,12 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			undo := new.Flip(new.StatusAction(action))
 			if ref.Hash() != hash {
 				report(new.LocatorStatus{
-					Kind:      GatewayKind,
-					Namespace: gw.Namespace,
-					Name:      gw.Name,
-					Action:    undo})
+					Resource: new.Resource{
+						Kind:      GatewayKind,
+						Namespace: gw.Namespace,
+						Name:      gw.Name,
+					},
+					Action: undo})
 			}
 		}
 
@@ -65,10 +67,12 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 					}
 
 					report(new.LocatorStatus{
-						Kind:      GatewayKind,
-						Namespace: gw.Namespace,
-						Name:      gwName,
-						Labels:    map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
+						Resource: new.Resource{
+							Kind:      GatewayKind,
+							Namespace: gw.Namespace,
+							Name:      gwName,
+						},
+						Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
 				}
 			}
 		}
@@ -78,10 +82,12 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 			action, _ := reference.GetLabel(&gw, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			report(new.LocatorStatus{
-				Kind:      GatewayKind,
-				Namespace: gw.Namespace,
-				Name:      gw.Name,
-				Action:    undo})
+				Resource: new.Resource{
+					Kind:      GatewayKind,
+					Namespace: gw.Namespace,
+					Name:      gw.Name,
+				},
+				Action: undo})
 		}
 	}
 

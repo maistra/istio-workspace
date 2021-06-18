@@ -115,9 +115,9 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 					KindName: new.ParseRefKindName("customer-v1"),
 				}
 				locators = new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Kind: "Deployment", Namespace: "test", Name: "customer-v1", Labels: map[string]string{"version": "v1"}})
-				locators.Report(new.LocatorStatus{Kind: "Service", Namespace: "test", Name: "customer-mutate"})
-				locators.Report(new.LocatorStatus{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate", Action: new.ActionCreate})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-mutate"}})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: new.ActionCreate})
 				modificators = new.ModificatorStore{}
 			})
 
@@ -183,8 +183,8 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 					KindName: new.ParseRefKindName("customer-v5"),
 				}
 				locators := new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Kind: "Deployment", Namespace: "test", Name: "customer-v3", Labels: map[string]string{"version": "v5"}})
-				locators.Report(new.LocatorStatus{Kind: "Service", Namespace: "test", Name: "customer-missing"})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-missing"}})
 				modificators := new.ModificatorStore{}
 
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
@@ -208,9 +208,9 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				KindName: new.ParseRefKindName("customer-v1"),
 			}
 			locators = new.LocatorStore{}
-			locators.Report(new.LocatorStatus{Kind: "Deployment", Namespace: "test", Name: "customer-v1", Labels: map[string]string{"version": "v1"}})
-			locators.Report(new.LocatorStatus{Kind: "Service", Namespace: "test", Name: "customer-other"})
-			locators.Report(new.LocatorStatus{Kind: "DestinationRule", Namespace: "test", Name: "customer-other", Action: new.ActionDelete})
+			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-other"}, Action: new.ActionDelete})
 			modificators = new.ModificatorStore{}
 
 		})

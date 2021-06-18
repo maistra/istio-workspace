@@ -43,10 +43,12 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
 				report(new.LocatorStatus{
-					Kind:      DestinationRuleKind,
-					Namespace: destinationRule.Namespace,
-					Name:      destinationRule.Name,
-					Action:    undo})
+					Resource: new.Resource{
+						Kind:      DestinationRuleKind,
+						Namespace: destinationRule.Namespace,
+						Name:      destinationRule.Name,
+					},
+					Action: undo})
 			}
 		}
 
@@ -59,10 +61,12 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			}
 
 			report(new.LocatorStatus{
-				Kind:      DestinationRuleKind,
-				Namespace: dr.Namespace,
-				Name:      dr.Name,
-				Action:    new.ActionCreate})
+				Resource: new.Resource{
+					Kind:      DestinationRuleKind,
+					Namespace: dr.Namespace,
+					Name:      dr.Name,
+				},
+				Action: new.ActionCreate})
 		}
 	} else {
 		for i := range destinationRules.Items {
@@ -70,10 +74,12 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			action, _ := reference.GetLabel(&resource, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			report(new.LocatorStatus{
-				Kind:      DestinationRuleKind,
-				Namespace: resource.Namespace,
-				Name:      resource.Name,
-				Action:    undo})
+				Resource: new.Resource{
+					Kind:      DestinationRuleKind,
+					Namespace: resource.Namespace,
+					Name:      resource.Name,
+				},
+				Action: undo})
 		}
 	}
 
@@ -145,7 +151,13 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 		}
 	}
 
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Target: &new.Resource{
+			Namespace: destinationRule.Namespace,
+			Kind:      destinationRule.Kind,
+			Name:      destinationRule.Name}})
 }
 
 func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {

@@ -278,7 +278,7 @@ func cleanupRelatedConditionsOnRemoval(ref n.Ref, session *istiov1alpha1.Session
 		var otherConditions []*istiov1alpha1.Condition
 		for i := range session.Status.Conditions {
 			condition := session.Status.Conditions[i]
-			if condition.Target.Ref != ref.KindName.String() {
+			if condition.Source.Ref != ref.KindName.String() {
 				otherConditions = append(otherConditions, condition)
 			}
 		}
@@ -290,7 +290,7 @@ func refSuccessful(ref n.Ref, conditions []*istiov1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
 		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
-		if condition.Target.Ref == ref.KindName.String() && conditionFailed {
+		if condition.Source.Ref == ref.KindName.String() && conditionFailed {
 			return false
 		}
 	}
@@ -331,15 +331,24 @@ func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.Modific
 	} else {
 		message += "ok"
 	}
+	var target istiov1alpha1.Target
+	if modified.Target != nil {
+		target = istiov1alpha1.Target{
+			Kind: modified.Target.Kind,
+			Name: modified.Target.Name,
+		}
+	}
+
 	reason := getReason(modified.Action)
 	status := strconv.FormatBool(modified.Success)
 	typeStr := string(modified.Action)
 	session.AddCondition(istiov1alpha1.Condition{
-		Target: istiov1alpha1.Target{
+		Source: istiov1alpha1.Source{
 			Kind: modified.Kind,
 			Name: modified.Name,
 			Ref:  ref.KindName.String(),
 		},
+		Target:  &target,
 		Message: &message,
 		Reason:  &reason,
 		Status:  &status,
@@ -357,7 +366,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 
 	uniqueOldRefs := make(map[string]bool, 2)
 	for _, condition := range session.Status.Conditions {
-		uniqueOldRefs[condition.Target.Ref] = true
+		uniqueOldRefs[condition.Source.Ref] = true
 	}
 	for key := range uniqueOldRefs {
 		found := false

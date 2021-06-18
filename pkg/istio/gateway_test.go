@@ -143,7 +143,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					KindName: new.ParseRefKindName("customer-v1"),
 				}
 				locators = new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionModify})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "gateway"}, Action: new.ActionModify})
 				modificators = new.ModificatorStore{}
 			})
 
@@ -198,7 +198,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					Log:    ctx.Log,
 				}
 				locators2 := new.LocatorStore{}
-				locators2.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionModify})
+				locators2.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "gateway"}, Action: new.ActionModify})
 				modificators2 := new.ModificatorStore{}
 				istio.GatewayModificator(ctx2, ref, locators2.Store, modificators2.Report)
 				Expect(modificators.Stored).To(HaveLen(1))
@@ -228,7 +228,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 			It("should only return added hosts once", func() {
 				locators.Clear()
-				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway-mutated", Action: new.ActionModify})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "gateway-mutated"}, Action: new.ActionModify})
 
 				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).To(HaveLen(1))
@@ -240,7 +240,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 
 			It("should reapply found ike hosts if gateway out of sync", func() {
 				locators.Clear()
-				locators.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway-force-updated", Action: new.ActionModify})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "gateway-force-updated"}, Action: new.ActionModify})
 
 				istio.GatewayModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).To(HaveLen(1))
@@ -299,7 +299,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 					KindName: new.ParseRefKindName("customer-v1"),
 				}
 				locators = new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Namespace: "test", Kind: "Gateway", Name: "gateway", Action: new.ActionRevert})
+				locators.Report(new.LocatorStatus{Resource: new.Resource{Namespace: "test", Kind: "Gateway", Name: "gateway"}, Action: new.ActionRevert})
 				modificators = new.ModificatorStore{}
 			})
 
@@ -345,7 +345,7 @@ var _ = Describe("Operations for istio gateway kind", func() {
 				// Another Context would have had another Ref object with the Gateway Resource Status modified. simulate.
 				locators2 := new.LocatorStore{}
 				modificators2 := new.ModificatorStore{}
-				locators2.Report(new.LocatorStatus{Kind: "Gateway", Namespace: "test", Name: "gateway", Action: new.ActionRevert})
+				locators2.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "gateway"}, Action: new.ActionRevert})
 				istio.GatewayModificator(ctx2, ref, locators2.Store, modificators2.Report)
 				Expect(modificators2.Stored).To(HaveLen(1))
 

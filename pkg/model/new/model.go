@@ -146,10 +146,13 @@ type HostName struct {
 	Namespace string
 }
 
-type LocatorStatus struct {
+type Resource struct {
 	Namespace string
 	Kind      string
 	Name      string
+}
+type LocatorStatus struct {
+	Resource
 	TimeStamp time.Time
 	Labels    map[string]string
 	Action    StatusAction // Create, Modify, Located
@@ -170,6 +173,7 @@ type ModificatorStatus struct {
 	Error   error
 	Success bool
 	Prop    map[string]string
+	Target  *Resource
 }
 
 type ModificatorRegistrar func() (targetResourceType client.Object, modificator Modificator)

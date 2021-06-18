@@ -134,7 +134,7 @@ var _ = Describe("Basic session manipulation", func() {
 				modified := GetSession("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Conditions).To(HaveLen(1))
-				Expect(modified.Status.Conditions[0].Target.Name).To(Equal("test"))
+				Expect(modified.Status.Conditions[0].Source.Name).To(Equal("test"))
 			})
 			It("should update status with the corresponding route", func() {
 				res, err := controller.Reconcile(context.Background(), req)
@@ -164,7 +164,7 @@ var _ = Describe("Basic session manipulation", func() {
 						},
 						Status: v1alpha1.SessionStatus{
 							Conditions: []*v1alpha1.Condition{
-								{Target: v1alpha1.Target{
+								{Source: v1alpha1.Source{
 									Name: name,
 									Kind: kind,
 									Ref:  "details",
@@ -201,7 +201,7 @@ var _ = Describe("Basic session manipulation", func() {
 				getNames := func(list []*v1alpha1.Condition) []string {
 					var names []string
 					for _, l := range list {
-						names = append(names, l.Target.Name)
+						names = append(names, l.Source.Name)
 					}
 
 					return names
@@ -224,7 +224,7 @@ var _ = Describe("Basic session manipulation", func() {
 						},
 						Status: v1alpha1.SessionStatus{
 							Conditions: []*v1alpha1.Condition{
-								{Target: v1alpha1.Target{
+								{Source: v1alpha1.Source{
 									Name: name,
 									Kind: kind,
 									Ref:  "details",
@@ -291,21 +291,21 @@ var _ = Describe("Basic session manipulation", func() {
 							Status: v1alpha1.SessionStatus{
 								Conditions: []*v1alpha1.Condition{
 									{
-										Target: v1alpha1.Target{
+										Source: v1alpha1.Source{
 											Name: "test",
 											Kind: "X",
 											Ref:  "details",
 										},
 									},
 									{
-										Target: v1alpha1.Target{
+										Source: v1alpha1.Source{
 											Name: "test",
 											Kind: "X",
 											Ref:  "ratings",
 										},
 									},
 									{
-										Target: v1alpha1.Target{
+										Source: v1alpha1.Source{
 											Name: "locations",
 											Kind: "X",
 											Ref:  "details",
@@ -349,7 +349,7 @@ var _ = Describe("Basic session manipulation", func() {
 						Status: v1alpha1.SessionStatus{
 							Conditions: []*v1alpha1.Condition{
 								{
-									Target: v1alpha1.Target{
+									Source: v1alpha1.Source{
 										Name: "test",
 										Kind: "X",
 										Ref:  "details",
@@ -404,7 +404,7 @@ func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorS
 
 // found Action for Locator tracker.
 func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-	report(new.LocatorStatus{Kind: "X", Name: "test", Action: new.ActionCreate})
+	report(new.LocatorStatus{Resource: new.Resource{Kind: "X", Name: "test"}, Action: new.ActionCreate})
 
 	return nil
 }
@@ -413,7 +413,7 @@ func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStat
 func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 		for _, name := range names {
-			report(new.LocatorStatus{Kind: "X", Name: name, Action: new.ActionCreate})
+			report(new.LocatorStatus{Resource: new.Resource{Kind: "X", Name: name}, Action: new.ActionCreate})
 		}
 
 		return nil

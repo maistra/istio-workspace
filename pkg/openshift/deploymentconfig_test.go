@@ -162,7 +162,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		CreateTestLocatorStoreWithRefToBeCreated := func(kind string) new.LocatorStore {
 			l := new.LocatorStore{}
-			l.Report(new.LocatorStatus{Kind: kind, Name: "test-ref", Namespace: "test", Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
+			l.Report(new.LocatorStatus{Resource: new.Resource{Kind: kind, Name: "test-ref", Namespace: "test"}, Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
 
 			return l
 		}

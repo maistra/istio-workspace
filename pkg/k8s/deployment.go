@@ -47,11 +47,13 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			if ref.Hash() != hash {
 				undo := new.Flip(new.StatusAction(action))
 				report(new.LocatorStatus{
-					Kind:      DeploymentKind,
-					Namespace: resource.Namespace,
-					Name:      resource.Name,
-					Labels:    resource.Spec.Template.Labels,
-					Action:    undo})
+					Resource: new.Resource{
+						Kind:      DeploymentKind,
+						Namespace: resource.Namespace,
+						Name:      resource.Name,
+					},
+					Labels: resource.Spec.Template.Labels,
+					Action: undo})
 			}
 		}
 		deployment, err := getDeployment(ctx, ref.Namespace, ref.KindName.Name)
@@ -65,22 +67,26 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 		}
 
 		report(new.LocatorStatus{
-			Kind:      DeploymentKind,
-			Namespace: deployment.Namespace,
-			Name:      deployment.Name,
-			Labels:    deployment.Spec.Template.Labels,
-			Action:    new.ActionCreate})
+			Resource: new.Resource{
+				Kind:      DeploymentKind,
+				Namespace: deployment.Namespace,
+				Name:      deployment.Name,
+			},
+			Labels: deployment.Spec.Template.Labels,
+			Action: new.ActionCreate})
 	} else {
 		for i := range deployments.Items {
 			deployment := deployments.Items[i]
 			action, _ := reference.GetLabel(&deployment, labelKey)
 			undo := new.Flip(new.StatusAction(action))
 			report(new.LocatorStatus{
-				Kind:      DeploymentKind,
-				Namespace: deployment.Namespace,
-				Name:      deployment.Name,
-				Labels:    deployment.Spec.Template.Labels,
-				Action:    undo})
+				Resource: new.Resource{
+					Kind:      DeploymentKind,
+					Namespace: deployment.Namespace,
+					Name:      deployment.Name,
+				},
+				Labels: deployment.Spec.Template.Labels,
+				Action: undo})
 		}
 	}
 
@@ -154,8 +160,15 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 
 		return
 	}
+
 	ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(new.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Target: &new.Resource{
+			Namespace: deploymentClone.Namespace,
+			Kind:      deploymentClone.Kind,
+			Name:      deploymentClone.Name}})
 }
 
 func actionDeleteDeployment(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
