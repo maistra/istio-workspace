@@ -38,7 +38,6 @@ func VirtualServiceRegistrar() (client.Object, new.Modificator) {
 }
 
 func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-
 	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
 	vss, err := getVirtualServices(ctx, ctx.Namespace, reference.Match(labelKey))
 	if err != nil {

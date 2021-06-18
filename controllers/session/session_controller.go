@@ -289,7 +289,7 @@ func cleanupRelatedConditionsOnRemoval(ref n.Ref, session *istiov1alpha1.Session
 func refSuccessful(ref n.Ref, conditions []*istiov1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
-		conditionFailed := condition.Status != nil && *condition.Status == "false"
+		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
 		if condition.Target.Ref == ref.KindName.String() && conditionFailed {
 			return false
 		}
@@ -301,7 +301,7 @@ func refSuccessful(ref n.Ref, conditions []*istiov1alpha1.Condition) bool {
 func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.SessionState {
 	state := istiov1alpha1.StateSuccess
 	for _, con := range session.Status.Conditions {
-		if con.Status != nil && *con.Status == "false" {
+		if con.Status != nil && *con.Status == istiov1alpha1.StatusFailed {
 			state = istiov1alpha1.StateFailed
 
 			break

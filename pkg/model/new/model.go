@@ -199,6 +199,7 @@ func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
 	if len(kind) == 0 {
 		f := l.stored
 		sort.SliceStable(f, sorter(f))
+
 		return f
 	}
 	var f []LocatorStatus
@@ -212,6 +213,7 @@ func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
 		}
 	}
 	sort.SliceStable(f, sorter(f))
+
 	return f
 }
 
@@ -252,7 +254,7 @@ func (r *Ref) Hash() string {
 	digest += ";namespace:" + r.Namespace
 	digest += ";strategy:" + r.Strategy
 
-	var args []string
+	args := []string{}
 	for k := range r.Args {
 		args = append(args, k)
 	}

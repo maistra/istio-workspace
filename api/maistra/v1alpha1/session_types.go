@@ -32,6 +32,8 @@ const (
 	StateSuccess SessionState = "Success"
 	// StateFailed indicates that particular action related to the session has failed.
 	StateFailed SessionState = "Failed"
+	// StatusFailed indicates that overall condition failed
+	StatusFailed string = "false"
 )
 
 // SessionSpec defines the desired state of Session.

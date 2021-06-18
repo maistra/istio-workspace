@@ -203,6 +203,7 @@ var _ = Describe("Basic session manipulation", func() {
 					for _, l := range list {
 						names = append(names, l.Target.Name)
 					}
+
 					return names
 				}
 				Expect(getNames(modified.Status.Conditions)).To(ConsistOf("details2", "details2"))
@@ -404,6 +405,7 @@ func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorS
 // found Action for Locator tracker.
 func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
 	report(new.LocatorStatus{Kind: "X", Name: "test", Action: new.ActionCreate})
+
 	return nil
 }
 
@@ -413,6 +415,7 @@ func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref ne
 		for _, name := range names {
 			report(new.LocatorStatus{Kind: "X", Name: name, Action: new.ActionCreate})
 		}
+
 		return nil
 	}
 }

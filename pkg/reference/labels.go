@@ -3,8 +3,9 @@ package reference
 import (
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/naming"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/maistra/istio-workspace/pkg/naming"
 )
 
 const (
@@ -42,6 +43,7 @@ func GetLabel(object client.Object, key string) (value, hash string) {
 	if len(vs) == 2 {
 		return vs[0], vs[1]
 	}
+
 	return vs[0], ""
 }
 

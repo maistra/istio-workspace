@@ -140,6 +140,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 				for _, l := range list {
 					names = append(names, l.Name)
 				}
+
 				return names
 			}
 			Expect(getNames(services)).To(ConsistOf("test-2", "test-3"))
