@@ -60,15 +60,15 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 
 		// TODO: expand VirtualService Tests with connected vs where not directly triggering a host route?
 		// TODO: Connected GW ignores hostName during find??
-		vss, err := getVirtualServices(ctx, ctx.Namespace)
+		virtualServices, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
 			return err
 		}
 		targetVersion := new.GetVersion(store)
 
 		for _, hostName := range new.GetTargetHostNames(store) {
-			reportVsToBeCreated(vss, report, hostName)
-			reportVsToBeModified(ctx, vss, hostName, targetVersion, store, report)
+			reportVsToBeCreated(virtualServices, report, hostName)
+			reportVsToBeModified(ctx, virtualServices, hostName, targetVersion, store, report)
 		}
 	} else {
 		for i := range vss.Items {
