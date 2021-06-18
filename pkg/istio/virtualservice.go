@@ -184,7 +184,7 @@ func actionCreateVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 		Success:       true,
 		Target: &new.Resource{
 			Namespace: mutatedVs.Namespace,
-			Kind:      mutatedVs.Kind,
+			Kind:      VirtualServiceKind,
 			Name:      mutatedVs.Name}})
 }
 

@@ -156,7 +156,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 		Success:       true,
 		Target: &new.Resource{
 			Namespace: destinationRule.Namespace,
-			Kind:      destinationRule.Kind,
+			Kind:      DestinationRuleKind,
 			Name:      destinationRule.Name}})
 }
 

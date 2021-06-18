@@ -111,14 +111,14 @@ type Condition struct {
 }
 
 type Source struct {
-	Name string `json:"name"`
-	Ref  string `json:"ref"`
-	Kind string `json:"kind"`
+	Name string `json:"name,omitempty"`
+	Ref  string `json:"ref,omitempty"`
+	Kind string `json:"kind,omitempty"`
 }
 
 type Target struct {
-	Name string `json:"name"`
-	Kind string `json:"kind"`
+	Name string `json:"name,omitempty"`
+	Kind string `json:"kind,omitempty"`
 }
 
 // +genclient

@@ -172,7 +172,7 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 		Success:       true,
 		Target: &new.Resource{
 			Namespace: deploymentClone.Namespace,
-			Kind:      deploymentClone.Kind,
+			Kind:      DeploymentConfigKind,
 			Name:      deploymentClone.Name}})
 }
 

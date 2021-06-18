@@ -193,6 +193,8 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	// update session.status.Route if it was not provided
 	session.Status.Route = ConvertModelRouteToAPIRoute(route)
 	session.Status.RouteExpression = session.Status.Route.String()
+	processing := istiov1alpha1.StateProcessing
+	session.Status.State = &processing
 	err = r.client.Status().Update(ctx, session)
 	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
@@ -331,9 +333,9 @@ func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.Modific
 	} else {
 		message += "ok"
 	}
-	var target istiov1alpha1.Target
+	var target *istiov1alpha1.Target
 	if modified.Target != nil {
-		target = istiov1alpha1.Target{
+		target = &istiov1alpha1.Target{
 			Kind: modified.Target.Kind,
 			Name: modified.Target.Name,
 		}
@@ -348,7 +350,7 @@ func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.Modific
 			Name: modified.Name,
 			Ref:  ref.KindName.String(),
 		},
-		Target:  &target,
+		Target:  target,
 		Message: &message,
 		Reason:  &reason,
 		Status:  &status,
