@@ -3,13 +3,14 @@ package session_test
 import (
 	"time"
 
+	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
@@ -40,9 +41,11 @@ var _ = Describe("Session operations", func() {
 			client, _ = session.NewClient(testclient.NewSimpleClientset(objects...), "test-namespace")
 			updateRemover = addSessionRefStatus(client, opts.SessionName)
 		})
+
 		AfterEach(func() {
 			updateRemover()
 		})
+
 		Context("create", func() {
 
 			It("should create a new session if none found", func() {
@@ -245,13 +248,19 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 					continue
 				}
 				kind := "Deployment"
-				name := "test-deployment-clone"
+				name := "test-deployment"
+				conditionType := "create"
 				sess.Status.Conditions = append(sess.Status.Conditions, &istiov1alpha1.Condition{
 					Source: istiov1alpha1.Source{
 						Ref:  ref.Name,
 						Kind: kind,
-						Name: name,
+						Name: name + "-clone",
 					},
+					Target: &istiov1alpha1.Target{
+						Name: name,
+						Kind: kind,
+					},
+					Type: &conditionType,
 				})
 			}
 			success := istiov1alpha1.StateSuccess
