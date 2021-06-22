@@ -7,16 +7,15 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	. "github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 func TestLocatorStoreSort(t *testing.T) {
 	store := LocatorStore{}
-	store.Report(LocatorStatus{Resource: new.Resource{Name: "X", Kind: "X"}, Action: ActionCreate})
-	store.Report(LocatorStatus{Resource: new.Resource{Name: "X", Kind: "X"}, Action: ActionDelete})
-	store.Report(LocatorStatus{Resource: new.Resource{Name: "Y", Kind: "X"}, Action: ActionDelete})
-	store.Report(LocatorStatus{Resource: new.Resource{Name: "Y", Kind: "X"}, Action: ActionCreate})
+	store.Report(LocatorStatus{Resource: Resource{Name: "X", Kind: "X"}, Action: ActionCreate})
+	store.Report(LocatorStatus{Resource: Resource{Name: "X", Kind: "X"}, Action: ActionDelete})
+	store.Report(LocatorStatus{Resource: Resource{Name: "Y", Kind: "X"}, Action: ActionDelete})
+	store.Report(LocatorStatus{Resource: Resource{Name: "Y", Kind: "X"}, Action: ActionCreate})
 
 	ls := store.Store("X")
 	for i, l := range ls {
