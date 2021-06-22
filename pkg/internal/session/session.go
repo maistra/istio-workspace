@@ -206,11 +206,9 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		if condition.Source.Ref == h.opts.DeploymentName {
 			if (condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment") &&
 				(condition.Type != nil && *condition.Type != "delete") {
-
 				if condition.Target != nil {
 					return sessionStatus, condition.Target.Name, nil
 				}
-
 			}
 		}
 	}

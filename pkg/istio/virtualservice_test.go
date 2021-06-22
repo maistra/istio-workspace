@@ -170,7 +170,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Namespace: "test",
 					}
 					locators = new.LocatorStore{}
-					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "details"}, Action: new.ActionModify, Labels: map[string]string{"host": "details"}})
+					locators.Report(new.LocatorStatus{
+						Resource: new.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details"},
+						Action: new.ActionModify,
+						Labels: map[string]string{"host": "details"},
+					})
 					modificators = new.ModificatorStore{}
 				})
 
@@ -344,7 +351,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 					locators.Report(targetV6)
 					ref.KindName.Name = "x-v5"
 					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Name: "x"}})
-					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "details"}, Action: new.ActionModify, Labels: map[string]string{"host": "x"}})
+					locators.Report(new.LocatorStatus{
+						Resource: new.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details"},
+						Action: new.ActionModify,
+						Labels: map[string]string{"host": "x"},
+					})
 
 					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
 					Expect(modificators.Stored).To(HaveLen(1))
@@ -457,9 +471,24 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						Namespace: "test",
 					}
 					locators = new.LocatorStore{}
-					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "details-v1"}, Labels: map[string]string{"version": new.GetSha("v1") + "-vs-test"}})
+					locators.Report(new.LocatorStatus{
+						Resource: new.Resource{
+							Kind:      "Deployment",
+							Namespace: "test",
+							Name:      "details-v1",
+						},
+						Labels: map[string]string{"version": new.GetSha("v1") + "-vs-test"},
+					})
 					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "details"}})
-					locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "details"}, Action: new.ActionRevert, Labels: map[string]string{"host": "details"}})
+					locators.Report(new.LocatorStatus{
+						Resource: new.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details",
+						},
+						Action: new.ActionRevert,
+						Labels: map[string]string{"host": "details"},
+					})
 					modificators = new.ModificatorStore{}
 
 				})
@@ -565,7 +594,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				}
 				locators := new.LocatorStore{}
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "test-gateway"}, Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"}})
+				locators.Report(new.LocatorStatus{
+					Resource: new.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "customer"}, Action: new.ActionCreate})
 				modificators := new.ModificatorStore{}
 
@@ -583,7 +619,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				}
 				locators := new.LocatorStore{}
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "test-gateway"}, Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"}})
+				locators.Report(new.LocatorStatus{
+					Resource: new.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "customer"}, Action: new.ActionCreate})
 				modificators := new.ModificatorStore{}
 
@@ -601,7 +644,14 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				}
 				locators := new.LocatorStore{}
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Gateway", Namespace: "test", Name: "test-gateway"}, Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"}})
+				locators.Report(new.LocatorStatus{
+					Resource: new.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
 				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "non-customer"}, Action: new.ActionCreate})
 				modificators := new.ModificatorStore{}
 
