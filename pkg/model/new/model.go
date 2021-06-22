@@ -189,10 +189,12 @@ type LocatorStore struct {
 func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
 	sorter := func(s []LocatorStatus) func(i, j int) bool {
 		return func(i, j int) bool {
-			if (s[i].Action == ActionDelete || s[i].Action == ActionRevert) && !(s[j].Action == ActionDelete || s[j].Action == ActionRevert) {
+			nextActionIsUndo := s[j].Action == ActionDelete || s[j].Action == ActionRevert
+			currentActionIsUndo := s[i].Action == ActionDelete || s[i].Action == ActionRevert
+			if currentActionIsUndo && !nextActionIsUndo {
 				return true
 			}
-			if !(s[i].Action == ActionDelete || s[i].Action == ActionRevert) && (s[j].Action == ActionDelete || s[j].Action == ActionRevert) {
+			if !currentActionIsUndo && nextActionIsUndo {
 				return false
 			}
 

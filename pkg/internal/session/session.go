@@ -203,17 +203,24 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		return sessionStatus, "", errors.Wrap(err, "timed out waiting for success")
 	}
 	for _, condition := range sessionStatus.Status.Conditions {
-		if condition.Source.Ref == h.opts.DeploymentName {
-			if (condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment") &&
-				(condition.Type != nil && *condition.Type != "delete") {
-				if condition.Target != nil {
-					return sessionStatus, condition.Target.Name, nil
-				}
-			}
+		if condition.Target != nil && refMatchesDeploymentName(condition, h.opts.DeploymentName) && deploymentOrDeploymentConfig(condition) && notDeleted(condition) {
+			return sessionStatus, condition.Target.Name, nil
 		}
 	}
 
 	return sessionStatus, "", DeploymentNotFoundError{name: h.opts.DeploymentName}
+}
+
+func notDeleted(condition *istiov1alpha1.Condition) bool {
+	return condition.Type != nil && *condition.Type != "delete"
+}
+
+func deploymentOrDeploymentConfig(condition *istiov1alpha1.Condition) bool {
+	return condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment"
+}
+
+func refMatchesDeploymentName(condition *istiov1alpha1.Condition, name string) bool {
+	return condition.Source.Ref == name
 }
 
 func (h *handler) removeOrLeaveSession() {
