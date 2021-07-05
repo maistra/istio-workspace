@@ -104,7 +104,7 @@ jobs:
       - run:
           name: "Merges ginkgo junit test results"
           command: |
-            npm install -g junit-report-merger
+            sudo npm install -g junit-report-merger
             mkdir -p test-results
             jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
       - store_test_results:
@@ -275,7 +275,7 @@ jobs:
       - run:
           name: "Merges ginkgo junit test results"
           command: |
-            npm install -g junit-report-merger
+            sudo npm install -g junit-report-merger
             mkdir -p test-results
             jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
       - store_test_results:
