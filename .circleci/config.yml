@@ -275,6 +275,7 @@ jobs:
       - run:
           name: "Merges ginkgo junit test results"
           command: |
+            sudo snap install node --classic
             sudo npm install -g junit-report-merger
             mkdir -p test-results
             jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
