@@ -29,7 +29,7 @@ defaults:
     name: "Merges ginkgo junit test results"
     command: |
       sudo npm install -g junit-report-merger
-      mkdir -p test-results
+      mkdir -p ./test-results/
       jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
     - image: &golang-img cimg/go:1.16.5-node
@@ -108,8 +108,10 @@ jobs:
           name: "Run the build"
           command: make build-ci
       - run:
+          when: always
           <<: *node-install
       - run:
+          when: always
           <<: *merge-junit-reports
       - store_test_results:
           path: ./test-results
@@ -277,13 +279,11 @@ jobs:
 
             make test-e2e
       - run:
+          when: always
           <<: *node-install
       - run:
-          name: "Merges ginkgo junit test results"
-          command: |
-            sudo npm install -g junit-report-merger
-            mkdir -p test-results
-            jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
+          when: always
+          <<: *merge-junit-reports
       - store_test_results:
           path: ./test-results
       - save_cache:
