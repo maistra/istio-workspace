@@ -25,6 +25,12 @@ defaults:
     command: |
       nvm install 10
       nvm use 10
+  merge-junit-reports: &merge-junit-reports
+    name: "Merges ginkgo junit test results"
+    command: |
+      sudo npm install -g junit-report-merger
+      mkdir -p test-results
+      jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
     - image: &golang-img cimg/go:1.16.5-node
   machine-conf: &machine-conf
@@ -102,11 +108,9 @@ jobs:
           name: "Run the build"
           command: make build-ci
       - run:
-          name: "Merges ginkgo junit test results"
-          command: |
-            sudo npm install -g junit-report-merger
-            mkdir -p test-results
-            jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
+          <<: *node-install
+      - run:
+          <<: *merge-junit-reports
       - store_test_results:
           path: ./test-results
       - save_cache:
@@ -172,13 +176,13 @@ jobs:
             echo $QUAY_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
-          name: Install official kubectl
+          name: "Install official kubectl"
           command: |
             curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
-          name: Install Microk8s
+          name: "Install Microk8s"
           command: |
             cd ~/.snaps
             sudo snap ack core.assert
@@ -188,7 +192,7 @@ jobs:
       - save_cache:
           <<: *save-snaps
       - run:
-          name: Launch Microk8s
+          name: "Launch Microk8s"
           command: |
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
@@ -273,9 +277,10 @@ jobs:
 
             make test-e2e
       - run:
+          <<: *node-install
+      - run:
           name: "Merges ginkgo junit test results"
           command: |
-            sudo snap install node --classic
             sudo npm install -g junit-report-merger
             mkdir -p test-results
             jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
