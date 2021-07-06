@@ -109,9 +109,6 @@ jobs:
           command: make build-ci
       - run:
           when: always
-          <<: *node-install
-      - run:
-          when: always
           <<: *merge-junit-reports
       - store_test_results:
           path: ./test-results
