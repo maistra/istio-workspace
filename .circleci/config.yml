@@ -28,6 +28,7 @@ defaults:
   merge-junit-reports: &merge-junit-reports
     name: "Merges ginkgo junit test results"
     command: |
+      nvm use 10
       sudo npm install -g junit-report-merger
       mkdir -p ./test-results/
       jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
