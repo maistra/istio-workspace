@@ -28,8 +28,6 @@ defaults:
   merge-junit-reports: &merge-junit-reports
     name: "Merges ginkgo junit test results"
     command: |
-      nvm install 10
-      nvm use 10
       sudo npm install -g junit-report-merger
       mkdir -p ./test-results/
       jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
@@ -279,7 +277,9 @@ jobs:
             make test-e2e
       - run:
           when: always
-          <<: *node-install
+          name: "Installs node using snap"
+          command: |
+            sudo snap install node --classic
       - run:
           when: always
           <<: *merge-junit-reports
