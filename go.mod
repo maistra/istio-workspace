@@ -25,6 +25,7 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/prometheus/client_golang v1.10.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
+	github.com/schollz/progressbar/v3 v3.8.2
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3
@@ -35,8 +36,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
-	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/tools v0.1.0
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
