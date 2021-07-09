@@ -21,7 +21,7 @@ var (
 		Streaming: true,
 	}
 
-	// Silent will not stream outputs
+	// Silent will not stream outputs.
 	Silent = gocmd.Options{
 		Buffered:  false,
 		Streaming: true,

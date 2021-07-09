@@ -266,7 +266,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 				scenario = "scenario-1"
 			})
 
-			It("should create/delete deployment with prepared image", func() {
+			XIt("should create/delete deployment with prepared image", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
