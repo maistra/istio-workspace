@@ -35,6 +35,7 @@ vendor/
 
 ### Operator SDK ###
 bundle/
+bundle-*/
 
 ### Vim ###
 # swap
