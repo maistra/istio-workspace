@@ -319,7 +319,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		XContext("verify external integrations", func() {
 
-			Context("Tekton", func() {
+			XContext("Tekton", func() {
 
 				BeforeEach(func() {
 					scenario = "scenario-1"
