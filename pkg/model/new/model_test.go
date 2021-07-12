@@ -112,7 +112,6 @@ func TestDesign(t *testing.T) {
 					msg = modified.Error.Error()
 				}
 				addCondition(Condition{Type: string(modified.Action) + "-" + modified.Kind, Reason: "Required", Status: strconv.FormatBool(modified.Success), Message: msg})
-				//fmt.Println("modified", modified)
 			})
 		// updateRefStatus
 	}
