@@ -318,6 +318,34 @@ func GetVersion(store LocatorStatusStore) string {
 	return "unknown"
 }
 
+// GetDeletedVersion returns the version for the deleted resources if any. Returns unknown if not found.
+func GetDeletedVersion(store LocatorStatusStore) string {
+	targets := store("Deployment", "DeploymentConfig")
+	for _, target := range targets {
+		if target.Action == ActionDelete || target.Action == ActionRevert {
+			if val, ok := target.Labels["version"]; ok {
+				return val
+			}
+		}
+	}
+
+	return "unknown"
+}
+
+// GetCreatedVersion returns the version for the created resources if any. Returns unknown if not found.
+func GetCreatedVersion(store LocatorStatusStore, sessionName string) string {
+	targets := store("Deployment", "DeploymentConfig")
+	for _, target := range targets {
+		if target.Action != ActionDelete && target.Action != ActionRevert {
+			if val, ok := target.Labels["version"]; ok {
+				return GetSha(val) + "-" + sessionName
+			}
+		}
+	}
+
+	return "unknown"
+}
+
 // Match returns true if this Hostname is equal to the short or long v of a dns name.
 func (h *HostName) Match(name string) bool {
 	equalsShortName := h.Name == name
@@ -354,11 +382,6 @@ func GetTargetHostNames(store LocatorStatusStore) []HostName {
 	}
 
 	return hosts
-}
-
-// GetNewVersion returns the new updated version name.
-func GetNewVersion(store LocatorStatusStore, sessionName string) string {
-	return GetSha(GetVersion(store)) + "-" + sessionName
 }
 
 // GetSha computes a hash of the version and returns 8 characters substring of it.

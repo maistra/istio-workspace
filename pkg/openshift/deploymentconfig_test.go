@@ -173,7 +173,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			dc := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			dc := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(reference.Get(&dc)).To(HaveLen(1))
 		})
 
@@ -186,7 +186,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Success).To(BeTrue())
 
-			_ = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_ = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
@@ -195,7 +195,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
@@ -205,7 +205,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
@@ -215,7 +215,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
 
@@ -229,7 +229,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, notMatchingRef, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(0))
 
-			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -242,20 +242,20 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 
 			// when DeploymentConfig is deleted
 			err := c.Delete(ctx, &deployment)
 			Expect(err).To(Not(HaveOccurred()))
 
-			_, err = get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, err = get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 
 			// then it should be recreated on next reconcile
 			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
 
@@ -268,7 +268,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
@@ -279,7 +279,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -297,7 +297,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
@@ -347,7 +347,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
@@ -362,7 +362,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
@@ -379,7 +379,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
@@ -394,7 +394,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
@@ -411,7 +411,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
@@ -429,7 +429,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(2))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			deployment, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(imageName))

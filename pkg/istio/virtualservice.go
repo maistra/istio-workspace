@@ -221,7 +221,7 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	}
 
 	hostName := new.ParseHostName(resource.Labels["host"])
-	if vsAlreadyMutated(*vs, hostName, new.GetNewVersion(store, ctx.Name)) {
+	if vsAlreadyMutated(*vs, hostName, new.GetCreatedVersion(store, ctx.Name)) {
 		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 
 		return
@@ -258,7 +258,7 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 		return
 	}
-	mutatedVs := revertVirtualService(new.GetNewVersion(store, ctx.Name), *vs)
+	mutatedVs := revertVirtualService(new.GetDeletedVersion(store), *vs)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
@@ -279,7 +279,7 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
 	hostName new.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
 	version := new.GetVersion(store)
-	newVersion := new.GetNewVersion(store, ctx.Name)
+	newVersion := new.GetCreatedVersion(store, ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 
@@ -297,7 +297,7 @@ func mutateVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
 func mutateConnectedVirtualService(ctx new.SessionContext, store new.LocatorStatusStore,
 	hostName new.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
 	version := new.GetVersion(store)
-	newVersion := new.GetNewVersion(store, ctx.Name)
+	newVersion := new.GetCreatedVersion(store, ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	gateways, _ := connectedToGateway(*target)

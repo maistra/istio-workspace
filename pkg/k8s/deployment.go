@@ -129,7 +129,7 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 		return
 	}
 
-	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetNewVersion(store, ctx.Name))
+	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetCreatedVersion(store, ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
 		report(new.ModificatorStatus{

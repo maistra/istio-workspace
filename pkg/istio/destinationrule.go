@@ -112,7 +112,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 		return
 	}
 
-	newVersion := new.GetNewVersion(store, ctx.Name)
+	newVersion := new.GetCreatedVersion(store, ctx.Name)
 
 	subset := locateSubset(dr, new.GetVersion(store))
 	destinationRule := istionetwork.DestinationRule{

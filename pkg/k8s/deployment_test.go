@@ -158,7 +158,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			d := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			d := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(reference.Get(&d)).To(HaveLen(1))
 		})
 
@@ -170,7 +170,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Success).To(BeTrue())
 
-			_ = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_ = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
@@ -179,7 +179,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
@@ -189,7 +189,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
@@ -199,7 +199,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			modificatorStore := new.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
@@ -214,7 +214,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, notMatchingRef, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(0))
 
-			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -227,20 +227,20 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 
 			// when Deployment is deleted
 			err := c.Delete(ctx, &deployment)
 			Expect(err).To(Not(HaveOccurred()))
 
-			_, err = get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			_, err = get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 
 			// then it should be recreated on next reconcile
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
 		})
 
@@ -252,7 +252,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				modificatorStore := new.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
@@ -263,7 +263,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				modificatorStore := new.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -280,7 +280,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 				modificatorStore := new.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				_, err := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetNewVersion(store.Store, ctx.Name))
+				_, err := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
@@ -333,7 +333,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			newName := ref.KindName.Name + "-" + new.GetNewVersion(store.Store, ctx.Name)
+			newName := ref.KindName.Name + "-" + new.GetCreatedVersion(store.Store, ctx.Name)
 			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 

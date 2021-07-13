@@ -145,7 +145,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetNewVersion(locators.Store, ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
 			It("should not create new destination rules for subsequents mutations", func() {
@@ -161,7 +161,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetNewVersion(locators.Store, ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
 			It("should keep traficpolicy from target", func() {

@@ -134,7 +134,7 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 		return
 	}
 
-	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetNewVersion(store, ctx.Name))
+	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetCreatedVersion(store, ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone DeploymentConfig", "name", deployment.Name)
 		report(new.ModificatorStatus{
