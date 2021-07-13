@@ -104,7 +104,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 					})
 				})
 
-				XContext("deployment create/delete operations", func() {
+				FContext("deployment create/delete operations", func() {
 
 					It("should watch for changes in ratings service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
@@ -260,13 +260,13 @@ var _ = Describe("Smoke End To End Tests", func() {
 			})
 		})
 
-		Context("reconcile on change to related resources", func() {
+		FContext("reconcile on change to related resources", func() {
 
 			BeforeEach(func() {
 				scenario = "scenario-1"
 			})
 
-			XIt("should create/delete deployment with prepared image", func() {
+			It("should create/delete deployment with prepared image", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 
@@ -317,9 +317,9 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		})
 
-		XContext("verify external integrations", func() {
+		FContext("verify external integrations", func() {
 
-			XContext("Tekton", func() {
+			Context("Tekton", func() {
 
 				BeforeEach(func() {
 					scenario = "scenario-1"
