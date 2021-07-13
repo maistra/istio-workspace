@@ -32,4 +32,4 @@ spec:
           echo "$STATE"
           exit $error
         fi
-        echo "$STATE" | grep \"hosts\": | cut -d \" -f 4 | uniq | tr -d '\n' > /tekton/results/url
+        echo "$STATE" | grep \" | cut -d \" -f 2 | uniq | tr -d '\n' > /tekton/results/url
