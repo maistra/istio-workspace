@@ -233,7 +233,7 @@ $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing controller-gen")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
-KUSTOMIZE_VERSION?=v3.9.3
+KUSTOMIZE_VERSION?=v4.2.0
 $(PROJECT_DIR)/bin/kustomize:
 	$(call header,"Installing kustomize")
 	wget -q -c https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(GOOS)_$(GOARCH).tar.gz -O /tmp/kustomize.tar.gz
@@ -246,7 +246,7 @@ $(PROJECT_DIR)/bin/protoc:
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
 
-OPERATOR_SDK_VERSION=v1.6.1
+OPERATOR_SDK_VERSION=v1.8.1
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
