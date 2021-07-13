@@ -145,7 +145,13 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	reference.AddLabel(deploymentClone, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       true,
+			Target: &new.Resource{
+				Namespace: deploymentClone.Namespace,
+				Kind:      DeploymentKind,
+				Name:      deploymentClone.Name}})
 
 		return
 	}
