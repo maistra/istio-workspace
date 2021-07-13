@@ -358,7 +358,7 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 	scenarioGenerator(buf)
 	fileContent := buf.String()
 
-	var objects []runtime.Object
+	objects := []runtime.Object{}
 
 	fileChunks := strings.Split(fileContent, "---")
 	for _, fileChunk := range fileChunks {
@@ -370,9 +370,7 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(i
 		if err != nil {
 			return nil, err
 		}
-		if rObj, ok := obj.(runtime.Object); ok {
-			objects = append(objects, rObj)
-		}
+		objects = append(objects, obj)
 	}
 
 	return objects, nil

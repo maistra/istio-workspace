@@ -32,5 +32,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2.5.2
         with:
-          version: v1.40
+          version: v1.41
           working-directory: go/src/github.com/${{ env.REPOSITORY }}
