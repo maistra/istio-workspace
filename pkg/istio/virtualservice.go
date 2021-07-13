@@ -114,7 +114,7 @@ func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServi
 	targetVersion string, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
 	for i := range vss.Items {
 		vs := vss.Items[i]
-		if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, new.GetNewVersion(store, ctx.Name)) {
+		if !mutationRequired(vs, hostName, targetVersion) {
 			continue
 		}
 
@@ -221,7 +221,11 @@ func actionModifyVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 	}
 
 	hostName := new.ParseHostName(resource.Labels["host"])
+	if vsAlreadyMutated(*vs, hostName, new.GetNewVersion(store, ctx.Name)) {
+		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
 
+		return
+	}
 	mutatedVs, err := mutateVirtualService(ctx, store, hostName, *vs)
 	if err != nil {
 		report(new.ModificatorStatus{
@@ -254,7 +258,7 @@ func actionRevertVirtualService(ctx new.SessionContext, ref new.Ref, store new.L
 
 		return
 	}
-	mutatedVs := revertVirtualService(new.GetVersion(store), *vs)
+	mutatedVs := revertVirtualService(new.GetNewVersion(store, ctx.Name), *vs)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
 	}
