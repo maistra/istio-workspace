@@ -260,10 +260,11 @@ var _ = Describe("Smoke End To End Tests", func() {
 			})
 		})
 
-		FContext("reconcile on change to related resources", func() {
+		Context("reconcile on change to related resources", func() {
 
 			BeforeEach(func() {
 				scenario = "scenario-1"
+				registry = GetDockerRegistryInternal()
 			})
 
 			It("should create/delete deployment with prepared image", func() {
