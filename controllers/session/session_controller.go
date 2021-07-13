@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -247,6 +248,9 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			func(modified n.ModificatorStatus) {
 				/* updateComponent() && callEventAPI() */
 
+				if modified.Kind == "Gateway" {
+					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
+				}
 				addCondition(session, ref, &modified)
 				err = ctx.Client.Status().Update(ctx, session)
 				if err != nil {
@@ -398,6 +402,12 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 	})
 
 	return refs
+}
+
+func splitAndUnique(all []string, hosts string) []string {
+	foundHosts := strings.Split(hosts, ",")
+	allHosts := append(all, foundHosts...)
+	return unique(allHosts)
 }
 
 func unique(s []string) []string {
