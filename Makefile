@@ -210,32 +210,32 @@ $(PROJECT_DIR)/bin/yq:
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v4
 
 $(PROJECT_DIR)/bin/protoc-gen-go:
-	$(call header,"Installing")
+	$(call header,"Installing protoc-gen-go")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/golang/protobuf/protoc-gen-go
 
 $(PROJECT_DIR)/bin/go-bindata:
-	$(call header,"Installing")
+	$(call header,"Installing go-bindata")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/go-bindata/go-bindata/v3/...
 
 $(PROJECT_DIR)/bin/ginkgo:
-	$(call header,"Installing")
+	$(call header,"Installing ginkgo")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo
 
 $(PROJECT_DIR)/bin/goimports:
-	$(call header,"Installing")
+	$(call header,"Installing goimports")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly golang.org/x/tools/cmd/goimports
 
 $(PROJECT_DIR)/bin/golangci-lint:
-	$(call header,"Installing")
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.40.1
+	$(call header,"Installing golangci-lint")
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.41.1
 
 $(PROJECT_DIR)/bin/controller-gen:
-	$(call header,"Installing")
+	$(call header,"Installing controller-gen")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
 KUSTOMIZE_VERSION?=v4.2.0
 $(PROJECT_DIR)/bin/kustomize:
-	$(call header,"Installing")
+	$(call header,"Installing kustomize")
 	wget -q -c https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(GOOS)_$(GOARCH).tar.gz -O /tmp/kustomize.tar.gz
 	tar xzvf /tmp/kustomize.tar.gz -C $(PROJECT_DIR)/bin/
 	chmod +x $(PROJECT_DIR)/bin/kustomize

@@ -3,6 +3,7 @@ converted-release-notes.md
 
 # Test results
 *ginkgo-test-results.xml
+test-results/
 
 # Git tree hash files - used for CircleCI build optimization - see https://github.com/Maistra/istio-workspace/issues/428
 

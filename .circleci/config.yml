@@ -25,8 +25,14 @@ defaults:
     command: |
       nvm install 10
       nvm use 10
+  merge-junit-reports: &merge-junit-reports
+    name: "Merges ginkgo junit test results"
+    command: |
+      sudo npm install -g junit-report-merger
+      mkdir -p ./test-results/
+      jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
-    - image: &golang-img cimg/go:1.16.2
+    - image: &golang-img cimg/go:1.16.5-node
   machine-conf: &machine-conf
     image: ubuntu-2004:202101-01
   skip-e2e-check: &skip-e2e-check
@@ -101,6 +107,11 @@ jobs:
       - run:
           name: "Run the build"
           command: make build-ci
+      - run:
+          when: always
+          <<: *merge-junit-reports
+      - store_test_results:
+          path: ./test-results
       - save_cache:
           key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:
@@ -164,13 +175,13 @@ jobs:
             echo $QUAY_AUTH_JSON > ~/.docker/config.json
             docker login quay.io
       - run:
-          name: Install official kubectl
+          name: "Install official kubectl"
           command: |
             curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
-          name: Install Microk8s
+          name: "Install Microk8s"
           command: |
             cd ~/.snaps
             sudo snap ack core.assert
@@ -180,7 +191,7 @@ jobs:
       - save_cache:
           <<: *save-snaps
       - run:
-          name: Launch Microk8s
+          name: "Launch Microk8s"
           command: |
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
@@ -264,6 +275,16 @@ jobs:
             make bundle bundle-build bundle-push
 
             make test-e2e
+      - run:
+          when: always
+          name: "Installs node using snap"
+          command: |
+            sudo snap install node --classic
+      - run:
+          when: always
+          <<: *merge-junit-reports
+      - store_test_results:
+          path: ./test-results
       - save_cache:
           key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:
