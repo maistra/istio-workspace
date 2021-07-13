@@ -150,7 +150,13 @@ func actionCreateDeploymentConfig(ctx new.SessionContext, ref new.Ref, store new
 	reference.AddLabel(deploymentClone, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+		report(new.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       true,
+			Target: &new.Resource{
+				Namespace: deploymentClone.Namespace,
+				Kind:      DeploymentConfigKind,
+				Name:      deploymentClone.Name}})
 
 		return
 	}
