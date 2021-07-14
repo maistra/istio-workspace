@@ -27,7 +27,7 @@ spec:
     - name: oc
       image: quay.io/openshift/origin-cli:4.9
       script: |
-        if ! STATE=$(oc get session "$(params.session)" --namespace "$(params.namespace)" -o json); then
+        if ! STATE=$(oc get session "$(params.session)" --namespace "$(params.namespace)" -o jsonpath={.status.hosts}); then
           error=$?
           echo "${STATE}"
           exit $error
