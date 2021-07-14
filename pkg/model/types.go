@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
@@ -75,6 +74,7 @@ type Route struct {
 	Value string
 }
 
+// Ref references the user specified Resource target and configuration.
 type Ref struct {
 	KindName  RefKindName
 	Deleted   bool // TODO rename to something more indicating the intent vs state (e.g. MarkedForDeletion)
@@ -106,6 +106,7 @@ func (r *Ref) Hash() string {
 	return sha[:8]
 }
 
+// RefKindName is the target Resource and optional Resource Kind.
 type RefKindName struct {
 	Kind string
 	Name string
@@ -123,6 +124,20 @@ func (r RefKindName) String() string {
 // SupportsKind returns true if kind match or the kind is empty.
 func (r RefKindName) SupportsKind(kind string) bool {
 	return r.Kind == "" || strings.EqualFold(r.Kind, kind)
+}
+
+// ParseRefKindName parses a String() representation into a Object.
+func ParseRefKindName(exp string) RefKindName {
+	trimmedExp := strings.TrimSpace(strings.ToLower(exp))
+	parts := strings.Split(trimmedExp, "/")
+	if len(parts) == 2 {
+		return RefKindName{
+			Kind: parts[0],
+			Name: parts[1],
+		}
+	}
+
+	return RefKindName{Name: trimmedExp}
 }
 
 // HostName represents the Hostname of a service in a given namespace.
@@ -174,24 +189,3 @@ type Resource struct {
 	Kind      string
 	Name      string
 }
-
-// ResourceStatus holds information about the resources created/changed to fulfill a Ref.
-type ResourceStatus struct {
-	Kind      string
-	Name      string
-	TimeStamp time.Time
-	Action    ResourceAction
-	Success   bool
-	Message   string
-	Prop      map[string]string
-}
-
-// LocatedResourceStatus is a ResourceStatus with labels.
-type LocatedResourceStatus struct {
-	ResourceStatus
-
-	Labels map[string]string
-}
-
-// ResourceAction describes which type of operation was done/attempted to the target resource. Used to determine how to undo it.
-type ResourceAction string

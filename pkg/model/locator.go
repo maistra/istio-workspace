@@ -6,17 +6,19 @@ import (
 	"time"
 )
 
+// LocatorStatus is the action to perform an a given Resource as calculated by the Locators.
 type LocatorStatus struct {
 	Resource
 	TimeStamp time.Time
 	Labels    map[string]string
-	Action    StatusAction // Create, Modify, Located
+	Action    StatusAction
 }
 
 type LocatorStatusReporter func(LocatorStatus)
 type LocatedReporter func(LocatorStatusStore)
 type LocatorStatusStore func(kind ...string) []LocatorStatus
 
+// Locator should report on Resources that need some Action performed on them to satisfy the Ref.
 type Locator func(context SessionContext, ref Ref, store LocatorStatusStore, reporter LocatorStatusReporter) error
 
 // TODO dummy impl for testing purposes.
