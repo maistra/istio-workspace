@@ -299,6 +299,8 @@ func ParseRefKindName(exp string) RefKindName {
 	return RefKindName{Name: trimmedExp}
 }
 
+const unknownVersion = "unknown"
+
 // SupportsKind returns true if kind match or the kind is empty.
 func (r RefKindName) SupportsKind(kind string) bool {
 	return r.Kind == "" || strings.EqualFold(r.Kind, kind)
@@ -315,7 +317,7 @@ func GetVersion(store LocatorStatusStore) string {
 		}
 	}
 
-	return "unknown"
+	return unknownVersion
 }
 
 // GetDeletedVersion returns the version for the deleted resources if any. Returns unknown if not found.
@@ -329,7 +331,7 @@ func GetDeletedVersion(store LocatorStatusStore) string {
 		}
 	}
 
-	return "unknown"
+	return unknownVersion
 }
 
 // GetCreatedVersion returns the version for the created resources if any. Returns unknown if not found.
@@ -343,7 +345,7 @@ func GetCreatedVersion(store LocatorStatusStore, sessionName string) string {
 		}
 	}
 
-	return "unknown"
+	return unknownVersion
 }
 
 // Match returns true if this Hostname is equal to the short or long v of a dns name.
