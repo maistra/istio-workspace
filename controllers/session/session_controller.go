@@ -236,7 +236,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		ref := ref // pin
 		sync(ctx, ref,
 			func(located n.LocatorStatusStore) bool {
-				// TODO validate stuff
+				// validate stuff
 				return true
 			},
 			func(located n.LocatorStatusStore) {
@@ -406,9 +406,9 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 
 func splitAndUnique(all []string, hosts string) []string {
 	foundHosts := strings.Split(hosts, ",")
-	allHosts := append(all, foundHosts...)
+	all = append(all, foundHosts...)
 
-	return unique(allHosts)
+	return unique(all)
 }
 
 func unique(s []string) []string {
