@@ -69,8 +69,8 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 		targetVersion := new.GetVersion(store)
 
 		for _, hostName := range new.GetTargetHostNames(store) {
-			reportVsToBeCreated(virtualServices, report, hostName)
-			reportVsToBeModified(ctx, virtualServices, hostName, targetVersion, store, report)
+			reportVsToBeCreated(virtualServices, hostName, report)
+			reportVsToBeModified(virtualServices, hostName, targetVersion, report)
 		}
 	} else {
 		for i := range vss.Items {
@@ -90,7 +90,7 @@ func VirtualServiceLocator(ctx new.SessionContext, ref new.Ref, store new.Locato
 	return nil
 }
 
-func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.LocatorStatusReporter, hostName new.HostName) {
+func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, hostName new.HostName, report new.LocatorStatusReporter) {
 	for i := range vss.Items {
 		vs := vss.Items[i]
 		_, connected := connectedToGateway(vs)
@@ -110,8 +110,7 @@ func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, report new.Locato
 	}
 }
 
-func reportVsToBeModified(ctx new.SessionContext, vss *istionetwork.VirtualServiceList, hostName new.HostName,
-	targetVersion string, store new.LocatorStatusStore, report new.LocatorStatusReporter) {
+func reportVsToBeModified(vss *istionetwork.VirtualServiceList, hostName new.HostName, targetVersion string, report new.LocatorStatusReporter) {
 	for i := range vss.Items {
 		vs := vss.Items[i]
 		if !mutationRequired(vs, hostName, targetVersion) {
