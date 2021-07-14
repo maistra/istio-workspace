@@ -72,17 +72,6 @@ func TestDesign(t *testing.T) {
 
 		return mods
 	}
-	/*
-		extractTargetResourceType := func(registrars []ModificatorRegistrar) []client.Object {
-			var types []client.Object
-			for _, reg := range registrars {
-				t, _ := reg()
-				types = append(types, t)
-			}
-
-			return types
-		}
-	*/
 
 	// Determine the state of each Ref in spec vs status
 	refs := []Ref{{KindName: RefKindName{Kind: "Deployment", Name: "reviews-v1"}}}
@@ -102,11 +91,8 @@ func TestDesign(t *testing.T) {
 			},
 			func(located LocatorStatusStore) {
 				fmt.Println("located: ", located())
-				/* updateComponents(session.components + unique(located)) */
 			},
 			func(modified ModificatorStatus) {
-				/* updateComponent() && addCondition(session) && callEventAPI() */
-
 				msg := ""
 				if modified.Error != nil {
 					msg = modified.Error.Error()

@@ -240,14 +240,11 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				return true
 			},
 			func(located n.LocatorStatusStore) {
-				/* updateComponents(session.components + unique(located)) */
 				for _, stored := range located() {
 					fmt.Println("located: ", stored)
 				}
 			},
 			func(modified n.ModificatorStatus) {
-				/* updateComponent() && callEventAPI() */
-
 				if modified.Kind == "Gateway" {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
