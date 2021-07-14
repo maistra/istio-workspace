@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/handler"
@@ -27,7 +29,6 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
-	n "github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
@@ -54,7 +55,7 @@ func DefaultManipulators() Manipulators {
 	}
 
 	return Manipulators{
-		Locators: []n.Locator{
+		Locators: []model.Locator{
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
@@ -62,7 +63,7 @@ func DefaultManipulators() Manipulators {
 			istio.DestinationRuleLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
-		Handlers: []n.ModificatorRegistrar{
+		Handlers: []model.ModificatorRegistrar{
 			k8s.DeploymentRegistrar(engine),
 			openshift.DeploymentConfigRegistrar(engine),
 			istio.DestinationRuleRegistrar,
@@ -125,8 +126,8 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 
 // Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
-	Locators []n.Locator
-	Handlers []n.ModificatorRegistrar
+	Locators []model.Locator
+	Handlers []model.ModificatorRegistrar
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}
@@ -182,7 +183,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	route := ConvertAPIRouteToModelRoute(session)
-	ctx := n.SessionContext{
+	ctx := model.SessionContext{
 		Context:   c,
 		Name:      request.Name,
 		Namespace: request.Namespace,
@@ -201,8 +202,8 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
 
-	extractModificators := func(registrars []n.ModificatorRegistrar) []n.Modificator {
-		var mods []n.Modificator
+	extractModificators := func(registrars []model.ModificatorRegistrar) []model.Modificator {
+		var mods []model.Modificator
 		for _, reg := range registrars {
 			_, mod := reg()
 			mods = append(mods, mod)
@@ -229,22 +230,22 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	refs := calculateReferences(ctx, session)
-	sync := n.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+	sync := model.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
 	session.Status.Conditions = []*istiov1alpha1.Condition{}
 
 	for _, ref := range refs {
 		ref := ref // pin
 		sync(ctx, ref,
-			func(located n.LocatorStatusStore) bool {
+			func(located model.LocatorStatusStore) bool {
 				// validate stuff
 				return true
 			},
-			func(located n.LocatorStatusStore) {
+			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
 					fmt.Println("located: ", stored)
 				}
 			},
-			func(modified n.ModificatorStatus) {
+			func(modified model.ModificatorStatus) {
 				if modified.Kind == "Gateway" {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
@@ -276,7 +277,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	return reconcile.Result{}, nil
 }
 
-func cleanupRelatedConditionsOnRemoval(ref n.Ref, session *istiov1alpha1.Session) {
+func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
 	if ref.Deleted && refSuccessful(ref, session.Status.Conditions) {
 		var otherConditions []*istiov1alpha1.Condition
 		for i := range session.Status.Conditions {
@@ -289,7 +290,7 @@ func cleanupRelatedConditionsOnRemoval(ref n.Ref, session *istiov1alpha1.Session
 	}
 }
 
-func refSuccessful(ref n.Ref, conditions []*istiov1alpha1.Condition) bool {
+func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
 		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
@@ -314,13 +315,13 @@ func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.Sessio
 	return &state
 }
 
-func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.ModificatorStatus) {
-	getReason := func(a n.StatusAction) string {
+func addCondition(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
+	getReason := func(a model.StatusAction) string {
 		switch a {
-		case n.ActionCreate, n.ActionDelete, n.ActionLocated:
+		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
 
 			return "Handled"
-		case n.ActionModify, n.ActionRevert:
+		case model.ActionModify, model.ActionRevert:
 
 			return "Configured"
 		}
@@ -359,8 +360,8 @@ func addCondition(session *istiov1alpha1.Session, ref n.Ref, modified *n.Modific
 	})
 }
 
-func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) []n.Ref {
-	refs := []n.Ref{}
+func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Session) []model.Ref {
+	refs := []model.Ref{}
 	for _, ref := range session.Spec.Refs {
 		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
 		modelRef.Deleted = session.DeletionTimestamp != nil
@@ -381,7 +382,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 			}
 		}
 		if !found {
-			deletedRef := n.Ref{KindName: n.ParseRefKindName(key)}
+			deletedRef := model.Ref{KindName: model.ParseRefKindName(key)}
 			deletedRef.Deleted = true
 			refs = append(refs, deletedRef)
 		}

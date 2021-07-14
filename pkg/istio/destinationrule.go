@@ -2,6 +2,7 @@ package istio
 
 import (
 	"emperror.dev/errors"
+	"github.com/maistra/istio-workspace/pkg/model"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -9,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
@@ -19,15 +19,15 @@ const (
 	DestinationRuleKind = "DestinationRule"
 )
 
-var _ new.Modificator = DestinationRuleModificator
-var _ new.Locator = DestinationRuleLocator
-var _ new.ModificatorRegistrar = GatewayRegistrar
+var _ model.Modificator = DestinationRuleModificator
+var _ model.Locator = DestinationRuleLocator
+var _ model.ModificatorRegistrar = GatewayRegistrar
 
-func DestinationRuleRegistrar() (client.Object, new.Modificator) {
+func DestinationRuleRegistrar() (client.Object, model.Modificator) {
 	return &istionetwork.DestinationRule{}, DestinationRuleModificator
 }
 
-func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	var errs error
 
 	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
@@ -41,9 +41,9 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			destinationRule := destinationRules.Items[i]
 			action, hash := reference.GetLabel(&destinationRule, labelKey)
 			if ref.Hash() != hash {
-				undo := new.Flip(new.StatusAction(action))
-				report(new.LocatorStatus{
-					Resource: new.Resource{
+				undo := model.Flip(model.StatusAction(action))
+				report(model.LocatorStatus{
+					Resource: model.Resource{
 						Kind:      DestinationRuleKind,
 						Namespace: destinationRule.Namespace,
 						Name:      destinationRule.Name,
@@ -52,29 +52,29 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 			}
 		}
 
-		for _, hostName := range new.GetTargetHostNames(store) {
-			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, new.GetVersion(store))
+		for _, hostName := range model.GetTargetHostNames(store) {
+			dr, err := locateDestinationRuleWithSubset(ctx, ctx.Namespace, hostName, model.GetVersion(store))
 			if err != nil {
 				errs = errors.Append(errs, err)
 
 				continue
 			}
 
-			report(new.LocatorStatus{
-				Resource: new.Resource{
+			report(model.LocatorStatus{
+				Resource: model.Resource{
 					Kind:      DestinationRuleKind,
 					Namespace: dr.Namespace,
 					Name:      dr.Name,
 				},
-				Action: new.ActionCreate})
+				Action: model.ActionCreate})
 		}
 	} else {
 		for i := range destinationRules.Items {
 			resource := destinationRules.Items[i]
 			action, _ := reference.GetLabel(&resource, labelKey)
-			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{
-				Resource: new.Resource{
+			undo := model.Flip(model.StatusAction(action))
+			report(model.LocatorStatus{
+				Resource: model.Resource{
 					Kind:      DestinationRuleKind,
 					Namespace: resource.Namespace,
 					Name:      resource.Name,
@@ -88,15 +88,15 @@ func DestinationRuleLocator(ctx new.SessionContext, ref new.Ref, store new.Locat
 
 // DestinationRuleModificator creates destination rule mutator which is responsible for alternating the traffic for development
 // of the forked service.
-func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func DestinationRuleModificator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 	for _, resource := range store(DestinationRuleKind) {
 		switch resource.Action {
-		case new.ActionCreate:
+		case model.ActionCreate:
 			actionCreateDestinationRule(ctx, ref, store, report, resource)
-		case new.ActionDelete:
+		case model.ActionDelete:
 			actionDeleteDestinationRule(ctx, report, resource)
-		case new.ActionModify, new.ActionRevert, new.ActionLocated:
-			report(new.ModificatorStatus{
+		case model.ActionModify, model.ActionRevert, model.ActionLocated:
+			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
 				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
@@ -104,17 +104,17 @@ func DestinationRuleModificator(ctx new.SessionContext, ref new.Ref, store new.L
 	}
 }
 
-func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionCreateDestinationRule(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	dr, err := getDestinationRule(ctx, resource.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+		report(model.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
 
 		return
 	}
 
-	newVersion := new.GetCreatedVersion(store, ctx.Name)
+	newVersion := model.GetCreatedVersion(store, ctx.Name)
 
-	subset := locateSubset(dr, new.GetVersion(store))
+	subset := locateSubset(dr, model.GetVersion(store))
 	destinationRule := istionetwork.DestinationRule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      naming.ConcatToMax(63, "dr", ref.KindName.Name, dr.Spec.Host, ctx.Name),
@@ -141,7 +141,7 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {
-			report(new.ModificatorStatus{
+			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
 				Error: errors.WrapWithDetails(
@@ -151,16 +151,16 @@ func actionCreateDestinationRule(ctx new.SessionContext, ref new.Ref, store new.
 		}
 	}
 
-	report(new.ModificatorStatus{
+	report(model.ModificatorStatus{
 		LocatorStatus: resource,
 		Success:       true,
-		Target: &new.Resource{
+		Target: &model.Resource{
 			Namespace: destinationRule.Namespace,
 			Kind:      DestinationRuleKind,
 			Name:      destinationRule.Name}})
 }
 
-func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionDeleteDestinationRule(ctx model.SessionContext, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	dr := istionetwork.DestinationRule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resource.Name,
@@ -170,7 +170,7 @@ func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorS
 
 	if err := ctx.Client.Delete(ctx, &dr); err != nil {
 		if !k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-			report(new.ModificatorStatus{
+			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
 				Error:         errors.WrapWithDetails(err, "failed to delete DestinationRule", "kind", DestinationRuleKind, "name", dr.Name)})
@@ -180,12 +180,12 @@ func actionDeleteDestinationRule(ctx new.SessionContext, report new.ModificatorS
 	}
 
 	// ok, removed
-	report(new.ModificatorStatus{
+	report(model.ModificatorStatus{
 		LocatorStatus: resource,
 		Success:       true})
 }
 
-func locateDestinationRuleWithSubset(ctx new.SessionContext, namespace string, hostName new.HostName, targetVersion string) (*istionetwork.DestinationRule, error) {
+func locateDestinationRuleWithSubset(ctx model.SessionContext, namespace string, hostName model.HostName, targetVersion string) (*istionetwork.DestinationRule, error) {
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, client.InNamespace(namespace))
 	if err != nil {
@@ -214,14 +214,14 @@ func locateSubset(dr *istionetwork.DestinationRule, targetVersion string) *istio
 	return nil
 }
 
-func getDestinationRule(ctx new.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
+func getDestinationRule(ctx model.SessionContext, namespace, name string) (*istionetwork.DestinationRule, error) {
 	destinationRule := istionetwork.DestinationRule{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &destinationRule)
 
 	return &destinationRule, errors.WrapWithDetails(err, "failed finding destinationrule in namespace", "name", name, "namespace", namespace)
 }
 
-func GetDestinationRules(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.DestinationRuleList, error) {
+func GetDestinationRules(ctx model.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.DestinationRuleList, error) {
 	destinationRules := istionetwork.DestinationRuleList{}
 	err := ctx.Client.List(ctx, &destinationRules, append(opts, client.InNamespace(namespace))...)
 

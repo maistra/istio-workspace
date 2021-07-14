@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +18,6 @@ import (
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 var kind, name = "X", "details"
@@ -57,9 +58,9 @@ var _ = Describe("Basic session manipulation", func() {
 		locator = &trackedLocator{Action: notFoundTestLocator}
 		mutator = &trackedMutator{Action: noOpModifier}
 		manipulators := session.Manipulators{
-			Locators: []new.Locator{locator.Do},
-			Handlers: []new.ModificatorRegistrar{
-				func() (client.Object, new.Modificator) {
+			Locators: []model.Locator{locator.Do},
+			Handlers: []model.ModificatorRegistrar{
+				func() (client.Object, model.Modificator) {
 					return nil, mutator.Do
 				},
 			},
@@ -398,22 +399,22 @@ var _ = Describe("Basic session manipulation", func() {
 })
 
 // notFound Action for Locator tracker.
-func notFoundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func notFoundTestLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	return nil
 }
 
 // found Action for Locator tracker.
-func foundTestLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-	report(new.LocatorStatus{Resource: new.Resource{Kind: "X", Name: "test"}, Action: new.ActionCreate})
+func foundTestLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
+	report(model.LocatorStatus{Resource: model.Resource{Kind: "X", Name: "test"}, Action: model.ActionCreate})
 
 	return nil
 }
 
 // found Action for Locator tracker.
-func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
-	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func foundTestLocatorTarget(names ...string) func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
+	return func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 		for _, name := range names {
-			report(new.LocatorStatus{Resource: new.Resource{Kind: "X", Name: name}, Action: new.ActionCreate})
+			report(model.LocatorStatus{Resource: model.Resource{Kind: "X", Name: name}, Action: model.ActionCreate})
 		}
 
 		return nil
@@ -421,37 +422,37 @@ func foundTestLocatorTarget(names ...string) func(ctx new.SessionContext, ref ne
 }
 
 // noOpModifier Action for Mutator/Revertor trackers.
-func noOpModifier(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func noOpModifier(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 }
 
 type trackedLocator struct {
 	WasCalled bool
-	Action    new.Locator
+	Action    model.Locator
 }
 
-func (t *trackedLocator) Do(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func (t *trackedLocator) Do(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	t.WasCalled = true
 
 	return t.Action(ctx, ref, store, report)
 }
 
 // addResource Action for mutator tracker.
-func addResourceStatus(err error) func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
-	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func addResourceStatus(err error) func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
+	return func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 		for _, l := range store() {
 			success := err == nil
-			report(new.ModificatorStatus{LocatorStatus: l, Success: success, Error: err})
+			report(model.ModificatorStatus{LocatorStatus: l, Success: success, Error: err})
 		}
 	}
 }
 
 type trackedMutator struct {
 	WasCalled bool
-	Action    new.Modificator
-	Refs      []new.Ref
+	Action    model.Modificator
+	Refs      []model.Ref
 }
 
-func (t *trackedMutator) Do(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func (t *trackedMutator) Do(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 	t.WasCalled = true
 	t.Refs = append(t.Refs, ref)
 

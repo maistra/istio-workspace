@@ -3,6 +3,8 @@ package istio_test
 import (
 	"fmt"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
@@ -15,7 +17,6 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
 
@@ -26,7 +27,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 	var (
 		objects []runtime.Object
 		c       client.Client
-		ctx     new.SessionContext
+		ctx     model.SessionContext
 		get     *testclient.Getters
 	)
 
@@ -90,7 +91,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
-		ctx = new.SessionContext{
+		ctx = model.SessionContext{
 			Name:      "test",
 			Namespace: "test",
 			Client:    c,
@@ -105,20 +106,20 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		Context("existing rule", func() {
 
 			var (
-				ref          new.Ref
-				locators     new.LocatorStore
-				modificators new.ModificatorStore
+				ref          model.Ref
+				locators     model.LocatorStore
+				modificators model.ModificatorStore
 			)
 
 			BeforeEach(func() {
-				ref = new.Ref{
-					KindName: new.ParseRefKindName("customer-v1"),
+				ref = model.Ref{
+					KindName: model.ParseRefKindName("customer-v1"),
 				}
-				locators = new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-mutate"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: new.ActionCreate})
-				modificators = new.ModificatorStore{}
+				locators = model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-mutate"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: model.ActionCreate})
+				modificators = model.ModificatorStore{}
 			})
 
 			It("should add reference", func() {
@@ -145,7 +146,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetCreatedVersion(locators.Store, ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
 			It("should not create new destination rules for subsequents mutations", func() {
@@ -161,7 +162,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(new.GetCreatedVersion(locators.Store, ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
 			It("should keep traficpolicy from target", func() {
@@ -179,13 +180,13 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 			// TODO: This should be moved to overall Validation of Locators result, possible simulate Found but Deleted before attempt to mutate?
 			XIt("should fail when no rules found", func() {
-				ref := new.Ref{
-					KindName: new.ParseRefKindName("customer-v5"),
+				ref := model.Ref{
+					KindName: model.ParseRefKindName("customer-v5"),
 				}
-				locators := new.LocatorStore{}
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
-				locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-missing"}})
-				modificators := new.ModificatorStore{}
+				locators := model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-missing"}})
+				modificators := model.ModificatorStore{}
 
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).To(HaveLen(1))
@@ -198,20 +199,20 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 	Context("revertors", func() {
 
 		var (
-			ref          new.Ref
-			locators     new.LocatorStore
-			modificators new.ModificatorStore
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
 		)
 
 		BeforeEach(func() {
-			ref = new.Ref{
-				KindName: new.ParseRefKindName("customer-v1"),
+			ref = model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
 			}
-			locators = new.LocatorStore{}
-			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
-			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
-			locators.Report(new.LocatorStatus{Resource: new.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-other"}, Action: new.ActionDelete})
-			modificators = new.ModificatorStore{}
+			locators = model.LocatorStore{}
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-other"}, Action: model.ActionDelete})
+			modificators = model.ModificatorStore{}
 
 		})
 

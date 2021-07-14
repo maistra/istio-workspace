@@ -3,13 +3,14 @@ package istio
 import (
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	"emperror.dev/errors"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
@@ -18,23 +19,23 @@ const (
 	GatewayKind = "Gateway"
 )
 
-var _ new.Modificator = GatewayModificator
-var _ new.ModificatorRegistrar = GatewayRegistrar
+var _ model.Modificator = GatewayModificator
+var _ model.ModificatorRegistrar = GatewayRegistrar
 
-func GatewayRegistrar() (client.Object, new.Modificator) {
+func GatewayRegistrar() (client.Object, model.Modificator) {
 	return &istionetwork.Gateway{}, GatewayModificator
 }
 
 // GatewayModificator attempts to expose a external host on the gateway.
-func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func GatewayModificator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 	for _, resource := range store(GatewayKind) {
 		switch resource.Action {
-		case new.ActionModify:
+		case model.ActionModify:
 			actionModifyGateway(ctx, ref, report, resource)
-		case new.ActionRevert:
+		case model.ActionRevert:
 			actionRevertGateway(ctx, ref, report, resource)
-		case new.ActionCreate, new.ActionDelete, new.ActionLocated:
-			report(new.ModificatorStatus{
+		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
+			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
 				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
@@ -42,10 +43,10 @@ func GatewayModificator(ctx new.SessionContext, ref new.Ref, store new.LocatorSt
 	}
 }
 
-func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         err})
@@ -63,7 +64,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
@@ -71,7 +72,7 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 		return
 	}
 
-	report(new.ModificatorStatus{
+	report(model.ModificatorStatus{
 		LocatorStatus: resource,
 		Success:       true,
 		Prop: map[string]string{
@@ -80,17 +81,17 @@ func actionModifyGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 	})
 }
 
-func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-			report(new.ModificatorStatus{
+			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       true})
 
 			return
 		}
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         err})
@@ -107,7 +108,7 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 
 	err = ctx.Client.Update(ctx, &mutatedGw)
 	if err != nil {
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
@@ -115,12 +116,12 @@ func actionRevertGateway(ctx new.SessionContext, ref new.Ref, report new.Modific
 		return
 	}
 	// ok, removed
-	report(new.ModificatorStatus{
+	report(model.ModificatorStatus{
 		LocatorStatus: resource,
 		Success:       true})
 }
 
-func mutateGateway(ctx new.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
+func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -154,7 +155,7 @@ func mutateGateway(ctx new.SessionContext, source istionetwork.Gateway) (mutated
 	return source, addedHosts
 }
 
-func revertGateway(ctx new.SessionContext, source istionetwork.Gateway) istionetwork.Gateway {
+func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istionetwork.Gateway {
 	if source.Annotations == nil {
 		source.Annotations = map[string]string{}
 	}
@@ -187,14 +188,14 @@ func revertGateway(ctx new.SessionContext, source istionetwork.Gateway) istionet
 	return source
 }
 
-func getGateway(ctx new.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
+func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork.Gateway, error) {
 	Gateway := istionetwork.Gateway{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 
 	return &Gateway, errors.WrapWithDetails(err, "failed finding gateway in namespace", "name", name, "namespace", namespace)
 }
 
-func getGateways(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.GatewayList, error) {
+func getGateways(ctx model.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.GatewayList, error) {
 	gateways := istionetwork.GatewayList{}
 	err := ctx.Client.List(ctx, &gateways, append(opts, client.InNamespace(namespace))...)
 

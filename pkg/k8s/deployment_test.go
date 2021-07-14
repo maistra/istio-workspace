@@ -3,6 +3,8 @@ package k8s_test
 import (
 	"context"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,7 +18,6 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
@@ -28,24 +29,24 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 	var (
 		objects []runtime.Object
 		c       client.Client
-		ctx     new.SessionContext
+		ctx     model.SessionContext
 		get     *testclient.Getters
 	)
 
-	CreateTestRef := func(name string) new.Ref {
-		return new.Ref{
-			KindName:  new.RefKindName{Name: name},
+	CreateTestRef := func(name string) model.Ref {
+		return model.Ref{
+			KindName:  model.RefKindName{Name: name},
 			Namespace: "test",
 			Strategy:  "telepresence",
 			Args:      map[string]string{"version": "0.103"},
 		}
 	}
-	CreateEmptyTestLocatorStore := func() new.LocatorStore {
-		return new.LocatorStore{}
+	CreateEmptyTestLocatorStore := func() model.LocatorStore {
+		return model.LocatorStore{}
 	}
-	CreateTestLocatorStoreWithRefToBeCreated := func(kind string) new.LocatorStore {
-		l := new.LocatorStore{}
-		l.Report(new.LocatorStatus{Resource: new.Resource{Kind: kind, Name: "test-ref", Namespace: "test"}, Labels: map[string]string{"version": "v1"}, Action: new.ActionCreate})
+	CreateTestLocatorStoreWithRefToBeCreated := func(kind string) model.LocatorStore {
+		l := model.LocatorStore{}
+		l.Report(model.LocatorStatus{Resource: model.Resource{Kind: kind, Name: "test-ref", Namespace: "test"}, Labels: map[string]string{"version": "v1"}, Action: model.ActionCreate})
 
 		return l
 	}
@@ -56,7 +57,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		Expect(err).ToNot(HaveOccurred())
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
-		ctx = new.SessionContext{
+		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
@@ -92,7 +93,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		})
 
 		It("should find with kind", func() {
-			ref := new.Ref{Namespace: "test", KindName: new.ParseRefKindName("deployment/test-ref")}
+			ref := model.Ref{Namespace: "test", KindName: model.ParseRefKindName("deployment/test-ref")}
 			store := CreateEmptyTestLocatorStore()
 			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
 			Expect(store.Store(k8s.DeploymentKind)).To(HaveLen(1))
@@ -155,66 +156,66 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 		It("should add reference to cloned deployment", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			d := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			d := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(reference.Get(&d)).To(HaveLen(1))
 		})
 
 		It("should add suffix to the cloned deployment", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Success).To(BeTrue())
 
-			_ = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			_ = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
 		It("should remove readiness probe from cloned deployment", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
 		It("should update selector", func() {
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
 		// different action in the store
 		It("should only mutate if Target is of kind Deployment", func() {
-			notMatchingRef := new.Ref{
-				KindName: new.RefKindName{Name: "test-ref", Kind: openshift.DeploymentConfigKind},
+			notMatchingRef := model.Ref{
+				KindName: model.RefKindName{Name: "test-ref", Kind: openshift.DeploymentConfigKind},
 			}
 			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, notMatchingRef, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(0))
 
-			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			_, err := get.DeploymentWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -223,25 +224,25 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			// given a normal setup
 			ref := CreateTestRef("test-ref")
 			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
+			deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 
 			// when Deployment is deleted
 			err := c.Delete(ctx, &deployment)
 			Expect(err).To(Not(HaveOccurred()))
 
-			_, err = get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+			_, err = get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 
 			// then it should be recreated on next reconcile
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
-			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(new.GetSha("v1") + "-test"))
+			deployment = get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(deployment.Spec.Selector.MatchLabels["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
 		Context("telepresence mutation strategy", func() {
@@ -249,10 +250,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			It("should change container to telepresence", func() {
 				ref := CreateTestRef("test-ref")
 				store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-				modificatorStore := new.ModificatorStore{}
+				modificatorStore := model.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
@@ -260,10 +261,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 			It("should change add required env variables", func() {
 				ref := CreateTestRef("test-ref")
 				store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-				modificatorStore := new.ModificatorStore{}
+				modificatorStore := model.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+				deployment := get.Deployment(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -274,13 +275,13 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			It("should not create a clone", func() {
 				ref := CreateTestRef("test-ref")
-				ref.Strategy = new.StrategyExisting
+				ref.Strategy = model.StrategyExisting
 
 				store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
-				modificatorStore := new.ModificatorStore{}
+				modificatorStore := model.ModificatorStore{}
 				k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-				_, err := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+new.GetCreatedVersion(store.Store, ctx.Name))
+				_, err := get.DeploymentWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
@@ -326,14 +327,14 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			// Create
 			store := CreateEmptyTestLocatorStore()
-			modificatorStore := new.ModificatorStore{}
+			modificatorStore := model.ModificatorStore{}
 			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
 
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 			Expect(modificatorStore.Stored).To(HaveLen(1))
 			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
 
-			newName := ref.KindName.Name + "-" + new.GetCreatedVersion(store.Store, ctx.Name)
+			newName := ref.KindName.Name + "-" + model.GetCreatedVersion(store.Store, ctx.Name)
 			_, mutatedFetchErr := get.DeploymentWithError(ctx.Namespace, newName)
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
@@ -345,7 +346,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 
 			// Revert
 			store = CreateEmptyTestLocatorStore()
-			modificatorStore = new.ModificatorStore{}
+			modificatorStore = model.ModificatorStore{}
 			k8s.DeploymentLocator(ctx, ref, store.Store, store.Report)
 
 			k8s.DeploymentModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)

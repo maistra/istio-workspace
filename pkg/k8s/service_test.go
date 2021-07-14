@@ -3,6 +3,8 @@ package k8s_test
 import (
 	"context"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -12,26 +14,25 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 )
 
 var _ = Describe("Operations for k8s Service kind", func() {
 
 	var objects []runtime.Object
-	var ctx new.SessionContext
+	var ctx model.SessionContext
 
-	CreateTestRef := func() new.Ref {
-		return new.Ref{
-			KindName:  new.RefKindName{Name: "test-ref"},
+	CreateTestRef := func() model.Ref {
+		return model.Ref{
+			KindName:  model.RefKindName{Name: "test-ref"},
 			Namespace: "test",
 			Strategy:  "telepresence",
 			Args:      map[string]string{"version": "0.103"},
 		}
 	}
-	CreateTestLocatorStore := func(kind string, labels map[string]string) new.LocatorStore {
-		l := new.LocatorStore{}
-		l.Report(new.LocatorStatus{Resource: new.Resource{Kind: kind, Name: "test-ref"}, Labels: labels, Action: new.ActionLocated})
+	CreateTestLocatorStore := func(kind string, labels map[string]string) model.LocatorStore {
+		l := model.LocatorStore{}
+		l.Report(model.LocatorStatus{Resource: model.Resource{Kind: kind, Name: "test-ref"}, Labels: labels, Action: model.ActionLocated})
 
 		return l
 	}
@@ -39,7 +40,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 		schema := runtime.NewScheme()
 		err := corev1.AddToScheme(schema)
 		Expect(err).ToNot(HaveOccurred())
-		ctx = new.SessionContext{
+		ctx = model.SessionContext{
 			Context:   context.Background(),
 			Name:      "test",
 			Namespace: "test",
@@ -123,7 +124,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			ref := CreateTestRef()
 			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "x"})
 			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
-			hosts := new.GetTargetHostNames(store.Store)
+			hosts := model.GetTargetHostNames(store.Store)
 			Expect(len(hosts)).To(Equal(1))
 
 			Expect(hosts[0].Name).To(Equal("test-1"))
@@ -135,7 +136,7 @@ var _ = Describe("Operations for k8s Service kind", func() {
 			services := store.Store(k8s.ServiceKind)
 			Expect(len(services)).To(Equal(2))
 
-			getNames := func(list []new.LocatorStatus) []string {
+			getNames := func(list []model.LocatorStatus) []string {
 				var names []string
 				for _, l := range list {
 					names = append(names, l.Name)

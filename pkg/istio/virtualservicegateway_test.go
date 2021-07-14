@@ -1,6 +1,7 @@
 package istio_test
 
 import (
+	"github.com/maistra/istio-workspace/pkg/model"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
@@ -13,7 +14,6 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model/new"
 )
 
 var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
@@ -23,8 +23,8 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 		var (
 			objects  []runtime.Object
 			c        client.Client
-			ctx      new.SessionContext
-			locators new.LocatorStore
+			ctx      model.SessionContext
+			locators model.LocatorStore
 		)
 
 		BeforeEach(func() {
@@ -102,19 +102,19 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				&istionetwork.GatewayList{}).Build()
 
 			c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
-			ctx = new.SessionContext{
+			ctx = model.SessionContext{
 				Name:      "test",
 				Namespace: "bookinfo",
-				Route:     new.Route{Type: "Header", Name: "x", Value: "y"},
+				Route:     model.Route{Type: "Header", Name: "x", Value: "y"},
 				Client:    c,
 				Log:       log.CreateOperatorAwareLogger("session").WithValues("type", "controller"),
 			}
-			locators = new.LocatorStore{}
+			locators = model.LocatorStore{}
 		})
 
 		It("should expose hosts of located gateway", func() {
-			ref := new.Ref{
-				KindName: new.ParseRefKindName("customer-v1"),
+			ref := model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
 			err := istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
@@ -126,8 +126,8 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 		})
 
 		It("should only expose hosts not belonging to other sessions", func() {
-			ref := new.Ref{
-				KindName: new.ParseRefKindName("customer-v1"),
+			ref := model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
 			istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)

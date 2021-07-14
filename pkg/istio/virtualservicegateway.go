@@ -3,11 +3,12 @@ package istio
 import (
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	"emperror.dev/errors"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
@@ -16,10 +17,10 @@ const (
 	LabelIkeHosts = "ike.hosts"
 )
 
-var _ new.Locator = VirtualServiceGatewayLocator
+var _ model.Locator = VirtualServiceGatewayLocator
 
 // VirtualServiceGatewayLocator locates the Gateways that are connected to VirtualServices.
-func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	var errs error
 
 	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
@@ -32,10 +33,10 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 		for i := range gws.Items {
 			gw := gws.Items[i]
 			action, hash := reference.GetLabel(&gw, labelKey)
-			undo := new.Flip(new.StatusAction(action))
+			undo := model.Flip(model.StatusAction(action))
 			if ref.Hash() != hash {
-				report(new.LocatorStatus{
-					Resource: new.Resource{
+				report(model.LocatorStatus{
+					Resource: model.Resource{
 						Kind:      GatewayKind,
 						Namespace: gw.Namespace,
 						Name:      gw.Name,
@@ -66,13 +67,13 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 						hosts = findNewHosts(server, existingHosts, hosts)
 					}
 
-					report(new.LocatorStatus{
-						Resource: new.Resource{
+					report(model.LocatorStatus{
+						Resource: model.Resource{
 							Kind:      GatewayKind,
 							Namespace: gw.Namespace,
 							Name:      gwName,
 						},
-						Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: new.ActionModify})
+						Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: model.ActionModify})
 				}
 			}
 		}
@@ -80,9 +81,9 @@ func VirtualServiceGatewayLocator(ctx new.SessionContext, ref new.Ref, store new
 		for i := range gws.Items {
 			gw := gws.Items[i]
 			action, _ := reference.GetLabel(&gw, labelKey)
-			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{
-				Resource: new.Resource{
+			undo := model.Flip(model.StatusAction(action))
+			report(model.LocatorStatus{
+				Resource: model.Resource{
 					Kind:      GatewayKind,
 					Namespace: gw.Namespace,
 					Name:      gw.Name,

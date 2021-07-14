@@ -3,6 +3,8 @@ package k8s
 import (
 	"encoding/json"
 
+	"github.com/maistra/istio-workspace/pkg/model"
+
 	"emperror.dev/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -10,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/maistra/istio-workspace/pkg/model/new"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 )
@@ -20,16 +21,16 @@ const (
 	DeploymentKind = "Deployment"
 )
 
-var _ new.Locator = DeploymentLocator
+var _ model.Locator = DeploymentLocator
 
-func DeploymentRegistrar(engine template.Engine) new.ModificatorRegistrar {
-	return func() (client.Object, new.Modificator) {
+func DeploymentRegistrar(engine template.Engine) model.ModificatorRegistrar {
+	return func() (client.Object, model.Modificator) {
 		return &appsv1.Deployment{}, DeploymentModificator(engine)
 	}
 }
 
 // DeploymentLocator attempts to locate a Deployment kind based on Ref name.
-func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.LocatorStatusReporter) error {
+func DeploymentLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	if !ref.KindName.SupportsKind(DeploymentKind) {
 		return nil
 	}
@@ -45,9 +46,9 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			resource := deployments.Items[i]
 			action, hash := reference.GetLabel(&resource, labelKey) // TODO make the name more self-explanatory - label seems to be a way of storing reference marker on a resource e.g. deployment has been created by us
 			if ref.Hash() != hash {
-				undo := new.Flip(new.StatusAction(action))
-				report(new.LocatorStatus{
-					Resource: new.Resource{
+				undo := model.Flip(model.StatusAction(action))
+				report(model.LocatorStatus{
+					Resource: model.Resource{
 						Kind:      DeploymentKind,
 						Namespace: resource.Namespace,
 						Name:      resource.Name,
@@ -66,21 +67,21 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 			return err
 		}
 
-		report(new.LocatorStatus{
-			Resource: new.Resource{
+		report(model.LocatorStatus{
+			Resource: model.Resource{
 				Kind:      DeploymentKind,
 				Namespace: deployment.Namespace,
 				Name:      deployment.Name,
 			},
 			Labels: deployment.Spec.Template.Labels,
-			Action: new.ActionCreate})
+			Action: model.ActionCreate})
 	} else {
 		for i := range deployments.Items {
 			deployment := deployments.Items[i]
 			action, _ := reference.GetLabel(&deployment, labelKey)
-			undo := new.Flip(new.StatusAction(action))
-			report(new.LocatorStatus{
-				Resource: new.Resource{
+			undo := model.Flip(model.StatusAction(action))
+			report(model.LocatorStatus{
+				Resource: model.Resource{
 					Kind:      DeploymentKind,
 					Namespace: deployment.Namespace,
 					Name:      deployment.Name,
@@ -94,16 +95,16 @@ func DeploymentLocator(ctx new.SessionContext, ref new.Ref, store new.LocatorSta
 }
 
 // DeploymentModificator attempts to clone the located Deployment.
-func DeploymentModificator(engine template.Engine) new.Modificator {
-	return func(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore, report new.ModificatorStatusReporter) {
+func DeploymentModificator(engine template.Engine) model.Modificator {
+	return func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 		for _, resource := range store(DeploymentKind) {
 			switch resource.Action {
-			case new.ActionCreate:
+			case model.ActionCreate:
 				actionCreateDeployment(ctx, ref, store, report, engine, resource)
-			case new.ActionDelete:
+			case model.ActionDelete:
 				actionDeleteDeployment(ctx, report, resource)
-			case new.ActionModify, new.ActionRevert, new.ActionLocated:
-				report(new.ModificatorStatus{
+			case model.ActionModify, model.ActionRevert, model.ActionLocated:
+				report(model.ModificatorStatus{
 					LocatorStatus: resource,
 					Success:       false,
 					Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
@@ -112,11 +113,11 @@ func DeploymentModificator(engine template.Engine) new.Modificator {
 	}
 }
 
-func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.LocatorStatusStore,
-	report new.ModificatorStatusReporter, engine template.Engine, resource new.LocatorStatus) {
+func actionCreateDeployment(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore,
+	report model.ModificatorStatusReporter, engine template.Engine, resource model.LocatorStatus) {
 	deployment, err := getDeployment(ctx, resource.Namespace, resource.Name)
 	if err != nil {
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapWithDetails(err, "failed to load target Deployment", "kind", DeploymentKind, "name", resource.Name)})
@@ -125,14 +126,14 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	}
 	ctx.Log.Info("Found Deployment", "name", deployment.Name)
 
-	if ref.Strategy == new.StrategyExisting {
+	if ref.Strategy == model.StrategyExisting {
 		return
 	}
 
-	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, new.GetCreatedVersion(store, ctx.Name))
+	deploymentClone, err := cloneDeployment(engine, deployment.DeepCopy(), ref, model.GetCreatedVersion(store, ctx.Name))
 	if err != nil {
 		ctx.Log.Info("Failed to clone Deployment", "name", deployment.Name)
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapWithDetails(err, "failed to cloned Deployment", "kind", DeploymentKind)})
@@ -145,10 +146,10 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	reference.AddLabel(deploymentClone, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if _, err = getDeployment(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       true,
-			Target: &new.Resource{
+			Target: &model.Resource{
 				Namespace: deploymentClone.Namespace,
 				Kind:      DeploymentKind,
 				Name:      deploymentClone.Name}})
@@ -159,7 +160,7 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	err = ctx.Client.Create(ctx, deploymentClone)
 	if err != nil {
 		ctx.Log.Info("Failed to create cloned Deployment", "name", deploymentClone.Name)
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapWithDetails(err, "failed to create cloned Deployment", "kind", DeploymentKind, "name", deploymentClone.Name)})
@@ -168,16 +169,16 @@ func actionCreateDeployment(ctx new.SessionContext, ref new.Ref, store new.Locat
 	}
 
 	ctx.Log.Info("Cloned Deployment", "name", deploymentClone.Name)
-	report(new.ModificatorStatus{
+	report(model.ModificatorStatus{
 		LocatorStatus: resource,
 		Success:       true,
-		Target: &new.Resource{
+		Target: &model.Resource{
 			Namespace: deploymentClone.Namespace,
 			Kind:      DeploymentKind,
 			Name:      deploymentClone.Name}})
 }
 
-func actionDeleteDeployment(ctx new.SessionContext, report new.ModificatorStatusReporter, resource new.LocatorStatus) {
+func actionDeleteDeployment(ctx model.SessionContext, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: ctx.Namespace},
 	}
@@ -185,22 +186,22 @@ func actionDeleteDeployment(ctx new.SessionContext, report new.ModificatorStatus
 	err := ctx.Client.Delete(ctx, deployment)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
-			report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+			report(model.ModificatorStatus{LocatorStatus: resource, Success: true})
 
 			return
 		}
 		ctx.Log.Info("Failed to delete Deployment", "name", resource.Name)
-		report(new.ModificatorStatus{
+		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
 			Error:         errors.WrapWithDetails(err, "failed to delete Deployment", "kind", DeploymentKind, "name", resource.Name)})
 
 		return
 	}
-	report(new.ModificatorStatus{LocatorStatus: resource, Success: true})
+	report(model.ModificatorStatus{LocatorStatus: resource, Success: true})
 }
 
-func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref new.Ref, version string) (*appsv1.Deployment, error) {
+func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref model.Ref, version string) (*appsv1.Deployment, error) {
 	originalDeployment, err := json.Marshal(deployment)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed reading deployment json")
@@ -220,14 +221,14 @@ func cloneDeployment(engine template.Engine, deployment *appsv1.Deployment, ref 
 	return &clone, nil
 }
 
-func getDeployment(ctx new.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
+func getDeployment(ctx model.SessionContext, namespace, name string) (*appsv1.Deployment, error) {
 	deployment := appsv1.Deployment{}
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &deployment)
 
 	return &deployment, errors.WrapWithDetails(err, "failed finding deployment in namespace ", "kind", DeploymentKind, "name", name, "namespace", namespace)
 }
 
-func getDeployments(ctx new.SessionContext, namespace string, opts ...client.ListOption) (*appsv1.DeploymentList, error) {
+func getDeployments(ctx model.SessionContext, namespace string, opts ...client.ListOption) (*appsv1.DeploymentList, error) {
 	deployments := appsv1.DeploymentList{}
 	err := ctx.Client.List(ctx, &deployments, append(opts, client.InNamespace(namespace))...)
 
