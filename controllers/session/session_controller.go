@@ -407,6 +407,7 @@ func calculateReferences(ctx n.SessionContext, session *istiov1alpha1.Session) [
 func splitAndUnique(all []string, hosts string) []string {
 	foundHosts := strings.Split(hosts, ",")
 	allHosts := append(all, foundHosts...)
+
 	return unique(allHosts)
 }
 

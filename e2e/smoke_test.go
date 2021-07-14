@@ -524,8 +524,10 @@ func cleanupNamespace(namespace string) {
 func call(routeURL string, headers map[string]string) func() (string, error) {
 	fmt.Printf("Checking [%s] with headers [%s]\n", routeURL, headers)
 	bar := progressbar.Default(-1)
+
 	return func() (string, error) {
 		bar.Add(1)
+
 		return GetBodyWithHeaders(routeURL, headers)
 	}
 }
