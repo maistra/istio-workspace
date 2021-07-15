@@ -101,17 +101,18 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 	Context("locators", func() {
 
 		var (
-			ref      model.Ref
-			locators model.LocatorStore
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
 		)
 
 		BeforeEach(func() {
 			ref = model.Ref{
 				KindName: model.ParseRefKindName("customer-v1"),
 			}
-			locators = model.LocatorStore{}
-			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
-			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+			locators = createLocatorStore()
+
+			modificators = model.ModificatorStore{}
 		})
 
 		It("should trigger create action when reference is created", func() {
@@ -126,12 +127,46 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			Expect(dr.Name).To(Equal("customer-other"))
 		})
 
-		PIt("should trigger delete and create action when reference is updated", func() {
+		It("should trigger delete and create action when reference is updated", func() {
+			// given
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
 
+			// when
+			ref.Strategy = "prepared-image"
+			newLocatorStore := createLocatorStore()
+			err = istio.DestinationRuleLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			destinationRuleActions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(destinationRuleActions).To(HaveLen(2))
+			Expect(destinationRuleActions[0].Action).To(Equal(model.ActionDelete))
+			Expect(destinationRuleActions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
+			Expect(destinationRuleActions[1].Action).To(Equal(model.ActionCreate))
+			Expect(destinationRuleActions[1].Name).To(Equal("customer-other"))
 		})
 
-		PIt("should trigger revert action when reference is removed", func() {
+		It("should trigger revert action when reference is removed", func() {
+			// given
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
 
+			// when
+			ref.Remove = true
+			newLocatorStore := createLocatorStore()
+			err = istio.DestinationRuleLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			destinationRuleActions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(destinationRuleActions).To(HaveLen(1))
+			Expect(destinationRuleActions[0].Action).To(Equal(model.ActionDelete))
+			Expect(destinationRuleActions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
 		})
 
 	})
@@ -150,9 +185,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				ref = model.Ref{
 					KindName: model.ParseRefKindName("customer-v1"),
 				}
-				locators = model.LocatorStore{}
-				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
-				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-mutate"}})
+				locators = createLocatorStore()
 				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: model.ActionCreate})
 				modificators = model.ModificatorStore{}
 			})
@@ -283,3 +316,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		})
 	})
 })
+
+func createLocatorStore() model.LocatorStore {
+	locators := model.LocatorStore{}
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+
+	return locators
+}
