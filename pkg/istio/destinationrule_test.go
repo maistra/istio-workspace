@@ -98,9 +98,45 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		}
 	})
 
-	//TODO: Missing Locators tests, Modificator tests need DestinationRule locatorstatus
+	Context("locators", func() {
 
-	Context("mutators", func() {
+		var (
+			ref      model.Ref
+			locators model.LocatorStore
+		)
+
+		BeforeEach(func() {
+			ref = model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
+			}
+			locators = model.LocatorStore{}
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+		})
+
+		It("should trigger create action when reference is created", func() {
+			// when
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			Expect(locators.Store(istio.DestinationRuleKind)).To(HaveLen(1))
+			dr := locators.Store(istio.DestinationRuleKind)[0]
+			Expect(dr.Action).To(Equal(model.ActionCreate))
+			Expect(dr.Name).To(Equal("customer-other"))
+		})
+
+		PIt("should trigger delete and create action when reference is updated", func() {
+
+		})
+
+		PIt("should trigger revert action when reference is removed", func() {
+
+		})
+
+	})
+
+	Context("modificators", func() {
 
 		Context("existing rule", func() {
 
@@ -164,7 +200,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
-			It("should keep traficpolicy from target", func() {
+			It("should keep traffic policy from target", func() {
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).To(HaveLen(1))
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
