@@ -112,7 +112,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should update the status when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -163,7 +163,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should not call revertors when mutation occurs", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -175,7 +175,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should update existing status when new mutation occurs", func() {
 				locator.Action = foundTestLocatorTarget("details2")
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -223,7 +223,7 @@ var _ = Describe("Basic session manipulation", func() {
 			})
 			It("should call revertors when ref is removed", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -235,7 +235,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 			It("should remove status when ref is removed", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -276,7 +276,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 			It("should call revertors when session removed", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -288,7 +288,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 			It("should remove status when session removed", func() {
 				locator.Action = foundTestLocator
-				mutator.Action = addResourceStatus(nil)
+				mutator.Action = reportSuccess()
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
@@ -348,12 +348,11 @@ func (t *trackedLocator) Do(ctx model.SessionContext, ref model.Ref, store model
 	return t.Action(ctx, ref, store, report)
 }
 
-// addResourceStatus Action for mutator tracker.
-func addResourceStatus(err error) func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
+// reportSuccess Action for mutator tracker.
+func reportSuccess() func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 	return func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 		for _, l := range store() {
-			success := err == nil
-			report(model.ModificatorStatus{LocatorStatus: l, Success: success, Error: err})
+			report(model.ModificatorStatus{LocatorStatus: l, Success: true, Error: nil})
 		}
 	}
 }
