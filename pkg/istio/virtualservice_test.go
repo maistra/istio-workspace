@@ -43,6 +43,101 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		}
 	})
 
+	Context("locators", func() {
+
+		var (
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
+		)
+
+		BeforeEach(func() {
+			ref = model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
+			}
+			locators = createLocatorStore()
+			modificators = model.ModificatorStore{}
+
+			objects = []runtime.Object{
+				&istionetwork.VirtualService{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "details",
+						Namespace: "test",
+					},
+					Spec: istionetworkv1alpha3.VirtualService{
+						Hosts: []string{"details"},
+						Http: []*istionetworkv1alpha3.HTTPRoute{
+							{
+								Route: []*istionetworkv1alpha3.HTTPRouteDestination{
+									{
+										Destination: &istionetworkv1alpha3.Destination{
+											Host: "details",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("should trigger create action when reference is created", func() {
+			// when
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			Expect(locators.Store(VirtualServiceKind)).To(HaveLen(1))
+			dr := locators.Store(VirtualServiceKind)[0]
+			Expect(dr.Action).To(Equal(model.ActionModify))
+			Expect(dr.Name).To(Equal("details"))
+		})
+
+		It("should trigger delete and create action when reference is updated", func() {
+			// given
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Strategy = "prepared-image"
+			newLocatorStore := createLocatorStore()
+			err = VirtualServiceLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(VirtualServiceKind)
+			Expect(actions).To(HaveLen(2))
+			Expect(actions[0].Action).To(Equal(model.ActionRevert))
+			Expect(actions[0].Name).To(Equal("details"))
+			Expect(actions[1].Action).To(Equal(model.ActionModify))
+			Expect(actions[1].Name).To(Equal("details"))
+		})
+
+		It("should trigger revert action when reference is removed", func() {
+			// given
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Remove = true
+			newLocatorStore := createLocatorStore()
+			err = VirtualServiceLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(VirtualServiceKind)
+			Expect(actions).To(HaveLen(1))
+			Expect(actions[0].Action).To(Equal(model.ActionRevert))
+			Expect(actions[0].Name).To(Equal("details"))
+		})
+
+	})
+
 	Context("manipulation", func() {
 
 		Context("mutators", func() {
@@ -716,3 +811,10 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		})
 	})
 })
+
+func createLocatorStore() model.LocatorStore {
+	locators := model.LocatorStore{}
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "details"}})
+
+	return locators
+}

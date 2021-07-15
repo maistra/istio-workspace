@@ -141,12 +141,12 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
-			destinationRuleActions := newLocatorStore.Store(istio.DestinationRuleKind)
-			Expect(destinationRuleActions).To(HaveLen(2))
-			Expect(destinationRuleActions[0].Action).To(Equal(model.ActionDelete))
-			Expect(destinationRuleActions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
-			Expect(destinationRuleActions[1].Action).To(Equal(model.ActionCreate))
-			Expect(destinationRuleActions[1].Name).To(Equal("customer-other"))
+			actions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(actions).To(HaveLen(2))
+			Expect(actions[0].Action).To(Equal(model.ActionDelete))
+			Expect(actions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
+			Expect(actions[1].Action).To(Equal(model.ActionCreate))
+			Expect(actions[1].Name).To(Equal("customer-other"))
 		})
 
 		It("should trigger revert action when reference is removed", func() {
@@ -163,10 +163,10 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// then
-			destinationRuleActions := newLocatorStore.Store(istio.DestinationRuleKind)
-			Expect(destinationRuleActions).To(HaveLen(1))
-			Expect(destinationRuleActions[0].Action).To(Equal(model.ActionDelete))
-			Expect(destinationRuleActions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
+			actions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(actions).To(HaveLen(1))
+			Expect(actions[0].Action).To(Equal(model.ActionDelete))
+			Expect(actions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
 		})
 
 	})
