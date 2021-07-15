@@ -88,7 +88,7 @@ func TestDesign(t *testing.T) {
 	refs := []model.Ref{{KindName: model.RefKindName{Kind: "Deployment", Name: "reviews-v1"}}}
 
 	// Create engine and sync
-	sync := model.EngineImpl(locators, extractModificators(modificators))
+	sync := model.NewSync(locators, extractModificators(modificators))
 
 	for _, ref := range refs {
 		sync(model.SessionContext{}, ref,

@@ -1,7 +1,9 @@
 package model
 
-// TODO rethink naming.
-func EngineImpl(locators []Locator, modificators []Modificator) Sync {
+// Sync is the entry point for ensuring the desired state for the given Ref is up to date.
+type Sync func(SessionContext, Ref, ModificatorController, LocatedReporter, ModificatorStatusReporter)
+
+func NewSync(locators []Locator, modificators []Modificator) Sync {
 	return func(context SessionContext, ref Ref, modify ModificatorController, locatedReporter LocatedReporter, modificationReporter ModificatorStatusReporter) {
 		located := LocatorStore{}
 		for _, locator := range locators {
@@ -13,7 +15,7 @@ func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 			)
 
 			if err != nil {
-				context.Log.Error(err, "Could not perform locator action", "locator", locator)
+				context.Log.Error(err, "locating failed", "locator", locator)
 			}
 		}
 		if !modify(located.Store) {

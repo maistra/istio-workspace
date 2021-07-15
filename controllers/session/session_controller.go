@@ -229,7 +229,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	refs := calculateReferences(ctx, session)
-	sync := model.EngineImpl(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
 	session.Status.Conditions = []*istiov1alpha1.Condition{}
 
 	for _, ref := range refs {
