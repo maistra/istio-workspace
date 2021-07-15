@@ -77,7 +77,7 @@ type Route struct {
 // Ref references the user specified Resource target and configuration.
 type Ref struct {
 	KindName  RefKindName
-	Deleted   bool // TODO rename to something more indicating the intent vs state (e.g. MarkedForDeletion)
+	Remove    bool
 	Namespace string
 	Strategy  string
 	Args      map[string]string
@@ -86,7 +86,7 @@ type Ref struct {
 // Hash returns a predictable hash version for this object.
 func (r *Ref) Hash() string {
 	digest := "kind:" + r.KindName.String()
-	digest += ";deleted:" + strconv.FormatBool(r.Deleted)
+	digest += ";remove:" + strconv.FormatBool(r.Remove)
 	digest += ";namespace:" + r.Namespace
 	digest += ";strategy:" + r.Strategy
 

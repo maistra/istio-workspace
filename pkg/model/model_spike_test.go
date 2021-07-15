@@ -41,16 +41,16 @@ func TestLocatorStoreSort(t *testing.T) {
 }
 
 func TestRefHash(t *testing.T) {
-	r1 := model.Ref{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"X": "Y", "Y": "X"}}
-	r2 := model.Ref{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}}
+	r1 := model.Ref{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Remove: true, Args: map[string]string{"X": "Y", "Y": "X"}}
+	r2 := model.Ref{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Remove: true, Args: map[string]string{"Y": "X", "X": "Y"}}
 
 	refs := []model.Ref{
-		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "X"}},
-		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Deleted: false, Args: map[string]string{"Y": "X", "X": "Y"}},
-		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "Y", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
-		{KindName: model.ParseRefKindName("x"), Namespace: "X", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
-		{KindName: model.ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Deleted: true, Args: map[string]string{"Y": "X", "X": "Y"}},
-		{KindName: model.ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Deleted: true},
+		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Remove: true, Args: map[string]string{"Y": "X", "X": "X"}},
+		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "X", Remove: false, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: model.ParseRefKindName("x"), Namespace: "Y", Strategy: "Y", Remove: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: model.ParseRefKindName("x"), Namespace: "X", Strategy: "X", Remove: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: model.ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Remove: true, Args: map[string]string{"Y": "X", "X": "Y"}},
+		{KindName: model.ParseRefKindName("Y"), Namespace: "Y", Strategy: "X", Remove: true},
 		{KindName: model.ParseRefKindName("Y"), Namespace: "Y", Strategy: "X"},
 		{KindName: model.ParseRefKindName("Y"), Namespace: "Y"},
 		{KindName: model.ParseRefKindName("Y")},

@@ -351,7 +351,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
-			ref.Deleted = true
+			ref.Remove = true
 
 			// Revert
 			store = CreateEmptyTestLocatorStore()
@@ -383,7 +383,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
 			// Setup deleted ref
-			ref.Deleted = true
+			ref.Remove = true
 
 			// Revert
 			store = CreateEmptyTestLocatorStore()

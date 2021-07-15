@@ -171,7 +171,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(mutator.Refs[0].Deleted).To(BeFalse())
+				Expect(mutator.Refs[0].Remove).To(BeFalse())
 			})
 			It("should update existing status when new mutation occurs", func() {
 				locator.Action = foundTestLocatorTarget("details2")
@@ -230,7 +230,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(mutator.Refs[0].Deleted).To(BeTrue())
+				Expect(mutator.Refs[0].Remove).To(BeTrue())
 			})
 
 			It("should remove status when ref is removed", func() {
@@ -283,7 +283,7 @@ var _ = Describe("Basic session manipulation", func() {
 
 				Expect(locator.WasCalled).To(BeTrue())
 				Expect(mutator.WasCalled).To(BeTrue())
-				Expect(mutator.Refs[0].Deleted).To(BeTrue())
+				Expect(mutator.Refs[0].Remove).To(BeTrue())
 			})
 
 			It("should remove status when session removed", func() {

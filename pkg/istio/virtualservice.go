@@ -44,7 +44,7 @@ func VirtualServiceLocator(ctx model.SessionContext, ref model.Ref, store model.
 		return errors.WrapIfWithDetails(err, "failed to get all virtual services", "ref", ref.KindName.String())
 	}
 
-	if !ref.Deleted {
+	if !ref.Remove {
 		for i := range vss.Items {
 			vs := vss.Items[i]
 			action, hash := reference.GetRefMarker(&vs, labelKey)

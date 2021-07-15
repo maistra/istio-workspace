@@ -40,7 +40,7 @@ func DeploymentLocator(ctx model.SessionContext, ref model.Ref, store model.Loca
 		return err
 	}
 
-	if !ref.Deleted {
+	if !ref.Remove {
 		for i := range deployments.Items {
 			resource := deployments.Items[i]
 			action, hash := reference.GetRefMarker(&resource, labelKey)

@@ -213,7 +213,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	deleted := session.DeletionTimestamp != nil
 	if deleted {
-		reqLogger.Info("Deleted session")
+		reqLogger.Info("Remove session")
 		if !session.HasFinalizer(Finalizer) {
 			return reconcile.Result{}, nil
 		}
@@ -277,7 +277,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 }
 
 func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
-	if ref.Deleted && refSuccessful(ref, session.Status.Conditions) {
+	if ref.Remove && refSuccessful(ref, session.Status.Conditions) {
 		var otherConditions []*istiov1alpha1.Condition
 		for i := range session.Status.Conditions {
 			condition := session.Status.Conditions[i]
@@ -363,7 +363,7 @@ func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Sessio
 	refs := []model.Ref{}
 	for _, ref := range session.Spec.Refs {
 		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
-		modelRef.Deleted = session.DeletionTimestamp != nil
+		modelRef.Remove = session.DeletionTimestamp != nil
 		refs = append(refs, modelRef)
 	}
 
@@ -382,16 +382,16 @@ func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Sessio
 		}
 		if !found {
 			deletedRef := model.Ref{KindName: model.ParseRefKindName(key)}
-			deletedRef.Deleted = true
+			deletedRef.Remove = true
 			refs = append(refs, deletedRef)
 		}
 	}
 
 	sort.SliceStable(refs, func(i, j int) bool {
-		if refs[i].Deleted && !refs[j].Deleted {
+		if refs[i].Remove && !refs[j].Remove {
 			return true
 		}
-		if !refs[i].Deleted && refs[j].Deleted {
+		if !refs[i].Remove && refs[j].Remove {
 			return false
 		}
 

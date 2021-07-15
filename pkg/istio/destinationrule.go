@@ -36,7 +36,7 @@ func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model
 		return errors.WrapIfWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
 	}
 
-	if !ref.Deleted {
+	if !ref.Remove {
 		for i := range destinationRules.Items {
 			destinationRule := destinationRules.Items[i]
 			action, hash := reference.GetRefMarker(&destinationRule, labelKey)

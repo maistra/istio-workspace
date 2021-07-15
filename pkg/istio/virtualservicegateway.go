@@ -28,7 +28,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 		return err
 	}
 
-	if !ref.Deleted {
+	if !ref.Remove {
 		for i := range gws.Items {
 			gw := gws.Items[i]
 			action, hash := reference.GetRefMarker(&gw, labelKey)
