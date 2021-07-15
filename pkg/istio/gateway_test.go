@@ -1,7 +1,6 @@
 package istio_test
 
 import (
-	"github.com/maistra/istio-workspace/pkg/model"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"istio.io/api/networking/v1alpha3"
@@ -14,6 +13,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/test/testclient"
 )

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,6 +16,7 @@ import (
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 var kind, name = "X", "details"
@@ -41,19 +40,6 @@ var _ = Describe("Basic session manipulation", func() {
 			return s
 		}
 	}(&c)
-	/*
-		GetStatusRef := func(name string, session v1alpha1.Session) []v1alpha1.Condition {
-			var conditions []v1alpha1.Condition
-
-			for _, condition := range session.Status.Conditions {
-				if condition.Target.Name == name {
-					conditions = append(conditions, *condition)
-				}
-			}
-
-			return conditions
-		}
-	*/
 	JustBeforeEach(func() {
 		locator = &trackedLocator{Action: notFoundTestLocator}
 		mutator = &trackedMutator{Action: noOpModifier}
@@ -258,80 +244,6 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Conditions).To(HaveLen(0))
 			})
-			Context("updated reference", func() {
-				BeforeEach(func() {
-					// TODO: missing a way to detect that a ref has changed, e.g. new strategy...
-					objects = []runtime.Object{
-						&v1alpha1.Session{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:       "test-session",
-								Namespace:  "test",
-								Finalizers: []string{session.Finalizer},
-							},
-							Spec: v1alpha1.SessionSpec{
-								Refs: []v1alpha1.Ref{
-									{
-										Name:     "details",
-										Strategy: "telepresence",
-									},
-									{
-										Name:     "ratings",
-										Strategy: "prepared-image",
-										Args: map[string]string{
-											"image": "x",
-										},
-									},
-									{
-										Name:     "locations",
-										Strategy: "prepared-image",
-										Args: map[string]string{
-											"image": "y",
-										},
-									}},
-							},
-							Status: v1alpha1.SessionStatus{
-								Conditions: []*v1alpha1.Condition{
-									{
-										Source: v1alpha1.Source{
-											Name: "test",
-											Kind: "X",
-											Ref:  "details",
-										},
-									},
-									{
-										Source: v1alpha1.Source{
-											Name: "test",
-											Kind: "X",
-											Ref:  "ratings",
-										},
-									},
-									{
-										Source: v1alpha1.Source{
-											Name: "locations",
-											Kind: "X",
-											Ref:  "details",
-										},
-									},
-								},
-							},
-						},
-					}
-				})
-				It("should call revert when a status.ref.strategy differs from spec.ref.strategy", func() {
-					locator.Action = foundTestLocator
-					mutator.Action = addResourceStatus(nil)
-					res, err := controller.Reconcile(context.Background(), req)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(res.Requeue).To(BeFalse())
-
-					Expect(locator.WasCalled).To(BeTrue())
-					Expect(mutator.WasCalled).To(BeTrue())
-
-					modified := GetSession("test", "test-session")
-					Expect(modified.Status).ToNot(BeNil())
-					Expect(modified.Status.Conditions).To(HaveLen(3))
-				})
-			})
 		})
 
 		Context("session deletion", func() {
@@ -436,7 +348,7 @@ func (t *trackedLocator) Do(ctx model.SessionContext, ref model.Ref, store model
 	return t.Action(ctx, ref, store, report)
 }
 
-// addResource Action for mutator tracker.
+// addResourceStatus Action for mutator tracker.
 func addResourceStatus(err error) func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 	return func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
 		for _, l := range store() {

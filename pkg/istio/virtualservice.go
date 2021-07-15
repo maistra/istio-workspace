@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	"emperror.dev/errors"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -14,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
@@ -61,8 +60,6 @@ func VirtualServiceLocator(ctx model.SessionContext, ref model.Ref, store model.
 			}
 		}
 
-		// TODO: expand VirtualService Tests with connected vs where not directly triggering a host route?
-		// TODO: Connected GW ignores hostName during find??
 		virtualServices, err := getVirtualServices(ctx, ctx.Namespace)
 		if err != nil {
 			return err

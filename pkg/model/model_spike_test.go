@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	"emperror.dev/errors"
+
+	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 type Condition struct {

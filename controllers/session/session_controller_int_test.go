@@ -23,6 +23,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
@@ -100,7 +101,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		Context("when a ref is updated", func() {
 
-			XIt("should update the image", func() {
+			It("should update the image", func() {
 				req := reconcile.Request{
 					NamespacedName: types.NamespacedName{
 						Name:      "test-session1",
@@ -115,6 +116,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// when - a ref is updated
 				target := get.Session("test", "test-session1")
 				target.Spec.Refs[0].Args["image"] = "y:y:y"
+				c.Update(context.Background(), &target)
 
 				res, err = controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -123,11 +125,9 @@ var _ = Describe("Complete session manipulation", func() {
 				// then
 				sess := get.Session("test", "test-session1")
 				Expect(sess.Spec.Refs[0].Args["image"]).To(Equal("y:y:y"))
-				/*
-					Expect(sess.Status.Refs).To(HaveLen(1))
-					Expect(sess.Status.Refs[0].Resources).To(HaveLen(5))
-					Expect(sess.Status.Refs[0].Targets).To(HaveLen(3))
-				*/
+
+				deployment := get.Deployment("test", "ratings-v1-"+model.GetSha("v1")+"-test-session1")
+				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal("y:y:y"))
 			})
 		})
 

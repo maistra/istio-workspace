@@ -3,8 +3,6 @@ package openshift
 import (
 	"encoding/json"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	"emperror.dev/errors"
 	appsv1 "github.com/openshift/api/apps/v1"
 	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
@@ -13,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"
 )

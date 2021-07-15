@@ -3,8 +3,6 @@ package istio_test
 import (
 	"fmt"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	istionetworkv1alpha3 "istio.io/api/networking/v1alpha3"
@@ -17,6 +15,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
 
@@ -178,7 +177,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		Context("missing rule", func() {
 
-			// TODO: This should be moved to overall Validation of Locators result, possible simulate Found but Deleted before attempt to mutate?
+			// https://github.com/maistra/istio-workspace/issues/856
 			XIt("should fail when no rules found", func() {
 				ref := model.Ref{
 					KindName: model.ParseRefKindName("customer-v5"),

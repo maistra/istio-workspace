@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maistra/istio-workspace/pkg/model"
-
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/handler"
@@ -29,6 +27,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
 	"github.com/maistra/istio-workspace/pkg/reference"
 	"github.com/maistra/istio-workspace/pkg/template"

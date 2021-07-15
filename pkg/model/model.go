@@ -1,6 +1,6 @@
 package model
 
-// TODO rethink naming
+// TODO rethink naming.
 func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 	return func(context SessionContext, ref Ref, modify ModificatorController, locatedReporter LocatedReporter, modificationReporter ModificatorStatusReporter) {
 		located := LocatorStore{}
@@ -13,7 +13,7 @@ func EngineImpl(locators []Locator, modificators []Modificator) Sync {
 			)
 
 			if err != nil {
-				// TODO what do we do here?
+				context.Log.Error(err, "Could not perform locator action", "locator", locator)
 			}
 		}
 		if !modify(located.Store) {

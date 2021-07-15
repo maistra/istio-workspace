@@ -7,7 +7,7 @@ import (
 
 const unknownVersion = "unknown"
 
-// GetVersion returns the existing version name.
+// GetVersion returns the version for the created resources if any. Returns unknown if not found.
 func GetVersion(store LocatorStatusStore) string {
 	targets := store("Deployment", "DeploymentConfig")
 	for _, target := range targets {
@@ -35,7 +35,7 @@ func GetDeletedVersion(store LocatorStatusStore) string {
 	return unknownVersion
 }
 
-// GetCreatedVersion returns the version for the created resources if any. Returns unknown if not found.
+// GetCreatedVersion returns the new calculated version for the created resources if any. Returns unknown if not found.
 func GetCreatedVersion(store LocatorStatusStore, sessionName string) string {
 	targets := store("Deployment", "DeploymentConfig")
 	for _, target := range targets {

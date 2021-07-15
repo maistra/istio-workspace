@@ -21,7 +21,6 @@ type LocatorStatusStore func(kind ...string) []LocatorStatus
 // Locator should report on Resources that need some Action performed on them to satisfy the Ref.
 type Locator func(context SessionContext, ref Ref, store LocatorStatusStore, reporter LocatorStatusReporter) error
 
-// TODO dummy impl for testing purposes.
 type LocatorStore struct {
 	stored []LocatorStatus
 }
