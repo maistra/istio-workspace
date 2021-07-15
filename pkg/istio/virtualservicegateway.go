@@ -22,8 +22,8 @@ var _ model.Locator = VirtualServiceGatewayLocator
 func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	var errs error
 
-	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
-	gws, err := getGateways(ctx, ctx.Namespace, reference.Match(labelKey))
+	labelKey := reference.CreateRefMarker(ctx.Name, ref.KindName.String())
+	gws, err := getGateways(ctx, ctx.Namespace, reference.RefMarkerMatch(labelKey))
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 	if !ref.Deleted {
 		for i := range gws.Items {
 			gw := gws.Items[i]
-			action, hash := reference.GetLabel(&gw, labelKey)
+			action, hash := reference.GetRefMarker(&gw, labelKey)
 			undo := model.Flip(model.StatusAction(action))
 			if ref.Hash() != hash {
 				report(model.LocatorStatus{
@@ -79,7 +79,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 	} else {
 		for i := range gws.Items {
 			gw := gws.Items[i]
-			action, _ := reference.GetLabel(&gw, labelKey)
+			action, _ := reference.GetRefMarker(&gw, labelKey)
 			undo := model.Flip(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{

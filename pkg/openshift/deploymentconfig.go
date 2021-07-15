@@ -40,8 +40,8 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref model.Ref, store mode
 		return nil
 	}
 
-	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
-	deploymentConfigs, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.Match(labelKey))
+	labelKey := reference.CreateRefMarker(ctx.Name, ref.KindName.String())
+	deploymentConfigs, err := getDeploymentConfigs(ctx, ctx.Namespace, reference.RefMarkerMatch(labelKey))
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref model.Ref, store mode
 	if !ref.Deleted {
 		for i := range deploymentConfigs.Items {
 			deploymentConfig := deploymentConfigs.Items[i]
-			action, hash := reference.GetLabel(&deploymentConfig, labelKey)
+			action, hash := reference.GetRefMarker(&deploymentConfig, labelKey)
 			if ref.Hash() != hash {
 				undo := model.Flip(model.StatusAction(action))
 				report(model.LocatorStatus{
@@ -82,7 +82,7 @@ func DeploymentConfigLocator(ctx model.SessionContext, ref model.Ref, store mode
 	} else {
 		for i := range deploymentConfigs.Items {
 			deploymentConfig := deploymentConfigs.Items[i]
-			action, _ := reference.GetLabel(&deploymentConfig, labelKey)
+			action, _ := reference.GetRefMarker(&deploymentConfig, labelKey)
 			undo := model.Flip(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
@@ -147,7 +147,7 @@ func actionCreateDeploymentConfig(ctx model.SessionContext, ref model.Ref, store
 	if err = reference.Add(ctx.ToNamespacedName(), deploymentClone); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", deploymentClone.Kind, "name", deploymentClone.Name)
 	}
-	reference.AddLabel(deploymentClone, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
+	reference.AddRefMarker(deploymentClone, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if _, err = getDeploymentConfig(ctx, deploymentClone.Namespace, deploymentClone.Name); err == nil {
 		report(model.ModificatorStatus{

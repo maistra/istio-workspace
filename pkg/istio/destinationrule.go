@@ -30,8 +30,8 @@ func DestinationRuleRegistrar() (client.Object, model.Modificator) {
 func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 	var errs error
 
-	labelKey := reference.CreateLabel(ctx.Name, ref.KindName.String())
-	destinationRules, err := GetDestinationRules(ctx, ctx.Namespace, reference.Match(labelKey))
+	labelKey := reference.CreateRefMarker(ctx.Name, ref.KindName.String())
+	destinationRules, err := GetDestinationRules(ctx, ctx.Namespace, reference.RefMarkerMatch(labelKey))
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to get all destination rules", "ref", ref.KindName.String())
 	}
@@ -39,7 +39,7 @@ func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model
 	if !ref.Deleted {
 		for i := range destinationRules.Items {
 			destinationRule := destinationRules.Items[i]
-			action, hash := reference.GetLabel(&destinationRule, labelKey)
+			action, hash := reference.GetRefMarker(&destinationRule, labelKey)
 			if ref.Hash() != hash {
 				undo := model.Flip(model.StatusAction(action))
 				report(model.LocatorStatus{
@@ -71,7 +71,7 @@ func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model
 	} else {
 		for i := range destinationRules.Items {
 			resource := destinationRules.Items[i]
-			action, _ := reference.GetLabel(&resource, labelKey)
+			action, _ := reference.GetRefMarker(&resource, labelKey)
 			undo := model.Flip(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
@@ -137,7 +137,7 @@ func actionCreateDestinationRule(ctx model.SessionContext, ref model.Ref, store 
 	if err := reference.Add(ctx.ToNamespacedName(), &destinationRule); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", destinationRule.Kind, "name", destinationRule.Name, "host", dr.Spec.Host)
 	}
-	reference.AddLabel(&destinationRule, reference.CreateLabel(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
+	reference.AddRefMarker(&destinationRule, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
 	if err := ctx.Client.Create(ctx, &destinationRule); err != nil {
 		if !k8sErrors.IsAlreadyExists(err) {
