@@ -21,9 +21,10 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 	Context("gateway attachment", func() {
 
 		var (
-			objects []runtime.Object
-			c       client.Client
-			ctx     model.SessionContext
+			objects  []runtime.Object
+			c        client.Client
+			ctx      model.SessionContext
+			locators model.LocatorStore
 		)
 
 		BeforeEach(func() {
@@ -97,7 +98,8 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 			schema, _ := v1alpha1.SchemeBuilder.Register(
 				&istionetwork.VirtualServiceList{},
 				&istionetwork.VirtualService{},
-				&istionetwork.Gateway{}).Build()
+				&istionetwork.Gateway{},
+				&istionetwork.GatewayList{}).Build()
 
 			c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 			ctx = model.SessionContext{
@@ -107,6 +109,7 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				Client:    c,
 				Log:       log.CreateOperatorAwareLogger("session").WithValues("type", "controller"),
 			}
+			locators = model.LocatorStore{}
 		})
 
 		It("should expose hosts of located gateway", func() {
@@ -114,10 +117,10 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
-			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
-			Expect(found).To(BeTrue())
+			err := istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
 
-			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
+			gws := locators.Store(istio.GatewayKind)
 			Expect(gws).To(HaveLen(1))
 			Expect(gws[0].Labels[istio.LabelIkeHosts]).ToNot(BeEmpty())
 		})
@@ -127,10 +130,9 @@ var _ = Describe("Location of Gateway connected VirtualService Kind", func() {
 				KindName: model.ParseRefKindName("customer-v1"),
 			}
 
-			found := istio.VirtualServiceGatewayLocator(ctx, &ref)
-			Expect(found).To(BeTrue())
+			istio.VirtualServiceGatewayLocator(ctx, ref, locators.Store, locators.Report)
 
-			gws := ref.GetTargets(model.Kind(istio.GatewayKind))
+			gws := locators.Store(istio.GatewayKind)
 			Expect(gws).To(HaveLen(1))
 			Expect(gws[0].Labels[istio.LabelIkeHosts]).To(Equal("redhat-kubecon.io,redhat-devcon.io"))
 		})

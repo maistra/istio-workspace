@@ -26,7 +26,7 @@ spec:
       name: Strategies
       type: string
     - description: exposed hosts for this session
-      jsonPath: .status._hosts
+      jsonPath: .status.hosts
       name: Hosts
       type: string
     - description: route expression used for this session
@@ -87,10 +87,6 @@ spec:
           status:
             description: Status defines the current status of the State
             properties:
-              _hosts:
-                items:
-                  type: string
-                type: array
               _refNames:
                 items:
                   type: string
@@ -105,137 +101,49 @@ spec:
               conditions:
                 description: The combined log of changes across all refs
                 items:
-                  description: RefResource is an external Resource that has been manipulated in some way.
+                  description: Condition describes a step of manipulating resources within a session.
                   properties:
-                    action:
-                      description: The Action that was performed, e.g. created, failed, manipulated
-                      type: string
-                    kind:
-                      description: The Resource Kind
-                      type: string
                     lastTransitionTime:
                       description: LastTransitionTime is the last time this action was applied
                       format: date-time
                       type: string
                     message:
-                      description: Human readable reason for the change
+                      description: Message explains the reason for a change.
                       type: string
-                    name:
-                      description: The Resource Name
-                      type: string
-                    prop:
-                      additionalProperties:
-                        type: string
-                      description: Additional properties for special Resources, e.g. hosts for Gateways
-                      type: object
                     reason:
-                      description: Programmatic reason for the change
+                      description: Reason is a programmatic reason for the change.
                       type: string
+                    source:
+                      description: Source contains the resource involved
+                      properties:
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                        ref:
+                          type: string
+                      type: object
                     status:
-                      description: Boolean value to indicate success
+                      description: Status indicates success.
                       type: string
+                    target:
+                      description: Result contains the resource involved if different from Target, e.g. Create
+                      properties:
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      type: object
                     type:
-                      description: The type of change
+                      description: Type the type of change
                       type: string
+                  required:
+                  - source
                   type: object
                 type: array
-              refs:
-                description: Status of the Refs in the Session
+              hosts:
                 items:
-                  description: RefStatus of an individual Ref in the Session.
-                  properties:
-                    args:
-                      additionalProperties:
-                        type: string
-                      description: Additional arguments to the given strategy
-                      type: object
-                    name:
-                      description: Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
-                      type: string
-                    resources:
-                      description: A list of the Resources involved in maintaining this route
-                      items:
-                        description: RefResource is an external Resource that has been manipulated in some way.
-                        properties:
-                          action:
-                            description: The Action that was performed, e.g. created, failed, manipulated
-                            type: string
-                          kind:
-                            description: The Resource Kind
-                            type: string
-                          lastTransitionTime:
-                            description: LastTransitionTime is the last time this action was applied
-                            format: date-time
-                            type: string
-                          message:
-                            description: Human readable reason for the change
-                            type: string
-                          name:
-                            description: The Resource Name
-                            type: string
-                          prop:
-                            additionalProperties:
-                              type: string
-                            description: Additional properties for special Resources, e.g. hosts for Gateways
-                            type: object
-                          reason:
-                            description: Programmatic reason for the change
-                            type: string
-                          status:
-                            description: Boolean value to indicate success
-                            type: string
-                          type:
-                            description: The type of change
-                            type: string
-                        type: object
-                      type: array
-                    strategy:
-                      description: How this deployment should be handled, e.g. telepresence or prepared-image
-                      type: string
-                    targets:
-                      description: A lit of the Object used as source
-                      items:
-                        description: LabeledRefResource is a RefResource with Labels.
-                        properties:
-                          action:
-                            description: The Action that was performed, e.g. created, failed, manipulated
-                            type: string
-                          kind:
-                            description: The Resource Kind
-                            type: string
-                          labels:
-                            additionalProperties:
-                              type: string
-                            type: object
-                          lastTransitionTime:
-                            description: LastTransitionTime is the last time this action was applied
-                            format: date-time
-                            type: string
-                          message:
-                            description: Human readable reason for the change
-                            type: string
-                          name:
-                            description: The Resource Name
-                            type: string
-                          prop:
-                            additionalProperties:
-                              type: string
-                            description: Additional properties for special Resources, e.g. hosts for Gateways
-                            type: object
-                          reason:
-                            description: Programmatic reason for the change
-                            type: string
-                          status:
-                            description: Boolean value to indicate success
-                            type: string
-                          type:
-                            description: The type of change
-                            type: string
-                        required:
-                        - labels
-                        type: object
-                      type: array
-                  type: object
+                  type: string
                 type: array
               route:
                 description: The current configured route

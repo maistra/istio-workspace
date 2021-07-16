@@ -235,7 +235,7 @@ jobs:
             echo "Istio enabled"
 
             echo "Installing tekton"
-            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.16.3/release.yaml
+            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.22.0/release.yaml
             sleep 10
             n=0
             until [ $n -ge 10 ]
@@ -268,7 +268,7 @@ jobs:
 
             ./bin/operator-sdk olm install --version v0.18.2
 
-            make docker-build docker-push-versioned
+            make docker-build docker-push
             make docker-build-test docker-push-test
             IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
             IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared

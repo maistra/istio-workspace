@@ -43,6 +43,101 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		}
 	})
 
+	Context("locators", func() {
+
+		var (
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
+		)
+
+		BeforeEach(func() {
+			ref = model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
+			}
+			locators = createLocatorStore()
+			modificators = model.ModificatorStore{}
+
+			objects = []runtime.Object{
+				&istionetwork.VirtualService{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "details",
+						Namespace: "test",
+					},
+					Spec: istionetworkv1alpha3.VirtualService{
+						Hosts: []string{"details"},
+						Http: []*istionetworkv1alpha3.HTTPRoute{
+							{
+								Route: []*istionetworkv1alpha3.HTTPRouteDestination{
+									{
+										Destination: &istionetworkv1alpha3.Destination{
+											Host: "details",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		})
+
+		It("should trigger create action when reference is created", func() {
+			// when
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			Expect(locators.Store(VirtualServiceKind)).To(HaveLen(1))
+			dr := locators.Store(VirtualServiceKind)[0]
+			Expect(dr.Action).To(Equal(model.ActionModify))
+			Expect(dr.Name).To(Equal("details"))
+		})
+
+		It("should trigger delete and create action when reference is updated", func() {
+			// given
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Strategy = "prepared-image"
+			newLocatorStore := createLocatorStore()
+			err = VirtualServiceLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(VirtualServiceKind)
+			Expect(actions).To(HaveLen(2))
+			Expect(actions[0].Action).To(Equal(model.ActionRevert))
+			Expect(actions[0].Name).To(Equal("details"))
+			Expect(actions[1].Action).To(Equal(model.ActionModify))
+			Expect(actions[1].Name).To(Equal("details"))
+		})
+
+		It("should trigger revert action when reference is removed", func() {
+			// given
+			err := VirtualServiceLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Remove = true
+			newLocatorStore := createLocatorStore()
+			err = VirtualServiceLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(VirtualServiceKind)
+			Expect(actions).To(HaveLen(1))
+			Expect(actions[0].Action).To(Equal(model.ActionRevert))
+			Expect(actions[0].Name).To(Equal("details"))
+		})
+
+	})
+
 	Context("manipulation", func() {
 
 		Context("mutators", func() {
@@ -146,16 +241,18 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				}
 				var (
 					ref            model.Ref
-					targetV1       = model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"})
+					locators       model.LocatorStore
+					modificators   model.ModificatorStore
+					targetV1       = model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "details-v1"}, Labels: map[string]string{"version": "v1"}}
 					targetV1Host   = model.HostName{Name: "details"}
 					targetV1Subset = model.GetSha("v1") + "-vs-test"
-					targetV4       = model.NewLocatedResource("Deployment", "details-v4", map[string]string{"version": "v4"})
+					targetV4       = model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "details-v4"}, Labels: map[string]string{"version": "v4"}}
 					targetV4Host   = model.HostName{Name: "details"}
 					targetV4Subset = model.GetSha("v4") + "-vs-test"
-					targetV5       = model.NewLocatedResource("Deployment", "details-v5", map[string]string{"version": "v5"})
+					targetV5       = model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "details-v5"}, Labels: map[string]string{"version": "v5"}}
 					targetV5Host   = model.HostName{Name: "details"}
 					targetV5Subset = model.GetSha("v5") + "-vs-test"
-					targetV6       = model.NewLocatedResource("Deployment", "x-v5", map[string]string{"version": "v5"})
+					targetV6       = model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "x-v5"}, Labels: map[string]string{"version": "v5"}}
 					targetV6Host   = model.HostName{Name: "x"}
 					targetV6Subset = model.GetSha("v5") + "-vs-test"
 				)
@@ -167,69 +264,85 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 						},
 						Namespace: "test",
 					}
+					locators = model.LocatorStore{}
+					locators.Report(model.LocatorStatus{
+						Resource: model.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details"},
+						Action: model.ActionModify,
+						Labels: map[string]string{"host": "details"},
+					})
+					modificators = model.ModificatorStore{}
 				})
 
 				It("should add reference", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(reference.Get(&virtualService)).To(HaveLen(1))
 				})
 
 				It("route added", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset)).ToNot(BeNil())
 				})
 
 				It("route added before target route", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(virtualService.Spec.Http[0].Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("has match", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Match).ToNot(BeNil())
 				})
 
 				It("has subset", func() { // covered by GetMutatedRoute
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Route[0].Destination.Subset).To(Equal(targetV1Subset))
 				})
 
 				It("create match when no match found", func() {
-					ref.AddTargetResource(targetV4)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV4)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 
@@ -243,11 +356,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with no headers", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 
@@ -261,11 +375,12 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("add route headers to found match with found headers", func() {
-					ref.AddTargetResource(targetV5)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV5)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 
@@ -279,56 +394,70 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 				})
 
 				It("remove weighted destination", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Route[0].Weight).To(Equal(int32(0)))
 				})
 
 				It("remove other destinations", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Route).To(HaveLen(1))
 				})
 
 				It("remove mirror", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Mirror).To(BeNil())
 				})
 
 				It("remove redirect", func() {
-					ref.AddTargetResource(targetV1)
-					ref.AddTargetResource(model.NewLocatedResource("Service", "details", map[string]string{}))
+					locators.Report(targetV1)
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "details"}})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV1Host, targetV1Subset).Redirect).To(BeNil())
 				})
 
 				It("include destinations with no subset", func() {
-					ref.AddTargetResource(targetV6)
+					locators.Clear()
+					locators.Report(targetV6)
 					ref.KindName.Name = "x-v5"
-					ref.AddTargetResource(model.NewLocatedResource("Service", "x", map[string]string{}))
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Name: "x"}})
+					locators.Report(model.LocatorStatus{
+						Resource: model.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details"},
+						Action: model.ActionModify,
+						Labels: map[string]string{"host": "x"},
+					})
 
-					err := VirtualServiceMutator(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(GetMutatedRoute(virtualService, targetV6Host, targetV6Subset).Redirect).To(BeNil())
@@ -424,7 +553,9 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			Context("existing rule", func() {
 
 				var (
-					ref model.Ref
+					ref          model.Ref
+					locators     model.LocatorStore
+					modificators model.ModificatorStore
 				)
 
 				BeforeEach(func() {
@@ -433,36 +564,53 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 							Name: "details-v1",
 						},
 						Namespace: "test",
-						Targets: []model.LocatedResourceStatus{
-							model.NewLocatedResource("Deployment", "details-v1", map[string]string{"version": "v1"}),
-							model.NewLocatedResource("Service", "details", map[string]string{}),
-						},
-						ResourceStatuses: []model.ResourceStatus{
-							{Kind: VirtualServiceKind, Name: "details", Action: model.ActionModified},
-						},
 					}
+					locators = model.LocatorStore{}
+					locators.Report(model.LocatorStatus{
+						Resource: model.Resource{
+							Kind:      "Deployment",
+							Namespace: "test",
+							Name:      "details-v1",
+						},
+						Action: model.ActionDelete,
+						Labels: map[string]string{"version": model.GetSha("v1") + "-vs-test"},
+					})
+					locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "details"}})
+					locators.Report(model.LocatorStatus{
+						Resource: model.Resource{
+							Kind:      VirtualServiceKind,
+							Namespace: "test",
+							Name:      "details",
+						},
+						Action: model.ActionRevert,
+						Labels: map[string]string{"host": "details"},
+					})
+					modificators = model.ModificatorStore{}
 
 				})
 
 				It("should remove reference", func() {
-					err := VirtualServiceRevertor(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(reference.Get(&virtualService)).To(BeEmpty())
 				})
 
 				It("route removed", func() {
-					err := VirtualServiceRevertor(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(virtualService.Spec.Http).To(HaveLen(2))
 				})
 
 				It("correct route removed", func() {
-					err := VirtualServiceRevertor(ctx, &ref)
-					Expect(err).ToNot(HaveOccurred())
+					VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+					Expect(modificators.Stored).To(HaveLen(1))
+					Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 					virtualService := get.VirtualService("test", "details")
 					Expect(virtualService.Spec.Http[0].Route[0].Destination.Subset).ToNot(Equal(model.GetSha("v1") + "-vs-test"))
@@ -539,14 +687,23 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			It("should attach to a host", func() {
 				ref := model.Ref{
 					KindName: model.ParseRefKindName("customer-v1"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Service", "customer", nil),
-						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
-					},
 				}
+				locators := model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
+				locators.Report(model.LocatorStatus{
+					Resource: model.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "customer"}, Action: model.ActionCreate})
+				modificators := model.ModificatorStore{}
 
-				err := VirtualServiceMutator(ctx, &ref)
-				Expect(err).ToNot(HaveOccurred())
+				VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				created := get.VirtualService("test", "customer-"+ctx.Name)
 				Expect(created.Spec.Hosts).To(ContainElement(ctx.Name + ".redhat-kubecon.io"))
@@ -555,14 +712,23 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			It("should add request headers", func() {
 				ref := model.Ref{
 					KindName: model.ParseRefKindName("customer-v1"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Service", "customer", nil),
-						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
-					},
 				}
+				locators := model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
+				locators.Report(model.LocatorStatus{
+					Resource: model.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "customer"}, Action: model.ActionCreate})
+				modificators := model.ModificatorStore{}
 
-				err := VirtualServiceMutator(ctx, &ref)
-				Expect(err).ToNot(HaveOccurred())
+				VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				created := get.VirtualService("test", "customer-"+ctx.Name)
 				Expect(created.Spec.Http[0].Headers.Request.Add).To(HaveKeyWithValue(ctx.Route.Name, ctx.Route.Value))
@@ -571,14 +737,23 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 			It("should duplicate non effected vs", func() {
 				ref := model.Ref{
 					KindName: model.ParseRefKindName("customer-v1"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Service", "customer", nil),
-						model.NewLocatedResource("Gateway", "test-gateway", map[string]string{LabelIkeHosts: "redhat-kubecon.io"}),
-					},
 				}
+				locators := model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer"}})
+				locators.Report(model.LocatorStatus{
+					Resource: model.Resource{
+						Kind:      "Gateway",
+						Namespace: "test",
+						Name:      "test-gateway",
+					},
+					Labels: map[string]string{LabelIkeHosts: "redhat-kubecon.io"},
+				})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: VirtualServiceKind, Namespace: "test", Name: "non-customer"}, Action: model.ActionCreate})
+				modificators := model.ModificatorStore{}
 
-				err := VirtualServiceMutator(ctx, &ref)
-				Expect(err).ToNot(HaveOccurred())
+				VirtualServiceModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				created := get.VirtualService("test", "non-customer-"+ctx.Name)
 				Expect(created.Spec.Hosts).To(ContainElement(ctx.Name + ".redhat-kubecon.io"))
@@ -636,3 +811,10 @@ var _ = Describe("Operations for istio VirtualService kind", func() {
 		})
 	})
 })
+
+func createLocatorStore() model.LocatorStore {
+	locators := model.LocatorStore{}
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "details"}})
+
+	return locators
+}

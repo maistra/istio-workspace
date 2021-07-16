@@ -9,9 +9,9 @@ import (
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 )
 
-// Sessions creates a Handler for the given session operation
-// session expects that cmd has offline, namespace, route, deployment and session flags defined.
-// otherwise it fails.
+// Sessions creates a Handler for the given session operation.
+// It's expected that cmd has offline, namespace, route, deployment and session flags defined.
+// Otherwise it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 	var client *session.Client

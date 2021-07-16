@@ -21,16 +21,20 @@ var _ = Describe("Operations for k8s Service kind", func() {
 	var objects []runtime.Object
 	var ctx model.SessionContext
 
-	CreateTestRef := func(kind string, labels map[string]string) model.Ref {
+	CreateTestRef := func() model.Ref {
 		return model.Ref{
-			KindName:  model.ParseRefKindName("test-ref"),
+			KindName:  model.RefKindName{Name: "test-ref"},
 			Namespace: "test",
 			Strategy:  "telepresence",
-			Targets:   []model.LocatedResourceStatus{model.NewLocatedResource(kind, "test-ref", labels)},
 			Args:      map[string]string{"version": "0.103"},
 		}
 	}
+	CreateTestLocatorStore := func(kind string, labels map[string]string) model.LocatorStore {
+		l := model.LocatorStore{}
+		l.Report(model.LocatorStatus{Resource: model.Resource{Kind: kind, Name: "test-ref"}, Labels: labels, Action: model.ActionLocated})
 
+		return l
+	}
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()
 		err := corev1.AddToScheme(schema)
@@ -84,50 +88,62 @@ var _ = Describe("Operations for k8s Service kind", func() {
 		})
 
 		It("should report false on not found", func() {
-			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "not found"})
-			locatorErr := k8s.ServiceLocator(ctx, &ref)
-			Expect(locatorErr).To(BeFalse())
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "not found"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(k8s.ServiceKind)).To(HaveLen(0))
 		})
 
 		It("should report true on found", func() {
-			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "x"})
-			locatorErr := k8s.ServiceLocator(ctx, &ref)
-			Expect(locatorErr).To(BeTrue())
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "x"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(k8s.ServiceKind)).To(HaveLen(1))
 		})
 
 		It("should find services for Deployment", func() {
-			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "x"})
-			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "x"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			services := store.Store(k8s.ServiceKind)
 			Expect(len(services)).To(Equal(1))
 
 			Expect(services[0].Name).To(Equal("test-1"))
 		})
 		It("should find services for DeploymentConfig", func() {
-			ref := CreateTestRef(openshift.DeploymentConfigKind, map[string]string{"app": "x"})
-			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(openshift.DeploymentConfigKind, map[string]string{"app": "x"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			services := store.Store(k8s.ServiceKind)
 			Expect(len(services)).To(Equal(1))
 
 			Expect(services[0].Name).To(Equal("test-1"))
 		})
 		It("should return service hostname", func() {
-			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "x"})
-			k8s.ServiceLocator(ctx, &ref)
-			hosts := ref.GetTargetHostNames()
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "x"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			hosts := model.GetTargetHostNames(store.Store)
 			Expect(len(hosts)).To(Equal(1))
 
 			Expect(hosts[0].Name).To(Equal("test-1"))
 		})
-
 		It("should add all matching services", func() {
-			ref := CreateTestRef(k8s.DeploymentKind, map[string]string{"app": "z"})
-			k8s.ServiceLocator(ctx, &ref)
-			services := ref.GetTargets(model.Kind(k8s.ServiceKind))
+			ref := CreateTestRef()
+			store := CreateTestLocatorStore(k8s.DeploymentKind, map[string]string{"app": "z"})
+			k8s.ServiceLocator(ctx, ref, store.Store, store.Report)
+			services := store.Store(k8s.ServiceKind)
 			Expect(len(services)).To(Equal(2))
 
-			Expect(services[0].Name).To(Equal("test-2"))
-			Expect(services[1].Name).To(Equal("test-3"))
+			getNames := func(list []model.LocatorStatus) []string {
+				var names []string
+				for _, l := range list {
+					names = append(names, l.Name)
+				}
+
+				return names
+			}
+			Expect(getNames(services)).To(ConsistOf("test-2", "test-3"))
 		})
 
 	})

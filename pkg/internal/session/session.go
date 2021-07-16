@@ -26,35 +26,21 @@ var (
 
 // Options holds the variables used by the Session Handler.
 type Options struct {
-	NamespaceName  string                                // name of the namespace for target resource
-	DeploymentName string                                // name of the initial resource to target
-	SessionName    string                                // name of the session create or join if exist
-	RouteExp       string                                // expression of how to route the traffic to the target resource
-	Strategy       string                                // name of the strategy to use for the target resource
-	StrategyArgs   map[string]string                     // additional arguments for the strategy
-	Revert         bool                                  // Revert back to previous known value if join/leave a existing session with a known ref
-	Duration       *time.Duration                        // Duration defines the interval used to check for changes to the session object
-	WaitCondition  func(*istiov1alpha1.RefResource) bool // WaitCondition should return true when session is in a state to move on
-}
-
-// ConditionFound returns true if the RefResource is in a done state based on the WaitCondition. Defaults to defaultWaitCondition.
-func (o *Options) ConditionFound(res *istiov1alpha1.RefResource) bool {
-	if o.WaitCondition == nil {
-		o.WaitCondition = defaultWaitCondition
-	}
-
-	return o.WaitCondition(res)
-}
-
-func defaultWaitCondition(res *istiov1alpha1.RefResource) bool {
-	return *res.Kind == "Deployment" || *res.Kind == "DeploymentConfig"
+	NamespaceName  string            // name of the namespace for target resource
+	DeploymentName string            // name of the initial resource to target
+	SessionName    string            // name of the session create or join if exist
+	RouteExp       string            // expression of how to route the traffic to the target resource
+	Strategy       string            // name of the strategy to use for the target resource
+	StrategyArgs   map[string]string // additional arguments for the strategy
+	Revert         bool              // Revert back to previous known value if join/leave a existing session with a known ref
+	Duration       *time.Duration    // Duration defines the interval used to check for changes to the session object
 }
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
-	DeploymentName string                  // name of the resource to target within the cloned route.
-	RefStatus      istiov1alpha1.RefStatus // the current ref status object
-	Route          istiov1alpha1.Route     // the current route configuration
+	DeploymentName string              // name of the resource to target within the cloned route.
+	Hosts          []string            // currently exposed hosts
+	Route          istiov1alpha1.Route // the current route configuration
 }
 
 // Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
@@ -114,21 +100,11 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 
 	return State{
 			DeploymentName: serviceName,
-			RefStatus:      getCurrentRef(opts.DeploymentName, *session),
+			Hosts:          session.Status.Hosts,
 			Route:          *route,
 		}, func() {
 			h.removeOrLeaveSession()
 		}, nil
-}
-
-func getCurrentRef(deploymentName string, session istiov1alpha1.Session) istiov1alpha1.RefStatus {
-	for _, ref := range session.Status.Refs {
-		if ref.Name == deploymentName {
-			return *ref
-		}
-	}
-
-	return istiov1alpha1.RefStatus{}
 }
 
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
@@ -205,7 +181,6 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
-	var name string
 	var err error
 	var sessionStatus *istiov1alpha1.Session
 	duration := 1 * time.Minute
@@ -217,26 +192,35 @@ func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error)
 		if err != nil {
 			return false, err
 		}
-		for _, refs := range sessionStatus.Status.Refs {
-			if refs.Name == h.opts.DeploymentName {
-				for _, res := range refs.Resources {
-					if h.opts.ConditionFound(res) {
-						name = *res.Name
-						logger().Info("target found", *res.Kind, name)
 
-						return true, nil
-					}
-				}
-			}
+		if sessionStatus.Status.State != nil && *sessionStatus.Status.State == istiov1alpha1.StateSuccess {
+			return true, nil
 		}
 
 		return false, nil
 	})
 	if err != nil {
-		return sessionStatus, name, DeploymentNotFoundError{name: h.opts.DeploymentName}
+		return sessionStatus, "", errors.Wrap(err, "timed out waiting for success")
+	}
+	for _, condition := range sessionStatus.Status.Conditions {
+		if condition.Target != nil && refMatchesDeploymentName(condition, h.opts.DeploymentName) && deploymentOrDeploymentConfig(condition) && notDeleted(condition) {
+			return sessionStatus, condition.Target.Name, nil
+		}
 	}
 
-	return sessionStatus, name, nil
+	return sessionStatus, "", DeploymentNotFoundError{name: h.opts.DeploymentName}
+}
+
+func notDeleted(condition *istiov1alpha1.Condition) bool {
+	return condition.Type != nil && *condition.Type != "delete"
+}
+
+func deploymentOrDeploymentConfig(condition *istiov1alpha1.Condition) bool {
+	return condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment"
+}
+
+func refMatchesDeploymentName(condition *istiov1alpha1.Condition, name string) bool {
+	return condition.Source.Ref == name
 }
 
 func (h *handler) removeOrLeaveSession() {

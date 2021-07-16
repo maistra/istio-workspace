@@ -8,6 +8,7 @@ import (
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -27,143 +28,255 @@ const (
 )
 
 var (
-	_                  model.Mutator     = VirtualServiceMutator
-	_                  model.Revertor    = VirtualServiceRevertor
-	_                  model.Manipulator = virtualServiceManipulator{}
-	errorRouteNotFound                   = fmt.Errorf("route not found")
+	_                  model.Locator              = VirtualServiceLocator
+	_                  model.ModificatorRegistrar = VirtualServiceRegistrar
+	errorRouteNotFound                            = fmt.Errorf("route not found")
 )
 
-// VirtualServiceManipulator represents a model.Manipulator implementation for handling VirtualService objects.
-func VirtualServiceManipulator() model.Manipulator {
-	return virtualServiceManipulator{}
+func VirtualServiceRegistrar() (client.Object, model.Modificator) {
+	return &istionetwork.VirtualService{}, VirtualServiceModificator
 }
 
-type virtualServiceManipulator struct {
-}
-
-func (d virtualServiceManipulator) TargetResourceType() client.Object {
-	return &istionetwork.VirtualService{}
-}
-func (d virtualServiceManipulator) Mutate() model.Mutator {
-	return VirtualServiceMutator
-}
-func (d virtualServiceManipulator) Revert() model.Revertor {
-	return VirtualServiceRevertor
-}
-
-// VirtualServiceMutator attempts to create a virtual service for forked service.
-func VirtualServiceMutator(ctx model.SessionContext, ref *model.Ref) error { //nolint:gocyclo,cyclop //reason it is what it is :D
-	targetVersion := ref.GetVersion()
-
-	vss, err := getVirtualServices(ctx, ctx.Namespace)
+func VirtualServiceLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
+	labelKey := reference.CreateRefMarker(ctx.Name, ref.KindName.String())
+	vss, err := getVirtualServices(ctx, ctx.Namespace, reference.RefMarkerMatch(labelKey))
 	if err != nil {
-		ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, ctx.Namespace, model.ActionLocated, err.Error()))
-
-		return err
+		return errors.WrapIfWithDetails(err, "failed to get all virtual services", "ref", ref.KindName.String())
 	}
 
-	var errs []error
-	for _, hostName := range ref.GetTargetHostNames() {
-		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
-			_, connected := connectedToGateway(vs)
-
-			if !connected || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
-				continue
+	if !ref.Remove {
+		for i := range vss.Items {
+			vs := vss.Items[i]
+			action, hash := reference.GetRefMarker(&vs, labelKey)
+			undo := model.Flip(model.StatusAction(action))
+			if ref.Hash() != hash {
+				report(model.LocatorStatus{
+					Resource: model.Resource{
+						Kind:      VirtualServiceKind,
+						Namespace: vs.Namespace,
+						Name:      vs.Name,
+					},
+					Action: undo})
 			}
-			ctx.Log.Info("Found VirtualService", "name", vs.Name)
-			mutatedVs := mutateConnectedVirtualService(ctx, ref, hostName, vs)
-			err = ctx.Client.Create(ctx, &mutatedVs)
-			if err != nil && !k8sErrors.IsAlreadyExists(err) {
-				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated, err.Error()))
-				errs = append(errs, errors.WrapIfWithDetails(err, "failed creating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
-
-				continue
-			}
-			ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionCreated))
 		}
-		for _, vs := range vss.Items { //nolint:gocritic //reason for readability
-			if !mutationRequired(vs, hostName, targetVersion) || vsAlreadyMutated(vs, hostName, ref.GetNewVersion(ctx.Name)) {
-				continue
-			}
-			ctx.Log.Info("Found VirtualService", "name", vs.Name)
-			mutatedVs, err := mutateVirtualService(ctx, ref, hostName, vs)
-			if err != nil {
-				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, vs.Name, model.ActionModified, err.Error()))
-				errs = append(errs, errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
 
-				continue
-			}
+		virtualServices, err := getVirtualServices(ctx, ctx.Namespace)
+		if err != nil {
+			return err
+		}
+		targetVersion := model.GetVersion(store)
 
-			if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
-				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
-			}
-			err = ctx.Client.Update(ctx, &mutatedVs)
-			if err != nil {
-				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified, err.Error()))
-				errs = append(errs, errors.WrapIfWithDetails(err, "failed updating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String()))
-
-				continue
-			}
-			ref.AddResourceStatus(model.NewSuccessResource(VirtualServiceKind, mutatedVs.Name, model.ActionModified))
+		for _, hostName := range model.GetTargetHostNames(store) {
+			reportVsToBeCreated(virtualServices, hostName, report)
+			reportVsToBeModified(virtualServices, hostName, targetVersion, report)
+		}
+	} else {
+		for i := range vss.Items {
+			vs := vss.Items[i]
+			action, _ := reference.GetRefMarker(&vs, labelKey)
+			undo := model.Flip(model.StatusAction(action))
+			report(model.LocatorStatus{
+				Resource: model.Resource{
+					Kind:      VirtualServiceKind,
+					Namespace: vs.Namespace,
+					Name:      vs.Name,
+				},
+				Action: undo})
 		}
 	}
 
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to manipulate virtual service for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
+	return nil
 }
 
-// VirtualServiceRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
-func VirtualServiceRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	var errs []error
-	resources := ref.GetResources(model.Kind(VirtualServiceKind))
-	for _, resource := range resources {
-		vs, err := getVirtualService(ctx, ctx.Namespace, resource.Name)
-		if err != nil {
-			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				continue
-			}
-			ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
+func reportVsToBeCreated(vss *istionetwork.VirtualServiceList, hostName model.HostName, report model.LocatorStatusReporter) {
+	for i := range vss.Items {
+		vs := vss.Items[i]
+		_, connected := connectedToGateway(vs)
 
+		if !connected || vs.Labels[LabelIkeMutated] == LabelIkeMutatedValue {
 			continue
 		}
-		ctx.Log.Info("Found VirtualService", "name", resource.Name)
 
-		switch resource.Action { //nolint:exhaustive //reason only these cases are relevant
-		case model.ActionModified:
-			mutatedVs := revertVirtualService(ref.GetNewVersion(ctx.Name), *vs)
-			if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
-				ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
-			}
-			err = ctx.Client.Update(ctx, &mutatedVs)
-			if err != nil {
-				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
-				errs = append(errs, errors.WrapWithDetails(err, "failed updating VirtualService", "kind", VirtualServiceKind, "name", vs.Name))
-
-				continue
-			}
-		case model.ActionCreated:
-			err = ctx.Client.Delete(ctx, vs)
-			if err != nil {
-				ref.AddResourceStatus(model.NewFailedResource(VirtualServiceKind, resource.Name, resource.Action, err.Error()))
-				errs = append(errs, errors.WrapWithDetails(err, "failed deleting VirtualService", "kind", VirtualServiceKind, "name", vs.Name))
-
-				continue
-			}
-		}
-
-		// ok, removed
-		ref.RemoveResourceStatus(model.ResourceStatus{Kind: VirtualServiceKind, Name: resource.Name})
+		report(model.LocatorStatus{
+			Resource: model.Resource{
+				Kind:      VirtualServiceKind,
+				Namespace: vs.Namespace,
+				Name:      vs.Name,
+			},
+			Action: model.ActionCreate,
+			Labels: map[string]string{"host": hostName.String()}})
 	}
-
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to revert virtual service for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
 }
 
-func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
-	version := ref.GetVersion()
-	newVersion := ref.GetNewVersion(ctx.Name)
+func reportVsToBeModified(vss *istionetwork.VirtualServiceList, hostName model.HostName, targetVersion string, report model.LocatorStatusReporter) {
+	for i := range vss.Items {
+		vs := vss.Items[i]
+		if !mutationRequired(vs, hostName, targetVersion) {
+			continue
+		}
+
+		report(model.LocatorStatus{
+			Resource: model.Resource{
+				Kind:      VirtualServiceKind,
+				Namespace: vs.Namespace,
+				Name:      vs.Name,
+			},
+			Action: model.ActionModify,
+			Labels: map[string]string{"host": hostName.String()}})
+	}
+}
+
+// VirtualServiceModificator attempts to create a virtual service for forked service.
+func VirtualServiceModificator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
+	for _, resource := range store(VirtualServiceKind) {
+		switch resource.Action {
+		case model.ActionCreate:
+			actionCreateVirtualService(ctx, ref, store, report, resource)
+		case model.ActionDelete:
+			actionDeleteVirtualService(ctx, report, resource)
+		case model.ActionModify:
+			actionModifyVirtualService(ctx, ref, store, report, resource)
+		case model.ActionRevert:
+			actionRevertVirtualService(ctx, ref, store, report, resource)
+		case model.ActionLocated:
+			report(model.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+		}
+	}
+}
+
+func actionCreateVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
+
+		return
+	}
+
+	hostName := model.NewHostName(resource.Labels["host"])
+
+	mutatedVs := mutateConnectedVirtualService(ctx, store, hostName, *vs)
+
+	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+	}
+	reference.AddRefMarker(&mutatedVs, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
+
+	err = ctx.Client.Create(ctx, &mutatedVs)
+	if err != nil && !k8sErrors.IsAlreadyExists(err) {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed creating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String())})
+
+		return
+	}
+	report(model.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Target: &model.Resource{
+			Namespace: mutatedVs.Namespace,
+			Kind:      VirtualServiceKind,
+			Name:      mutatedVs.Name}})
+}
+
+func actionDeleteVirtualService(ctx model.SessionContext, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	vs := istionetwork.VirtualService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resource.Name,
+			Namespace: resource.Namespace,
+		},
+	}
+
+	if err := ctx.Client.Delete(ctx, &vs); err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed deleting VirtualService", "kind", VirtualServiceKind, "name", vs.Name)})
+
+		return
+	}
+	report(model.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
+}
+
+func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
+
+		return
+	}
+
+	hostName := model.NewHostName(resource.Labels["host"])
+	if vsAlreadyMutated(*vs, hostName, model.GetCreatedVersion(store, ctx.Name)) {
+		report(model.ModificatorStatus{LocatorStatus: resource, Success: true})
+
+		return
+	}
+	mutatedVs, err := mutateVirtualService(ctx, store, hostName, *vs)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed mutating virtual service", "kind", VirtualServiceKind, "name", resource.Name, "host", hostName.String())})
+	}
+
+	if err = reference.Add(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+	}
+	reference.AddRefMarker(&mutatedVs, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
+
+	err = ctx.Client.Update(ctx, &mutatedVs)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed updating virtual service", "kind", VirtualServiceKind, "name", mutatedVs.Name, "host", hostName.String())})
+
+		return
+	}
+	report(model.ModificatorStatus{LocatorStatus: resource, Success: true})
+}
+
+func actionRevertVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		report(model.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
+
+		return
+	}
+	mutatedVs := revertVirtualService(model.GetDeletedVersion(store), *vs)
+	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)
+	}
+	reference.RemoveRefMarker(&mutatedVs, reference.CreateRefMarker(ctx.Name, ref.KindName.String()))
+
+	err = ctx.Client.Update(ctx, &mutatedVs)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapWithDetails(err, "failed updating VirtualService", "kind", VirtualServiceKind, "name", vs.Name)})
+
+		return
+	}
+	report(model.ModificatorStatus{LocatorStatus: resource, Success: true})
+}
+
+func mutateVirtualService(ctx model.SessionContext, store model.LocatorStatusStore,
+	hostName model.HostName, source istionetwork.VirtualService) (istionetwork.VirtualService, error) {
+	version := model.GetVersion(store)
+	newVersion := model.GetCreatedVersion(store, ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 
@@ -178,13 +291,14 @@ func mutateVirtualService(ctx model.SessionContext, ref *model.Ref, hostName mod
 	return *target, nil
 }
 
-func mutateConnectedVirtualService(ctx model.SessionContext, ref *model.Ref, hostName model.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
-	version := ref.GetVersion()
-	newVersion := ref.GetNewVersion(ctx.Name)
+func mutateConnectedVirtualService(ctx model.SessionContext, store model.LocatorStatusStore,
+	hostName model.HostName, source istionetwork.VirtualService) istionetwork.VirtualService {
+	version := model.GetVersion(store)
+	newVersion := model.GetCreatedVersion(store, ctx.Name)
 	target := source.DeepCopy()
 	clonedSource := source.DeepCopy()
 	gateways, _ := connectedToGateway(*target)
-	hosts := getHostsFromRef(ctx, gateways, ref)
+	hosts := getHostsFromGateway(ctx, store, gateways)
 
 	target.SetName(target.Name + "-" + ctx.Name)
 	target.Spec.Hosts = hosts
@@ -250,9 +364,9 @@ func getVirtualService(ctx model.SessionContext, namespace, name string) (*istio
 	return &virtualService, errors.WrapWithDetails(err, "failed finding virtual service in namespace", "name", name, "namespace", namespace)
 }
 
-func getVirtualServices(ctx model.SessionContext, namespace string) (*istionetwork.VirtualServiceList, error) {
+func getVirtualServices(ctx model.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.VirtualServiceList, error) {
 	virtualServices := istionetwork.VirtualServiceList{}
-	err := ctx.Client.List(ctx, &virtualServices, client.InNamespace(namespace))
+	err := ctx.Client.List(ctx, &virtualServices, append(opts, client.InNamespace(namespace))...)
 
 	return &virtualServices, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
@@ -367,10 +481,20 @@ func removeWeight(http v1alpha3.HTTPRoute) v1alpha3.HTTPRoute {
 	return http
 }
 
-func getHostsFromRef(ctx model.SessionContext, gateways []string, ref *model.Ref) []string {
+func getHostsFromGateway(ctx model.SessionContext, store model.LocatorStatusStore, gateways []string) []string {
 	var hosts []string
+	gwByName := func(store model.LocatorStatusStore, gatewayName string) []model.LocatorStatus {
+		var f []model.LocatorStatus
+		for _, g := range store(GatewayKind) {
+			if g.Name == gatewayName {
+				f = append(f, g)
+			}
+		}
+
+		return f
+	}
 	for _, gateway := range gateways {
-		for _, gwTarget := range ref.GetTargets(model.All(model.Kind(GatewayKind), model.Name(gateway))) {
+		for _, gwTarget := range gwByName(store, gateway) {
 			for _, host := range strings.Split(gwTarget.Labels[LabelIkeHosts], ",") {
 				hosts = append(hosts, ctx.Name+"."+host)
 			}

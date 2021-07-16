@@ -18,105 +18,106 @@ const (
 	GatewayKind = "Gateway"
 )
 
-var _ model.Mutator = GatewayMutator
-var _ model.Revertor = GatewayRevertor
-var _ model.Manipulator = gatewayManipulator{}
+var _ model.Modificator = GatewayModificator
+var _ model.ModificatorRegistrar = GatewayRegistrar
 
-// GatewayManipulator represents a model.Manipulator implementation for handling Gateway objects.
-func GatewayManipulator() model.Manipulator {
-	return gatewayManipulator{}
+func GatewayRegistrar() (client.Object, model.Modificator) {
+	return &istionetwork.Gateway{}, GatewayModificator
 }
 
-type gatewayManipulator struct {
-}
-
-func (d gatewayManipulator) TargetResourceType() client.Object {
-	return &istionetwork.Gateway{}
-}
-func (d gatewayManipulator) Mutate() model.Mutator {
-	return GatewayMutator
-}
-func (d gatewayManipulator) Revert() model.Revertor {
-	return GatewayRevertor
-}
-
-// GatewayMutator attempts to expose a external host on the gateway.
-func GatewayMutator(ctx model.SessionContext, ref *model.Ref) error {
-	var errs []error
-	for _, gwName := range ref.GetTargets(model.Kind(GatewayKind)) {
-		gw, err := getGateway(ctx, ctx.Namespace, gwName.Name)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, gw.Name, model.ActionLocated, err.Error()))
-			errs = append(errs, err)
-
-			continue
+// GatewayModificator attempts to expose a external host on the gateway.
+func GatewayModificator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
+	for _, resource := range store(GatewayKind) {
+		switch resource.Action {
+		case model.ActionModify:
+			actionModifyGateway(ctx, ref, report, resource)
+		case model.ActionRevert:
+			actionRevertGateway(ctx, ref, report, resource)
+		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
+			report(model.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
 		}
+	}
+}
 
-		ctx.Log.Info("Found Gateway", "name", gw.Name)
-		mutatedGw, addedHosts := mutateGateway(ctx, *gw)
+func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
 
-		if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
-			ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
-		}
-		err = ctx.Client.Update(ctx, &mutatedGw)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, mutatedGw.Name, model.ActionModified, err.Error()))
-			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
-
-			continue
-		}
-
-		ref.AddResourceStatus(model.ResourceStatus{
-			Kind:    GatewayKind,
-			Name:    mutatedGw.Name,
-			Action:  model.ActionModified,
-			Success: true,
-			Prop: map[string]string{
-				"hosts": strings.Join(addedHosts, ","),
-			}})
+		return
 	}
 
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to manipulate gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
-}
+	ctx.Log.Info("Found Gateway", "name", gw.Name)
+	mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
-// GatewayRevertor looks at the Ref.ResourceStatus and attempts to revert the state of the mutated objects.
-func GatewayRevertor(ctx model.SessionContext, ref *model.Ref) error {
-	var errs []error
-	resources := ref.GetResources(model.Kind(GatewayKind))
+	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+	}
+	reference.AddRefMarker(&mutatedGw, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
-	for _, resource := range resources {
-		gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
-		if err != nil {
-			if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
-				continue
-			}
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-			errs = append(errs, err)
+	err = ctx.Client.Update(ctx, &mutatedGw)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
-			continue
-		}
-
-		ctx.Log.Info("Found Gateway", "name", resource.Name)
-		mutatedGw := revertGateway(ctx, *gw)
-		if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
-			ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
-		}
-		err = ctx.Client.Update(ctx, &mutatedGw)
-		if err != nil {
-			ref.AddResourceStatus(model.NewFailedResource(GatewayKind, resource.Name, resource.Action, err.Error()))
-			errs = append(errs, errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name))
-
-			continue
-		}
-		// ok, removed
-		ref.RemoveResourceStatus(model.NewSuccessResource(GatewayKind, resource.Name, resource.Action))
+		return
 	}
 
-	return errors.WrapIfWithDetails(
-		errors.Combine(errs...),
-		"failed to reverting gateway for session", "session", ctx.Name, "namespace", ctx.Namespace, "ref", ref.KindName.Name)
+	report(model.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true,
+		Prop: map[string]string{
+			"hosts": strings.Join(addedHosts, ","),
+		},
+	})
+}
+
+func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
+	if err != nil {
+		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
+			report(model.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       true})
+
+			return
+		}
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         err})
+
+		return
+	}
+
+	ctx.Log.Info("Found Gateway", "name", resource.Name)
+	mutatedGw := revertGateway(ctx, *gw)
+	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
+		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
+	}
+	reference.RemoveRefMarker(&mutatedGw, reference.CreateRefMarker(ctx.Name, ref.KindName.String()))
+
+	err = ctx.Client.Update(ctx, &mutatedGw)
+	if err != nil {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       false,
+			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+
+		return
+	}
+	// ok, removed
+	report(model.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
 }
 
 func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutatedGw istionetwork.Gateway, addedHosts []string) {
@@ -191,6 +192,13 @@ func getGateway(ctx model.SessionContext, namespace, name string) (*istionetwork
 	err := ctx.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &Gateway)
 
 	return &Gateway, errors.WrapWithDetails(err, "failed finding gateway in namespace", "name", name, "namespace", namespace)
+}
+
+func getGateways(ctx model.SessionContext, namespace string, opts ...client.ListOption) (*istionetwork.GatewayList, error) {
+	gateways := istionetwork.GatewayList{}
+	err := ctx.Client.List(ctx, &gateways, append(opts, client.InNamespace(namespace))...)
+
+	return &gateways, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
 
 func existInList(hosts []string, host string) bool {

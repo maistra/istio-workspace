@@ -40,9 +40,11 @@ var _ = Describe("Session operations", func() {
 			client, _ = session.NewClient(testclient.NewSimpleClientset(objects...), "test-namespace")
 			updateRemover = addSessionRefStatus(client, opts.SessionName)
 		})
+
 		AfterEach(func() {
 			updateRemover()
 		})
+
 		Context("create", func() {
 
 			It("should create a new session if none found", func() {
@@ -236,8 +238,8 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 			}
 			for _, ref := range sess.Spec.Refs {
 				found := false
-				for _, status := range sess.Status.Refs {
-					if status.Name == ref.Name {
+				for _, status := range sess.Status.Conditions {
+					if status.Source.Ref == ref.Name {
 						found = true
 					}
 				}
@@ -245,21 +247,23 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 					continue
 				}
 				kind := "Deployment"
-				name := "test-deployment-clone"
-				action := "created"
-				sess.Status.Refs = append(sess.Status.Refs, &istiov1alpha1.RefStatus{
-					Ref: istiov1alpha1.Ref{
-						Name: ref.Name,
+				name := "test-deployment"
+				conditionType := "create"
+				sess.Status.Conditions = append(sess.Status.Conditions, &istiov1alpha1.Condition{
+					Source: istiov1alpha1.Source{
+						Ref:  ref.Name,
+						Kind: kind,
+						Name: name + "-clone",
 					},
-					Resources: []*istiov1alpha1.RefResource{
-						{
-							Kind:   &kind,
-							Name:   &name,
-							Action: &action,
-						},
+					Target: &istiov1alpha1.Target{
+						Name: name,
+						Kind: kind,
 					},
+					Type: &conditionType,
 				})
 			}
+			success := istiov1alpha1.StateSuccess
+			sess.Status.State = &success
 			updateErr := c.Update(sess)
 			Expect(updateErr).ToNot(HaveOccurred())
 		}

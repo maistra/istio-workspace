@@ -17,27 +17,33 @@ const (
 var _ model.Locator = ServiceLocator
 
 // ServiceLocator attempts to locate the Services for the target Deployment/DeploymentConfig.
-func ServiceLocator(ctx model.SessionContext, ref *model.Ref) bool {
-	deployments := ref.GetTargets(model.AnyKind("Deployment", "DeploymentConfig"))
+func ServiceLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
+	deployments := store("Deployment", "DeploymentConfig")
 
 	services, err := getServices(ctx, ctx.Namespace)
 	if err != nil {
 		ctx.Log.Error(err, "could not get Services")
 
-		return false
+		return err
 	}
-	found := false
 	for _, deployment := range deployments {
 		for _, service := range services.Items { //nolint:gocritic //reason for readability
 			selector := labels.SelectorFromSet(service.Spec.Selector)
 			if selector.Matches(labels.Set(deployment.Labels)) {
-				found = true
-				ref.AddTargetResource(model.NewLocatedResource(ServiceKind, service.Name, service.Labels))
+				report(model.LocatorStatus{
+					Resource: model.Resource{
+						Namespace: ctx.Namespace,
+						Kind:      ServiceKind,
+						Name:      service.Name,
+					},
+					Action: model.ActionLocated,
+					Labels: service.Labels,
+				})
 			}
 		}
 	}
 
-	return found
+	return nil
 }
 
 func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) {

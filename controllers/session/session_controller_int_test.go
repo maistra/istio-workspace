@@ -23,6 +23,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
@@ -115,6 +116,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// when - a ref is updated
 				target := get.Session("test", "test-session1")
 				target.Spec.Refs[0].Args["image"] = "y:y:y"
+				c.Update(context.Background(), &target)
 
 				res, err = controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -122,10 +124,10 @@ var _ = Describe("Complete session manipulation", func() {
 
 				// then
 				sess := get.Session("test", "test-session1")
-				Expect(target.Spec.Refs[0].Args["image"]).To(Equal("y:y:y"))
-				Expect(sess.Status.Refs).To(HaveLen(1))
-				Expect(sess.Status.Refs[0].Resources).To(HaveLen(5))
-				Expect(sess.Status.Refs[0].Targets).To(HaveLen(3))
+				Expect(sess.Spec.Refs[0].Args["image"]).To(Equal("y:y:y"))
+
+				deployment := get.Deployment("test", "ratings-v1-"+model.GetSha("v1")+"-test-session1")
+				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal("y:y:y"))
 			})
 		})
 
@@ -234,13 +236,14 @@ var _ = Describe("Complete session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res2.Requeue).To(BeFalse())
 
+				// Then - same Gateways Hosts still connected, ref01 still need them
+				gw = get.Gateway("test", "test-gateway")
+				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
+
 				// Then - no vs removed (only gateway connected duplicated)
 				vss = get.VirtualServices("test")
 				Expect(vss.Items).To(HaveLen(4))
 
-				// Then - same Gateways Hosts still connected, ref01 still need them
-				gw = get.Gateway("test", "test-gateway")
-				Expect(gw.Spec.Servers[0].Hosts).To(HaveLen(2))
 			})
 
 			It("should mutate all refs added to Session", func() {
@@ -277,16 +280,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// Then - all mutations should be successful
 				session = get.Session("test", "test-session1")
 
-				Expect(session.Status.Refs).To(HaveLen(2))
-
-				Expect(session.Status.Refs[0].Resources).To(HaveLen(5))
-				for _, res := range session.Status.Refs[0].Resources {
-					Expect(*res.Action).ToNot(Equal("failed"))
-				}
-				Expect(session.Status.Refs[1].Resources).To(HaveLen(5))
-				for _, res := range session.Status.Refs[1].Resources {
-					Expect(*res.Action).ToNot(Equal("failed"))
-				}
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
 			})
 		})
 	})

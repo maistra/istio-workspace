@@ -35,8 +35,12 @@ func ConcatToMax(max int, sections ...string) string {
 	sectionLength := (max - len(sections) - 1) / len(sections)
 	name := ""
 
-	for _, section := range sections {
-		name = name + "-" + section[:int32(math.Min(float64(len(section)), float64(sectionLength)))]
+	for i, section := range sections {
+		s := section[:int32(math.Min(float64(len(section)), float64(sectionLength)))]
+		name = name + "-" + s
+		if i+1 != len(sections) {
+			sectionLength = (max - len(name) - 1) / (len(sections) - (i + 1))
+		}
 	}
 
 	return name[1:]

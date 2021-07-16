@@ -2,7 +2,12 @@ package session
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -53,14 +58,16 @@ func DefaultManipulators() Manipulators {
 			k8s.DeploymentLocator,
 			openshift.DeploymentConfigLocator,
 			k8s.ServiceLocator,
+			istio.VirtualServiceLocator,
+			istio.DestinationRuleLocator,
 			istio.VirtualServiceGatewayLocator,
 		},
-		Handlers: []model.Manipulator{
-			k8s.DeploymentManipulator(engine),
-			openshift.DeploymentConfigManipulator(engine),
-			istio.DestinationRuleManipulator(),
-			istio.GatewayManipulator(),
-			istio.VirtualServiceManipulator(),
+		Handlers: []model.ModificatorRegistrar{
+			k8s.DeploymentRegistrar(engine),
+			openshift.DeploymentConfigRegistrar(engine),
+			istio.DestinationRuleRegistrar,
+			istio.GatewayRegistrar,
+			istio.VirtualServiceRegistrar,
 		},
 	}
 }
@@ -119,7 +126,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 // Manipulators holds the basic chain of manipulators that the ReconcileSession will use to perform it's actions.
 type Manipulators struct {
 	Locators []model.Locator
-	Handlers []model.Manipulator
+	Handlers []model.ModificatorRegistrar
 }
 
 var _ reconcile.Reconciler = &ReconcileSession{}
@@ -136,8 +143,9 @@ type ReconcileSession struct {
 // WatchTypes returns a list of client.Objects to watch for changes.
 func (r ReconcileSession) WatchTypes() []client.Object {
 	objects := []client.Object{}
-	for _, handler := range r.manipulators.Handlers {
-		objects = append(objects, handler.TargetResourceType())
+	for _, h := range r.manipulators.Handlers {
+		object, _ := h()
+		objects = append(objects, object)
 	}
 
 	return objects
@@ -158,7 +166,7 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
-func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) { //nolint:cyclop,gocyclo //reason WIP
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
@@ -186,13 +194,26 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	// update session.status.Route if it was not provided
 	session.Status.Route = ConvertModelRouteToAPIRoute(route)
 	session.Status.RouteExpression = session.Status.Route.String()
-	if err := r.client.Status().Update(ctx, session); err != nil {
+	processing := istiov1alpha1.StateProcessing
+	session.Status.State = &processing
+	err = r.client.Status().Update(ctx, session)
+	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
+	}
+
+	extractModificators := func(registrars []model.ModificatorRegistrar) []model.Modificator {
+		var mods []model.Modificator
+		for _, reg := range registrars {
+			_, mod := reg()
+			mods = append(mods, mod)
+		}
+
+		return mods
 	}
 
 	deleted := session.DeletionTimestamp != nil
 	if deleted {
-		reqLogger.Info("Deleted session")
+		reqLogger.Info("Remove session")
 		if !session.HasFinalizer(Finalizer) {
 			return reconcile.Result{}, nil
 		}
@@ -200,94 +221,191 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		reqLogger.Info("Added session")
 		if !session.HasFinalizer(Finalizer) {
 			session.AddFinalizer(Finalizer)
-			if err := r.client.Update(ctx, session); err != nil {
+			err = r.client.Update(ctx, session)
+			if err != nil {
 				ctx.Log.Error(err, "Failed to add finalizer on session")
 			}
 		}
 	}
 
-	refs := ConvertAPIStatusesToModelRefs(*session)
-	if deleted {
-		r.deleteAllRefs(ctx, session, refs)
-	} else {
-		r.deleteRemovedRefs(ctx, session, refs)
-		if err := r.syncAllRefs(ctx, session); err != nil {
-			return reconcile.Result{}, errors.WrapWithDetails(err, "failed reconciling session", "session", request.Name)
-		}
+	refs := calculateReferences(ctx, session)
+	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+	session.Status.Conditions = []*istiov1alpha1.Condition{}
+
+	for _, ref := range refs {
+		ref := ref // pin
+		sync(ctx, ref,
+			func(located model.LocatorStatusStore) bool {
+				// validate stuff
+				return true
+			},
+			func(located model.LocatorStatusStore) {
+				for _, stored := range located() {
+					fmt.Println("located: ", stored)
+				}
+			},
+			func(modified model.ModificatorStatus) {
+				if modified.Kind == "Gateway" {
+					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
+				}
+				addCondition(session, ref, &modified)
+				err = ctx.Client.Status().Update(ctx, session)
+				if err != nil {
+					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+				}
+			})
+		cleanupRelatedConditionsOnRemoval(ref, session)
+	}
+	session.Status.State = calculateSessionState(session)
+	err = ctx.Client.Status().Update(ctx, session)
+	if err != nil {
+		ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 	}
 
 	if deleted {
-		session.RemoveFinalizer(Finalizer)
-		if err := r.client.Update(ctx, session); err != nil {
-			ctx.Log.Error(err, "Failed to remove finalizer on session")
+		if *session.Status.State == istiov1alpha1.StateSuccess {
+			session.RemoveFinalizer(Finalizer)
+			if err := r.client.Update(ctx, session); err != nil {
+				ctx.Log.Error(err, "Failed to remove finalizer on session")
+			}
 		}
+
+		return reconcile.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileSession) deleteRemovedRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
-	for _, ref := range refs {
+func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
+	if ref.Remove && refSuccessful(ref, session.Status.Conditions) {
+		var otherConditions []*istiov1alpha1.Condition
+		for i := range session.Status.Conditions {
+			condition := session.Status.Conditions[i]
+			if condition.Source.Ref != ref.KindName.String() {
+				otherConditions = append(otherConditions, condition)
+			}
+		}
+		session.Status.Conditions = otherConditions
+	}
+}
+
+func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {
+	for i := range conditions {
+		condition := conditions[i]
+		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
+		if condition.Source.Ref == ref.KindName.String() && conditionFailed {
+			return false
+		}
+	}
+
+	return true
+}
+
+func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.SessionState {
+	state := istiov1alpha1.StateSuccess
+	for _, con := range session.Status.Conditions {
+		if con.Status != nil && *con.Status == istiov1alpha1.StatusFailed {
+			state = istiov1alpha1.StateFailed
+
+			break
+		}
+	}
+
+	return &state
+}
+
+func addCondition(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
+	getReason := func(a model.StatusAction) string {
+		switch a {
+		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
+
+			return "Handled"
+		case model.ActionModify, model.ActionRevert:
+
+			return "Configured"
+		}
+
+		return ""
+	}
+
+	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
+	if modified.Error != nil {
+		message += modified.Error.Error()
+	} else {
+		message += "ok"
+	}
+	var target *istiov1alpha1.Target
+	if modified.Target != nil {
+		target = &istiov1alpha1.Target{
+			Kind: modified.Target.Kind,
+			Name: modified.Target.Name,
+		}
+	}
+
+	reason := getReason(modified.Action)
+	status := strconv.FormatBool(modified.Success)
+	typeStr := string(modified.Action)
+	session.AddCondition(istiov1alpha1.Condition{
+		Source: istiov1alpha1.Source{
+			Kind: modified.Kind,
+			Name: modified.Name,
+			Ref:  ref.KindName.String(),
+		},
+		Target:  target,
+		Message: &message,
+		Reason:  &reason,
+		Status:  &status,
+		Type:    &typeStr,
+	})
+}
+
+func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Session) []model.Ref {
+	refs := []model.Ref{}
+	for _, ref := range session.Spec.Refs {
+		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)
+		modelRef.Remove = session.DeletionTimestamp != nil
+		refs = append(refs, modelRef)
+	}
+
+	uniqueOldRefs := make(map[string]bool, 2)
+	for _, condition := range session.Status.Conditions {
+		uniqueOldRefs[condition.Source.Ref] = true
+	}
+	for key := range uniqueOldRefs {
 		found := false
-		for _, r := range session.Spec.Refs {
-			if ref.KindName.String() == r.Name {
+		for _, ref := range refs {
+			if ref.KindName.String() == key {
 				found = true
 
 				break
 			}
 		}
 		if !found {
-			if err := r.delete(ctx, session, ref); err != nil {
-				ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
-			}
+			deletedRef := model.Ref{KindName: model.ParseRefKindName(key)}
+			deletedRef.Remove = true
+			refs = append(refs, deletedRef)
 		}
 	}
+
+	sort.SliceStable(refs, func(i, j int) bool {
+		if refs[i].Remove && !refs[j].Remove {
+			return true
+		}
+		if !refs[i].Remove && refs[j].Remove {
+			return false
+		}
+
+		return true
+	})
+
+	return refs
 }
 
-func (r *ReconcileSession) deleteAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session, refs []*model.Ref) {
-	for _, ref := range refs {
-		if err := r.delete(ctx, session, ref); err != nil {
-			ctx.Log.Error(err, "Failed to delete session ref", "ref", ref)
-		}
-	}
-}
+func splitAndUnique(all []string, hosts string) []string {
+	foundHosts := strings.Split(hosts, ",")
+	all = append(all, foundHosts...)
 
-func (r *ReconcileSession) delete(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
-	ctx.Log.Info("Remove ref", "name", ref.KindName.String())
-
-	ConvertAPIStatusToModelRef(*session, ref)
-	for _, handler := range r.manipulators.Handlers {
-		err := handler.Revert()(ctx, ref)
-		if err != nil {
-			ctx.Log.Error(err, "Revert", "name", ref.KindName.String())
-		}
-	}
-	ConvertModelRefToAPIStatus(*ref, session)
-
-	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed updating session")
-}
-
-func (r *ReconcileSession) syncAllRefs(ctx model.SessionContext, session *istiov1alpha1.Session) error {
-	for _, specRef := range session.Spec.Refs {
-		ctx.Log.Info("Add ref", "name", specRef.Name)
-		ref := ConvertAPIRefToModelRef(specRef, session.Namespace)
-		err := r.sync(ctx, session, &ref)
-		if err != nil {
-			return err
-		}
-	}
-
-	session.Status.RefNames = []string{}
-	session.Status.Strategies = []string{}
-	session.Status.Hosts = []string{}
-	for _, statusRef := range session.Status.Refs {
-		session.Status.RefNames = append(session.Status.RefNames, statusRef.Name)
-		session.Status.Strategies = append(session.Status.Strategies, statusRef.Strategy)
-		session.Status.Hosts = append(session.Status.Hosts, statusRef.GetHostNames()...)
-	}
-	session.Status.Hosts = unique(session.Status.Hosts)
-
-	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing all refs")
+	return unique(all)
 }
 
 func unique(s []string) []string {
@@ -301,34 +419,4 @@ func unique(s []string) []string {
 	}
 
 	return uniqueSlice
-}
-
-func (r *ReconcileSession) sync(ctx model.SessionContext, session *istiov1alpha1.Session, ref *model.Ref) error {
-	// if ref has changed, delete first
-	if RefUpdated(*session, *ref) {
-		err := r.delete(ctx, session, ref)
-		if err != nil {
-			return err
-		}
-	}
-
-	ConvertAPIStatusToModelRef(*session, ref)
-	located := false
-	for _, locator := range r.manipulators.Locators {
-		if locator(ctx, ref) {
-			located = true
-		}
-	}
-	if located {
-		for _, handler := range r.manipulators.Handlers {
-			err := handler.Mutate()(ctx, ref)
-			if err != nil {
-				ctx.Log.Error(err, "Mutate", "name", ref.KindName.String())
-			}
-		}
-	}
-
-	ConvertModelRefToAPIStatus(*ref, session)
-
-	return errors.Wrap(ctx.Client.Status().Update(ctx, session), "failed syncing ref")
 }

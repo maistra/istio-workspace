@@ -98,65 +98,145 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		}
 	})
 
-	Context("mutators", func() {
+	Context("locators", func() {
+
+		var (
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
+		)
+
+		BeforeEach(func() {
+			ref = model.Ref{
+				KindName: model.ParseRefKindName("customer-v1"),
+			}
+			locators = createLocatorStore()
+
+			modificators = model.ModificatorStore{}
+		})
+
+		It("should trigger create action when reference is created", func() {
+			// when
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			Expect(locators.Store(istio.DestinationRuleKind)).To(HaveLen(1))
+			dr := locators.Store(istio.DestinationRuleKind)[0]
+			Expect(dr.Action).To(Equal(model.ActionCreate))
+			Expect(dr.Name).To(Equal("customer-other"))
+		})
+
+		It("should trigger delete and create action when reference is updated", func() {
+			// given
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Strategy = "prepared-image"
+			newLocatorStore := createLocatorStore()
+			err = istio.DestinationRuleLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(actions).To(HaveLen(2))
+			Expect(actions[0].Action).To(Equal(model.ActionDelete))
+			Expect(actions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
+			Expect(actions[1].Action).To(Equal(model.ActionCreate))
+			Expect(actions[1].Name).To(Equal("customer-other"))
+		})
+
+		It("should trigger revert action when reference is removed", func() {
+			// given
+			err := istio.DestinationRuleLocator(ctx, ref, locators.Store, locators.Report)
+			Expect(err).ToNot(HaveOccurred())
+			istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+			Expect(modificators.Stored).To(HaveLen(1))
+
+			// when
+			ref.Remove = true
+			newLocatorStore := createLocatorStore()
+			err = istio.DestinationRuleLocator(ctx, ref, newLocatorStore.Store, newLocatorStore.Report)
+			Expect(err).ToNot(HaveOccurred())
+
+			// then
+			actions := newLocatorStore.Store(istio.DestinationRuleKind)
+			Expect(actions).To(HaveLen(1))
+			Expect(actions[0].Action).To(Equal(model.ActionDelete))
+			Expect(actions[0].Name).To(Equal("dr-customer-v1-customer-other-test"))
+		})
+
+	})
+
+	Context("modificators", func() {
 
 		Context("existing rule", func() {
 
 			var (
-				ref *model.Ref
+				ref          model.Ref
+				locators     model.LocatorStore
+				modificators model.ModificatorStore
 			)
 
 			BeforeEach(func() {
-				ref = &model.Ref{
+				ref = model.Ref{
 					KindName: model.ParseRefKindName("customer-v1"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
-						model.NewLocatedResource("Service", "customer-mutate", nil),
-					},
 				}
+				locators = createLocatorStore()
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: model.ActionCreate})
+				modificators = model.ModificatorStore{}
 			})
 
 			It("should add reference", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 			})
 
 			It("should have one subset defined", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
 			})
 
 			It("should have one subset defined with name", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
 			It("should not create new destination rules for subsequents mutations", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				// apply twice
-				err = istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(2))
+				fmt.Println(modificators.Stored)
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
-				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(ref.GetNewVersion(ctx.Name)))))
+				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
-			It("should keep traficpolicy from target", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+			It("should keep traffic policy from target", func() {
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy).ToNot(BeNil())
@@ -166,18 +246,20 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		Context("missing rule", func() {
 
-			It("should fail when no rules found", func() {
-				ref := &model.Ref{
+			// https://github.com/maistra/istio-workspace/issues/856
+			XIt("should fail when no rules found", func() {
+				ref := model.Ref{
 					KindName: model.ParseRefKindName("customer-v5"),
-					Targets: []model.LocatedResourceStatus{
-						model.NewLocatedResource("Deployment", "customer-v5", map[string]string{"version": "v5"}),
-						model.NewLocatedResource("Service", "customer-missing", nil),
-					},
 				}
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).To(HaveOccurred())
-				fmt.Println(err)
-				Expect(err.Error()).To(ContainSubstring("failed finding subset with given host and version"))
+				locators := model.LocatorStore{}
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-missing"}})
+				modificators := model.ModificatorStore{}
+
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
+				Expect(modificators.Stored[0].Error).To(ContainSubstring("failed finding subset with given host and version"))
 			})
 		})
 	})
@@ -185,41 +267,47 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 	Context("revertors", func() {
 
 		var (
-			ref *model.Ref
+			ref          model.Ref
+			locators     model.LocatorStore
+			modificators model.ModificatorStore
 		)
 
 		BeforeEach(func() {
-			ref = &model.Ref{
+			ref = model.Ref{
 				KindName: model.ParseRefKindName("customer-v1"),
-				Targets: []model.LocatedResourceStatus{
-					model.NewLocatedResource("Deployment", "customer-v1", map[string]string{"version": "v1"}),
-					model.NewLocatedResource("Service", "customer-other", nil),
-				},
 			}
+			locators = model.LocatorStore{}
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-other"}, Action: model.ActionDelete})
+			modificators = model.ModificatorStore{}
+
 		})
 
 		Context("existing rule", func() {
 
 			It("should remove reference", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				err = istio.DestinationRuleRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(2))
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(BeEmpty())
 			})
 
 			It("should not fail on subsequent remove of reference", func() {
-				err := istio.DestinationRuleMutator(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).To(HaveLen(1))
+				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				err = istio.DestinationRuleRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).ToNot(HaveLen(1))
 
-				err = istio.DestinationRuleRevertor(ctx, ref)
-				Expect(err).ToNot(HaveOccurred())
+				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
+				Expect(modificators.Stored).ToNot(HaveLen(1))
 
 				dr := get.DestinationRules("test", testclient.HasRefPredicate)
 				Expect(dr.Items).To(BeEmpty())
@@ -228,3 +316,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		})
 	})
 })
+
+func createLocatorStore() model.LocatorStore {
+	locators := model.LocatorStore{}
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+	locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
+
+	return locators
+}

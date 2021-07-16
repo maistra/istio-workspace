@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/openshift"
@@ -35,9 +36,11 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		return model.Ref{
 			KindName: model.ParseRefKindName("test-ref"),
 			Strategy: "telepresence",
-			Targets:  []model.LocatedResourceStatus{model.NewLocatedResource(openshift.DeploymentConfigKind, "test-ref", map[string]string{"version": "v1"})},
 			Args:     map[string]string{"version": "0.103"},
 		}
+	}
+	CreateEmptyTestLocatorStore := func() model.LocatorStore {
+		return model.LocatorStore{}
 	}
 	JustBeforeEach(func() {
 		schema := runtime.NewScheme()
@@ -75,26 +78,30 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should report false on not found", func() {
 			ref := model.Ref{KindName: model.ParseRefKindName("test-ref-other")}
-			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
-			Expect(locatorErr).To(BeFalse())
+			store := CreateEmptyTestLocatorStore()
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(openshift.DeploymentConfigKind)).To(HaveLen(0))
 		})
 
 		It("should report true on found", func() {
 			ref := model.Ref{KindName: model.ParseRefKindName("test-ref")}
-			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
-			Expect(locatorErr).To(BeTrue())
+			store := CreateEmptyTestLocatorStore()
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(openshift.DeploymentConfigKind)).To(HaveLen(1))
 		})
 
 		It("should find with kind", func() {
 			ref := model.Ref{KindName: model.ParseRefKindName("deploymentconfig/test-ref")}
-			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
-			Expect(locatorErr).To(BeTrue())
+			store := CreateEmptyTestLocatorStore()
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(openshift.DeploymentConfigKind)).To(HaveLen(1))
 		})
 
 		It("should find with abbrev kind", func() {
 			ref := model.Ref{KindName: model.ParseRefKindName("dc/test-ref")}
-			locatorErr := openshift.DeploymentConfigLocator(ctx, &ref)
-			Expect(locatorErr).To(BeTrue())
+			store := CreateEmptyTestLocatorStore()
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+			Expect(store.Store(openshift.DeploymentConfigKind)).To(HaveLen(1))
 		})
 
 	})
@@ -153,56 +160,76 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 			}
 		})
 
+		CreateTestLocatorStoreWithRefToBeCreated := func(kind string) model.LocatorStore {
+			l := model.LocatorStore{}
+			l.Report(model.LocatorStatus{Resource: model.Resource{Kind: kind, Name: "test-ref", Namespace: "test"}, Labels: map[string]string{"version": "v1"}, Action: model.ActionCreate})
+
+			return l
+		}
+
 		It("should add reference to cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			dc := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			dc := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(reference.Get(&dc)).To(HaveLen(1))
 		})
 
 		It("should add suffix to the cloned deploymentconfig", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
 
-			_ = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Success).To(BeTrue())
+
+			_ = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 		})
 
 		It("should remove liveness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].LivenessProbe).To(BeNil())
 		})
 
 		It("should remove readiness probe from cloned deployment", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Template.Spec.Containers[0].ReadinessProbe).To(BeNil())
 		})
 
 		It("should update selector", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
 		It("should only mutate if Target is of kind DeploymentConfig", func() {
-			notMatchingRef := model.Ref{KindName: model.ParseRefKindName("test-ref"), Targets: []model.LocatedResourceStatus{model.NewLocatedResource("Service", "test-ref", nil)}}
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &notMatchingRef)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			notMatchingRef := model.Ref{
+				KindName: model.RefKindName{Name: "test-ref", Kind: k8s.DeploymentKind},
+			}
+			store := CreateTestLocatorStoreWithRefToBeCreated(k8s.DeploymentKind)
+			modificatorStore := model.ModificatorStore{}
 
-			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+notMatchingRef.GetNewVersion(ctx.Name))
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, notMatchingRef, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(0))
+
+			_, err := get.DeploymentConfigWithError(ctx.Namespace, notMatchingRef.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
@@ -210,23 +237,25 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 		It("should recreate cloned DeploymentConfig if deleted externally", func() {
 			// given a normal setup
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+			modificatorStore := model.ModificatorStore{}
 
-			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+			deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 
 			// when DeploymentConfig is deleted
-			c.Delete(ctx, &deployment)
+			err := c.Delete(ctx, &deployment)
+			Expect(err).To(Not(HaveOccurred()))
 
-			_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			_, err = get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(err).To(HaveOccurred())
 
 			// then it should be recreated on next reconcile
-			mutatorErr = openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
 
-			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			deployment = get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(deployment.Spec.Selector["version"]).To(BeEquivalentTo(model.GetSha("v1") + "-test"))
 		})
 
@@ -234,19 +263,23 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 			It("should change container to telepresence", func() {
 				ref := CreateTestRef()
-				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-				Expect(mutatorErr).ToNot(HaveOccurred())
+				store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+				modificatorStore := model.ModificatorStore{}
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring("datawire/telepresence-k8s:"))
 			})
 
 			It("should change add required env variables", func() {
 				ref := CreateTestRef()
-				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-				Expect(mutatorErr).ToNot(HaveOccurred())
+				store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+				modificatorStore := model.ModificatorStore{}
 
-				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+				deployment := get.DeploymentConfig(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].Name).To(Equal("TELEPRESENCE_CONTAINER_NAMESPACE"))
 				Expect(deployment.Spec.Template.Spec.Containers[0].Env[0].ValueFrom).ToNot(BeNil())
 			})
@@ -259,10 +292,12 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 				ref := CreateTestRef()
 				ref.Strategy = model.StrategyExisting
 
-				mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-				Expect(mutatorErr).ToNot(HaveOccurred())
+				store := CreateTestLocatorStoreWithRefToBeCreated(openshift.DeploymentConfigKind)
+				modificatorStore := model.ModificatorStore{}
 
-				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+				openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+
+				_, err := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 				Expect(err).To(HaveOccurred())
 				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
@@ -302,19 +337,103 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 
 		It("should revert to original deploymentconfig", func() {
 			ref := CreateTestRef()
-			mutatorErr := openshift.DeploymentConfigMutator(template.NewDefaultEngine())(ctx, &ref)
-			Expect(mutatorErr).ToNot(HaveOccurred())
 
-			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			// Create
+			store := CreateEmptyTestLocatorStore()
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(mutatedFetchErr).ToNot(HaveOccurred())
 
-			revertorErr := openshift.DeploymentConfigRevertor(ctx, &ref)
-			Expect(revertorErr).ToNot(HaveOccurred())
+			// Setup deleted ref
+			ref.Remove = true
 
-			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+ref.GetNewVersion(ctx.Name))
+			// Revert
+			store = CreateEmptyTestLocatorStore()
+			modificatorStore = model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
 			Expect(revertedFetchErr).To(HaveOccurred())
 			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
 		})
 
+		It("should be able to detect change in ref", func() {
+			ref := CreateTestRef()
+
+			// Create
+			store := CreateEmptyTestLocatorStore()
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			// Setup deleted ref
+			ref.Remove = true
+
+			// Revert
+			store = CreateEmptyTestLocatorStore()
+			modificatorStore = model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, revertedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(revertedFetchErr).To(HaveOccurred())
+			Expect(errors.IsNotFound(revertedFetchErr)).To(BeTrue())
+		})
+
+		It("should be able to detect change in ref", func() {
+			ref := CreateTestRef()
+
+			// Create
+			store := CreateEmptyTestLocatorStore()
+			modificatorStore := model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(1))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			_, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			// Setup deleted ref
+			imageName := "docker.io/maistra:latest"
+			ref.Strategy = "prepared-image"
+			ref.Args = map[string]string{}
+			ref.Args["image"] = imageName
+
+			// Revert
+			store = CreateEmptyTestLocatorStore()
+			modificatorStore = model.ModificatorStore{}
+			openshift.DeploymentConfigLocator(ctx, ref, store.Store, store.Report)
+
+			openshift.DeploymentConfigModificator(template.NewDefaultEngine())(ctx, ref, store.Store, modificatorStore.Report)
+			Expect(modificatorStore.Stored).To(HaveLen(2))
+			Expect(modificatorStore.Stored[0].Error).ToNot(HaveOccurred())
+
+			deployment, mutatedFetchErr := get.DeploymentConfigWithError(ctx.Namespace, ref.KindName.Name+"-"+model.GetCreatedVersion(store.Store, ctx.Name))
+			Expect(mutatedFetchErr).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(imageName))
+		})
 	})
+
 })

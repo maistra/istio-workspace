@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
+	"github.com/schollz/progressbar/v3"
 
 	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
@@ -263,6 +264,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 			BeforeEach(func() {
 				scenario = "scenario-1"
+				registry = GetDockerRegistryInternal()
 			})
 
 			It("should create/delete deployment with prepared image", func() {
@@ -520,8 +522,11 @@ func cleanupNamespace(namespace string) {
 }
 
 func call(routeURL string, headers map[string]string) func() (string, error) {
+	fmt.Printf("Checking [%s] with headers [%s]\n", routeURL, headers)
+	bar := progressbar.Default(-1)
+
 	return func() (string, error) {
-		fmt.Printf("[%s] Checking [%s] with headers [%s]...\n", time.Now().Format("2006-01-02 15:04:05.001"), routeURL, headers)
+		bar.Add(1)
 
 		return GetBodyWithHeaders(routeURL, headers)
 	}

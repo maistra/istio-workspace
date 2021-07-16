@@ -16,7 +16,13 @@ import (
 
 var (
 	// StreamOutput sets streaming of output instead of buffering it when running gocmd.Cmd.
-	StreamOutput gocmd.Options = gocmd.Options{
+	StreamOutput = gocmd.Options{
+		Buffered:  false,
+		Streaming: true,
+	}
+
+	// Silent will not stream outputs.
+	Silent = gocmd.Options{
 		Buffered:  false,
 		Streaming: true,
 	}
