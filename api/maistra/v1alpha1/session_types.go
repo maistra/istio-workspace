@@ -90,7 +90,7 @@ type SessionStatus struct {
 	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
 }
 
-// Condition .... .
+// Condition describes a step of manipulating resources within a session.
 // +k8s:openapi-gen=true
 type Condition struct {
 

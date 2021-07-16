@@ -280,18 +280,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// Then - all mutations should be successful
 				session = get.Session("test", "test-session1")
 
-				/*
-					Expect(session.Status.Refs).To(HaveLen(2))
-
-					Expect(session.Status.Refs[0].Resources).To(HaveLen(5))
-					for _, res := range session.Status.Refs[0].Resources {
-						Expect(*res.Action).ToNot(Equal("failed"))
-					}
-					Expect(session.Status.Refs[1].Resources).To(HaveLen(5))
-					for _, res := range session.Status.Refs[1].Resources {
-						Expect(*res.Action).ToNot(Equal("failed"))
-					}
-				*/
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
 			})
 		})
 	})

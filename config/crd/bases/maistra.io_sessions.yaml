@@ -101,7 +101,7 @@ spec:
               conditions:
                 description: The combined log of changes across all refs
                 items:
-                  description: Condition .... .
+                  description: Condition describes a step of manipulating resources within a session.
                   properties:
                     lastTransitionTime:
                       description: LastTransitionTime is the last time this action was applied
