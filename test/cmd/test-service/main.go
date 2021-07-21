@@ -29,10 +29,6 @@ const (
 	EnvServiceCall = "SERVICE_CALL"
 )
 
-var (
-	rootDir = "test/cmd/test-service/assets/" //nolint:varcheck,deadcode,unused //reason This is required to use the dev mode for assets (reading from fs)
-)
-
 // Config describes the basic Name and who to call next for a given HandlerFunc.
 type Config struct {
 	Name string

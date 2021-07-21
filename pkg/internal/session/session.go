@@ -109,6 +109,33 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 		}, nil
 }
 
+func (h *handler) createSession() (*istiov1alpha1.Session, error) {
+	r, err := ParseRoute(h.opts.RouteExp)
+	if err != nil {
+		return nil, err
+	}
+	session := istiov1alpha1.Session{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "maistra.io/v1alpha1",
+			Kind:       "Session",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: h.opts.SessionName,
+		},
+		Spec: istiov1alpha1.SessionSpec{
+			Refs: []istiov1alpha1.Ref{
+				{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs},
+			},
+		},
+	}
+
+	if r != nil {
+		session.Spec.Route = *r
+	}
+
+	return &session, h.c.Create(&session)
+}
+
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
 func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) {
 	session, err := h.c.Get(h.opts.SessionName)
@@ -153,33 +180,6 @@ func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, s
 	}
 
 	return session, result, err
-}
-
-func (h *handler) createSession() (*istiov1alpha1.Session, error) {
-	r, err := ParseRoute(h.opts.RouteExp)
-	if err != nil {
-		return nil, err
-	}
-	session := istiov1alpha1.Session{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "maistra.io/v1alpha1",
-			Kind:       "Session",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: h.opts.SessionName,
-		},
-		Spec: istiov1alpha1.SessionSpec{
-			Refs: []istiov1alpha1.Ref{
-				{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs},
-			},
-		},
-	}
-
-	if r != nil {
-		session.Spec.Route = *r
-	}
-
-	return &session, h.c.Create(&session)
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {

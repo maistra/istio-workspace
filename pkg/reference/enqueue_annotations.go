@@ -1,4 +1,4 @@
-// Based on https://github.com/operator-framework/operator-lib/blob/8c3d48f55639528bcee4432b570bc6671900b75d/handler/enqueue_annotation.go
+// Package reference is based on https://github.com/operator-framework/operator-lib/blob/8c3d48f55639528bcee4432b570bc6671900b75d/handler/enqueue_annotation.go
 // Main changes are about allowing to store multiple values of a given annotation as comma-separated list.
 //
 // Copyright 2020 The Operator-SDK Authors
