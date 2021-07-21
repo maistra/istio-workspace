@@ -1,9 +1,10 @@
 package session
 
 import (
+	"strconv"
+
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
-	"strconv"
 )
 
 func addConditionForLocatedRef(session *istiov1alpha1.Session, ref model.Ref, modified *model.LocatorStatus) {

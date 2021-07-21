@@ -248,7 +248,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				}
 			},
 			func(modified model.ModificatorStatus) {
-				if modified.Kind == "Gateway" {
+				if modified.Kind == istio.GatewayKind {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
 				addConditionForModifiedRef(session, ref, &modified)

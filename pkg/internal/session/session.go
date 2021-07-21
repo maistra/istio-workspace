@@ -13,8 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 )
 
 var (
@@ -216,7 +218,7 @@ func notDeleted(condition *istiov1alpha1.Condition) bool {
 }
 
 func deploymentOrDeploymentConfig(condition *istiov1alpha1.Condition) bool {
-	return condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment"
+	return condition.Source.Kind == k8s.DeploymentKind || condition.Source.Kind == openshift.DeploymentConfigKind
 }
 
 func refMatchesDeploymentName(condition *istiov1alpha1.Condition, name string) bool {
