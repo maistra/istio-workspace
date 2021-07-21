@@ -2,7 +2,6 @@ package session
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -241,14 +240,19 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			},
 			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
-					fmt.Println("located: ", stored)
+					stored := stored // pin
+					addConditionForLocatedRef(session, ref, &stored)
+					err = ctx.Client.Status().Update(ctx, session)
+					if err != nil {
+						ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+					}
 				}
 			},
 			func(modified model.ModificatorStatus) {
 				if modified.Kind == "Gateway" {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
-				addCondition(session, ref, &modified)
+				addConditionForModifiedRef(session, ref, &modified)
 				err = ctx.Client.Status().Update(ctx, session)
 				if err != nil {
 					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
@@ -314,20 +318,38 @@ func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.Sessio
 	return &state
 }
 
-func addCondition(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
-	getReason := func(a model.StatusAction) string {
-		switch a {
-		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
+func getReason(a model.StatusAction) string {
+	switch a {
+	case model.ActionCreate, model.ActionDelete, model.ActionLocated:
 
-			return "Handled"
-		case model.ActionModify, model.ActionRevert:
+		return "Handled"
+	case model.ActionModify, model.ActionRevert:
 
-			return "Configured"
-		}
-
-		return ""
+		return "Configured"
 	}
 
+	return ""
+}
+
+func addConditionForLocatedRef(session *istiov1alpha1.Session, ref model.Ref, modified *model.LocatorStatus) {
+	message := modified.Kind + "/" + modified.Name + " located " + ref.KindName.String() + ": "
+	reason := getReason(modified.Action)
+	typeStr := string(modified.Action)
+	located := "true"
+	session.AddCondition(istiov1alpha1.Condition{
+		Source: istiov1alpha1.Source{
+			Kind: modified.Kind,
+			Name: modified.Name,
+			Ref:  ref.KindName.String(),
+		},
+		Message: &message,
+		Reason:  &reason,
+		Status:  &located,
+		Type:    &typeStr,
+	})
+}
+
+func addConditionForModifiedRef(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
 	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
 	if modified.Error != nil {
 		message += modified.Error.Error()
@@ -341,9 +363,9 @@ func addCondition(session *istiov1alpha1.Session, ref model.Ref, modified *model
 			Name: modified.Target.Name,
 		}
 	}
+	status := strconv.FormatBool(modified.Success)
 
 	reason := getReason(modified.Action)
-	status := strconv.FormatBool(modified.Success)
 	typeStr := string(modified.Action)
 	session.AddCondition(istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
