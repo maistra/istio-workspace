@@ -50,9 +50,9 @@ var _ = Describe("Operator installation", func() {
 		AfterEach(func() {
 			cleanEnvVariable()
 			for _, namespace := range namespaces {
-				cleanupNamespace(namespace)
+				cleanupNamespace(namespace, false)
 			}
-			cleanupNamespace(operatorNamespace)
+			cleanupNamespace(operatorNamespace, false)
 		})
 
 		CreateNamespace := func() {

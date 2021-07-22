@@ -46,7 +46,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 			if CurrentGinkgoTestDescription().Failed {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			}
-			cleanupNamespace(namespace)
+			cleanupNamespace(namespace, false)
 		})
 
 		Describe("session cleanup", func() {
