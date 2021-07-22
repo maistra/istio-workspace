@@ -51,7 +51,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			if CurrentGinkgoTestDescription().Failed {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
-				cleanupNamespace(namespace, false)
+				CleanupNamespace(namespace, false)
 			}
 		})
 
@@ -510,7 +510,7 @@ func generateNamespaceName() string {
 	return "ike-tests-" + naming.RandName(16)
 }
 
-func cleanupNamespace(namespace string, wait bool) {
+func CleanupNamespace(namespace string, wait bool) {
 	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
 		keep, _ := strconv.ParseBool(keepStr)
 		if keep {
