@@ -240,7 +240,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
 					stored := stored // pin
-					addConditionForLocatedRef(session, ref, &stored)
+					session.AddCondition(createConditionForLocatedRef(ref, stored))
 					err = ctx.Client.Status().Update(ctx, session)
 					if err != nil {
 						ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
@@ -251,7 +251,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				if modified.Kind == istio.GatewayKind {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
-				addConditionForModifiedRef(session, ref, &modified)
+				session.AddCondition(createConditionForModifiedRef(ref, modified))
 				err = ctx.Client.Status().Update(ctx, session)
 				if err != nil {
 					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)

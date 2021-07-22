@@ -7,25 +7,26 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 )
 
-func addConditionForLocatedRef(session *istiov1alpha1.Session, ref model.Ref, modified *model.LocatorStatus) {
-	message := modified.Kind + "/" + modified.Name + " located " + ref.KindName.String() + ": "
-	reason := toReason(modified.Action)
-	typeStr := string(modified.Action)
-	located := "true"
-	session.AddCondition(istiov1alpha1.Condition{
+func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
+	message := located.Kind + "/" + located.Name + " status " + ref.KindName.String() + ": "
+	reason := toReason(located.Action)
+	typeStr := string(located.Action)
+	status := "true"
+
+	return istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
-			Kind: modified.Kind,
-			Name: modified.Name,
+			Kind: located.Kind,
+			Name: located.Name,
 			Ref:  ref.KindName.String(),
 		},
 		Message: &message,
 		Reason:  &reason,
-		Status:  &located,
+		Status:  &status,
 		Type:    &typeStr,
-	})
+	}
 }
 
-func addConditionForModifiedRef(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
+func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStatus) istiov1alpha1.Condition {
 	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
 	if modified.Error != nil {
 		message += modified.Error.Error()
@@ -43,7 +44,8 @@ func addConditionForModifiedRef(session *istiov1alpha1.Session, ref model.Ref, m
 
 	reason := toReason(modified.Action)
 	typeStr := string(modified.Action)
-	session.AddCondition(istiov1alpha1.Condition{
+
+	return istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
 			Kind: modified.Kind,
 			Name: modified.Name,
@@ -54,7 +56,7 @@ func addConditionForModifiedRef(session *istiov1alpha1.Session, ref model.Ref, m
 		Reason:  &reason,
 		Status:  &status,
 		Type:    &typeStr,
-	})
+	}
 }
 
 func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
