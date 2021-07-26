@@ -71,4 +71,3 @@ func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Ses
 		session.Status.Conditions = otherConditions
 	}
 }
-
