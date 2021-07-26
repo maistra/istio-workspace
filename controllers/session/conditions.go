@@ -9,7 +9,7 @@ import (
 
 func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
 	message := located.Kind + "/" + located.Name + " status " + ref.KindName.String() + ": "
-	reason := toReason(located.Action)
+	reason := "Scheduled"
 	typeStr := string(located.Action)
 	status := "true"
 
@@ -42,7 +42,7 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 	}
 	status := strconv.FormatBool(modified.Success)
 
-	reason := toReason(modified.Action)
+	reason := "Applied"
 	typeStr := string(modified.Action)
 
 	return istiov1alpha1.Condition{
@@ -72,15 +72,3 @@ func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Ses
 	}
 }
 
-func toReason(a model.StatusAction) string {
-	switch a {
-	case model.ActionCreate, model.ActionDelete, model.ActionLocated:
-
-		return "Scheduled"
-	case model.ActionModify, model.ActionRevert:
-
-		return "Applied"
-	}
-
-	return ""
-}
