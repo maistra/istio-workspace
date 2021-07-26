@@ -42,6 +42,10 @@ var (
 	}
 )
 
+func DefaultValidators() []Validator {
+	return []Validator{TargetFound, ResourceFound("DestinationRule"), ResourceFound("VirtualService")}
+}
+
 // DefaultManipulators contains the default config for the reconciler.
 func DefaultManipulators() Manipulators {
 	var engine template.Engine
@@ -78,12 +82,12 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler.
 func newReconciler(mgr manager.Manager) *ReconcileSession {
-	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators()}
+	return &ReconcileSession{client: mgr.GetClient(), scheme: mgr.GetScheme(), manipulators: DefaultManipulators(), validators: DefaultValidators()}
 }
 
 // NewStandaloneReconciler returns a new reconcile.Reconciler. Primarily used for unit testing outside of the Manager.
-func NewStandaloneReconciler(c client.Client, m Manipulators) *ReconcileSession {
-	return &ReconcileSession{client: c, manipulators: m}
+func NewStandaloneReconciler(c client.Client, m Manipulators, validators ...Validator) *ReconcileSession {
+	return &ReconcileSession{client: c, manipulators: m, validators: validators}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler.
@@ -136,6 +140,7 @@ type ReconcileSession struct {
 	client       client.Client
 	scheme       *runtime.Scheme
 	manipulators Manipulators
+	validators   []Validator
 }
 
 // WatchTypes returns a list of client.Objects to watch for changes.
@@ -240,11 +245,11 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			session.Status.RefNames = unique(append(session.Status.RefNames, ref.KindName.String()))
 			session.Status.Strategies = unique(append(session.Status.Strategies, ref.Strategy))
 		}
+
+		emptyStore := func(kind ...string) []model.LocatorStatus { return []model.LocatorStatus{} }
+		chainValidator(ctx, ref, session, r.validators...)(emptyStore)
 		sync(ctx, ref,
-			func(located model.LocatorStatusStore) bool {
-				// validate stuff
-				return true
-			},
+			chainValidator(ctx, ref, session, r.validators...),
 			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
 					stored := stored // pin

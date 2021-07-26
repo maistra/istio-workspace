@@ -56,7 +56,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
-		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators())
+		controller = session.NewStandaloneReconciler(c, session.DefaultManipulators(), session.DefaultValidators()...)
 	})
 
 	Context("in a complete lifecycle", func() {
@@ -281,6 +281,33 @@ var _ = Describe("Complete session manipulation", func() {
 				session = get.Session("test", "test-session1")
 
 				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
+			})
+		})
+
+		Context("when validation rules are triggered", func() {
+			It("should fail on missing deployment", func() {
+				res := appsv1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "ratings-v1",
+						Namespace: "test",
+					},
+				}
+				c.Delete(context.Background(), &res)
+
+				req := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+
+				// Given - create first ref
+				res1, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				session := get.Session("test", "test-session1")
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateFailed))
 			})
 		})
 	})
