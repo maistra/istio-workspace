@@ -21,12 +21,6 @@ var (
 		Streaming: true,
 	}
 
-	// Silent will not stream outputs.
-	Silent = gocmd.Options{
-		Buffered:  false,
-		Streaming: true,
-	}
-
 	// BufferAndStreamOutput sets buffering and streaming of output when running gocmd.Cmd
 	// Buffering lets easy inspection of outputs in tests through inspecting gocmd.Cmd.Status.Stdout/err slices.
 	BufferAndStreamOutput = gocmd.Options{

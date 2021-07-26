@@ -13,8 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
+	"github.com/maistra/istio-workspace/pkg/openshift"
 )
 
 var (
@@ -107,6 +109,33 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 		}, nil
 }
 
+func (h *handler) createSession() (*istiov1alpha1.Session, error) {
+	r, err := ParseRoute(h.opts.RouteExp)
+	if err != nil {
+		return nil, err
+	}
+	session := istiov1alpha1.Session{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "maistra.io/v1alpha1",
+			Kind:       "Session",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: h.opts.SessionName,
+		},
+		Spec: istiov1alpha1.SessionSpec{
+			Refs: []istiov1alpha1.Ref{
+				{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs},
+			},
+		},
+	}
+
+	if r != nil {
+		session.Spec.Route = *r
+	}
+
+	return &session, h.c.Create(&session)
+}
+
 // createOrJoinSession calls oc cli and creates a Session CD waiting for the 'success' status and return the new name.
 func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) {
 	session, err := h.c.Get(h.opts.SessionName)
@@ -153,33 +182,6 @@ func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, s
 	return session, result, err
 }
 
-func (h *handler) createSession() (*istiov1alpha1.Session, error) {
-	r, err := ParseRoute(h.opts.RouteExp)
-	if err != nil {
-		return nil, err
-	}
-	session := istiov1alpha1.Session{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "maistra.io/v1alpha1",
-			Kind:       "Session",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: h.opts.SessionName,
-		},
-		Spec: istiov1alpha1.SessionSpec{
-			Refs: []istiov1alpha1.Ref{
-				{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs},
-			},
-		},
-	}
-
-	if r != nil {
-		session.Spec.Route = *r
-	}
-
-	return &session, h.c.Create(&session)
-}
-
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {
 	var err error
 	var sessionStatus *istiov1alpha1.Session
@@ -216,7 +218,7 @@ func notDeleted(condition *istiov1alpha1.Condition) bool {
 }
 
 func deploymentOrDeploymentConfig(condition *istiov1alpha1.Condition) bool {
-	return condition.Source.Kind == "DeploymentConfig" || condition.Source.Kind == "Deployment"
+	return condition.Source.Kind == k8s.DeploymentKind || condition.Source.Kind == openshift.DeploymentConfigKind
 }
 
 func refMatchesDeploymentName(condition *istiov1alpha1.Condition, name string) bool {

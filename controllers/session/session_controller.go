@@ -2,10 +2,8 @@ package session
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -241,14 +239,19 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			},
 			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
-					fmt.Println("located: ", stored)
+					stored := stored // pin
+					session.AddCondition(createConditionForLocatedRef(ref, stored))
+					err = ctx.Client.Status().Update(ctx, session)
+					if err != nil {
+						ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+					}
 				}
 			},
 			func(modified model.ModificatorStatus) {
-				if modified.Kind == "Gateway" {
+				if modified.Kind == istio.GatewayKind {
 					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 				}
-				addCondition(session, ref, &modified)
+				session.AddCondition(createConditionForModifiedRef(ref, modified))
 				err = ctx.Client.Status().Update(ctx, session)
 				if err != nil {
 					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
@@ -276,19 +279,6 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	return reconcile.Result{}, nil
 }
 
-func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
-	if ref.Remove && refSuccessful(ref, session.Status.Conditions) {
-		var otherConditions []*istiov1alpha1.Condition
-		for i := range session.Status.Conditions {
-			condition := session.Status.Conditions[i]
-			if condition.Source.Ref != ref.KindName.String() {
-				otherConditions = append(otherConditions, condition)
-			}
-		}
-		session.Status.Conditions = otherConditions
-	}
-}
-
 func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
@@ -312,51 +302,6 @@ func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.Sessio
 	}
 
 	return &state
-}
-
-func addCondition(session *istiov1alpha1.Session, ref model.Ref, modified *model.ModificatorStatus) {
-	getReason := func(a model.StatusAction) string {
-		switch a {
-		case model.ActionCreate, model.ActionDelete, model.ActionLocated:
-
-			return "Handled"
-		case model.ActionModify, model.ActionRevert:
-
-			return "Configured"
-		}
-
-		return ""
-	}
-
-	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
-	if modified.Error != nil {
-		message += modified.Error.Error()
-	} else {
-		message += "ok"
-	}
-	var target *istiov1alpha1.Target
-	if modified.Target != nil {
-		target = &istiov1alpha1.Target{
-			Kind: modified.Target.Kind,
-			Name: modified.Target.Name,
-		}
-	}
-
-	reason := getReason(modified.Action)
-	status := strconv.FormatBool(modified.Success)
-	typeStr := string(modified.Action)
-	session.AddCondition(istiov1alpha1.Condition{
-		Source: istiov1alpha1.Source{
-			Kind: modified.Kind,
-			Name: modified.Name,
-			Ref:  ref.KindName.String(),
-		},
-		Target:  target,
-		Message: &message,
-		Reason:  &reason,
-		Status:  &status,
-		Type:    &typeStr,
-	})
 }
 
 func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Session) []model.Ref {

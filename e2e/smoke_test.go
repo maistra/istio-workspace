@@ -51,7 +51,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			if CurrentGinkgoTestDescription().Failed {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
-				cleanupNamespace(namespace)
+				CleanupNamespace(namespace, false)
 			}
 		})
 
@@ -510,7 +510,7 @@ func generateNamespaceName() string {
 	return "ike-tests-" + naming.RandName(16)
 }
 
-func cleanupNamespace(namespace string) {
+func CleanupNamespace(namespace string, wait bool) {
 	if keepStr, found := os.LookupEnv("IKE_E2E_KEEP_NS"); found {
 		keep, _ := strconv.ParseBool(keepStr)
 		if keep {
@@ -518,7 +518,7 @@ func cleanupNamespace(namespace string) {
 		}
 	}
 	CleanupTestScenario(namespace)
-	<-testshell.Execute("kubectl delete namespace " + namespace + " --wait=false").Done()
+	<-testshell.Execute("kubectl delete namespace " + namespace + " --wait=" + strconv.FormatBool(wait)).Done()
 }
 
 func call(routeURL string, headers map[string]string) func() (string, error) {
