@@ -76,10 +76,10 @@ func toReason(a model.StatusAction) string {
 	switch a {
 	case model.ActionCreate, model.ActionDelete, model.ActionLocated:
 
-		return "Handled"
+		return "Scheduled"
 	case model.ActionModify, model.ActionRevert:
 
-		return "Configured"
+		return "Applied"
 	}
 
 	return ""
