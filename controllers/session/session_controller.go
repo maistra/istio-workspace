@@ -229,9 +229,17 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	refs := calculateReferences(ctx, session)
 	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
 	session.Status.Conditions = []*istiov1alpha1.Condition{}
+	session.Status.Hosts = []string{}
+	session.Status.RefNames = []string{}
+	session.Status.Strategies = []string{}
 
 	for _, ref := range refs {
 		ref := ref // pin
+
+		if !ref.Remove {
+			session.Status.RefNames = unique(append(session.Status.RefNames, ref.KindName.String()))
+			session.Status.Strategies = unique(append(session.Status.Strategies, ref.Strategy))
+		}
 		sync(ctx, ref,
 			func(located model.LocatorStatusStore) bool {
 				// validate stuff
@@ -248,8 +256,10 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				}
 			},
 			func(modified model.ModificatorStatus) {
-				if modified.Kind == istio.GatewayKind {
-					session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
+				if !ref.Remove {
+					if modified.Kind == istio.GatewayKind {
+						session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
+					}
 				}
 				session.AddCondition(createConditionForModifiedRef(ref, modified))
 				err = ctx.Client.Status().Update(ctx, session)
