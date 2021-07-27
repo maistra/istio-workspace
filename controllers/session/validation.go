@@ -14,12 +14,12 @@ type Validator func(store model.LocatorStatusStore) (string, error)
 
 func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alpha1.Session, validators ...Validator) model.ModificatorController {
 	return func(store model.LocatorStatusStore) bool {
-		hasError := false
+		succeeded := true
 		for _, validator := range validators {
 			var message string
 			typeName, err := validator(store)
 			if err != nil {
-				hasError = true
+				succeeded = false
 				message = err.Error()
 			}
 			reason := "Validation"
@@ -42,7 +42,7 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 			ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 		}
 
-		return !hasError
+		return succeeded
 	}
 }
 
