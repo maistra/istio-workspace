@@ -23,7 +23,7 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 				message = err.Error()
 			}
 			reason := "Validation"
-			status := strconv.FormatBool(err == nil)
+			status := strconv.FormatBool(succeeded)
 			session.AddCondition(istiov1alpha1.Condition{
 				Source: istiov1alpha1.Source{
 					Kind: "Session",
