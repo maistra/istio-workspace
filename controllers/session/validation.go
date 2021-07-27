@@ -48,16 +48,17 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 
 func ResourceFound(kind string) Validator {
 	return func(store model.LocatorStatusStore) (string, error) {
+		targetType := "Find" + kind
 		if len(store(kind)) == 0 {
-			return kind + "Found", errors.New("no " + kind + " found")
+			return targetType, errors.New("no " + kind + " found")
 		}
 
-		return kind + "Found", nil
+		return targetType, nil
 	}
 }
 
 func TargetFound(store model.LocatorStatusStore) (string, error) {
-	typeName := "TargetFound"
+	typeName := "FindTarget"
 	if len(store("DeploymentConfig")) == 0 && len(store("Deployment")) == 0 {
 		return typeName, errors.New("no target Deployment or DeploymentConfig found")
 	}
