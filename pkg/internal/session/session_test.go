@@ -248,7 +248,7 @@ func addSessionRefStatus(c *session.Client, sessionName string) func() {
 				}
 				kind := "Deployment"
 				name := "test-deployment"
-				conditionType := "create"
+				conditionType := "CreateDeployment"
 				sess.Status.Conditions = append(sess.Status.Conditions, &istiov1alpha1.Condition{
 					Source: istiov1alpha1.Source{
 						Ref:  ref.Name,

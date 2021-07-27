@@ -2,6 +2,7 @@ package session
 
 import (
 	"strconv"
+	"strings"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
@@ -10,7 +11,7 @@ import (
 func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
 	message := located.Kind + "/" + located.Name + " status " + ref.KindName.String() + ": "
 	reason := "Scheduled"
-	typeStr := string(located.Action)
+	typeStr := createType(located.Action, located.Kind)
 	status := "true"
 
 	return istiov1alpha1.Condition{
@@ -43,7 +44,7 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 	status := strconv.FormatBool(modified.Success)
 
 	reason := "Applied"
-	typeStr := string(modified.Action)
+	typeStr := createType(modified.Action, modified.Kind)
 
 	return istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
@@ -57,6 +58,10 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 		Status:  &status,
 		Type:    &typeStr,
 	}
+}
+
+func createType(action model.StatusAction, kindName string) string {
+	return strings.Title(string(action)) + strings.Title(kindName)
 }
 
 func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
