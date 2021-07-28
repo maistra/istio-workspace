@@ -24,7 +24,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 	})
 
-	Context("using ike cli", func() {
+	FContext("using ike cli", func() {
 
 		var (
 			namespace,
@@ -51,7 +51,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 		Describe("session cleanup", func() {
 
-			It("should remove session if non-existing deployment is specified", func() {
+			FIt("should remove session if non-existing deployment is specified", func() {
 
 				// when
 				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
