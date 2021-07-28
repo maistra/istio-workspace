@@ -43,7 +43,7 @@ var (
 )
 
 func DefaultValidators() []Validator {
-	return []Validator{TargetFound, ResourceFound("DestinationRule"), ResourceFound("VirtualService")}
+	return []Validator{}
 }
 
 // DefaultManipulators contains the default config for the reconciler.
