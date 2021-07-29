@@ -9,6 +9,10 @@ import (
 	"github.com/maistra/istio-workspace/pkg/model"
 )
 
+const (
+	ValidationReason = "Validation"
+)
+
 // Validator returns a string of Type and a possible error.
 type Validator func(store model.LocatorStatusStore) (string, error)
 
@@ -22,7 +26,8 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 				succeeded = false
 				message = err.Error()
 			}
-			reason := "Validation"
+
+			reason := ValidationReason
 			status := strconv.FormatBool(succeeded)
 			session.AddCondition(istiov1alpha1.Condition{
 				Source: istiov1alpha1.Source{

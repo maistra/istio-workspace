@@ -285,7 +285,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	if deleted {
-		if *session.Status.State == istiov1alpha1.StateSuccess {
+		if allSuccessConditions(session.Status.Conditions) {
 			session.RemoveFinalizer(Finalizer)
 			if err := r.client.Update(ctx, session); err != nil {
 				ctx.Log.Error(err, "Failed to remove finalizer on session")
@@ -296,6 +296,19 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func allSuccessConditions(conditions []*istiov1alpha1.Condition) bool {
+	for i := range conditions {
+		condition := conditions[i]
+		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
+		validation := condition.Reason != nil && *condition.Reason == ValidationReason
+		if conditionFailed && !validation {
+			return false
+		}
+	}
+
+	return true
 }
 
 func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {

@@ -21,7 +21,7 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = XDescribe("Smoke End To End Tests", func() {
+var _ = Describe("Smoke End To End Tests", func() {
 
 	Context("using ike with scenarios", func() {
 
