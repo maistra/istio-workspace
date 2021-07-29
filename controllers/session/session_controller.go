@@ -44,7 +44,9 @@ var (
 
 func DefaultValidators() []Validator {
 	return []Validator{
-		ResourceFound("DestinationRule"), ResourceFound("VirtualService"),
+		TargetFound,
+		ResourceFound("DestinationRule"),
+		ResourceFound("VirtualService"),
 	}
 }
 
