@@ -44,10 +44,12 @@ func NewCmd() *cobra.Command {
 				return errors.Wrap(err, "failed obtaining working directory")
 			}
 			sessionState, _, sessionClose, err := internal.Sessions(cmd)
+			if sessionClose != nil {
+				defer sessionClose()
+			}
 			if err != nil {
 				return errors.Wrap(err, "failed setting up session")
 			}
-			defer sessionClose()
 
 			// HACK: need contract with TP cmd?
 			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {

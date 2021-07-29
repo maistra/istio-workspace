@@ -93,7 +93,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 
 	session, serviceName, err := h.createOrJoinSession()
 	if err != nil {
-		return State{}, func() {}, err
+		return State{}, h.removeOrLeaveSession, err
 	}
 	route := session.Status.Route //nolint:ifshort // route used in multiple locations
 	if route == nil {
@@ -101,12 +101,10 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	}
 
 	return State{
-			DeploymentName: serviceName,
-			Hosts:          session.Status.Hosts,
-			Route:          *route,
-		}, func() {
-			h.removeOrLeaveSession()
-		}, nil
+		DeploymentName: serviceName,
+		Hosts:          session.Status.Hosts,
+		Route:          *route,
+	}, h.removeOrLeaveSession, nil
 }
 
 func (h *handler) createSession() (*istiov1alpha1.Session, error) {
@@ -145,7 +143,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 			return session, "", err
 		}
 
-		return h.removeSessionIfDeploymentNotFound()
+		return h.waitForRefToComplete()
 	}
 	ref := istiov1alpha1.Ref{Name: h.opts.DeploymentName, Strategy: h.opts.Strategy, Args: h.opts.StrategyArgs}
 	// update ref in session
@@ -161,7 +159,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 			return session, "", err
 		}
 
-		return h.removeSessionIfDeploymentNotFound()
+		return h.waitForRefToComplete()
 	}
 	// join session
 	session.Spec.Refs = append(session.Spec.Refs, ref)
@@ -170,16 +168,7 @@ func (h *handler) createOrJoinSession() (*istiov1alpha1.Session, string, error) 
 		return session, "", err
 	}
 
-	return h.removeSessionIfDeploymentNotFound()
-}
-
-func (h *handler) removeSessionIfDeploymentNotFound() (*istiov1alpha1.Session, string, error) {
-	session, result, err := h.waitForRefToComplete()
-	if errors.As(err, &DeploymentNotFoundError{}) {
-		h.removeOrLeaveSession()
-	}
-
-	return session, result, err
+	return h.waitForRefToComplete()
 }
 
 func (h *handler) waitForRefToComplete() (*istiov1alpha1.Session, string, error) {

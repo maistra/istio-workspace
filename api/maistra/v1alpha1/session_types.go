@@ -180,10 +180,18 @@ func (s *Session) AddCondition(condition Condition) {
 		now := metav1.NewTime(time.Now())
 		condition.LastTransitionTime = &now
 	}
+	sessionKind := "Session"
 	for i, stored := range s.Status.Conditions {
-		if stored.Source.Name == condition.Source.Name &&
+		matchSource := stored.Source.Name == condition.Source.Name &&
 			stored.Source.Kind == condition.Source.Kind &&
-			stored.Source.Ref == condition.Source.Ref {
+			stored.Source.Ref == condition.Source.Ref
+
+		if (stored.Source.Kind == sessionKind &&
+			matchSource &&
+			*stored.Type == *condition.Type) ||
+
+			(stored.Source.Kind != sessionKind &&
+				matchSource) {
 			s.Status.Conditions[i] = &condition
 			replaced = true
 		}
