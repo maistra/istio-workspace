@@ -51,7 +51,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 		Describe("session cleanup", func() {
 
-			FIt("should remove session if non-existing deployment is specified", func() {
+			It("should remove session if non-existing deployment is specified", func() {
 
 				// when
 				ikeWithWatch := testshell.ExecuteInDir(tmpDir, "ike", "develop",
