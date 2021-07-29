@@ -24,7 +24,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 	})
 
-	FContext("using ike cli", func() {
+	Context("using ike cli", func() {
 
 		var (
 			namespace,
