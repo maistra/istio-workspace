@@ -31,7 +31,6 @@ func GetVersion() (string, error) {
 
 		go func() {
 			tp := gocmd.NewCmdOptions(shell.BufferAndStreamOutput, "telepresence", "--version")
-			shell.RedirectStreams(tp, os.Stdout, os.Stderr)
 			shell.Start(tp, done)
 		}()
 
