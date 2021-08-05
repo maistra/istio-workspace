@@ -1,0 +1,51 @@
+== Highlights of v0.4.0 release
+
+This release brings significant refactoring of `istio-workspace` controller internals. We have rewritten how we validate, locate and manipulate resources involved in the development `Session`. That said, it does not affect the users. That's the aim of refactoring after all ;)
+
+In addition, we expose `Conditions` to indicate steps and their progress. Now you are able track the current state of the session via the `session.status.state` field. We keep it simple for time being, with tree simple states:
+
+  * `processing` which can transition to 
+  * `failed` if things go wrong,
+  * or `succeeded` if all went fine.
+
+On top of that you can look at the state of the individual resources manipulated in the conditions list where the source field references the specific resource.
+
+=== All changes in this release
+
+// changelog:generate
+==== Build System Integration
+
+
+===== Bugs
+* fix(shellcheck): reworks ike-create task (https://github.com/maistra/istio-workspace/pull/843[#843]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Command line
+
+===== New features
+* chore: do not show cmd output when getting tp version (https://github.com/maistra/istio-workspace/pull/868[#868]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Operator
+
+===== New features
+* feat(operator): add validation chain that blocks on error (https://github.com/maistra/istio-workspace/pull/866[#866]), by https://github.com/aslakknutsen[@aslakknutsen]
+* feat: adds condition when the source ref is located (https://github.com/maistra/istio-workspace/pull/865[#865]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(operator): reworks Controller internals to be stateless (https://github.com/maistra/istio-workspace/pull/858[#858]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+===== Bugs
+* fix: populates the missing Status fields RefNames & Strategies (https://github.com/maistra/istio-workspace/pull/867[#867]), by https://github.com/aslakknutsen[@aslakknutsen]
+
+==== Project infrastructure
+
+===== New features
+* feat(circleci): aggregates junit reports for CircleCI (https://github.com/maistra/istio-workspace/pull/853[#853]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+===== Bugs
+* fix(make): sets mv with --force flag to avoid prompting (https://github.com/maistra/istio-workspace/pull/848[#848]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+=== Latest dependencies update
+
+ * actions/github-script to v4.0.2 (https://github.com/maistra/istio-workspace/pull/821[#821]), by https://github.com/dependabot[@dependabot]
+ * chore(golint): to and (https://github.com/maistra/istio-workspace/pull/842[#842]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * feat(operator): to latest (https://github.com/maistra/istio-workspace/pull/855[#855]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
