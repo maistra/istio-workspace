@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	emperror.dev/errors v0.8.0
-	github.com/evanphx/json-patch v4.9.0+incompatible
+	github.com/evanphx/json-patch v4.11.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.0
@@ -36,7 +36,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.0
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
@@ -46,10 +46,10 @@ require (
 	istio.io/api v0.0.0-20210318170531-e6e017e575c5
 	istio.io/client-go v1.9.2
 	k8s.io/api v0.20.5
-	k8s.io/apimachinery v0.20.5
+	k8s.io/apimachinery v0.22.0
 	k8s.io/client-go v0.20.5
 	k8s.io/code-generator v0.20.5
-	k8s.io/klog/v2 v2.8.0
+	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/yaml v1.2.0
