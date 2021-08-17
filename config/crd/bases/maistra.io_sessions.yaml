@@ -145,6 +145,25 @@ spec:
                 items:
                   type: string
                 type: array
+              readiness:
+                properties:
+                  components:
+                    description: Status of resources deployed/modifed by this Session resource
+                    properties:
+                      pending:
+                        items:
+                          type: string
+                        type: array
+                      ready:
+                        items:
+                          type: string
+                        type: array
+                      unready:
+                        items:
+                          type: string
+                        type: array
+                    type: object
+                type: object
               route:
                 description: The current configured route
                 properties:
