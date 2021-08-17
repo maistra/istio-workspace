@@ -123,12 +123,14 @@ func (s *StatusComponents) SetUnReady(comp string) {
 }
 
 func (s *StatusComponents) removeFrom(list []string, comp string) []string {
-	for i, _ := range list {
+	for i := range list {
 		if list[i] == comp {
 			list[i] = list[len(list)-1]
+
 			return list[:len(list)-1]
 		}
 	}
+
 	return list
 }
 
