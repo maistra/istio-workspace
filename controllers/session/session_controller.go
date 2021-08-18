@@ -204,10 +204,6 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	processing := istiov1alpha1.StateProcessing
 	session.Status.State = &processing
 	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
-	session.Status.Conditions = []*istiov1alpha1.Condition{}
-	session.Status.Hosts = []string{}
-	session.Status.RefNames = []string{}
-	session.Status.Strategies = []string{}
 
 	err = r.client.Status().Update(ctx, session)
 	if err != nil {
@@ -233,6 +229,10 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	refs := calculateReferences(ctx, session)
 	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
+	session.Status.Conditions = []*istiov1alpha1.Condition{}
+	session.Status.Hosts = []string{}
+	session.Status.RefNames = []string{}
+	session.Status.Strategies = []string{}
 
 	for _, ref := range refs {
 		ref := ref // pin
