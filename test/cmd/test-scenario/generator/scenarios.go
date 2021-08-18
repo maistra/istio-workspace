@@ -18,6 +18,7 @@ func TestScenario1HTTPThreeServicesInSequence(out io.Writer) {
 	Generate(
 		out,
 		[]Entry{productpage, reviews, ratings},
+		allSubGenerators,
 		WithVersion("v1"),
 		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(HTTP(), ratings)),
@@ -35,6 +36,7 @@ func TestScenario1GRPCThreeServicesInSequence(out io.Writer) {
 	Generate(
 		out,
 		[]Entry{productpage, reviews, ratings},
+		allSubGenerators,
 		WithVersion("v1"),
 		ForService(productpage, Call(GRPC(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(GRPC(), ratings)),
@@ -53,6 +55,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 	Generate(
 		out,
 		[]Entry{productpage, reviews, ratings},
+		allSubGenerators,
 		WithVersion("v1"),
 		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
 		ForService(reviews, Call(HTTP(), ratings)),
@@ -71,10 +74,45 @@ func DemoScenario(out io.Writer) {
 	Generate(
 		out,
 		[]Entry{productpage, reviews, ratings, authors, locations},
+		allSubGenerators,
 		WithVersion("v1"),
 		ForService(productpage, Call(HTTP(), reviews), Call(HTTP(), authors), ConnectToGateway("ike-demo.io")),
 		ForService(reviews, Call(GRPC(), ratings)),
 		ForService(authors, Call(GRPC(), locations)),
 		GatewayOnHost("ike-demo.io"),
+	)
+}
+
+// IncompleteMissingVirtualServices generates a scenario where there are no DestinationRules.
+func IncompleteMissingDestinationRules(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
+
+	Generate(
+		out,
+		[]Entry{productpage, reviews, ratings},
+		[]SubGenerator{Deployment, DeploymentConfig, Service, VirtualService},
+		WithVersion("v1"),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
+		ForService(reviews, Call(HTTP(), ratings)),
+		GatewayOnHost(GatewayHost),
+	)
+}
+
+// IncompleteMissingVirtualServices generates a scenario where there are no VirtualServices.
+func IncompleteMissingVirtualServices(out io.Writer) {
+	productpage := Entry{"productpage", "Deployment", Namespace}
+	reviews := Entry{"reviews", "Deployment", Namespace}
+	ratings := Entry{"ratings", "Deployment", Namespace}
+
+	Generate(
+		out,
+		[]Entry{productpage, reviews, ratings},
+		[]SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule},
+		WithVersion("v1"),
+		ForService(productpage, Call(HTTP(), reviews), ConnectToGateway(GatewayHost)),
+		ForService(reviews, Call(HTTP(), ratings)),
+		GatewayOnHost(GatewayHost),
 	)
 }

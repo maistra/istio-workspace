@@ -23,6 +23,8 @@ const (
 var (
 	TestImageName = ""
 	GatewayHost   = "*"
+
+	allSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
 
 // Entry is a simple value object that holds the basic configuration used by the generator.
@@ -48,8 +50,7 @@ type SubGenerator func(service Entry) runtime.Object
 type Modifier func(service Entry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout.
-func Generate(out io.Writer, services []Entry, modifiers ...Modifier) {
-	sub := []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
+func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...Modifier) {
 	modify := func(service Entry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
