@@ -204,19 +204,14 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	processing := istiov1alpha1.StateProcessing
 	session.Status.State = &processing
 	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
+	session.Status.Conditions = []*istiov1alpha1.Condition{}
+	session.Status.Hosts = []string{}
+	session.Status.RefNames = []string{}
+	session.Status.Strategies = []string{}
+
 	err = r.client.Status().Update(ctx, session)
 	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
-	}
-
-	extractModificators := func(registrars []model.ModificatorRegistrar) []model.Modificator {
-		var mods []model.Modificator
-		for _, reg := range registrars {
-			_, mod := reg()
-			mods = append(mods, mod)
-		}
-
-		return mods
 	}
 
 	deleted := session.DeletionTimestamp != nil
@@ -238,10 +233,6 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	refs := calculateReferences(ctx, session)
 	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
-	session.Status.Conditions = []*istiov1alpha1.Condition{}
-	session.Status.Hosts = []string{}
-	session.Status.RefNames = []string{}
-	session.Status.Strategies = []string{}
 
 	for _, ref := range refs {
 		ref := ref // pin
@@ -403,4 +394,14 @@ func unique(s []string) []string {
 	}
 
 	return uniqueSlice
+}
+
+func extractModificators(registrars []model.ModificatorRegistrar) []model.Modificator {
+	mods := make([]model.Modificator, len(registrars))
+	for i, reg := range registrars {
+		_, mod := reg()
+		mods[i] = mod
+	}
+
+	return mods
 }
