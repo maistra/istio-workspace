@@ -1,5 +1,10 @@
 package model
 
+import (
+	"reflect"
+	"runtime"
+)
+
 // Sync is the entry point for ensuring the desired state for the given Ref is up to date.
 type Sync func(SessionContext, Ref, ModificatorController, LocatedReporter, ModificatorStatusReporter)
 
@@ -15,7 +20,7 @@ func NewSync(locators []Locator, modificators []Modificator) Sync {
 			)
 
 			if err != nil {
-				context.Log.Error(err, "locating failed", "locator", locator)
+				context.Log.Error(err, "locating failed", "locator", runtime.FuncForPC(reflect.ValueOf(locator).Pointer()).Name())
 			}
 		}
 		if !modify(located.Store) {

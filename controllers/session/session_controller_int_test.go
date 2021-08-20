@@ -284,7 +284,59 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 		})
 
-		Context("when validation rules are triggered", func() {
+	})
+	Context("when validation rules are triggered", func() {
+		BeforeEach(func() {
+			objects = []runtime.Object{}
+			objects = append(objects, &v1alpha1.Session{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-session1",
+					Namespace: namespace,
+				},
+				Spec: v1alpha1.SessionSpec{
+					Refs: []v1alpha1.Ref{
+						{
+							Name:     "ratings-v1",
+							Strategy: "prepared-image",
+							Args: map[string]string{
+								"image": "x:x:x",
+							},
+						},
+					},
+				},
+			})
+			objects = append(objects, &v1alpha1.Session{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-session2",
+					Namespace: namespace,
+				},
+				Spec: v1alpha1.SessionSpec{
+					Refs: []v1alpha1.Ref{
+						{
+							Name:     "reviews-v1",
+							Strategy: "prepared-image",
+							Args: map[string]string{
+								"image": "x:x:x",
+							},
+						},
+					},
+				},
+			})
+		})
+
+		getCondition := func(session v1alpha1.Session, t string) *v1alpha1.Condition {
+			for _, con := range session.Status.Conditions {
+				if *con.Type == t {
+					return con
+				}
+			}
+
+			return nil
+		}
+		Context("with missing target", func() {
+			BeforeEach(func() {
+				scenario = generator.TestScenario1HTTPThreeServicesInSequence
+			})
 			It("should fail on missing deployment", func() {
 				res := appsv1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
@@ -308,8 +360,65 @@ var _ = Describe("Complete session manipulation", func() {
 
 				session := get.Session("test", "test-session1")
 				Expect(*session.Status.State).To(Equal(v1alpha1.StateFailed))
+
+				Expect(*getCondition(session, "FindDestinationRule").Status).To(Equal("false"))
+				Expect(*getCondition(session, "FindVirtualService").Status).To(Equal("false"))
+				Expect(*getCondition(session, "FindTarget").Status).To(Equal("false"))
 			})
 		})
+
+		Context("with missing destination rule", func() {
+			BeforeEach(func() {
+				scenario = generator.IncompleteMissingDestinationRules
+			})
+			It("should fail on missing deployment", func() {
+				req := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+
+				// Given - create first ref
+				res1, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				session := get.Session("test", "test-session1")
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateFailed))
+
+				Expect(*getCondition(session, "FindDestinationRule").Status).To(Equal("false"))
+				Expect(*getCondition(session, "FindVirtualService").Status).To(Equal("true"))
+				Expect(*getCondition(session, "FindTarget").Status).To(Equal("true"))
+			})
+		})
+
+		Context("with missing virtual service", func() {
+			BeforeEach(func() {
+				scenario = generator.IncompleteMissingVirtualServices
+			})
+			It("should fail on missing deployment", func() {
+				req := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+
+				// Given - create first ref
+				res1, err := controller.Reconcile(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				session := get.Session("test", "test-session1")
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateFailed))
+
+				Expect(*getCondition(session, "FindDestinationRule").Status).To(Equal("true"))
+				Expect(*getCondition(session, "FindVirtualService").Status).To(Equal("false"))
+				Expect(*getCondition(session, "FindTarget").Status).To(Equal("true"))
+			})
+		})
+
 	})
 	Context("with dynamically loaded templates", func() {
 		var restoreEnvVars func()
