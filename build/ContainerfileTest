@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
 
 ADD test-service /usr/local/bin/test-service
 ENTRYPOINT ["test-service"]
