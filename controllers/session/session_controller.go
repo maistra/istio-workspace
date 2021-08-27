@@ -203,19 +203,11 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	session.Status.RouteExpression = session.Status.Route.String()
 	processing := istiov1alpha1.StateProcessing
 	session.Status.State = &processing
+	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
+
 	err = r.client.Status().Update(ctx, session)
 	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
-	}
-
-	extractModificators := func(registrars []model.ModificatorRegistrar) []model.Modificator {
-		var mods []model.Modificator
-		for _, reg := range registrars {
-			_, mod := reg()
-			mods = append(mods, mod)
-		}
-
-		return mods
 	}
 
 	deleted := session.DeletionTimestamp != nil
@@ -257,6 +249,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 			func(located model.LocatorStatusStore) {
 				for _, stored := range located() {
 					stored := stored // pin
+					session.Status.Readiness.Components.SetPending(stored.Kind + "/" + stored.Name)
 					session.AddCondition(createConditionForLocatedRef(ref, stored))
 					err = ctx.Client.Status().Update(ctx, session)
 					if err != nil {
@@ -269,6 +262,11 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 					if modified.Kind == istio.GatewayKind {
 						session.Status.Hosts = splitAndUnique(session.Status.Hosts, modified.Prop["hosts"])
 					}
+				}
+				if modified.Success {
+					session.Status.Readiness.Components.SetReady(modified.Kind + "/" + modified.Name)
+				} else {
+					session.Status.Readiness.Components.SetUnReady(modified.Kind + "/" + modified.Name)
 				}
 				session.AddCondition(createConditionForModifiedRef(ref, modified))
 				err = ctx.Client.Status().Update(ctx, session)
@@ -396,4 +394,14 @@ func unique(s []string) []string {
 	}
 
 	return uniqueSlice
+}
+
+func extractModificators(registrars []model.ModificatorRegistrar) []model.Modificator {
+	mods := make([]model.Modificator, len(registrars))
+	for i, reg := range registrars {
+		_, mod := reg()
+		mods[i] = mod
+	}
+
+	return mods
 }
