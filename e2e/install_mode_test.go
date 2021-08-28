@@ -12,7 +12,7 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = Describe("Operator installation", func() {
+var _ = XDescribe("Operator installation", func() {
 
 	/*
 

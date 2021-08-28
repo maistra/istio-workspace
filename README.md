@@ -1,5 +1,3 @@
-![Go Report Card](https://goreportcard.com/badge/github.com/maistra/istio-workspace)
-![CircleCI](https://circleci.com/gh/maistra/istio-workspace.svg?style=svg)
 
 # Istio Workspace
 
