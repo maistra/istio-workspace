@@ -252,7 +252,7 @@ jobs:
 
             export KUBECONFIG=/tmp/kubeconfig \
               IKE_CLUSTER_HOST=localhost \
-              IKE_ISTIO_INGRESS=http://localhost:31380 \
+              IKE_ISTIO_INGRESS=http://localhost:32023 \
               PRE_BUILT_IMAGES=true \
               IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
               IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
