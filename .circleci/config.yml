@@ -7,7 +7,7 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
-    MICROK8S_SNAP_VERSION: "1.19/stable"
+    MICROK8S_SNAP_VERSION: "1.22/stable"
     GOLANG_SNAP_VERSION: "1.16/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
