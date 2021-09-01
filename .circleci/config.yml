@@ -7,7 +7,7 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
-    MICROK8S_SNAP_VERSION: "1.19/stable"
+    MICROK8S_SNAP_VERSION: "1.22/stable"
     GOLANG_SNAP_VERSION: "1.16/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
@@ -235,7 +235,7 @@ jobs:
             echo "Istio enabled"
 
             echo "Installing tekton"
-            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.22.0/release.yaml
+            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.27.3/release.yaml
             sleep 10
             n=0
             until [ $n -ge 10 ]
@@ -252,7 +252,7 @@ jobs:
 
             export KUBECONFIG=/tmp/kubeconfig \
               IKE_CLUSTER_HOST=localhost \
-              IKE_ISTIO_INGRESS=http://localhost:31380 \
+              IKE_ISTIO_INGRESS=http://localhost:$(sudo microk8s.kubectl get svc istio-ingressgateway -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}') \
               PRE_BUILT_IMAGES=true \
               IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
               IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
@@ -266,7 +266,7 @@ jobs:
 
             make deps tools
 
-            ./bin/operator-sdk olm install --version v0.18.2
+            ./bin/operator-sdk olm install --version v0.18.3
 
             make docker-build docker-push
             make docker-build-test docker-push-test
