@@ -27,4 +27,5 @@ spec:
     - name: ike
       image: released-image
       script: |
+        #!/usr/bin/env bash
         ike delete --session "$(params.session)" --deployment "$(params.target)" --namespace "$(params.namespace)"
