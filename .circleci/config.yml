@@ -8,7 +8,7 @@ defaults:
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
     MICROK8S_SNAP_VERSION: "1.22/stable"
-    GOLANG_SNAP_VERSION: "1.16/stable"
+    GOLANG_SNAP_VERSION: "1.17/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
     command: |
@@ -32,7 +32,7 @@ defaults:
       mkdir -p ./test-results/
       jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
-    - image: &golang-img cimg/go:1.16.5-node
+    - image: &golang-img cimg/go:1.17-node
   machine-conf: &machine-conf
     image: ubuntu-2004:202101-01
   skip-e2e-check: &skip-e2e-check
