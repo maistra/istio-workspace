@@ -71,6 +71,7 @@ func DefaultManipulators() Manipulators {
 		Handlers: []model.ModificatorRegistrar{
 			k8s.DeploymentRegistrar(engine),
 			openshift.DeploymentConfigRegistrar(engine),
+			k8s.ServiceRegistrar,
 			istio.DestinationRuleRegistrar,
 			istio.GatewayRegistrar,
 			istio.VirtualServiceRegistrar,
