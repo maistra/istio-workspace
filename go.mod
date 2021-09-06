@@ -35,9 +35,8 @@ require (
 	go.uber.org/goleak v1.1.10
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
-	golang.org/x/tools v0.1.0
+	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
+	golang.org/x/tools v0.1.2
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/h2non/gock.v1 v1.0.16
@@ -48,8 +47,8 @@ require (
 	k8s.io/api v0.20.5
 	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.5
-	k8s.io/code-generator v0.20.5
-	k8s.io/klog/v2 v2.8.0
+	k8s.io/code-generator v0.22.1
+	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/yaml v1.2.0
