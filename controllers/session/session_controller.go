@@ -267,7 +267,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 				if modified.Success {
 					session.Status.Readiness.Components.SetReady(modified.Kind + "/" + modified.Name)
 				} else {
-					session.Status.Readiness.Components.SetUnReady(modified.Kind + "/" + modified.Name)
+					session.Status.Readiness.Components.SetUnready(modified.Kind + "/" + modified.Name)
 				}
 				session.AddCondition(createConditionForModifiedRef(ref, modified))
 				err = ctx.Client.Status().Update(ctx, session)

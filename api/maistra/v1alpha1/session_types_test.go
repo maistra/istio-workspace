@@ -29,10 +29,10 @@ var _ = Describe("API manipulation", func() {
 
 			Expect(components.Ready).To(HaveLen(1))
 		})
-		It("should set as UnReady", func() {
-			components.SetUnReady(componentOne)
+		It("should set as Unready", func() {
+			components.SetUnready(componentOne)
 
-			Expect(components.UnReady).To(HaveLen(1))
+			Expect(components.Unready).To(HaveLen(1))
 		})
 
 		It("should flip from pending to ready", func() {
@@ -47,16 +47,16 @@ var _ = Describe("API manipulation", func() {
 			components.SetPending(componentOne)
 			Expect(components.Pending).To(HaveLen(1))
 
-			components.SetUnReady(componentOne)
-			Expect(components.UnReady).To(HaveLen(1))
+			components.SetUnready(componentOne)
+			Expect(components.Unready).To(HaveLen(1))
 			Expect(components.Pending).To(HaveLen(0))
 		})
 		It("should flip from ready to unready", func() {
 			components.SetReady(componentOne)
 			Expect(components.Ready).To(HaveLen(1))
 
-			components.SetUnReady(componentOne)
-			Expect(components.UnReady).To(HaveLen(1))
+			components.SetUnready(componentOne)
+			Expect(components.Unready).To(HaveLen(1))
 			Expect(components.Ready).To(HaveLen(0))
 		})
 
@@ -65,8 +65,8 @@ var _ = Describe("API manipulation", func() {
 			components.SetReady(componentTwo)
 			Expect(components.Ready).To(HaveLen(2))
 
-			components.SetUnReady(componentOne)
-			Expect(components.UnReady).To(HaveLen(1))
+			components.SetUnready(componentOne)
+			Expect(components.Unready).To(HaveLen(1))
 			Expect(components.Ready).To(HaveLen(1))
 		})
 	})

@@ -101,25 +101,25 @@ type StatusReadiness struct {
 type StatusComponents struct {
 	Pending []string `json:"pending,omitempty"`
 	Ready   []string `json:"ready,omitempty"`
-	UnReady []string `json:"unready,omitempty"`
+	Unready []string `json:"unready,omitempty"`
 }
 
 func (s *StatusComponents) SetPending(comp string) {
 	s.Ready = s.removeFrom(s.Ready, comp)
-	s.UnReady = s.removeFrom(s.UnReady, comp)
+	s.Unready = s.removeFrom(s.Unready, comp)
 	s.Pending = append(s.Pending, comp)
 }
 
 func (s *StatusComponents) SetReady(comp string) {
 	s.Pending = s.removeFrom(s.Pending, comp)
-	s.UnReady = s.removeFrom(s.UnReady, comp)
+	s.Unready = s.removeFrom(s.Unready, comp)
 	s.Ready = append(s.Ready, comp)
 }
 
-func (s *StatusComponents) SetUnReady(comp string) {
+func (s *StatusComponents) SetUnready(comp string) {
 	s.Ready = s.removeFrom(s.Ready, comp)
 	s.Pending = s.removeFrom(s.Pending, comp)
-	s.UnReady = append(s.UnReady, comp)
+	s.Unready = append(s.Unready, comp)
 }
 
 func (s *StatusComponents) removeFrom(list []string, comp string) []string {

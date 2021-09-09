@@ -302,7 +302,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
 				Expect(session.Status.Readiness.Components.Pending).To((HaveLen(0)))
-				Expect(session.Status.Readiness.Components.UnReady).To((HaveLen(0)))
+				Expect(session.Status.Readiness.Components.Unready).To((HaveLen(0)))
 				Expect(session.Status.Readiness.Components.Ready).ToNot((HaveLen(0)))
 			})
 
@@ -376,7 +376,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// Then - one should be pending
 				Expect(session.Status.Readiness.Components.Pending).To((HaveLen(1)))
 				// Then - one should be unready
-				Expect(session.Status.Readiness.Components.UnReady).To((HaveLen(1)))
+				Expect(session.Status.Readiness.Components.Unready).To((HaveLen(1)))
 				// Then - one should be ready
 				Expect(session.Status.Readiness.Components.Ready).To((HaveLen(1)))
 			})

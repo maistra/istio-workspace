@@ -252,8 +252,8 @@ func (in *StatusComponents) DeepCopyInto(out *StatusComponents) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.UnReady != nil {
-		in, out := &in.UnReady, &out.UnReady
+	if in.Unready != nil {
+		in, out := &in.Unready, &out.Unready
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
