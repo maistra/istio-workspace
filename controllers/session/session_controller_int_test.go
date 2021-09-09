@@ -343,12 +343,12 @@ var _ = Describe("Complete session manipulation", func() {
 						session := get.Session("test", "test-session1")
 						Expect(session.Status.Readiness.Components.Pending).To((HaveLen(3)))
 
-						// When - One is reported success
+						// When - One is reported unsuccess
 						reporter(model.ModificatorStatus{
 							LocatorStatus: store("Pod")[0],
 							Success:       false,
 						})
-						// When - One is reported unsuccess
+						// When - One is reported success
 						reporter(model.ModificatorStatus{
 							LocatorStatus: store("Pod")[1],
 							Success:       true,
