@@ -17,6 +17,7 @@ import (
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/test/testclient"
 )
 
 var kind, name = "X", "details"
@@ -30,16 +31,8 @@ var _ = Describe("Basic session manipulation", func() {
 		c          client.Client
 		locator    *trackedLocator
 		mutator    *trackedMutator
+		get        *testclient.Getters
 	)
-	GetSession := func(c *client.Client) func(namespace, name string) v1alpha1.Session {
-		return func(namespace, name string) v1alpha1.Session {
-			s := v1alpha1.Session{}
-			err := (*c).Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
-			Expect(err).ToNot(HaveOccurred())
-
-			return s
-		}
-	}(&c)
 	JustBeforeEach(func() {
 		locator = &trackedLocator{Action: notFoundTestLocator}
 		mutator = &trackedMutator{Action: noOpModifier}
@@ -61,6 +54,7 @@ var _ = Describe("Basic session manipulation", func() {
 		}
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		controller = session.NewStandaloneReconciler(c, manipulators)
+		get = testclient.New(c)
 	})
 
 	Context("session creation", func() {
@@ -96,7 +90,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
+				modified := get.Session("test", "test-session")
 				Expect(modified.ObjectMeta.Finalizers).To(HaveLen(1))
 			})
 
@@ -118,7 +112,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
+				modified := get.Session("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Conditions).To(HaveLen(1))
 				Expect(modified.Status.Conditions[0].Source.Name).To(Equal("test"))
@@ -128,7 +122,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
+				modified := get.Session("test", "test-session")
 				fmt.Println(modified.Status.Route)
 				Expect(modified.Status.Route).ToNot(BeNil())
 				Expect(modified.Status.Route.Type).To(Equal(session.RouteStrategyHeader))
@@ -181,7 +175,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
+				modified := get.Session("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Conditions).To(HaveLen(2))
 
@@ -240,7 +234,7 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
+				modified := get.Session("test", "test-session")
 				Expect(modified.Status).ToNot(BeNil())
 				Expect(modified.Status.Conditions).To(HaveLen(0))
 			})
@@ -286,25 +280,14 @@ var _ = Describe("Basic session manipulation", func() {
 				Expect(mutator.Refs[0].Remove).To(BeTrue())
 			})
 
-			It("should remove status when session removed", func() {
-				locator.Action = foundTestLocator
-				mutator.Action = reportSuccess()
-				res, err := controller.Reconcile(context.Background(), req)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(res.Requeue).To(BeFalse())
-
-				modified := GetSession("test", "test-session")
-				Expect(modified.Status).ToNot(BeNil())
-				Expect(modified.Status.Conditions).To(HaveLen(0))
-			})
-
 			It("should remove finalizer", func() {
 				res, err := controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.Requeue).To(BeFalse())
 
-				modified := GetSession("test", "test-session")
-				Expect(modified.ObjectMeta.Finalizers).To(HaveLen(0))
+				// Then - object should have been finalized/deleted if no finalizers present
+				_, err = get.SessionWithError("test", "test-session")
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})

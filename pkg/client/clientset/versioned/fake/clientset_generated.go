@@ -58,7 +58,10 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
-var _ clientset.Interface = &Clientset{}
+var (
+	_ clientset.Interface = &Clientset{}
+	_ testing.FakeClient  = &Clientset{}
+)
 
 // MaistraV1alpha1 retrieves the MaistraV1alpha1Client
 func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
