@@ -23,6 +23,7 @@ import (
 func New(c client.Client) *Getters {
 	return &Getters{
 		Session:                   Session(c),
+		SessionWithError:          SessionWithError(c),
 		Gateway:                   Gateway(c),
 		DestinationRule:           DestinationRule(c),
 		DestinationRules:          DestinationRules(c),
@@ -38,6 +39,7 @@ func New(c client.Client) *Getters {
 // Getters simple struct to hold funcs.
 type Getters struct {
 	Session                   func(namespace, name string) v1alpha1.Session
+	SessionWithError          func(namespace, name string) (v1alpha1.Session, error)
 	Gateway                   func(namespace, name string) istionetwork.Gateway
 	DestinationRule           func(namespace, name string) istionetwork.DestinationRule
 	DestinationRules          func(namespace string, predicates ...Predicate) istionetwork.DestinationRuleList
@@ -57,6 +59,16 @@ func Session(c client.Client) func(namespace, name string) v1alpha1.Session {
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 		return s
+	}
+}
+
+// Session returns a session by name in a given namespace.
+func SessionWithError(c client.Client) func(namespace, name string) (v1alpha1.Session, error) {
+	return func(namespace, name string) (v1alpha1.Session, error) {
+		s := v1alpha1.Session{}
+		err := c.Get(context.Background(), types.NamespacedName{Namespace: namespace, Name: name}, &s)
+
+		return s, errors.Wrapf(err, "failed finding session %s in namespaces %s", name, namespace)
 	}
 }
 

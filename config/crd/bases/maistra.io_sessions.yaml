@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.5.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
   name: sessions.maistra.io
 spec:
@@ -42,10 +42,14 @@ spec:
         description: Session controls the creation of the specialized hidden routes.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -63,15 +67,19 @@ spec:
                       description: Additional arguments to the given strategy
                       type: object
                     name:
-                      description: Deployment or DeploymentConfig name, could optionally contain [Kind/]Name to be specific
+                      description: Deployment or DeploymentConfig name, could optionally
+                        contain [Kind/]Name to be specific
                       type: string
                     strategy:
-                      description: How this deployment should be handled, e.g. telepresence or prepared-image
+                      description: How this deployment should be handled, e.g. telepresence
+                        or prepared-image
                       type: string
                   type: object
                 type: array
               route:
-                description: How to route the given Session. A header based route using x-workspace-route with the Session name as value will be used if not provided.
+                description: How to route the given Session. A header based route
+                  using x-workspace-route with the Session name as value will be used
+                  if not provided.
                 properties:
                   name:
                     description: Name of the key, e.g. http header
@@ -92,7 +100,8 @@ spec:
                   type: string
                 type: array
               _routeExp:
-                description: RouteExpression represents the Route object as single string expression
+                description: RouteExpression represents the Route object as single
+                  string expression
                 type: string
               _strategies:
                 items:
@@ -101,10 +110,12 @@ spec:
               conditions:
                 description: The combined log of changes across all refs
                 items:
-                  description: Condition describes a step of manipulating resources within a session.
+                  description: Condition describes a step of manipulating resources
+                    within a session.
                   properties:
                     lastTransitionTime:
-                      description: LastTransitionTime is the last time this action was applied
+                      description: LastTransitionTime is the last time this action
+                        was applied
                       format: date-time
                       type: string
                     message:
@@ -127,7 +138,8 @@ spec:
                       description: Status indicates success.
                       type: string
                     target:
-                      description: Result contains the resource involved if different from Target, e.g. Create
+                      description: Result contains the resource involved if different
+                        from Target, e.g. Create
                       properties:
                         kind:
                           type: string
