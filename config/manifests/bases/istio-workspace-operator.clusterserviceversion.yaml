@@ -21,6 +21,12 @@ spec:
       displayName: Session
       kind: Session
       name: sessions.maistra.io
+      statusDescriptors:
+      - description: Status of resources deployed/modifed by this Session resource
+        displayName: Resources
+        path: readiness.components
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podStatuses
       version: v1alpha1
   description: |
     insert::description-from-readme

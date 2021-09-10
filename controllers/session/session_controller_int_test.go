@@ -284,6 +284,103 @@ var _ = Describe("Complete session manipulation", func() {
 			})
 		})
 
+		Context("when calculating components readiness", func() {
+			It("should all show ready on success", func() {
+				req1 := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+				// Given - create first ref
+				res1, err := controller.Reconcile(context.Background(), req1)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				// Then - all components should be success
+				session := get.Session("test", "test-session1")
+
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
+				Expect(session.Status.Readiness.Components.Pending).To((HaveLen(0)))
+				Expect(session.Status.Readiness.Components.Unready).To((HaveLen(0)))
+				Expect(session.Status.Readiness.Components.Ready).ToNot((HaveLen(0)))
+			})
+
+			It("should show pending before execution and missing modification, and unready on unsuccess", func() {
+				testLocator := func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
+					// When - three Resources are found
+					report(model.LocatorStatus{
+						Resource: model.Resource{
+							Namespace: ctx.Namespace,
+							Kind:      "Pod",
+							Name:      "TestPod",
+						},
+						Action: model.ActionLocated,
+					})
+					report(model.LocatorStatus{
+						Resource: model.Resource{
+							Namespace: ctx.Namespace,
+							Kind:      "Pod",
+							Name:      "TestPod2",
+						},
+						Action: model.ActionLocated,
+					})
+					report(model.LocatorStatus{
+						Resource: model.Resource{
+							Namespace: ctx.Namespace,
+							Kind:      "Pod",
+							Name:      "TestPod3",
+						},
+						Action: model.ActionLocated,
+					})
+
+					return nil
+				}
+				testRegistrar := func() (client.Object, model.Modificator) {
+					return &corev1.Pod{}, func(context model.SessionContext, ref model.Ref, store model.LocatorStatusStore, reporter model.ModificatorStatusReporter) {
+
+						// Then - Verify all are in pending stage before modification stage
+						session := get.Session("test", "test-session1")
+						Expect(session.Status.Readiness.Components.Pending).To((HaveLen(3)))
+
+						// When - One is reported unsuccess
+						reporter(model.ModificatorStatus{
+							LocatorStatus: store("Pod")[0],
+							Success:       false,
+						})
+						// When - One is reported success
+						reporter(model.ModificatorStatus{
+							LocatorStatus: store("Pod")[1],
+							Success:       true,
+						})
+					}
+				}
+				testManipulator := session.Manipulators{Locators: []model.Locator{testLocator}, Handlers: []model.ModificatorRegistrar{testRegistrar}}
+				controller = session.NewStandaloneReconciler(c, testManipulator)
+
+				req1 := reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Name:      "test-session1",
+						Namespace: "test",
+					},
+				}
+				// Given - create first ref
+				res1, err := controller.Reconcile(context.Background(), req1)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res1.Requeue).To(BeFalse())
+
+				session := get.Session("test", "test-session1")
+
+				// Then - state should be Failed
+				Expect(*session.Status.State).To(Equal(v1alpha1.StateFailed))
+				// Then - one should be pending
+				Expect(session.Status.Readiness.Components.Pending).To((HaveLen(1)))
+				// Then - one should be unready
+				Expect(session.Status.Readiness.Components.Unready).To((HaveLen(1)))
+				// Then - one should be ready
+				Expect(session.Status.Readiness.Components.Ready).To((HaveLen(1)))
+			})
+		})
 	})
 	Context("when validation rules are triggered", func() {
 		BeforeEach(func() {

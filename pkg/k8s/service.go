@@ -14,7 +14,14 @@ const (
 	ServiceKind = "Service"
 )
 
-var _ model.Locator = ServiceLocator
+var (
+	_ model.Locator              = ServiceLocator
+	_ model.ModificatorRegistrar = ServiceRegistrar
+)
+
+func ServiceRegistrar() (client.Object, model.Modificator) {
+	return &corev1.Service{}, ServiceModificator
+}
 
 // ServiceLocator attempts to locate the Services for the target Deployment/DeploymentConfig.
 func ServiceLocator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
@@ -44,6 +51,27 @@ func ServiceLocator(ctx model.SessionContext, ref model.Ref, store model.Locator
 	}
 
 	return nil
+}
+
+// ServiceModificator will set a located service to modification status true.
+func ServiceModificator(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter) {
+	for _, resource := range store(ServiceKind) {
+		switch resource.Action {
+		case model.ActionLocated:
+			actionLocatedService(report, resource)
+		case model.ActionModify, model.ActionRevert, model.ActionCreate, model.ActionDelete:
+			report(model.ModificatorStatus{
+				LocatorStatus: resource,
+				Success:       false,
+				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+		}
+	}
+}
+
+func actionLocatedService(report model.ModificatorStatusReporter, resource model.LocatorStatus) {
+	report(model.ModificatorStatus{
+		LocatorStatus: resource,
+		Success:       true})
 }
 
 func getServices(ctx model.SessionContext, namespace string) (*corev1.ServiceList, error) {

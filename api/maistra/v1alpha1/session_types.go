@@ -88,6 +88,50 @@ type SessionStatus struct {
 	RouteExpression string   `json:"_routeExp,omitempty"`   //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
 	Strategies      []string `json:"_strategies,omitempty"` //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
 	RefNames        []string `json:"_refNames,omitempty"`   //nolint:tagliatelle //reason intentionally prefixed with _ to distinguish as UI/CLI field.
+
+	Readiness StatusReadiness `json:"readiness,omitempty"`
+}
+
+type StatusReadiness struct {
+	// Status of resources deployed/modifed by this Session resource
+	//+operator-sdk:csv:customresourcedefinitions:type=status,displayName="Resources", xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses"
+	Components StatusComponents `json:"components,omitempty"`
+}
+
+type StatusComponents struct {
+	Pending []string `json:"pending,omitempty"`
+	Ready   []string `json:"ready,omitempty"`
+	Unready []string `json:"unready,omitempty"`
+}
+
+func (s *StatusComponents) SetPending(comp string) {
+	s.Ready = s.removeFrom(s.Ready, comp)
+	s.Unready = s.removeFrom(s.Unready, comp)
+	s.Pending = append(s.Pending, comp)
+}
+
+func (s *StatusComponents) SetReady(comp string) {
+	s.Pending = s.removeFrom(s.Pending, comp)
+	s.Unready = s.removeFrom(s.Unready, comp)
+	s.Ready = append(s.Ready, comp)
+}
+
+func (s *StatusComponents) SetUnready(comp string) {
+	s.Ready = s.removeFrom(s.Ready, comp)
+	s.Pending = s.removeFrom(s.Pending, comp)
+	s.Unready = append(s.Unready, comp)
+}
+
+func (s *StatusComponents) removeFrom(list []string, comp string) []string {
+	for i := range list {
+		if list[i] == comp {
+			list[i] = list[len(list)-1]
+
+			return list[:len(list)-1]
+		}
+	}
+
+	return list
 }
 
 // Condition describes a step of manipulating resources within a session.
