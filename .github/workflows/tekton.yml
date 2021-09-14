@@ -1,0 +1,17 @@
+name: tekton
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  catlin:
+    name: tekton-lint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Validate Tekton Tasks
+        uses: bartoszmajsak/tekton-task-linter-action@v1.0.0
+
