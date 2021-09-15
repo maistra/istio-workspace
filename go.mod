@@ -27,8 +27,8 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
-	go.uber.org/goleak v1.1.10
-	go.uber.org/zap v1.19.0
+	go.uber.org/goleak v1.1.11
+	go.uber.org/zap v1.19.1
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.40.0
