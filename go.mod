@@ -17,7 +17,7 @@ require (
 	github.com/kisielk/errcheck v1.6.0
 	github.com/mikefarah/yq/v4 v4.12.2
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.15.0
+	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.7.0
 	github.com/prometheus/client_golang v1.11.0
@@ -41,7 +41,7 @@ require (
 	k8s.io/client-go v0.22.1
 	k8s.io/code-generator v0.22.1
 	k8s.io/klog/v2 v2.9.0
-	sigs.k8s.io/controller-runtime v0.9.7
+	sigs.k8s.io/controller-runtime v0.10.0
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/yaml v1.2.0
 )
