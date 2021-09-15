@@ -49,4 +49,4 @@ spec:
           echo "${STATE}"
           exit $exit_code
         fi
-        echo "${STATE}" | grep \" | cut -d \" -f 2 | uniq | tr -d '\n' | tee $(results.url.path)
+        echo "${STATE}" | grep \" | cut -d \" -f 2 | uniq | tr -d '\n' | tee "$(results.url.path)"
