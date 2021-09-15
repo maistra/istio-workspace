@@ -5,7 +5,7 @@ go 1.15
 require (
 	emperror.dev/errors v0.8.0
 	github.com/evanphx/json-patch v4.11.0+incompatible
-	github.com/fsnotify/fsnotify v1.4.9
+	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.4.0
@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
-	github.com/mikefarah/yq/v4 v4.7.1
+	github.com/mikefarah/yq/v4 v4.12.2
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
@@ -31,9 +31,9 @@ require (
 	go.uber.org/zap v1.19.0
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.5
-	google.golang.org/grpc v1.38.0
-	google.golang.org/protobuf v1.26.0
-	gopkg.in/h2non/gock.v1 v1.0.16
+	google.golang.org/grpc v1.40.0
+	google.golang.org/protobuf v1.27.1
+	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20210809175348-eff556fb5d8a
 	istio.io/client-go v1.11.2
 	k8s.io/api v0.22.1
