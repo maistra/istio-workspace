@@ -32,7 +32,7 @@ require (
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.40.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20210809175348-eff556fb5d8a
 	istio.io/client-go v1.11.2
