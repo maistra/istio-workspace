@@ -5,7 +5,7 @@ go 1.15
 require (
 	emperror.dev/errors v0.8.0
 	github.com/evanphx/json-patch v4.11.0+incompatible
-	github.com/fsnotify/fsnotify v1.4.9
+	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.0
 	github.com/go-logr/logr v0.4.0
