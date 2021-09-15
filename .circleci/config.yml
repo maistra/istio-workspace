@@ -32,7 +32,7 @@ defaults:
       mkdir -p ./test-results/
       jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
-    - image: &golang-img cimg/go:1.17-node
+    - image: &golang-img cimg/go:1.17.1-node
   machine-conf: &machine-conf
     image: ubuntu-2004:202101-01
   skip-e2e-check: &skip-e2e-check
