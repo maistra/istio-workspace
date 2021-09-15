@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
-	github.com/mikefarah/yq/v4 v4.7.1
+	github.com/mikefarah/yq/v4 v4.12.2
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
@@ -33,7 +33,7 @@ require (
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
-	gopkg.in/h2non/gock.v1 v1.0.16
+	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20210809175348-eff556fb5d8a
 	istio.io/client-go v1.11.2
 	k8s.io/api v0.22.1
