@@ -98,6 +98,7 @@ if [[ $runTests -ne 0 ]]; then
   bash <(curl -sL https://cutt.ly/AEeucaw) \
   "$tests" \
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
+  echo $?
 fi
 
 if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
