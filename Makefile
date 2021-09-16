@@ -421,6 +421,10 @@ bundle-run-all:		## Run the bundle image in AllNamespace(OPERATOR_NAMESPACE) ins
 bundle-clean:	## Clean the bundle image
 	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
+.PHONY: bundle-test
+bundle-test: bundle	## Open up a PR to the Operator Hub community catalog
+	./scripts/release/operatorhub.sh --dry-run --test
+
 .PHONY: bundle-publish
 bundle-publish:	## Open up a PR to the Operator Hub community catalog
 	./scripts/release/operatorhub.sh
