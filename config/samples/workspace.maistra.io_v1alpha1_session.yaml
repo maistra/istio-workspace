@@ -1,4 +1,4 @@
-apiVersion: maistra.io/v1alpha1
+apiVersion: workspace.maistra.io/v1alpha1
 kind: Session
 metadata:
   name: session-sample

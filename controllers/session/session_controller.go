@@ -120,7 +120,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 
 		// Watch for changes to secondary resources
 		err = c.Watch(&source.Kind{Type: object}, &reference.EnqueueRequestForAnnotation{
-			Type: schema.GroupKind{Group: "maistra.io", Kind: "Session"},
+			Type: schema.GroupKind{Group: "workspace.maistra.io", Kind: "Session"},
 		}, predicate.GenerationChangedPredicate{})
 		if err != nil {
 			logger().Error(err, "could not add watch on crd")
@@ -159,9 +159,9 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 	return objects
 }
 
-// +kubebuilder:rbac:groups=maistra.io,resources=sessions,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=maistra.io,resources=sessions/finalizers,verbs=update
-// +kubebuilder:rbac:groups=maistra.io,resources=sessions/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=workspace.maistra.io,resources=sessions,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=workspace.maistra.io,resources=sessions/finalizers,verbs=update
+// +kubebuilder:rbac:groups=workspace.maistra.io,resources=sessions/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
 // +kubebuilder:rbac:groups="",resources=pods;services;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=*
 // +kubebuilder:rbac:groups=apps,resources=deployments;daemonsets;replicasets;statefulsets,verbs=*

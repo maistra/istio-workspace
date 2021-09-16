@@ -60,32 +60,6 @@ rules:
   verbs:
   - '*'
 - apiGroups:
-  - maistra.io
-  resources:
-  - sessions
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - maistra.io
-  resources:
-  - sessions/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - maistra.io
-  resources:
-  - sessions/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - monitoring.coreos.com
   resources:
   - servicemonitors
@@ -98,3 +72,29 @@ rules:
   - '*'
   verbs:
   - '*'
+- apiGroups:
+  - workspace.maistra.io
+  resources:
+  - sessions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - workspace.maistra.io
+  resources:
+  - sessions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - workspace.maistra.io
+  resources:
+  - sessions/status
+  verbs:
+  - get
+  - patch
+  - update

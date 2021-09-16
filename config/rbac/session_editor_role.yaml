@@ -5,7 +5,7 @@ metadata:
   name: session-editor-role
 rules:
 - apiGroups:
-  - maistra.io
+  - workspace.maistra.io
   resources:
   - sessions
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - maistra.io
+  - workspace.maistra.io
   resources:
   - sessions/status
   verbs:

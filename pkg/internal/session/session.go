@@ -114,7 +114,7 @@ func (h *handler) createSession() (*istiov1alpha1.Session, error) {
 	}
 	session := istiov1alpha1.Session{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "maistra.io/v1alpha1",
+			APIVersion: "workspace.maistra.io/v1alpha1",
 			Kind:       "Session",
 		},
 		ObjectMeta: metav1.ObjectMeta{
