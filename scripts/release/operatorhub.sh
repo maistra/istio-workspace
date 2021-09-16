@@ -64,7 +64,7 @@ FORK="${FORK:-maistra}"
 FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
 
 OPERATOR_NAME=istio-workspace-operator
-OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5}
+OPERATOR_VERSION=${OPERATOR_VERSION:-0.3.0}
 OPERATOR_HUB=${OPERATOR_HUB:-community-operators}
 
 BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
@@ -94,8 +94,8 @@ if [[ $runTests -ne 0 ]]; then
   echo "Running tests: $tests"
 
   cd "${TMP_DIR}"
-
-  bash <(curl -sL https://cutt.ly/WhkV76k) \
+  export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/redhat-openshift-ecosystem/operator-test-playbooks" ## can be removed after https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/244 is merged
+  bash <(curl -sL https://cutt.ly/AEeucaw) \
   "$tests" \
   "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"
 fi
