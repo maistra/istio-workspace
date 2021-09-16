@@ -87,8 +87,8 @@ git checkout -b "${BRANCH}"
 mkdir -p "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
 cp -a "${CUR_DIR}"/../../bundle/. "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
 
-git add .
-git commit -s -S -m"${TITLE}"
+skipInDryRun git add .
+skipInDryRun git commit -s -S -m"${TITLE}"
 
 if [[ $runTests -ne 0 ]]; then
   echo "Running tests: $tests"
