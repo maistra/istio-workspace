@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.3.0
 	github.com/kisielk/errcheck v1.6.0
-	github.com/mikefarah/yq/v4 v4.12.2
+	github.com/mikefarah/yq/v4 v4.13.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
@@ -28,7 +28,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
 	go.uber.org/goleak v1.1.11
-	go.uber.org/zap v1.19.0
+	go.uber.org/zap v1.19.1
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.5
 	google.golang.org/grpc v1.40.0
