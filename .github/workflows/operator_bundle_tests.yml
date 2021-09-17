@@ -30,3 +30,10 @@ jobs:
           cd go/src/github.com/${{ env.REPOSITORY }}
           make lint-prepare bundle-test
         shell: bash
+      - name: Print test logs on failure
+        if: ${{ failure() }}
+        run: |
+          cat /tmp/test.out
+          echo -e "\n--------------------------------------------------------------------------\n"
+          cat /tmp/op-test/log.out
+        shell: bash
