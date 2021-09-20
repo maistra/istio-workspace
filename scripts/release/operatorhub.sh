@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 show_help() {
   echo "operatorhub - raises PR to Operator Hub"
@@ -56,6 +56,7 @@ while test $# -gt 0; do
   esac
 done
 
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
@@ -108,7 +109,6 @@ if [[ $runTests -ne 0 ]]; then
     exit 1;
   fi # "Failed" was found in the logs
 fi
-
 if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 show_help() {
   echo "tektoncatalog - raises PR to Operator Hub"
