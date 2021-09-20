@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail 
+
 protobuf_version="3.15.8"
 
 get_arch() {
