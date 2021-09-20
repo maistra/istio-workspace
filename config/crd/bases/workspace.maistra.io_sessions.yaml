@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: sessions.maistra.io
+  name: sessions.workspace.maistra.io
 spec:
-  group: maistra.io
+  group: workspace.maistra.io
   names:
     kind: Session
     listKind: SessionList
@@ -160,7 +160,8 @@ spec:
               readiness:
                 properties:
                   components:
-                    description: Status of resources deployed/modifed by this Session resource
+                    description: Status of resources deployed/modifed by this Session
+                      resource
                     properties:
                       pending:
                         items:

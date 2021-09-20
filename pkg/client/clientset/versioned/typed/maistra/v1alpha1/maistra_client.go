@@ -8,22 +8,22 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-type MaistraV1alpha1Interface interface {
+type WorkspaceV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	SessionsGetter
 }
 
-// MaistraV1alpha1Client is used to interact with features provided by the maistra.io group.
-type MaistraV1alpha1Client struct {
+// WorkspaceV1alpha1Client is used to interact with features provided by the workspace.maistra.io group.
+type WorkspaceV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *MaistraV1alpha1Client) Sessions(namespace string) SessionInterface {
+func (c *WorkspaceV1alpha1Client) Sessions(namespace string) SessionInterface {
 	return newSessions(c, namespace)
 }
 
-// NewForConfig creates a new MaistraV1alpha1Client for the given config.
-func NewForConfig(c *rest.Config) (*MaistraV1alpha1Client, error) {
+// NewForConfig creates a new WorkspaceV1alpha1Client for the given config.
+func NewForConfig(c *rest.Config) (*WorkspaceV1alpha1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -32,12 +32,12 @@ func NewForConfig(c *rest.Config) (*MaistraV1alpha1Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &MaistraV1alpha1Client{client}, nil
+	return &WorkspaceV1alpha1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new MaistraV1alpha1Client for the given config and
+// NewForConfigOrDie creates a new WorkspaceV1alpha1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *MaistraV1alpha1Client {
+func NewForConfigOrDie(c *rest.Config) *WorkspaceV1alpha1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -45,9 +45,9 @@ func NewForConfigOrDie(c *rest.Config) *MaistraV1alpha1Client {
 	return client
 }
 
-// New creates a new MaistraV1alpha1Client for the given RESTClient.
-func New(c rest.Interface) *MaistraV1alpha1Client {
-	return &MaistraV1alpha1Client{c}
+// New creates a new WorkspaceV1alpha1Client for the given RESTClient.
+func New(c rest.Interface) *WorkspaceV1alpha1Client {
+	return &WorkspaceV1alpha1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -65,7 +65,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *MaistraV1alpha1Client) RESTClient() rest.Interface {
+func (c *WorkspaceV1alpha1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

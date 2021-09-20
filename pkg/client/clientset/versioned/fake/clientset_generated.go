@@ -4,8 +4,8 @@ package fake
 
 import (
 	clientset "github.com/maistra/istio-workspace/pkg/client/clientset/versioned"
-	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
-	fakemaistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1/fake"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
+	fakeworkspacev1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -63,7 +63,7 @@ var (
 	_ testing.FakeClient  = &Clientset{}
 )
 
-// MaistraV1alpha1 retrieves the MaistraV1alpha1Client
-func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
-	return &fakemaistrav1alpha1.FakeMaistraV1alpha1{Fake: &c.Fake}
+// WorkspaceV1alpha1 retrieves the WorkspaceV1alpha1Client
+func (c *Clientset) WorkspaceV1alpha1() workspacev1alpha1.WorkspaceV1alpha1Interface {
+	return &fakeworkspacev1alpha1.FakeWorkspaceV1alpha1{Fake: &c.Fake}
 }
