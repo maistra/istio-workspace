@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: "Tag matching commit (with `/tag vX.Y.Z` directive in the commit message)"
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@v4.1
         env:
           GIT_USER: ${{secrets.GIT_USER}}
           GIT_EMAIL: ${{secrets.GIT_EMAIL}}
