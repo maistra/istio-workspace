@@ -422,7 +422,7 @@ bundle-clean:	## Clean the bundle image
 	operator-sdk cleanup istio-workspace-operator -n $(OPERATOR_NAMESPACE)
 
 .PHONY: bundle-test
-bundle-test: bundle	## Open up a PR to the Operator Hub community catalog
+bundle-test: bundle	## Run the Operator Hub test suite
 	./scripts/release/operatorhub.sh --dry-run --test
 
 .PHONY: bundle-publish
