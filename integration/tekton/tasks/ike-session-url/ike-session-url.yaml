@@ -28,9 +28,9 @@ spec:
       image: quay.io/openshift/origin-cli:4.9
       script: |
         #!/usr/bin/env bash
-        if ! STATE=$(oc get session "$(params.session)" --namespace "$(params.namespace)" -o jsonpath={.status.hosts}); then
+        if ! STATE=$(oc get session "$(params.session)" --namespace "$(params.namespace)" -o jsonpath="{.status.hosts}"); then
           error=$?
           echo "${STATE}"
           exit $error
         fi
-        echo "${STATE}" | grep \" | cut -d \" -f 2 | uniq | tr -d '\n' | tee $(results.url.path)
+        echo "${STATE}" | grep \" | cut -d \" -f 2 | uniq | tr -d '\n' | tee "$(results.url.path)"

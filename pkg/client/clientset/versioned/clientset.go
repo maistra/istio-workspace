@@ -5,7 +5,7 @@ package versioned
 import (
 	"fmt"
 
-	maistrav1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/typed/maistra/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -13,19 +13,19 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface
+	WorkspaceV1alpha1() workspacev1alpha1.WorkspaceV1alpha1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	maistraV1alpha1 *maistrav1alpha1.MaistraV1alpha1Client
+	workspaceV1alpha1 *workspacev1alpha1.WorkspaceV1alpha1Client
 }
 
-// MaistraV1alpha1 retrieves the MaistraV1alpha1Client
-func (c *Clientset) MaistraV1alpha1() maistrav1alpha1.MaistraV1alpha1Interface {
-	return c.maistraV1alpha1
+// WorkspaceV1alpha1 retrieves the WorkspaceV1alpha1Client
+func (c *Clientset) WorkspaceV1alpha1() workspacev1alpha1.WorkspaceV1alpha1Interface {
+	return c.workspaceV1alpha1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -49,7 +49,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.maistraV1alpha1, err = maistrav1alpha1.NewForConfig(&configShallowCopy)
+	cs.workspaceV1alpha1, err = workspacev1alpha1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.maistraV1alpha1 = maistrav1alpha1.NewForConfigOrDie(c)
+	cs.workspaceV1alpha1 = workspacev1alpha1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -74,7 +74,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.maistraV1alpha1 = maistrav1alpha1.New(c)
+	cs.workspaceV1alpha1 = workspacev1alpha1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

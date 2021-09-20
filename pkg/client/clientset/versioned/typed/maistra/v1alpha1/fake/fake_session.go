@@ -16,13 +16,13 @@ import (
 
 // FakeSessions implements SessionInterface
 type FakeSessions struct {
-	Fake *FakeMaistraV1alpha1
+	Fake *FakeWorkspaceV1alpha1
 	ns   string
 }
 
-var sessionsResource = schema.GroupVersionResource{Group: "maistra.io", Version: "v1alpha1", Resource: "sessions"}
+var sessionsResource = schema.GroupVersionResource{Group: "workspace.maistra.io", Version: "v1alpha1", Resource: "sessions"}
 
-var sessionsKind = schema.GroupVersionKind{Group: "maistra.io", Version: "v1alpha1", Kind: "Session"}
+var sessionsKind = schema.GroupVersionKind{Group: "workspace.maistra.io", Version: "v1alpha1", Kind: "Session"}
 
 // Get takes name of the session, and returns the corresponding session object, and an error if there is any.
 func (c *FakeSessions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Session, err error) {

@@ -71,7 +71,7 @@ func createDefaultClient(namespace string) (*Client, error) {
 
 // Create creates a session instance in a cluster.
 func (c *Client) Create(session *istiov1alpha1.Session) error {
-	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Create(context.Background(), session, metav1.CreateOptions{}); err != nil {
+	if _, err := c.Interface.WorkspaceV1alpha1().Sessions(c.namespace).Create(context.Background(), session, metav1.CreateOptions{}); err != nil {
 		return errors.WrapWithDetails(err, "failed creating session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 	}
 
@@ -80,7 +80,7 @@ func (c *Client) Create(session *istiov1alpha1.Session) error {
 
 // Update updates a session instance in a cluster.
 func (c *Client) Update(session *istiov1alpha1.Session) error {
-	if _, err := c.Interface.MaistraV1alpha1().Sessions(c.namespace).Update(context.Background(), session, metav1.UpdateOptions{}); err != nil {
+	if _, err := c.Interface.WorkspaceV1alpha1().Sessions(c.namespace).Update(context.Background(), session, metav1.UpdateOptions{}); err != nil {
 		return errors.WrapWithDetails(err, "failed updating session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 	}
 
@@ -89,14 +89,14 @@ func (c *Client) Update(session *istiov1alpha1.Session) error {
 
 // Delete deletes a session instance in a cluster.
 func (c *Client) Delete(session *istiov1alpha1.Session) error {
-	err := c.MaistraV1alpha1().Sessions(c.namespace).Delete(context.Background(), session.Name, metav1.DeleteOptions{})
+	err := c.WorkspaceV1alpha1().Sessions(c.namespace).Delete(context.Background(), session.Name, metav1.DeleteOptions{})
 
 	return errors.WrapWithDetails(err, "failed deleting session", "kind", "session", "name", session.Name, "namespace", c.namespace)
 }
 
 // Get retrieves details of the Session instance matching passed name.
 func (c *Client) Get(sessionName string) (*istiov1alpha1.Session, error) {
-	session, err := c.MaistraV1alpha1().Sessions(c.namespace).Get(context.Background(), sessionName, metav1.GetOptions{})
+	session, err := c.WorkspaceV1alpha1().Sessions(c.namespace).Get(context.Background(), sessionName, metav1.GetOptions{})
 
 	return session, errors.WrapWithDetails(err, "failed retrieving session", "kind", "session", "name", sessionName, "namespace", c.namespace)
 }

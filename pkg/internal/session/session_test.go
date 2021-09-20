@@ -66,7 +66,7 @@ var _ = Describe("Session operations", func() {
 				objects = []runtime.Object{
 					&istiov1alpha1.Session{
 						TypeMeta: metav1.TypeMeta{
-							APIVersion: "maistra.io/v1alpha1",
+							APIVersion: "workspace.maistra.io/v1alpha1",
 							Kind:       "Session",
 						},
 						ObjectMeta: metav1.ObjectMeta{
@@ -156,7 +156,7 @@ var _ = Describe("Session operations", func() {
 				objects = []runtime.Object{
 					&istiov1alpha1.Session{
 						TypeMeta: metav1.TypeMeta{
-							APIVersion: "maistra.io/v1alpha1",
+							APIVersion: "workspace.maistra.io/v1alpha1",
 							Kind:       "Session",
 						},
 						ObjectMeta: metav1.ObjectMeta{
