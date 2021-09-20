@@ -2,7 +2,7 @@
 
 ## Derived from https://github.com/goreleaser/get/blob/03c4bfde763b30bfe270892ab3ff74949d8e9351/get
 
-set -e
+set -euo pipefail
 
 die () {
     echo >&2 "$@"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 show_help() {
   echo "operatorhub - raises PR to Operator Hub"
