@@ -56,24 +56,30 @@ while test $# -gt 0; do
   esac
 done
 
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+BUNDLE_DIR="${CUR_DIR}"/../../bundle/
+
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
-OWNER="${OWNER:-operator-framework}"
-HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
-HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-master}"
-FORK="${FORK:-maistra}"
-FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
 
 OPERATOR_NAME=istio-workspace-operator
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.3.0}
-OPERATOR_HUB=${OPERATOR_HUB:-community-operators}
+OPERATOR_HUB=${OPERATOR_HUB:-"k8s-operatorhub/community-operators"}
+
+TMP_DIR=$(mktemp -d -t "${OPERATOR_NAME}.XXXXXXXXXX")
+trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
+
+OWNER="${OWNER:-operator-framework}"
+HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
+HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-master}"
+
+FORK="${FORK:-maistra}"
+FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
 
 BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
+
 TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
 
-CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-TMP_DIR=$(mktemp -d -t "${OPERATOR_HUB}-${OPERATOR_NAME}.XXXXXXXXXX")
-trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
 
 source "${CUR_DIR}"/validate_semver.sh
 
@@ -86,14 +92,15 @@ git remote add fork "${FORK_REPO_URL}"
 git checkout -b "${BRANCH}"
 
 mkdir -p "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
-cp -a "${CUR_DIR}"/../../bundle/. "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
+cp -a "${BUNDLE_DIR}"/. "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
 
 skipInDryRun git add .
 skipInDryRun git commit -s -S -m"${TITLE}"
 
+
+## No need to use copied repo - run on our own instead ? it has to have certain structure ... like before stream/operator/version
 if [[ $runTests -ne 0 ]]; then
   echo "Running tests: $tests"
-
   cd "${TMP_DIR}"
 
   ## can be removed after https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/244 is merged
@@ -109,6 +116,7 @@ if [[ $runTests -ne 0 ]]; then
     exit 1;
   fi # "Failed" was found in the logs
 fi
+
 if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
 fi
