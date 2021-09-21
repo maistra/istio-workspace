@@ -14,4 +14,3 @@ jobs:
           fetch-depth: 1
       - name: Validate Tekton Tasks
         uses: bartoszmajsak/tekton-task-linter-action@v1.0.0
-
