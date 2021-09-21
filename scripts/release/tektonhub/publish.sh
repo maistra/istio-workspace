@@ -3,9 +3,9 @@
 set -euo pipefail
 
 show_help() {
-  echo "tektoncatalog - raises PR to Operator Hub"
+  echo "publish - raises PR to Operator Hub"
   echo " "
-  echo "./tektoncatalog.sh [options]"
+  echo "./publish.sh [options]"
   echo " "
   echo "Options:"
   echo "-h, --help              shows brief help"
