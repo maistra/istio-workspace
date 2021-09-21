@@ -3,22 +3,19 @@
 set -euo pipefail
 
 show_help() {
-  echo "operatorhub - raises PR to Operator Hub"
+  echo "publish - raises PR to Operator Hub"
   echo " "
-  echo "./operatorhub.sh [options]"
+  echo "./publish.sh [options]"
   echo " "
   echo "Options:"
-  echo "-h, --help              shows brief help"
-  echo "-t, --test              runs operator-framework ansible tests (default: all. other supported values are: orange, kiwi or lemon)"
-  echo "-d, --dry-run           skips push to GH and PR"
+  echo "-h, --help        shows brief help"
+  echo "-d, --dry-run     skips push to GH and PR"
 }
 
-runTests=0
-tests=all
 dryRun=false
 
 skipInDryRun() {
-   if $dryRun; then echo "# $@";  fi
+  if $dryRun; then echo "# $@";  fi
   if ! $dryRun; then "$@";  fi
 }
 
@@ -28,22 +25,6 @@ while test $# -gt 0; do
             show_help
             exit 0
             ;;
-    -t)
-            shift
-            runTests=1
-            if test $# -gt 0; then
-              tests=$1
-            fi
-            shift
-            ;;
-    --test*)
-        runTests=1
-        tests=$(echo $1 | sed -e 's/^[^=]*=//g')
-        if [[ "$tests" == "--test" ]]; then
-          tests=all
-        fi
-        shift
-        ;;
     -d|--dry-run)
             dryRun=true
             shift
@@ -57,7 +38,7 @@ while test $# -gt 0; do
 done
 
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-BUNDLE_DIR="${CUR_DIR}"/../../bundle/
+BUNDLE_DIR="${CUR_DIR}"/../../../bundle/
 
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
@@ -81,7 +62,7 @@ BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
 TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
 
 
-source "${CUR_DIR}"/validate_semver.sh
+source "${CUR_DIR}"/../validate_semver.sh
 
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
@@ -97,25 +78,6 @@ cp -a "${BUNDLE_DIR}"/. "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
 skipInDryRun git add .
 skipInDryRun git commit -s -S -m"${TITLE}"
 
-
-## No need to use copied repo - run on our own instead ? it has to have certain structure ... like before stream/operator/version
-if [[ $runTests -ne 0 ]]; then
-  echo "Running tests: $tests"
-  cd "${TMP_DIR}"
-
-  ## can be removed after https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/244 is merged
-  export OP_TEST_ANSIBLE_PULL_REPO="https://github.com/redhat-openshift-ecosystem/operator-test-playbooks"
-
-  bash <(curl -sL https://cutt.ly/AEeucaw) \
-  "$tests" \
-  "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}" > /tmp/test.out
-
-  ## Until the script is fixed https://github.com/redhat-openshift-ecosystem/operator-test-playbooks/pull/247
-  if tail -n 4 /tmp/test.out | grep "Failed with rc";
-  then
-    exit 1;
-  fi # "Failed" was found in the logs
-fi
 
 if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1

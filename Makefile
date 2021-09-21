@@ -423,11 +423,11 @@ bundle-clean:	## Clean the bundle image
 
 .PHONY: bundle-test
 bundle-test: bundle	## Run the Operator Hub test suite
-	./scripts/release/operatorhub.sh --dry-run --test
+	./scripts/release/operatorhub/test.sh
 
 .PHONY: bundle-publish
 bundle-publish:	## Open up a PR to the Operator Hub community catalog
-	./scripts/release/operatorhub.sh
+	./scripts/release/operatorhub/publish.sh
 
 # ##########################################################################
 ##@ Tekton tasks
