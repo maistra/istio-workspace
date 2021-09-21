@@ -456,7 +456,7 @@ tekton-test-%: $(PROJECT_DIR)/bin/yq ## Run a Tekton tasks for test purpose
 
 .PHONY: tekton-publish
 tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekton Hub
-	./scripts/release/tektoncatalog.sh
+	./scripts/release/tektonhub/tektoncatalog.sh
 
 
 # ##########################################################################
