@@ -45,22 +45,19 @@ GIT_USER="${GIT_USER:-alien-ike}"
 
 OPERATOR_NAME=istio-workspace-operator
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.3.0}
-OPERATOR_HUB=${OPERATOR_HUB:-"k8s-operatorhub/community-operators"}
+OPERATOR_HUB=${OPERATOR_HUB:-"community-operators"}
 
 TMP_DIR=$(mktemp -d -t "${OPERATOR_NAME}.XXXXXXXXXX")
 trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
 
-OWNER="${OWNER:-operator-framework}"
-HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
-HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-master}"
+OWNER="${OWNER:-"k8s-operatorhub"}"
+HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/${OPERATOR_HUB}.git}"
+HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-main}"
 
 FORK="${FORK:-maistra}"
-FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
+FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/${OPERATOR_HUB}.git}"
 
-BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
-
-TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
-
+BRANCH=${BRANCH:-"${OPERATOR_NAME}-${OPERATOR_VERSION}"}
 
 source "${CUR_DIR}"/../validate_semver.sh
 
@@ -70,14 +67,16 @@ git clone "${HUB_REPO_URL}" "${TMP_DIR}"
 
 cd "${TMP_DIR}"
 git remote add fork "${FORK_REPO_URL}"
+skipInDryRun git push fork "${HUB_BASE_BRANCH}" # ensures our fork is in sync with upstream
 git checkout -b "${BRANCH}"
 
-mkdir -p "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
-cp -a "${BUNDLE_DIR}"/. "${OPERATOR_HUB}/${OPERATOR_NAME}/${OPERATOR_VERSION}"/
+OPERATORS_DIR="operators/${OPERATOR_NAME}/${OPERATOR_VERSION}/"
+mkdir -p "${OPERATORS_DIR}"
+cp -a "${BUNDLE_DIR}"/. "${OPERATORS_DIR}"
 
+TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
 skipInDryRun git add .
 skipInDryRun git commit -s -S -m"${TITLE}"
-
 
 if [[ ! $dryRun && -z $GITHUB_TOKEN ]]; then
   echo "Please provide GITHUB_TOKEN" && exit 1
@@ -103,5 +102,5 @@ skipInDryRun curl \
   -X POST \
   -H "Authorization: token ${GITHUB_TOKEN}" \
   -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/repos/"${OWNER}"/community-operators/pulls \
+  https://api.github.com/repos/"${OWNER}/${OPERATOR_HUB}"/pulls \
    --data-binary "@${PAYLOAD}"
