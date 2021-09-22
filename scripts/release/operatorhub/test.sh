@@ -22,7 +22,6 @@ while test $# -gt 0; do
         ;;
     -t)
         shift
-        runTests=1
         if test $# -gt 0; then
           tests=$1
         fi
@@ -56,12 +55,13 @@ OPERATOR_HUB=${OPERATOR_HUB:-"community-operators"}
 TMP_DIR=$(mktemp -d -t "${OPERATOR_NAME}.XXXXXXXXXX")
 trap '{ rm -rf -- "$TMP_DIR"; }' EXIT
 
+#### We can keep old repository to run tests (upstream testing script still relies on that)
 OWNER="${OWNER:-operator-framework}"
 HUB_REPO_URL="${HUB_REPO_URL:-https://github.com/${OWNER}/community-operators.git}"
 HUB_BASE_BRANCH="${HUB_BASE_BRANCH:-master}"
 
 FORK="${FORK:-maistra}"
-FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators.git}"
+FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/community-operators-archived.git}"
 
 BRANCH=${BRANCH:-"${OPERATOR_HUB}/${OPERATOR_NAME}-${OPERATOR_VERSION}"}
 
