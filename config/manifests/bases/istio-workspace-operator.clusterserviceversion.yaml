@@ -20,7 +20,7 @@ spec:
     - description: Session controls the creation of the specialized hidden routes.
       displayName: Session
       kind: Session
-      name: sessions.maistra.io
+      name: sessions.workspace.maistra.io
       statusDescriptors:
       - description: Status of resources deployed/modifed by this Session resource
         displayName: Resources
