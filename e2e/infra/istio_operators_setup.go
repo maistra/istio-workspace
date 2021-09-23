@@ -13,8 +13,8 @@ import (
 func BuildOperator() (registry string) {
 	projectDir := shell.GetProjectDir()
 	namespace := setOperatorNamespace()
-	registry = SetDockerRegistryExternal()
-	setDockerRepository(GetRepositoryName())
+	registry = SetExternalContainerRegistry()
+	setContainerRepository(GetRepositoryName())
 	shell.Execute(NewProjectCmd(namespace)).Done() // Ignore failure if ns already exists
 	if RunsOnOpenshift {
 		EnablePullingImages(namespace)
@@ -23,14 +23,14 @@ func BuildOperator() (registry string) {
 		)
 	}
 	shell.WaitForSuccess(
-		shell.ExecuteInDir(projectDir, "make", "docker-build", "docker-push", "bundle", "bundle-build", "bundle-push"),
+		shell.ExecuteInDir(projectDir, "make", "container-image", "container-push", "bundle", "bundle-image", "bundle-push"),
 	)
 
 	return
 }
 
 func InstallLocalOperator(namespace string) {
-	SetDockerRegistryInternal()
+	SetInternalContainerRegistry()
 
 	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))

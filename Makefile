@@ -1,3 +1,7 @@
+# Determines this makefile's path.
+# Be sure to place this BEFORE `include` directives, if any.
+THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
+
 PROJECT_NAME:=istio-workspace
 PACKAGE_NAME:=github.com/maistra/istio-workspace
 
@@ -21,18 +25,6 @@ MANIFEST_DIR:=$(PROJECT_DIR)/deploy
 GOPATH_1:=$(shell echo ${GOPATH} | cut -d':' -f 1)
 GOBIN=$(GOPATH_1)/bin
 PATH:=${GOBIN}/bin:$(PROJECT_DIR)/bin:$(PATH)
-
-# Determine this makefile's path.
-# Be sure to place this BEFORE `include` directives, if any.
-THIS_MAKEFILE:=$(lastword $(MAKEFILE_LIST))
-
-CHANNELS?="alpha"
-DEFAULT_CHANNEL?="alpha"
-BUNDLE_CHANNELS:=--channels=$(CHANNELS)
-BUNDLE_DEFAULT_CHANNEL:=--default-channel=$(DEFAULT_CHANNEL)
-BUNDLE_METADATA_OPTS?=$(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
-
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
 # Call this function with $(call header,"Your message") to see underscored green text
 define header =
@@ -136,6 +128,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run --fix --sort-results
 
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
@@ -256,28 +249,28 @@ $(PROJECT_DIR)/bin/operator-sdk:
 ##@ Image builds
 ###########################################################################
 
-IKE_DOCKER_REGISTRY?=quay.io
-IKE_DOCKER_REPOSITORY?=maistra
-IKE_DOCKER_DEV_REPOSITORY?=maistra-dev
+IKE_CONTAINER_REGISTRY?=quay.io
+IKE_CONTAINER_REPOSITORY?=maistra
+IKE_CONTAINER_DEV_REPOSITORY?=maistra-dev
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
 IKE_IMAGE_TAG?=$(IKE_VERSION)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
 IKE_TEST_PREPARED_NAME?=prepared-image
-IKE_IMAGE=${IKE_DOCKER_REGISTRY}\/${IKE_DOCKER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
+IKE_IMAGE=${IKE_CONTAINER_REGISTRY}\/${IKE_CONTAINER_REPOSITORY}\/${IKE_IMAGE_NAME}:${IKE_IMAGE_TAG}
 
-export IKE_DOCKER_REGISTRY
-export IKE_DOCKER_REPOSITORY
-export IKE_DOCKER_DEV_REPOSITORY
+export IKE_CONTAINER_REGISTRY
+export IKE_CONTAINER_REPOSITORY
+export IKE_CONTAINER_DEV_REPOSITORY
 export IKE_IMAGE_NAME
 export IKE_IMAGE_TAG
 export IKE_VERSION
 export IKE_IMAGE
 
-.PHONY: docker-build
-docker-build: GOOS=linux
-docker-build: compile ## Builds the docker image
-	$(call header,"Building docker image $(IKE_IMAGE_NAME)")
+.PHONY: container-image
+container-image: GOOS=linux
+container-image: compile ## Builds the container image
+	$(call header,"Building container image $(IKE_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--label "org.opencontainers.image.title=$(IKE_IMAGE_NAME)" \
 		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
@@ -289,25 +282,25 @@ docker-build: compile ## Builds the docker image
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
-		-t $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		-t $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/Containerfile $(DIST_DIR)
 	$(IMG_BUILDER) tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
-.PHONY: docker-push
-docker-push: docker-push--latest docker-push-versioned ## Pushes docker images to the registry (latest and versioned)
+.PHONY: container-push
+container-push: container-push--latest container-push-versioned ## Pushes container images to the registry (latest and versioned)
 
-docker-push-versioned: docker-push--$(IKE_IMAGE_TAG)
+container-push-versioned: container-push--$(IKE_IMAGE_TAG)
 
-docker-push--%:
-	$(eval image_tag:=$(subst docker-push--,,$@))
-	$(call header,"Pushing docker image $(image_tag)")
-	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
+container-push--%:
+	$(eval image_tag:=$(subst container-push--,,$@))
+	$(call header,"Pushing container image $(image_tag)")
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
 
-.PHONY: docker-build-test
-docker-build-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
-	$(call header,"Building docker image $(IKE_TEST_IMAGE_NAME)")
+.PHONY: container-image-test
+container-image-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
+	$(call header,"Building container image $(IKE_TEST_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--no-cache \
 		--label "org.opencontainers.image.title=$(IKE_TEST_IMAGE_NAME)" \
@@ -320,22 +313,22 @@ docker-build-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
-		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		--tag $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/ContainerfileTest $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
-.PHONY: docker-push-test
-docker-push-test:
-	$(call header,"Pushing docker image $(IKE_TEST_IMAGE_NAME)")
-	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
-	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
+.PHONY: container-push-test
+container-push-test:
+	$(call header,"Pushing container image $(IKE_TEST_IMAGE_NAME)")
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_IMAGE_NAME):latest
 
-.PHONY: docker-build-test-prepared
-docker-build-test-prepared:
-	$(call header,"Building docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
+.PHONY: container-image-test-prepared
+container-image-test-prepared:
+	$(call header,"Building container image $(IKE_TEST_PREPARED_IMAGE_NAME)")
 	$(IMG_BUILDER) build \
 		--no-cache \
 		--build-arg=name=$(IKE_TEST_PREPARED_NAME) \
@@ -349,35 +342,41 @@ docker-build-test-prepared:
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
 		--network=host \
-		--tag $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
+		--tag $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
 		-f $(BUILD_DIR)/ContainerfileTestPrepared $(DIST_DIR)
 
 	$(IMG_BUILDER) tag \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
-		$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG) \
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
-.PHONY: docker-push-test-prepared
-docker-push-test-prepared:
-	$(call header,"Pushing docker image $(IKE_TEST_PREPARED_IMAGE_NAME)")
-	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
-	$(IMG_BUILDER) push $(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
+.PHONY: container-push-test-prepared
+container-push-test-prepared:
+	$(call header,"Pushing container image $(IKE_TEST_PREPARED_IMAGE_NAME)")
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):latest
 
 ###########################################################################
 ##@ Operator SDK bundle
 ###########################################################################
 
-BUNDLE_IMG?=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
+CHANNELS?="alpha"
+DEFAULT_CHANNEL?="alpha"
+BUNDLE_CHANNELS:=--channels=$(CHANNELS)
+BUNDLE_DEFAULT_CHANNEL:=--default-channel=$(DEFAULT_CHANNEL)
+BUNDLE_METADATA_OPTS?=$(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+BUNDLE_IMG?=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
 DESC_FILE:=dist/operatorhub_description.md
 CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
 bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR) ## Generate bundle manifests and metadata, then validate generated files
 	operator-sdk generate kustomize manifests -q
-	cd config/manager && kustomize edit set image controller=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
+	cd config/manager && kustomize edit set image controller=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
 	mv -f bundle.Dockerfile build/bundle.Containerfile
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Containerfile
-	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_DOCKER_REGISTRY)\/$(IKE_DOCKER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
+	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_CONTAINER_REGISTRY)\/$(IKE_CONTAINER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
 	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
 	cat $(PROJECT_DIR)/README.md | awk '/tag::description/{flag=1;next}/end::description/{flag=0}flag' > $(PROJECT_DIR)/$(DESC_FILE)
 	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
@@ -386,8 +385,8 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 
 	operator-sdk bundle validate ./bundle
 
-.PHONY: bundle-build
-bundle-build:	## Build the bundle image
+.PHONY: bundle-image
+bundle-image:	## Build the bundle image
 	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
@@ -415,7 +414,6 @@ bundle-run-multi:		## Run the bundle image in MultiNamespace(OPERATOR_NAMESPACE)
 bundle-run-all:		## Run the bundle image in AllNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
 	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespaces --timeout $(BUNDLE_TIMEOUT)
-
 
 .PHONY: bundle-clean
 bundle-clean:	## Clean the bundle image
@@ -447,7 +445,7 @@ tekton-undeploy: ## UnDeploy the Tekton tasks
 	$(k8s) delete -n $(TEST_NAMESPACE) -f "$(PROJECT_DIR)/integration/tekton/tasks/ike-delete/ike-delete.yaml" || true
 
 TEST_SESSION_NAME?=test-session
-IKE_TEST_PREPARED_IMG:=$(IKE_DOCKER_REGISTRY)/$(IKE_DOCKER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
+IKE_TEST_PREPARED_IMG:=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_DEV_REPOSITORY)/$(IKE_TEST_PREPARED_IMAGE_NAME)-$(IKE_TEST_PREPARED_NAME):$(IKE_IMAGE_TAG)
 
 tekton-test-%: $(PROJECT_DIR)/bin/yq ## Run a Tekton tasks for test purpose
 	$(eval task:=$(subst tekton-test-,,$@))
