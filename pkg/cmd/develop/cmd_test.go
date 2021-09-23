@@ -94,9 +94,14 @@ var _ = Describe("Usage of ike develop command", func() {
   port: 9876,9877
 `
 			var configFile afero.File
+			tmpFs := NewTmpFileSystem(GinkgoT())
 
 			BeforeEach(func() {
-				configFile = TmpFile(GinkgoT(), "config.yaml", config)
+				configFile = tmpFs.File("config.yaml", config)
+			})
+
+			AfterEach(func() {
+				tmpFs.Cleanup()
 			})
 
 			It("should fail when passing non-existing config file", func() {
@@ -136,7 +141,7 @@ var _ = Describe("Usage of ike develop command", func() {
 				var envConfigFile afero.File
 
 				BeforeEach(func() {
-					envConfigFile = TmpFile(GinkgoT(), "env_config.yaml", envConfig)
+					envConfigFile = tmpFs.File("env_config.yaml", envConfig)
 					_ = os.Setenv("IKE_CONFIG", envConfigFile.Name())
 				})
 
