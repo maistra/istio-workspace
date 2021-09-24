@@ -14,21 +14,22 @@ var _ = Describe("Loading assets", func() {
 
 	var tmpDirPath string
 	tmpDirName := "loader-tests"
+	tmpFs := test.NewTmpFileSystem(GinkgoT())
 
 	assetName := "test-file-001.yaml"
 
 	JustAfterEach(func() {
-		test.CleanUpTmpFiles(GinkgoT())
+		tmpFs.Cleanup()
 	})
 
 	Context("Listing assets", func() {
 		Context("Local file system", func() {
 			It("should list files from existing directory", func() {
 				// given
-				tmpDirPath = test.TmpDir(GinkgoT(), tmpDirName)
+				tmpDirPath = tmpFs.Dir(tmpDirName)
 
 				fileName := tmpDirPath + "/" + assetName
-				test.TmpFile(GinkgoT(), fileName, "it works!")
+				tmpFs.File(fileName, "it works!")
 
 				// when
 				files, err := ListDir(tmpDirPath)
@@ -40,7 +41,7 @@ var _ = Describe("Loading assets", func() {
 
 			It("should return empty list for empty dir", func() {
 				// given
-				tmpDirPath = test.TmpDir(GinkgoT(), "loader-tests")
+				tmpDirPath = tmpFs.Dir("loader-tests")
 
 				// when
 				files, err := ListDir(tmpDirPath)
@@ -76,10 +77,10 @@ var _ = Describe("Loading assets", func() {
 
 			It("should load file from filesystem", func() {
 				// given
-				tmpDirPath = test.TmpDir(GinkgoT(), tmpDirName)
+				tmpDirPath = tmpFs.Dir(tmpDirName)
 
 				fileName := tmpDirPath + "/" + assetName
-				test.TmpFile(GinkgoT(), fileName, "it works!")
+				tmpFs.File(fileName, "it works!")
 
 				stubBinDataStructs(tmpDirName, assetName, fileName)
 
