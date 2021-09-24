@@ -51,7 +51,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 			// Don't setup shared image namespace if we're not building the images as part of the test flow
 			if !UsePrebuiltImages() {
-				fmt.Printf("\nExposing Docker Registry\n")
+				fmt.Printf("\nExposing Container Registry\n")
 
 				<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 

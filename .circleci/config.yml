@@ -265,9 +265,9 @@ jobs:
               IKE_CLUSTER_HOST=localhost \
               IKE_ISTIO_INGRESS=http://localhost:$(sudo microk8s.kubectl get svc istio-ingressgateway -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}') \
               PRE_BUILT_IMAGES=true \
-              IKE_INTERNAL_DOCKER_REGISTRY=quay.io \
-              IKE_EXTERNAL_DOCKER_REGISTRY=quay.io \
-              IKE_DOCKER_REPOSITORY=maistra-dev
+              IKE_INTERNAL_CONTAINER_REGISTRY=quay.io \
+              IKE_EXTERNAL_CONTAINER_REGISTRY=quay.io \
+              IKE_CONTAINER_REPOSITORY=maistra-dev
 
             if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
               export IKE_IMAGE_TAG="${CIRCLE_BRANCH##*/}"
@@ -279,11 +279,11 @@ jobs:
 
             ./bin/operator-sdk olm install --version v0.18.3
 
-            make docker-build docker-push
-            make docker-build-test docker-push-test
-            IKE_TEST_PREPARED_NAME="prepared-image" make docker-build-test-prepared docker-push-test-prepared
-            IKE_TEST_PREPARED_NAME="image-prepared" make docker-build-test-prepared docker-push-test-prepared
-            make bundle bundle-build bundle-push
+            make container-image container-push
+            make container-image-test container-push-test
+            IKE_TEST_PREPARED_NAME="prepared-image" make container-image-test-prepared container-push-test-prepared
+            IKE_TEST_PREPARED_NAME="image-prepared" make container-image-test-prepared container-push-test-prepared
+            make bundle bundle-image bundle-push
 
             make test-e2e
       - run:
@@ -376,7 +376,7 @@ jobs:
       - run:
           name: "Release images!"
           command: |
-            make deps tools docker-build docker-push-versioned bundle bundle-build bundle-push
+            make deps tools container-image container-push-versioned bundle bundle-image bundle-push
       - run:
           name: "Release client!"
           command: |

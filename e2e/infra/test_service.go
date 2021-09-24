@@ -15,14 +15,14 @@ import (
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry.
 func BuildTestService() (registry string) {
 	projectDir := shell.GetProjectDir()
-	registry = SetDockerRegistryExternal()
+	registry = SetExternalContainerRegistry()
 	if RunsOnOpenshift {
 		shell.WaitForSuccess(
 			shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry),
 		)
 	}
 	shell.WaitForSuccess(
-		shell.ExecuteInDir(projectDir, "make", "docker-build-test", "docker-push-test"),
+		shell.ExecuteInDir(projectDir, "make", "container-image-test", "container-push-test"),
 	)
 
 	return
@@ -31,13 +31,13 @@ func BuildTestService() (registry string) {
 // BuildTestServicePreparedImage builds istio-workspace-test-prepared service and pushes it to specified registry.
 func BuildTestServicePreparedImage(callerName string) (registry string) {
 	projectDir := shell.GetProjectDir()
-	registry = SetDockerRegistryExternal()
+	registry = SetExternalContainerRegistry()
 
 	os.Setenv("IKE_TEST_PREPARED_NAME", callerName)
 	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c", "docker login -u "+user+" -p $(oc whoami -t) "+registry).Done()
 	}
-	<-shell.ExecuteInDir(projectDir, "make", "docker-build-test-prepared", "docker-push-test-prepared").Done()
+	<-shell.ExecuteInDir(projectDir, "make", "container-image-test-prepared", "container-push-test-prepared").Done()
 
 	return
 }
@@ -45,8 +45,8 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 // DeployTestScenario deploys a test scenario into the specified namespace.
 func DeployTestScenario(scenario, namespace string) {
 	projectDir := shell.GetProjectDir()
-	SetDockerRegistryInternal()
-	setDockerEnvForTestServiceDeploy(namespace)
+	SetInternalContainerRegistry()
+	setContainerEnvForTestServiceDeploy(namespace)
 	if RunsOnOpenshift {
 		<-shell.ExecuteInDir(".", "bash", "-c",
 			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
@@ -79,7 +79,7 @@ func GetProjectLabels(namespace string) string {
 	return fmt.Sprintf("%s", cmd.Status().Stdout)
 }
 
-func setDockerEnvForTestServiceDeploy(namespace string) {
+func setContainerEnvForTestServiceDeploy(namespace string) {
 	setTestNamespace(namespace)
 	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))

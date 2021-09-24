@@ -64,7 +64,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 				BeforeEach(func() {
 					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
-					registry = GetDockerRegistryInternal()
+					registry = GetInternalContainerRegistry()
 				})
 
 				Context("basic deployment modifications", func() {
@@ -267,7 +267,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 			BeforeEach(func() {
 				scenario = "scenario-1"
-				registry = GetDockerRegistryInternal()
+				registry = GetInternalContainerRegistry()
 			})
 
 			It("should create/delete deployment with prepared image", func() {
