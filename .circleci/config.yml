@@ -388,8 +388,10 @@ jobs:
             else
               echo "New build - if succeeds subsequent run will be skipped."
 
-              OPERATOR_HUB="upstream-community-operators" make bundle-publish
-              OPERATOR_HUB="community-operators" make bundle-publish
+              OWNER="k8s-operators" make bundle-publish
+
+              OWNER="redhat-openshift-ecosystem" OPERATOR_HUB="community-operators-prod" \
+              make bundle-publish
 
               echo "${TREE_SHA1}" > ${BUILD_CACHE_FOLDER}/operatorhub.githash
             fi

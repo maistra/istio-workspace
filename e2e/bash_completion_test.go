@@ -60,7 +60,8 @@ var _ = Describe("Bash Completion Tests", func() {
 })
 
 func completionFor(cmd string) []string {
-	tmpDir := test.TmpDir(GinkgoT(), "ike-bash-completion")
+	tmpFs := test.NewTmpFileSystem(GinkgoT())
+	tmpDir := tmpFs.Dir("ike-bash-completion")
 	completionScript := tmpDir + "/get_completion.sh"
 	CreateFile(completionScript, getCompletionBash)
 

@@ -3,9 +3,9 @@
 set -euo pipefail
 
 show_help() {
-  echo "tektoncatalog - raises PR to Operator Hub"
+  echo "publish - raises PR to Operator Hub"
   echo " "
-  echo "./tektoncatalog.sh [options]"
+  echo "./publish.sh [options]"
   echo " "
   echo "Options:"
   echo "-h, --help              shows brief help"
@@ -53,7 +53,9 @@ CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
 TASKS_DIR="${PROJECT_DIR}"/integration/tekton/tasks/
 
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
+
 OWNER="${OWNER:-tektoncd}"
 OWNER_REPO="${OWNER_REPO:-catalog}"
 OWNER_BASE_BRANCH="${OWNER_BASE_BRANCH:-main}"
@@ -63,7 +65,7 @@ FORK_REPO="${FORK_REPO:-catalog}"
 FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/${FORK_REPO}.git}"
 
 OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5} # should be provided by Makefile target
-source "${CUR_DIR}"/validate_semver.sh
+source "${CUR_DIR}"/../validate_semver.sh
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
 TEKTON_HUB_PATH=${TEKTON_HUB_PATH:-task}

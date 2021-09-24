@@ -21,12 +21,17 @@ const (
 var _ = Describe("Usage of ike command configuration", func() {
 
 	var testCmd *cobra.Command
+	tmpFs := NewTmpFileSystem(GinkgoT())
 
 	BeforeEach(func() {
 		testCmd = NewTestCmd()
 		testCmd.SilenceUsage = true
 		testCmd.SilenceErrors = true
 		NewCmd().AddCommand(testCmd)
+	})
+
+	AfterEach(func() {
+		tmpFs.Cleanup()
 	})
 
 	Context("load from environment", func() {
@@ -53,7 +58,7 @@ var _ = Describe("Usage of ike command configuration", func() {
 			config := fmt.Sprintf(`test:
     arg: %v`, expectedValue)
 
-			configFile := TmpFile(GinkgoT(), "env_config.yaml", config)
+			configFile := tmpFs.File("env_config.yaml", config)
 			output, err := Run(testCmd).Passing("--config", configFile.Name())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(And(ContainSubstring(expectedOutput), ContainSubstring(expectedValue)))
@@ -62,7 +67,7 @@ var _ = Describe("Usage of ike command configuration", func() {
 		It("should load from global env context", func() {
 			config := fmt.Sprintf(`arg: %v`, expectedValue)
 
-			configFile := TmpFile(GinkgoT(), "env_config.yaml", config)
+			configFile := tmpFs.File("env_config.yaml", config)
 			output, err := Run(testCmd).Passing("--config", configFile.Name())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(And(ContainSubstring(expectedOutput), ContainSubstring(expectedValue)))
@@ -71,10 +76,6 @@ var _ = Describe("Usage of ike command configuration", func() {
 	})
 
 	Context("override order", func() {
-
-		AfterEach(func() {
-			CleanUpTmpFiles(GinkgoT())
-		})
 
 		It("should use command name context over env global", func() {
 			defer TemporaryEnvVars("IKE_ARG", otherValue)()
@@ -89,7 +90,7 @@ var _ = Describe("Usage of ike command configuration", func() {
 test:
     arg: %v`, otherValue, expectedValue)
 
-			configFile := TmpFile(GinkgoT(), "env_config.yaml", config)
+			configFile := tmpFs.File("env_config.yaml", config)
 			output, err := Run(testCmd).Passing("--config", configFile.Name())
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(And(ContainSubstring(expectedOutput), ContainSubstring(expectedValue)))
@@ -113,7 +114,7 @@ test:
 			config := fmt.Sprintf(`test:
     arg: %v`, otherValue)
 
-			configFile := TmpFile(GinkgoT(), "env_config.yaml", config)
+			configFile := tmpFs.File("env_config.yaml", config)
 			output, err := Run(testCmd).Passing("--config", configFile.Name(), "--arg", expectedValue)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(And(ContainSubstring(expectedOutput), ContainSubstring(expectedValue)))
@@ -122,7 +123,7 @@ test:
 		It("should use arguments context over global config context", func() {
 			config := fmt.Sprintf(`test:
     arg: %v`, otherValue)
-			configFile := TmpFile(GinkgoT(), "env_config.yaml", config)
+			configFile := tmpFs.File("env_config.yaml", config)
 			output, err := Run(testCmd).Passing("--config", configFile.Name(), "--arg", expectedValue)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(And(ContainSubstring(expectedOutput), ContainSubstring(expectedValue)))

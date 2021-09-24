@@ -519,6 +519,7 @@ var _ = Describe("Complete session manipulation", func() {
 	})
 	Context("with dynamically loaded templates", func() {
 		var restoreEnvVars func()
+		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
 		BeforeEach(func() {
 			scenario = generator.TestScenario1HTTPThreeServicesInSequence
@@ -538,8 +539,8 @@ var _ = Describe("Complete session manipulation", func() {
 				},
 			})
 
-			tmpDir := test.TmpDir(GinkgoT(), "template")
-			test.TmpFile(GinkgoT(), tmpDir+"/telepresence.tpl", `
+			tmpDir := tmpFs.Dir("template")
+			tmpFs.File(tmpDir+"/telepresence.tpl", `
 [
 	{"op": "replace", "path": "/metadata/name", "value": "{{.Data.Value "/metadata/name"}}-custom-template"},
 	{"op": "remove", "path": "/metadata/resourceVersion"}
@@ -550,7 +551,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		AfterEach(func() {
 			restoreEnvVars()
-			test.CleanUpTmpFiles(GinkgoT())
+			tmpFs.Cleanup()
 		})
 
 		It("should ensure template was called", func() {

@@ -33,9 +33,11 @@ var _ = Describe("Smoke End To End Tests", func() {
 			tmpDir string
 		)
 
+		tmpFs := test.NewTmpFileSystem(GinkgoT())
+
 		JustBeforeEach(func() {
 			namespace = generateNamespaceName()
-			tmpDir = test.TmpDir(GinkgoT(), "namespace-"+namespace)
+			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
 
@@ -52,6 +54,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
+				tmpFs.Cleanup()
 			}
 		})
 
