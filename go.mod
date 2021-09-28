@@ -31,7 +31,7 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/tools v0.1.5
-	google.golang.org/grpc v1.40.0
+	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20210915141110-a591ff3be6be
@@ -41,7 +41,7 @@ require (
 	k8s.io/client-go v0.22.2
 	k8s.io/code-generator v0.22.2
 	k8s.io/klog/v2 v2.9.0
-	sigs.k8s.io/controller-runtime v0.10.0
+	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/yaml v1.3.0
 )
