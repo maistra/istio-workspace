@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -euo pipefail 
+set -euo pipefail
 
-protobuf_version="3.15.8"
+protobuf_version="3.18.0"
 
 get_arch() {
   case "$(uname -s)" in
