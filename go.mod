@@ -29,8 +29,8 @@ require (
 	github.com/spf13/viper v1.9.0
 	go.uber.org/goleak v1.1.11
 	go.uber.org/zap v1.19.1
-	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
-	golang.org/x/tools v0.1.5
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	golang.org/x/tools v0.1.6
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
