@@ -13,7 +13,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/joho/godotenv v1.3.0
+	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/mikefarah/yq/v4 v4.13.2
 	github.com/onsi/ginkgo v1.16.4
