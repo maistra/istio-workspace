@@ -208,6 +208,7 @@ func actionDeleteVirtualService(ctx model.SessionContext, report model.Modificat
 
 func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
+	patch := client.MergeFrom(vs.DeepCopy())
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
@@ -236,7 +237,7 @@ func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store m
 	}
 	reference.AddRefMarker(&mutatedVs, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
-	err = ctx.Client.Update(ctx, &mutatedVs)
+	err = ctx.Client.Patch(ctx, &mutatedVs, patch)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
@@ -250,6 +251,7 @@ func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store m
 
 func actionRevertVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
+	patch := client.MergeFrom(vs.DeepCopy())
 	if err != nil {
 		report(model.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
 
@@ -261,7 +263,7 @@ func actionRevertVirtualService(ctx model.SessionContext, ref model.Ref, store m
 	}
 	reference.RemoveRefMarker(&mutatedVs, reference.CreateRefMarker(ctx.Name, ref.KindName.String()))
 
-	err = ctx.Client.Update(ctx, &mutatedVs)
+	err = ctx.Client.Patch(ctx, &mutatedVs, patch)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
