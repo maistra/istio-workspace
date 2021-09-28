@@ -18,6 +18,7 @@ import (
 var _ = Describe("Usage of ike execute command", func() {
 
 	var executeCmd *cobra.Command
+	tmpFs := NewTmpFileSystem(GinkgoT())
 
 	BeforeEach(func() {
 		executeCmd = execute.NewCmd()
@@ -28,9 +29,14 @@ var _ = Describe("Usage of ike execute command", func() {
 		NewCmd().AddCommand(executeCmd)
 	})
 
+	AfterEach(func() {
+		tmpFs.Cleanup()
+	})
+
 	Context("watching file changes", func() {
 
 		tmpPath := NewTmpPath()
+
 		BeforeEach(func() {
 			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin), path.Dir(shell.JavaBin))
 		})
@@ -39,8 +45,8 @@ var _ = Describe("Usage of ike execute command", func() {
 
 		It("should re-build and re-run java process", func() {
 			// given
-			tmpDir := TmpDir(GinkgoT(), "re-run")
-			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
+			tmpDir := tmpFs.Dir("re-run")
+			code := tmpFs.File(tmpDir+"/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
@@ -69,8 +75,8 @@ var _ = Describe("Usage of ike execute command", func() {
 
 		It("should start java process once if only log file is changing", func() {
 			// given
-			tmpDir := TmpDir(GinkgoT(), "start-java")
-			logFile := TmpFile(GinkgoT(), tmpDir+"/watch-test/tomcat.log", "content")
+			tmpDir := tmpFs.Dir("start-java")
+			logFile := tmpFs.File(tmpDir+"/watch-test/tomcat.log", "content")
 			outputChan := make(chan string)
 
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
@@ -98,8 +104,8 @@ var _ = Describe("Usage of ike execute command", func() {
 
 		It("should build and run java process only initially when changing file is excluded", func() {
 			// given
-			tmpDir := TmpDir(GinkgoT(), "build-run-java-excluded")
-			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
+			tmpDir := tmpFs.Dir("build-run-java-excluded")
+			code := tmpFs.File(tmpDir+"/watch-test/rating.java", "content")
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
 				return Run(executeCmd).Passing(
@@ -129,8 +135,8 @@ var _ = Describe("Usage of ike execute command", func() {
 
 		It("should ignore build if not defined and just re-run java process on file change", func() {
 			// given
-			tmpDir := TmpDir(GinkgoT(), "ignore-build")
-			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
+			tmpDir := tmpFs.Dir("ignore-build")
+			code := tmpFs.File(tmpDir+"/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {
@@ -159,12 +165,12 @@ var _ = Describe("Usage of ike execute command", func() {
 
 		It("should only re-run java process when --no-build flag specified but build defined in config", func() {
 			// given
-			configFile := TmpFile(GinkgoT(), "config.yaml", `watch:
+			configFile := tmpFs.File("config.yaml", `watch:
   run: "java -jar config.jar"
   build: "mvn clean install"
 `)
-			tmpDir := TmpDir(GinkgoT(), "re-run-no-build")
-			code := TmpFile(GinkgoT(), tmpDir+"/watch-test/rating.java", "content")
+			tmpDir := tmpFs.Dir("re-run-no-build")
+			code := tmpFs.File(tmpDir+"/watch-test/rating.java", "content")
 
 			outputChan := make(chan string)
 			go shell.ExecuteCommand(outputChan, func() (string, error) {

@@ -15,10 +15,16 @@ import (
 
 var _ = Describe("File changes watch", func() {
 
+	tmpFs := NewTmpFileSystem(GinkgoT())
+
+	AfterEach(func() {
+		tmpFs.Cleanup()
+	})
+
 	It("should recognize file change", func() {
 		// given
 		done := make(chan struct{})
-		config := TmpFile(GinkgoT(), "config.yaml", "content")
+		config := tmpFs.File("config.yaml", "content")
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(expectFileChange(config.Name(), done)).
@@ -38,9 +44,9 @@ var _ = Describe("File changes watch", func() {
 	It("should recognize file change in watched directory", func() {
 		// given
 		done := make(chan struct{})
-		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
-		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
-		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
+		tmpDir := tmpFs.Dir("watch_yaml_txt")
+		_ = tmpFs.File(tmpDir+"/config.yaml", "content")
+		text := tmpFs.File(tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(expectFileChange(text.Name(), done)).
@@ -60,9 +66,9 @@ var _ = Describe("File changes watch", func() {
 	It("should recognize file change in sub-directory (recursive watch)", func() {
 		// given
 		done := make(chan struct{})
-		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
-		_ = TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
-		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
+		tmpDir := tmpFs.Dir("watch_yaml_txt")
+		_ = tmpFs.File(tmpDir+"/config.yaml", "content")
+		text := tmpFs.File(tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(expectFileChange(text.Name(), done)).
@@ -82,9 +88,9 @@ var _ = Describe("File changes watch", func() {
 	It("should not recognize file change if matches file extension exclusion", func() {
 		// given
 		done := make(chan struct{})
-		tmpDir := TmpDir(GinkgoT(), "watch_yaml_txt")
-		config := TmpFile(GinkgoT(), tmpDir+"/config.yaml", "content")
-		text := TmpFile(GinkgoT(), tmpDir+"/text.txt", "text text text")
+		tmpDir := tmpFs.Dir("watch_yaml_txt")
+		config := tmpFs.File(tmpDir+"/config.yaml", "content")
+		text := tmpFs.File(tmpDir+"/text.txt", "text text text")
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(expectFileChange(text.Name(), done), notExpectFileChange(config.Name())).
@@ -106,12 +112,10 @@ var _ = Describe("File changes watch", func() {
 	It("should not recognize file change in excluded directory", func() {
 		// given
 		done := make(chan struct{})
-		skipTmpDir := TmpDir(GinkgoT(), "skip_watch")
-
-		config := TmpFile(GinkgoT(), skipTmpDir+"/config.yaml", "content")
-
-		watchTmpDir := TmpDir(GinkgoT(), "watch")
-		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
+		skipTmpDir := tmpFs.Dir("skip_watch")
+		config := tmpFs.File(skipTmpDir+"/config.yaml", "content")
+		watchTmpDir := tmpFs.Dir("watch")
+		code := tmpFs.File(watchTmpDir+"/main.go", "package main")
 
 		watcher, e := watch.CreateWatch(1).
 			WithHandlers(notExpectFileChange(config.Name()), expectFileChange(code.Name(), done)).
@@ -134,16 +138,16 @@ var _ = Describe("File changes watch", func() {
 		// given
 		done := make(chan struct{})
 
-		watchTmpDir := TmpDir(GinkgoT(), "watch")
-		config := TmpFile(GinkgoT(), watchTmpDir+"/.idea/config.toml", "content")
-		test := TmpFile(GinkgoT(), watchTmpDir+"/.idea/test.yaml", "content")
-		nestedFile := TmpFile(GinkgoT(), watchTmpDir+"/src/main/org/acme/Main.java", "package org.acme")
-		gitIgnore := TmpFile(GinkgoT(), watchTmpDir+"/.gitignore", `
+		watchTmpDir := tmpFs.Dir("watch")
+		config := tmpFs.File(watchTmpDir+"/.idea/config.toml", "content")
+		test := tmpFs.File(watchTmpDir+"/.idea/test.yaml", "content")
+		nestedFile := tmpFs.File(watchTmpDir+"/src/main/org/acme/Main.java", "package org.acme")
+		gitIgnore := tmpFs.File(watchTmpDir+"/.gitignore", `
 *.yaml
 src/main/**/*.java
 .idea/
 `)
-		code := TmpFile(GinkgoT(), watchTmpDir+"/main.go", "package main")
+		code := tmpFs.File(watchTmpDir+"/main.go", "package main")
 
 		defer func() {
 			if err := config.Close(); err != nil {

@@ -12,8 +12,8 @@ import (
 // GetRepositoryName returns the name of the repository.
 func GetRepositoryName() string {
 	if UsePrebuiltImages() {
-		if repository, found := os.LookupEnv("IKE_DOCKER_REPOSITORY"); !found {
-			ginkgo.Fail("\"IKE_DOCKER_REPOSITORY\" env variable not set")
+		if repository, found := os.LookupEnv("IKE_CONTAINER_REPOSITORY"); !found {
+			ginkgo.Fail("\"IKE_CONTAINER_REPOSITORY\" env variable not set")
 		} else {
 			return repository
 		}
@@ -25,8 +25,8 @@ func GetRepositoryName() string {
 // GetDevRepositoryName returns the name of the repository containing development related images.
 func GetDevRepositoryName() string {
 	if UsePrebuiltImages() {
-		if repository, found := os.LookupEnv("IKE_DOCKER_DEV_REPOSITORY"); !found {
-			ginkgo.Fail("\"IKE_DOCKER_DEV_REPOSITORY\" env variable not set")
+		if repository, found := os.LookupEnv("IKE_CONTAINER_DEV_REPOSITORY"); !found {
+			ginkgo.Fail("\"IKE_CONTAINER_DEV_REPOSITORY\" env variable not set")
 		} else {
 			return repository
 		}
@@ -44,33 +44,33 @@ func GetImageTag() string {
 	return "latest"
 }
 
-func SetDockerRegistryExternal() string {
+func SetExternalContainerRegistry() string {
 	registry := "default-route-openshift-image-registry." + GetClusterHost()
-	if externalRegistry, found := os.LookupEnv("IKE_EXTERNAL_DOCKER_REGISTRY"); found {
+	if externalRegistry, found := os.LookupEnv("IKE_EXTERNAL_CONTAINER_REGISTRY"); found {
 		registry = externalRegistry
 	}
-	setDockerRegistry(registry)
+	setContainerRegistry(registry)
 
 	return registry
 }
 
-func SetDockerRegistryInternal() {
-	setDockerRegistry(GetDockerRegistryInternal())
+func SetInternalContainerRegistry() {
+	setContainerRegistry(GetInternalContainerRegistry())
 }
 
-func setDockerRegistry(registry string) {
+func setContainerRegistry(registry string) {
 	err := os.Setenv(config.EnvImageRegistry, registry)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
-func setDockerRepository(namespace string) {
+func setContainerRepository(namespace string) {
 	err := os.Setenv(config.EnvImageRepository, namespace)
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
-// GetDockerRegistryInternal returns the internal address for the docker registry.
-func GetDockerRegistryInternal() string {
-	if internalRegistry, found := os.LookupEnv("IKE_INTERNAL_DOCKER_REGISTRY"); found {
+// GetInternalContainerRegistry returns the internal address for the container registry.
+func GetInternalContainerRegistry() string {
+	if internalRegistry, found := os.LookupEnv("IKE_INTERNAL_CONTAINER_REGISTRY"); found {
 		return internalRegistry
 	}
 

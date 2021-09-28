@@ -24,6 +24,5 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 }, func([]byte) {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
-	CleanUpTmpFiles(GinkgoT())
 	goleak.VerifyNone(GinkgoT(), current)
 })
