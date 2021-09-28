@@ -13,7 +13,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/joho/godotenv v1.3.0
+	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/mikefarah/yq/v4 v4.13.0
 	github.com/onsi/ginkgo v1.16.4
@@ -34,8 +34,8 @@ require (
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
-	istio.io/api v0.0.0-20210809175348-eff556fb5d8a
-	istio.io/client-go v1.11.2
+	istio.io/api v0.0.0-20210915141110-a591ff3be6be
+	istio.io/client-go v1.11.3
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
