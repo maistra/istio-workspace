@@ -23,6 +23,12 @@ spec:
       labels:
         control-plane: controller-manager
         app: istio-workspace
+      annotations:
+        kiali.io/runtimes: go
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8080'
+        prometheus.io/scheme: http
+        prometheus.io/scrape: 'true'
     spec:
       serviceAccountName: istio-workspace
       containers:
