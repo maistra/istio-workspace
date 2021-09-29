@@ -77,7 +77,7 @@ func (i *InstrumentedClient) Patch(ctx context.Context, obj client.Object, patch
 }
 
 func (i *InstrumentedClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
-	return record(i.c.DeleteAllOf(ctx, obj, opts...), "deleteallof", i.getObjectKind(obj))
+	return record(i.c.DeleteAllOf(ctx, obj, opts...), "delete_all_of", i.getObjectKind(obj))
 }
 
 func (i *InstrumentedClient) Status() client.StatusWriter {
