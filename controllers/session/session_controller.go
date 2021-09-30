@@ -174,13 +174,15 @@ func (r ReconcileSession) WatchTypes() []client.Object {
 
 // Reconcile reads that state of the cluster for a Session object and makes changes based on the state read
 // and what is in the Session.Spec.
-func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Request) (reconcile.Result, error) { //nolint:cyclop,gocyclo //reason WIP
+func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.Request) (reconcile.Result, error) { //nolint:cyclop,gocyclo //reason WIP
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
+	c := NewInstrumentedClient(r.client)
+
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}
-	err := r.client.Get(context.Background(), request.NamespacedName, session)
+	err := c.Get(context.Background(), request.NamespacedName, session)
 	if err != nil {
 		if errorsK8s.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -191,12 +193,12 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 
 	route := ConvertAPIRouteToModelRoute(session)
 	ctx := model.SessionContext{
-		Context:   c,
+		Context:   orgCtx,
 		Name:      request.Name,
 		Namespace: request.Namespace,
 		Route:     route,
 		Log:       reqLogger,
-		Client:    r.client,
+		Client:    c,
 	}
 
 	// update session.status.Route if it was not provided
@@ -206,7 +208,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	session.Status.State = &processing
 	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
 
-	err = r.client.Status().Update(ctx, session)
+	err = c.Status().Update(ctx, session)
 	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
@@ -221,7 +223,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 		reqLogger.Info("Added session")
 		if !session.HasFinalizer(Finalizer) {
 			session.AddFinalizer(Finalizer)
-			err = r.client.Update(ctx, session)
+			err = c.Update(ctx, session)
 			if err != nil {
 				ctx.Log.Error(err, "Failed to add finalizer on session")
 			}
@@ -286,7 +288,7 @@ func (r *ReconcileSession) Reconcile(c context.Context, request reconcile.Reques
 	if deleted {
 		if allSuccessConditions(session.Status.Conditions) {
 			session.RemoveFinalizer(Finalizer)
-			if err := r.client.Update(ctx, session); err != nil {
+			if err := c.Update(ctx, session); err != nil {
 				ctx.Log.Error(err, "Failed to remove finalizer on session")
 			}
 		}
