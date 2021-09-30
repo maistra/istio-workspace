@@ -93,7 +93,7 @@ type SessionStatus struct {
 }
 
 type StatusReadiness struct {
-	// Status of resources deployed/modifed by this Session resource
+	// Status of resources deployed/modified by this Session resource
 	//+operator-sdk:csv:customresourcedefinitions:type=status,displayName="Resources", xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses"
 	Components StatusComponents `json:"components,omitempty"`
 }
