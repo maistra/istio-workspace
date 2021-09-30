@@ -74,7 +74,7 @@ OPERATORS_DIR="operators/${OPERATOR_NAME}/${OPERATOR_VERSION}/"
 mkdir -p "${OPERATORS_DIR}"
 cp -a "${BUNDLE_DIR}"/. "${OPERATORS_DIR}"
 
-TITLE="Add ${OPERATOR_NAME} release ${OPERATOR_VERSION} to ${OPERATOR_HUB}"
+TITLE="operators ${OPERATOR_NAME} (${OPERATOR_VERSION})"
 skipInDryRun git add .
 skipInDryRun git commit -s -S -m"${TITLE}"
 
