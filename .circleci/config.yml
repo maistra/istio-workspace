@@ -399,7 +399,7 @@ jobs:
             else
               echo "New build - if succeeds subsequent run will be skipped."
 
-              OWNER="k8s-operators" make bundle-publish
+              OWNER="k8s-operatorhub" make bundle-publish
 
               OWNER="redhat-openshift-ecosystem" OPERATOR_HUB="community-operators-prod" \
               make bundle-publish

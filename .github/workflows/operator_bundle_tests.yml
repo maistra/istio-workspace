@@ -10,7 +10,7 @@ jobs:
   operatorhub-test:
     runs-on: ubuntu-latest
     env:
-      OP_TEST_CONTAINER_OPT: "-i"
+      OPP_CONTAINER_OPT: "-i"
     steps:
       - name: Set up Go env
         uses: actions/setup-go@v2
