@@ -301,12 +301,12 @@ var _ = Describe("Complete session manipulation", func() {
 				session := get.Session("test", "test-session1")
 
 				Expect(*session.Status.State).To(Equal(v1alpha1.StateSuccess))
-				Expect(session.Status.Readiness.Components.Pending).To((HaveLen(0)))
-				Expect(session.Status.Readiness.Components.Unready).To((HaveLen(0)))
-				Expect(session.Status.Readiness.Components.Ready).ToNot((HaveLen(0)))
+				Expect(session.Status.Readiness.Components.Pending).To(HaveLen(0))
+				Expect(session.Status.Readiness.Components.Unready).To(HaveLen(0))
+				Expect(session.Status.Readiness.Components.Ready).ToNot(HaveLen(0))
 			})
 
-			It("should show pending before execution and missing modification, and unready on unsuccess", func() {
+			It("should show pending before execution and missing modification, and unready on unsuccessful", func() {
 				testLocator := func(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.LocatorStatusReporter) error {
 					// When - three Resources are found
 					report(model.LocatorStatus{
