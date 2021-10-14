@@ -1,0 +1,121 @@
+name: Update sections in docs based on README
+
+on:
+  pull_request:
+    paths:
+      - README.md
+
+jobs:
+  doc_update:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Set GitHub user
+        env:
+          GIT_USER: ${{secrets.GIT_USER}}
+          GIT_EMAIL: ${{secrets.GIT_EMAIL}}
+        run: |
+          git config --local user.name "${GIT_USER}"
+          git config --local user.email "${GIT_EMAIL}"
+      - name: Checkout PR branch
+        id: checkout
+        uses: actions/github-script@v4.0.2
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const prHead = pr.data.head.sha;
+            core.setOutput("pr_head", prHead);
+            core.setOutput("pr_title", pr.data.title.trim());
+
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: prHead,
+              context: 'release / changelog',
+              state: 'pending',
+            });
+
+            const { spawnSync } = require("child_process")
+            const { status, stderr } = spawnSync(`git fetch origin pull/${pr.data.number}/head:${pr.data.head.ref} && git checkout ${pr.data.head.ref} && git push --set-upstream origin ${pr.data.head.ref}`, {shell: true});
+
+            if (status != 0) {
+              core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                context: 'docs / generate',
+                state: 'error',
+                description: 'Failed checking out PR branch',
+              }));
+              core.setFailed('Failed checking out PR branch');
+            }
+      - name: Generate doc updates
+        if: success()
+        uses: actions/github-script@v4.0.2
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const version = "${{ steps.validation.outputs.version }}";
+            const prHead = "${{ steps.checkout.outputs.pr_head }}";
+
+            const { spawnSync } = require("child_process");
+            const { status, stderr } = spawnSync(`./scripts/dev/update-docs.sh`, {shell: true});
+
+            if (status != 0) {
+                core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                  context: 'docs / generate',
+                  state: 'failure',
+                  description: 'Failed generating docs',
+                  details: stderr.toString(),
+                }));
+                core.setFailed('Failed generating docs');
+            } else {
+              const pushCmd = `git add . && git commit -m"docs: updates docs based on README changes" -m"/skip-e2e" -m"/skip-build" && git push && git rev-parse --short HEAD`;
+              const { status, stderr, stdout } = spawnSync(pushCmd, {shell: true});
+              if (status != 0) {
+                  core.exportVariable("STATUS", JSON.stringify({ sha: prHead,
+                    context: 'docs / generate',
+                    state: 'error',
+                    description: 'Failed committing docs update',
+                  }));
+                  core.setFailed('Failed committing docs update');
+              } else {
+                const { status, stderr, stdout } = spawnSync('echo -n $(git rev-parse HEAD)', {shell: true});
+                core.exportVariable("STATUS", JSON.stringify({ sha: stdout.toString(),
+                  context: 'docs / generate',
+                  state: 'success',
+                  description: 'Docs update generated',
+                }));
+              }
+            }
+      - name: Publish job status and comment with details
+        if: always()
+        uses: actions/github-script@v4.0.2
+        with:
+          github-token: ${{secrets.GH_RELEASE_TOKEN}}
+          script: |
+            const status = ${{env.STATUS}};
+
+            const result = await github.request("POST /repos/:owner/:repo/statuses/:sha", {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: status.sha,
+              context: status.context,
+              state: status.state,
+              description: status.description,
+              target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
+            });
+
+            if (status.details) {
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `#### ⚠ ${status.description}\n\n${status.details}`,
+              });
+            }
