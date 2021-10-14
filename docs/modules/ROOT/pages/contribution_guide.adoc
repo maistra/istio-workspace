@@ -27,31 +27,8 @@ If you don't know where to start - have a look at https://github.com/Maistra/ist
 
 === Setup
 
-Assuming that you have all the link:https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
-
-[source,bash]
-----
-$ git clone https://github.com/maistra/istio-workspace $GOPATH/src/github.com/maistra/istio-workspace
-----
-
-TIP: Have a look how link:https://github.com/moovweb/gvm[Go Version Manager] can help you simplify configuration
-and management of different versions of Go.
-
-We rely on following tools:
-
-* https://golang.github.io/dep/[`dep`] for dependency management,
-* https://github.com/golangci/golangci-lint[`golang-ci`] linter,
-* https://github.com/onsi/ginkgo[`ginkgo`] for testing,
-* https://godoc.org/golang.org/x/tools/cmd/goimports[`goimports`] for formatting,
-* https://github.com/operator-framework/operator-sdk[`operator-sdk`] for code generation.
-
-Build process takes care of installing those binaries on your behalf. You can also run `make tools` to install them.
-
-=== Coding
-
-From now on you are ready to hack. Open your favorite IDE and start right away! To build and test the code simply run `make`.
-
-TIP: Run `make help` to see what other targets are available.
+// start:dev-setup
+// end:dev-setup
 
 === Testing
 
