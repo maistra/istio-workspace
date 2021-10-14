@@ -5,6 +5,21 @@ Do you have confidence that your Test and Stage environments reflect reality? Ar
 It's been always hard to test new functionality before it reaches production. Even more so, with the shift from a monolith to microservices and increasing scale. Can you still spin up the entire solution on your laptop to debug and test a suspicious piece of code? Testing on production is no longer a meme. It’s reality and a necessity.
 
 // start:overview
+Istio Workspace enables developers to:
+
+* run one or more services locally during development but make it appear like it would be developed in the actual cluster
+** this way you can use your favourite development tools
+** have instant feedback loop
+** don't make your machine overheating trying to run the whole cluster locally
+* safely preview incoming changes in pull requests without affecting regular users
+* have confidence in testing or troubleshooting your services directly in the cluster
+
+Istio Workspace supports testing on multi-user environment in an unobtrusive way.
+It doesn’t really matter if it is QE cluster or actual production. We give you confidence that your changes won’t blow up the cluster, and your users won’t even notice a glitch.
+
+You will need https://k8s.io[Kubernetes] or https://openshift.com[Openshift] cluster with https://istio.io/[Istio] installed.
+
+You can read more about our vision on https://developers.redhat.com/blog/2020/07/14/developing-and-testing-on-production-with-kubernetes-and-istio-workspace/[Red Hat Developer’s blog] or ...
 // end:overview
 
 == See it in action!

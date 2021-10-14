@@ -28,6 +28,26 @@ If you don't know where to start - have a look at https://github.com/Maistra/ist
 === Setup
 
 // start:dev-setup
+Assuming that you have all the https://golang.org/doc/install[Golang prerequisites] in place, clone the repository first:
+
+....
+$ git clone https://github.com/maistra/istio-workspace $GOPATH/src/github.com/maistra/istio-workspace
+....
+
+From now on you are ready to hack - invoking `make` will check if required binaries are available and install if there are some missing.
+
+Run `make help` to see what targets are available, but you will use `make` most often.
+
+____
+NOTE: Have a look how https://github.com/moovweb/gvm[Go Version Manager] can help you simplifying configuration
+and management of different versions of Go.
+____
+
+== Coding style
+
+We follow standard Go coding conventions which we ensure using `goimports` during the build.
+
+In addition, we provide `.editorconfig` file which is supported by https://editorconfig.org/#download[majority of the IDEs].
 // end:dev-setup
 
 === Testing
