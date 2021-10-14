@@ -47,7 +47,7 @@ ____
 
 We follow standard Go coding conventions which we ensure using `goimports` during the build.
 
-In addition, we provide `.editorconfig` file which is supported by https://editorconfig.org/#download[majority of the IDEs].
+In addition, we provide `.editorconfig` file which is supported by https://editorconfig.org/#download[majority of the IDEs]. That should help avoid coding style mismatches.
 // end:dev-setup
 
 === Testing
