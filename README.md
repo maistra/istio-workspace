@@ -76,7 +76,7 @@ Run `make help` to see what targets are available, but you will use `make` most 
 
 We follow standard Go coding conventions which we ensure using `goimports` during the build.
 
-In addition, we provide `.editorconfig` file which is supported by [majority of the IDEs](https://editorconfig.org/#download).
+In addition, we provide `.editorconfig` file which is supported by [majority of the IDEs](https://editorconfig.org/#download). That should help avoid coding style mismatches.
 
 <!-- end::dev-setup[] -->
 

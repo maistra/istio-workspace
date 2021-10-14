@@ -39,7 +39,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: prHead,
-              context: 'release / changelog',
+              context: 'docs / generate',
               state: 'pending',
             });
 
