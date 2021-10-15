@@ -54,6 +54,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 	}
 
 	ctx.Log.Info("Found Gateway", "name", gw.Name)
+	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
 	if err = reference.Add(ctx.ToNamespacedName(), &mutatedGw); err != nil {
@@ -61,7 +62,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 	}
 	reference.AddRefMarker(&mutatedGw, reference.CreateRefMarker(ctx.Name, ref.KindName.String()), string(resource.Action), ref.Hash())
 
-	err = ctx.Client.Update(ctx, &mutatedGw)
+	err = ctx.Client.Patch(ctx, &mutatedGw, patch)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
@@ -82,6 +83,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 
 func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
+	patch := client.MergeFrom(gw.DeepCopy())
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 			report(model.ModificatorStatus{
@@ -105,7 +107,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 	}
 	reference.RemoveRefMarker(&mutatedGw, reference.CreateRefMarker(ctx.Name, ref.KindName.String()))
 
-	err = ctx.Client.Update(ctx, &mutatedGw)
+	err = ctx.Client.Patch(ctx, &mutatedGw, patch)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,

@@ -42,9 +42,11 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 			})
 		}
 
-		err := ctx.Client.Status().Update(ctx, session)
-		if err != nil {
-			ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+		if len(validators) > 0 {
+			err := ctx.Client.Status().Update(ctx, session)
+			if err != nil {
+				ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
+			}
 		}
 
 		return succeeded
