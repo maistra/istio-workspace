@@ -35,6 +35,24 @@ rules:
   - '*'
 - apiGroups:
   - apps
+  resources:
+  - deployment
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployment/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps
   resourceNames:
   - istio-workspace
   resources:
