@@ -7,7 +7,7 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
-	github.com/go-cmd/cmd v1.3.0
+	github.com/go-cmd/cmd v1.3.1
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/golang/protobuf v1.5.2
@@ -16,10 +16,10 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.0
 	github.com/mikefarah/yq/v4 v4.13.4
-	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
-	github.com/operator-framework/operator-lib v0.7.0
+	github.com/operator-framework/operator-lib v0.8.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/schollz/progressbar/v3 v3.8.3
@@ -34,8 +34,8 @@ require (
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
-	istio.io/api v0.0.0-20210915141110-a591ff3be6be
-	istio.io/client-go v1.11.3
+	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
+	istio.io/client-go v1.11.4
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
