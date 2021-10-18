@@ -507,8 +507,8 @@ github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0 h1:ANjZW6uA4ZmqT7fgH
 github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0/go.mod h1:dh9o4Fs58gpFXGSYfnVxGR9PnV53I8TW84pQaJDdGiY=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/operator-framework/api v0.10.0/go.mod h1:tV0BUNvly7szq28ZPBXhjp1Sqg5yHCOeX19ui9K4vjI=
-github.com/operator-framework/operator-lib v0.7.0 h1:n2LoER3Cd1k+ZU0/ensi596LwswvDh3QP8I1Q8yJh2M=
-github.com/operator-framework/operator-lib v0.7.0/go.mod h1:2Z32GTTJUz2/f+OKcoJXsVnAyRwcXx7mGmQsdhIAIIE=
+github.com/operator-framework/operator-lib v0.8.0 h1:w3y2/VEQXYui7DPAe0DAIEmTO22VDRzl2qRSxVDqeCg=
+github.com/operator-framework/operator-lib v0.8.0/go.mod h1:2Z32GTTJUz2/f+OKcoJXsVnAyRwcXx7mGmQsdhIAIIE=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.9.3/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
