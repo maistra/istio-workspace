@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.0
-	github.com/mikefarah/yq/v4 v4.13.3
+	github.com/mikefarah/yq/v4 v4.13.4
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
