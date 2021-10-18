@@ -8,7 +8,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.0
-	github.com/go-logr/logr v0.4.0
+	github.com/go-logr/logr v1.0.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -40,7 +40,7 @@ require (
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	k8s.io/code-generator v0.22.2
-	k8s.io/klog/v2 v2.9.0
+	k8s.io/klog/v2 v2.20.0
 	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/yaml v1.3.0
