@@ -53,6 +53,8 @@ CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
 TASKS_DIR="${PROJECT_DIR}"/integration/tekton/tasks/
 
+source "${CUR_DIR}"/prepare_task.sh
+
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
 
@@ -64,7 +66,8 @@ FORK="${FORK:-maistra}"
 FORK_REPO="${FORK_REPO:-catalog}"
 FORK_REPO_URL="${FORK_REPO_URL:-https://${GIT_USER}:${GITHUB_TOKEN}@github.com/${FORK}/${FORK_REPO}.git}"
 
-OPERATOR_VERSION=${OPERATOR_VERSION:-0.0.5} # should be provided by Makefile target
+IKE_IMAGE=${IKE_IMAGE:-latest}
+OPERATOR_VERSION=${OPERATOR_VERSION:-0.4.0} # should be provided by Makefile target
 source "${CUR_DIR}"/../validate_semver.sh
 validate_semantic_versioning "v${OPERATOR_VERSION}"
 
@@ -103,8 +106,7 @@ for taskName in "${TASKS_DIR}"/*; do
   asciidoctor --require @asciidoctor/docbook-converter --require "${ADOC_INCLUDE}" -a leveloffset=+1 --backend docbook -o - "${PROJECT_DIR}"/docs/modules/ROOT/pages/integration/tekton/tasks/"${taskName}".adoc | pandoc --wrap=preserve --from docbook --to gfm >"${TMP_DIR}/${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}"/README.md
   popd
 
-  sed -i "s/released-image/${IKE_IMAGE}/g" "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}/${taskName}.yaml"
-  sed -i "s/current-version/${TEKTON_TASK_VERSION}/g" "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}/${taskName}.yaml"
+  replace_placeholders "${TEKTON_HUB_PATH}/${taskName}/${TEKTON_TASK_VERSION}/${taskName}.yaml" "${TEKTON_TASK_VERSION}" "${IKE_IMAGE}" "--in-place"
 done
 
 COMMIT_MESSAGE="${COMMIT_MESSAGE}
