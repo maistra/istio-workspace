@@ -19,7 +19,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
-	github.com/operator-framework/operator-lib v0.7.0
+	github.com/operator-framework/operator-lib v0.8.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/schollz/progressbar/v3 v3.8.3
