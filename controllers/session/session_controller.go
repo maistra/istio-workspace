@@ -254,10 +254,10 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 					stored := stored // pin
 					session.Status.Readiness.Components.SetPending(stored.Kind + "/" + stored.Name)
 					session.AddCondition(createConditionForLocatedRef(ref, stored))
-					err = ctx.Client.Status().Update(ctx, session)
-					if err != nil {
-						ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
-					}
+				}
+				err = c.Status().Update(ctx, session)
+				if err != nil {
+					ctx.Log.Error(err, "could not update session", "name", session.Name, "namespace", session.Namespace)
 				}
 			},
 			func(modified model.ModificatorStatus) {
@@ -286,7 +286,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	}
 
 	if deleted {
-		if allSuccessConditions(session.Status.Conditions) {
+		if allConditionsSuccessful(session.Status.Conditions) {
 			session.RemoveFinalizer(Finalizer)
 			if err := c.Update(ctx, session); err != nil {
 				ctx.Log.Error(err, "Failed to remove finalizer on session")
@@ -299,7 +299,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	return reconcile.Result{}, nil
 }
 
-func allSuccessConditions(conditions []*istiov1alpha1.Condition) bool {
+func allConditionsSuccessful(conditions []*istiov1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
 		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
