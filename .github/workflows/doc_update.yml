@@ -21,7 +21,7 @@ jobs:
           git config --local user.email "${GIT_EMAIL}"
       - name: Checkout PR branch
         id: checkout
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -51,12 +51,13 @@ jobs:
                 context: 'docs / generate',
                 state: 'error',
                 description: 'Failed checking out PR branch',
+                details: stderr.toString(),
               }));
               core.setFailed('Failed checking out PR branch');
             }
       - name: Generate doc updates
         if: success()
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -82,6 +83,7 @@ jobs:
                     context: 'docs / generate',
                     state: 'error',
                     description: 'Failed committing docs update',
+                    details: stderr.toString(),
                   }));
                   core.setFailed('Failed committing docs update');
               } else {
@@ -95,7 +97,7 @@ jobs:
             }
       - name: Publish job status and comment with details
         if: always()
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
