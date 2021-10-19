@@ -126,6 +126,14 @@ func actionCreateDeployment(ctx model.SessionContext, ref model.Ref, store model
 	ctx.Log.Info("Found Deployment", "name", deployment.Name)
 
 	if ref.Strategy == model.StrategyExisting {
+		report(model.ModificatorStatus{
+			LocatorStatus: resource,
+			Success:       true,
+			Target: &model.Resource{
+				Namespace: deployment.Namespace,
+				Kind:      DeploymentKind,
+				Name:      deployment.Name}})
+
 		return
 	}
 

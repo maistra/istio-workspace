@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/pkg/client/instrumented"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -178,7 +179,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	reqLogger := logger().WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Session")
 
-	c := NewInstrumentedClient(r.client)
+	c := instrumented.New(r.client)
 
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}

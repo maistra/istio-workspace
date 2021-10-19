@@ -1,4 +1,4 @@
-package session
+package instrumented
 
 import (
 	"context"
@@ -36,7 +36,7 @@ func init() {
 	metrics.Registry.MustRegister(resources, resourceFailures)
 }
 
-func NewInstrumentedClient(c client.Client) client.Client {
+func New(c client.Client) client.Client {
 	return &InstrumentedClient{c: c}
 }
 

@@ -40,6 +40,7 @@ type Options struct {
 
 // State holds the new variables as presented by the creation of the session.
 type State struct {
+	SessionName    string              // name of the session
 	DeploymentName string              // name of the resource to target within the cloned route.
 	Hosts          []string            // currently exposed hosts
 	Route          istiov1alpha1.Route // the current route configuration
@@ -50,7 +51,7 @@ type Handler func(opts Options, client *Client) (State, func(), error)
 
 // Offline is a empty Handler doing nothing. Used for testing.
 func Offline(opts Options, client *Client) (State, func(), error) {
-	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
+	return State{SessionName: opts.SessionName, DeploymentName: opts.DeploymentName}, func() {}, nil
 }
 
 // handler wraps the session client and required metadata used to manipulate the resources.
@@ -101,6 +102,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	}
 
 	return State{
+		SessionName:    sessionName,
 		DeploymentName: serviceName,
 		Hosts:          session.Status.Hosts,
 		Route:          *route,
@@ -238,6 +240,32 @@ func (h *handler) removeOrLeaveSession() {
 	}
 }
 
+// ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
+func ParseRoute(route string) (*istiov1alpha1.Route, error) {
+	if route == "" {
+		return nil, nil
+	}
+	var t, n, v string
+
+	typed := strings.Split(route, ":")
+	if len(typed) != 2 {
+		return nil, errorWrongRouteFormat
+	}
+	t = typed[0]
+
+	pair := strings.Split(typed[1], "=")
+	if len(pair) != 2 {
+		return nil, errorWrongRouteFormat
+	}
+	n, v = pair[0], pair[1]
+
+	return &istiov1alpha1.Route{
+		Type:  t,
+		Name:  n,
+		Value: v,
+	}, nil
+}
+
 var nonAlphaNumeric = regexp.MustCompile("[^A-Za-z0-9]+")
 
 func getOrCreateSessionName(sessionName string) (string, error) {
@@ -264,30 +292,4 @@ func getOrCreateSessionName(sessionName string) (string, error) {
 	}
 
 	return nonAlphaNumeric.ReplaceAllString(sessionName, "-"), nil
-}
-
-// ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
-func ParseRoute(route string) (*istiov1alpha1.Route, error) {
-	if route == "" {
-		return nil, nil
-	}
-	var t, n, v string
-
-	typed := strings.Split(route, ":")
-	if len(typed) != 2 {
-		return nil, errorWrongRouteFormat
-	}
-	t = typed[0]
-
-	pair := strings.Split(typed[1], "=")
-	if len(pair) != 2 {
-		return nil, errorWrongRouteFormat
-	}
-	n, v = pair[0], pair[1]
-
-	return &istiov1alpha1.Route{
-		Type:  t,
-		Name:  n,
-		Value: v,
-	}, nil
 }

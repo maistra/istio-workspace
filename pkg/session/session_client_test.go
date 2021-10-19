@@ -9,7 +9,7 @@ import (
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
-	"github.com/maistra/istio-workspace/pkg/internal/session"
+	"github.com/maistra/istio-workspace/pkg/session"
 )
 
 var _ = Describe("Session Client operations", func() {
