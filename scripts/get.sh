@@ -97,12 +97,12 @@ while test $# -gt 0; do
   esac
 done
 
-test -z "$binary_name" && binary_name="ike"
-test -z "$version" && version="$(last_version)"
+binary_name=${binary_name:-"ike"}
+version=${version:-"$(last_version)"}
 test -z "$version" && {
   die "Unable to get ike version. You can still try to download it manually from $RELEASES_URL."
 }
-test -z "$dir" && {
+test -z ${dir+x} && {
   if [ "$(uname)" == "Darwin" ]; then
     dir="$(mktemp -d -t ike-${version}-)"
   else
@@ -112,7 +112,7 @@ test -z "$dir" && {
 
 download "${version}"
 tar -C "$dir" -xzf "$TAR_FILE" ike
-mv -n $dir/ike $dir/$binary_name
+mv -n "$dir"/ike "$dir/$binary_name"
 
 echo "Downloaded ike binary ($version) to $dir/$binary_name"
 echo "Make sure it's on your \$PATH."

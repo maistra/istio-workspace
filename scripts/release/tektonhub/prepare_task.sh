@@ -8,7 +8,7 @@ function replace_placeholders() {
   local image=$3
   local cmd=( "sed" )
 
-  if [ -n "${4:-}" ]; then
+  if [ -n "${4+x}" ]; then
       cmd+=( -i )
   fi
   cmd+=( -e "s/released-image/${image}/g" -e "s/current-version/${taskVersion}/g" "${path}")
