@@ -73,7 +73,7 @@ func DumpTelepresenceLog(dir string) {
 	}
 }
 
-// UsePrebuiltImages returns true if test suite should use images that are built outside of the test execution flow.
+// UsePrebuiltImages returns true if test suite should use images that are built outside the test execution flow.
 func UsePrebuiltImages() bool {
 	return os.Getenv("PRE_BUILT_IMAGES") != ""
 }
