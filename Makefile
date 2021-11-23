@@ -75,10 +75,11 @@ ifneq (, $(shell which oc))
 	k8s=oc
 endif
 
-IMG_BUILDER:=docker
-## Prefer to use podman
+# Prefer to use podman if not explicitly set
 ifneq (, $(shell which podman))
-	IMG_BUILDER=podman
+	IMG_BUILDER?=podman
+else
+	IMG_BUILDER?=docker
 endif
 
 ###########################################################################
