@@ -48,7 +48,7 @@ var _ = Describe("telepresence commands wrapper", func() {
 		It("should retrieve version from TELEPRESENCE_VERSION env variable when defined", func() {
 			// given
 			tmpPath := NewTmpPath()
-			tmpPath.SetPath(path.Dir(shell.TpVersionFlagBin))
+			tmpPath.SetPath(path.Dir(shell.Tp1VersionFlagBin))
 			restoreEnvVars := TemporaryEnvVars("TELEPRESENCE_VERSION", "0.123")
 
 			defer restoreEnvVars()
@@ -78,7 +78,7 @@ var _ = Describe("telepresence commands wrapper", func() {
 
 		It("should retrieve version from telepresence binary", func() {
 			tmpPath := NewTmpPath()
-			tmpPath.SetPath(path.Dir(shell.TpFixedVersionBin))
+			tmpPath.SetPath(path.Dir(shell.Tp1FixedVersionBin))
 			defer tmpPath.Restore()
 
 			// when

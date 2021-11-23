@@ -11,24 +11,24 @@ import (
 )
 
 var (
-	MvnBin            string
-	TpSleepBin        string
-	TpFixedVersionBin string
-	TpVersionFlagBin  string
-	Tp2VersionFlagBin string
-	JavaBin           string
+	MvnBin             string
+	Tp1WithSleepBin    string
+	Tp1FixedVersionBin string
+	Tp1VersionFlagBin  string
+	Tp2VersionFlagBin  string
+	JavaBin            string
 )
 
 func StubShellCommands() {
-	MvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
-	JavaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
+	MvnBin = BuildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
+	JavaBin = BuildBinary("github.com/maistra/istio-workspace/test/echo", "java",
 		"-ldflags", "-w -X main.SleepMs=1024")
-	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
+	_ = BuildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
-	TpFixedVersionBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1 -X main.Return=0.234")
-	TpVersionFlagBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1")
-	Tp2VersionFlagBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v2")
-	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub",
+	Tp1FixedVersionBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1 -X main.Return=0.234")
+	Tp1VersionFlagBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1")
+	Tp2VersionFlagBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v2")
+	Tp1WithSleepBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub",
 		"telepresence", "-ldflags", "-w -X main.SleepMs=256 -X main.Version=v1")
 }
 
@@ -43,7 +43,7 @@ func ExecuteCommand(outputChan chan string, execute func() (string, error)) func
 
 var appFs = afero.NewOsFs()
 
-func buildBinary(packagePath, name string, flags ...string) string {
+func BuildBinary(packagePath, name string, flags ...string) string {
 	binPath, err := gexec.Build(packagePath, flags...)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
