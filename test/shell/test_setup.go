@@ -11,10 +11,12 @@ import (
 )
 
 var (
-	MvnBin       string
-	TpSleepBin   string
-	TpVersionBin string
-	JavaBin      string
+	MvnBin            string
+	TpSleepBin        string
+	TpFixedVersionBin string
+	TpVersionFlagBin  string
+	Tp2VersionFlagBin string
+	JavaBin           string
 )
 
 func StubShellCommands() {
@@ -23,9 +25,11 @@ func StubShellCommands() {
 		"-ldflags", "-w -X main.SleepMs=1024")
 	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
-	TpVersionBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence", "-ldflags", "-w -X main.Echo=0.234")
-	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
-		"telepresence", "-ldflags", "-w -X main.SleepMs=256")
+	TpFixedVersionBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1 -X main.Return=0.234")
+	TpVersionFlagBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1")
+	Tp2VersionFlagBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v2")
+	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/tp_stub",
+		"telepresence", "-ldflags", "-w -X main.SleepMs=256 -X main.Version=v1")
 }
 
 func ExecuteCommand(outputChan chan string, execute func() (string, error)) func() {
@@ -39,7 +43,7 @@ func ExecuteCommand(outputChan chan string, execute func() (string, error)) func
 
 var appFs = afero.NewOsFs()
 
-func buildBinary(packagePath, name string, flags ...string) string { //nolint:unparam //reason at this moment we always pass the same value for packagePath
+func buildBinary(packagePath, name string, flags ...string) string {
 	binPath, err := gexec.Build(packagePath, flags...)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
