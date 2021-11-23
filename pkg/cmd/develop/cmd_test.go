@@ -30,7 +30,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 
@@ -50,7 +50,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 
@@ -196,7 +196,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 
