@@ -124,7 +124,6 @@ func BinaryExists(binName, hint string) bool {
 
 		return false
 	}
-
 	logger().V(1).Info(fmt.Sprintf("Found '%s' executable in '%s'.", binName, path))
 	logger().V(1).Info(fmt.Sprintf("See '%s.log' for more details about its execution.", binName))
 
