@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"path"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -19,14 +20,19 @@ func TestDevelopCmd(t *testing.T) {
 
 var current goleak.Option
 
+var tmpPath = NewTmpPath()
 var _ = SynchronizedBeforeSuite(func() []byte {
 	current = goleak.IgnoreCurrent()
-	shell.StubShellCommands()
+	tpPath := shell.BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1")
+
+	tmpPath = NewTmpPath()
+	tmpPath.SetPath(path.Dir(tpPath))
 
 	return []byte{}
 }, func([]byte) {})
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
+	tmpPath.Restore()
 	gexec.CleanupBuildArtifacts()
 	goleak.VerifyNone(GinkgoT(), current)
 })

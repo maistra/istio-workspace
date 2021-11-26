@@ -14,10 +14,12 @@ import (
 var _ = Describe("Usage of session func", func() {
 
 	var restoreEnvVars func()
-	BeforeEach(func() {
+
+	JustBeforeEach(func() {
 		restoreEnvVars = test.TemporaryEnvVars("TELEPRESENCE_VERSION", "0.123")
 	})
-	AfterEach(func() {
+
+	JustAfterEach(func() {
 		restoreEnvVars()
 	})
 

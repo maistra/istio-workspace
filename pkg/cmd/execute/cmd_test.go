@@ -38,7 +38,7 @@ var _ = Describe("Usage of ike execute command", func() {
 		tmpPath := NewTmpPath()
 
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin), path.Dir(shell.JavaBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin), path.Dir(shell.JavaBin))
 		})
 
 		AfterEach(tmpPath.Restore)

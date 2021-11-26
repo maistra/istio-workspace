@@ -5,7 +5,7 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 == What do you need
 
 * [x] `oc` or `kubectl`
-* [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
+* [x] https://www.telepresence.io/docs/v1/reference/install/[Telepresence] CLI tool (and required runtime dependencies)
 * [x] `ike` binary (see below)
 * [x] Kubernetes cluster with Istio (i.e. Maistra)
 
