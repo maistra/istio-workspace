@@ -95,7 +95,7 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v -progress -vet=off -trace -skipPackage=e2e --junit-report=ginkgo-test-results.xml ${args}
+	ginkgo -r -v -progress -vet=off -trace --skip-package=e2e --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
