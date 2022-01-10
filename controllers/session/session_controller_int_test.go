@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"

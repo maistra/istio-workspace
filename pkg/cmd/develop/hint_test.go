@@ -1,7 +1,7 @@
 package develop_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"

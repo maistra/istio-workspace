@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"go.uber.org/goleak"
@@ -15,7 +15,7 @@ import (
 
 func TestDevelopCmd(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Session Internal Logic Suite")
+	RunSpecs(t, "Session Internal Logic Suite")
 }
 
 var current goleak.Option
