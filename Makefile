@@ -95,12 +95,12 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v -progress -vet=off -trace -skipPackage=e2e ${args}
+	ginkgo -r -v -progress -vet=off -trace --skip-package=e2e --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
-	ginkgo e2e/ -r -v -progress -vet=off -trace ${args}
+	ginkgo e2e/ -r -v -progress -vet=off -trace --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts
@@ -213,7 +213,7 @@ $(PROJECT_DIR)/bin/go-bindata:
 
 $(PROJECT_DIR)/bin/ginkgo:
 	$(call header,"Installing ginkgo")
-	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/v2/ginkgo
 
 $(PROJECT_DIR)/bin/goimports:
 	$(call header,"Installing goimports")

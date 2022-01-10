@@ -3,16 +3,14 @@ package v1alpha1_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/goleak"
-
-	. "github.com/maistra/istio-workspace/test"
 )
 
 func TestSessionController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Session API Suite")
+	RunSpecs(t, "Session API Suite")
 }
 
 var current goleak.Option
