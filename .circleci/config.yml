@@ -32,7 +32,7 @@ defaults:
   skip-for-non-code-changes: &skip-for-non-code-changes
     name: "Skip job for non-code changes"
     command: |
-      if git diff -s --exit-code HEAD~..HEAD -- . ':!docs' ':!.github' ':!.circleci' ':!scripts'; then
+      if git diff -s --exit-code HEAD~..HEAD -- . ':!docs' ':!.github' ':!scripts'; then
         echo "This commit has only non-code related changes."
         circleci step halt
       fi
