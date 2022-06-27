@@ -467,8 +467,21 @@ deploy-test-%:
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	command -v oc &>/dev/null &&  \
+	# tag::anyuid[]
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) \
+	# end::anyuid[]
+	|| true
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	command -v oc &>/dev/null && \
+	# tag::privileged[]
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) \
+	# end::privileged[]
+	|| true
+
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
