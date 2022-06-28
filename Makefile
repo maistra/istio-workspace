@@ -129,7 +129,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run --fix --sort-results
 
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+CRD_OPTIONS ?= crd
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
@@ -141,6 +141,7 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/api \
 		"maistra:v1alpha1" \
+		--output-base "$(PROJECT_DIR)/../../.." \
 		--go-header-file ./scripts/boilerplate.txt
 
 .PHONY: version
