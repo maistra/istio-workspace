@@ -141,7 +141,6 @@ generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s man
 		$(PACKAGE_NAME)/pkg/client \
 		$(PACKAGE_NAME)/api \
 		"maistra:v1alpha1" \
-		--output-base "$(PROJECT_DIR)/../../.." \
 		--go-header-file ./scripts/boilerplate.txt
 
 .PHONY: version
