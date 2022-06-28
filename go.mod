@@ -8,8 +8,8 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.1
-	github.com/go-logr/logr v0.4.0
-	github.com/go-logr/zapr v0.4.0
+	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/zapr v1.2.3
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v41 v41.0.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
