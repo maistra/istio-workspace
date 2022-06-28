@@ -3,13 +3,13 @@ module github.com/maistra/istio-workspace
 go 1.17
 
 require (
-	emperror.dev/errors v0.8.0
+	emperror.dev/errors v0.8.1
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.1
-	github.com/go-logr/logr v1.2.0
-	github.com/go-logr/zapr v1.2.0
+	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/zapr v1.2.3
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v41 v41.0.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -17,7 +17,7 @@ require (
 	github.com/kisielk/errcheck v1.6.0
 	github.com/mikefarah/yq/v4 v4.14.1
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
-	github.com/operator-framework/operator-lib v0.8.0
+	github.com/operator-framework/operator-lib v0.11.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/schollz/progressbar/v3 v3.8.3
@@ -27,19 +27,19 @@ require (
 	github.com/spf13/viper v1.9.0
 	go.uber.org/goleak v1.1.12
 	go.uber.org/zap v1.19.1
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
 	istio.io/client-go v1.11.4
-	k8s.io/api v0.24.0
-	k8s.io/apimachinery v0.24.0
-	k8s.io/client-go v0.24.0
-	k8s.io/code-generator v0.24.0
-	k8s.io/klog/v2 v2.60.1
-	sigs.k8s.io/controller-runtime v0.10.2
+	k8s.io/api v0.24.2
+	k8s.io/apimachinery v0.24.2
+	k8s.io/client-go v0.24.2
+	k8s.io/code-generator v0.24.2
+	k8s.io/klog/v2 v2.70.0
+	sigs.k8s.io/controller-runtime v0.12.2
 	sigs.k8s.io/controller-tools v0.9.0
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -47,7 +47,7 @@ require (
 // Testing deps
 require (
 	github.com/onsi/ginkgo/v2 v2.0.0
-	github.com/onsi/gomega v1.17.0
+	github.com/onsi/gomega v1.18.1
 )
 
 require (
@@ -130,8 +130,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
-	k8s.io/apiextensions-apiserver v0.24.0 // indirect
-	k8s.io/component-base v0.24.0 // indirect
+	k8s.io/apiextensions-apiserver v0.24.2 // indirect
+	k8s.io/component-base v0.24.2 // indirect
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect

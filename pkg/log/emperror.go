@@ -9,12 +9,6 @@ type Emperror struct {
 	logr.Logger
 }
 
-func (e Emperror) V(level int) logr.Logger { return Emperror{e.Logger.V(level)} }
-func (e Emperror) WithValues(keysAndValues ...interface{}) logr.Logger {
-	return Emperror{e.Logger.WithValues(keysAndValues...)}
-}
-func (e Emperror) WithName(name string) logr.Logger { return Emperror{e.Logger.WithName(name)} }
-
 func (e Emperror) Error(err error, msg string, keysAndValues ...interface{}) {
 	kv := uniqueKeys(collectDetails(err, keysAndValues)...)
 	e.Logger.Error(err, msg, kv...)
