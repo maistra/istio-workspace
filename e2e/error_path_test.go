@@ -45,7 +45,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 		})
 
 		AfterEach(func() {
-			if CurrentGinkgoTestDescription().Failed {
+			if CurrentSpecReport().Failed() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			}
 			CleanupNamespace(namespace, false)
