@@ -15,7 +15,7 @@ jobs:
       - name: Set up Go env
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17.6
+          go-version: 1.17.11
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -25,9 +25,14 @@ jobs:
           echo "GOPATH=${{ github.workspace }}/go" >> $GITHUB_ENV
           echo "${{ github.workspace }}/go/bin" >> $GITHUB_PATH
         shell: bash
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.7
+          python-version: 3.8
+      - name: Install required packages
+        run: |
+          pip install ansible jmespath
+      - name: Tests ansible
+        run: whereis ansible
       - name: Tests bundle
         run: |
           git config --global user.name "GitHub Actions" && git config --global user.email "actions@users.noreply.github.com"
@@ -37,7 +42,7 @@ jobs:
       - name: Print test logs on failure
         if: ${{ failure() }}
         run: |
-          cat /tmp/test.out
+          cat /tmp/test.out || true
           echo -e "\n--------------------------------------------------------------------------\n"
-          cat /tmp/op-test/log.out
+          cat /tmp/op-test/log.out || true
         shell: bash
