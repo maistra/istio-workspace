@@ -93,7 +93,6 @@ jobs:
     resource_class: large
     environment:
       BUILD_CACHE_FOLDER: ".circleci/cache"
-    resource_class: large
     steps:
       - checkout
       - run:
