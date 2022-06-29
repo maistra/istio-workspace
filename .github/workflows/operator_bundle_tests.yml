@@ -37,6 +37,12 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions" && git config --global user.email "actions@users.noreply.github.com"
           cd go/src/github.com/${{ env.REPOSITORY }}
+          export IKE_CONTAINER_REPOSITORY=maistra-dev
+          if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
+            export IKE_IMAGE_TAG="${CIRCLE_BRANCH##*/}"
+          else
+            export IKE_IMAGE_TAG="pr-${CIRCLE_PULL_REQUEST##*/}-circle"
+          fi
           make lint-prepare bundle-test
         shell: bash
       - name: Print test logs on failure
