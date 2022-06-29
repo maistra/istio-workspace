@@ -90,6 +90,7 @@ jobs:
   build:
     docker:
       - image: *golang-img
+    resource_class: large
     environment:
       BUILD_CACHE_FOLDER: ".circleci/cache"
     resource_class: large
