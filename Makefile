@@ -372,6 +372,7 @@ CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
 bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR) ## Generate bundle manifests and metadata, then validate generated files
+	$(call header,"Generate bundle manifests and metadata")
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
@@ -383,15 +384,17 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
 	sed -i -e '/insert::description-from-readme/{r $(PROJECT_DIR)/$(DESC_FILE)' -e 'd}' $(PROJECT_DIR)/$(CSV_FILE)
 	rm $(DESC_FILE)
-
+	$(call header,"Validate bundle")
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-image
 bundle-image:	## Build the bundle image
+	$(call header,"Building bundle image")
 	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
+	$(call header,"Pushing bundle image")
 	$(IMG_BUILDER) push $(BUNDLE_IMG)
 
 BUNDLE_TIMEOUT?=5m
