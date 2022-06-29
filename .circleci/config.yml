@@ -26,7 +26,7 @@ defaults:
       nvm install 10
       nvm use 10
   docker:
-    - image: &golang-img cimg/go:1.17.6
+    - image: &golang-img cimg/go:1.17.11
   machine-conf: &machine-conf
     image: ubuntu-2004:202101-01
   skip-for-non-code-changes: &skip-for-non-code-changes
