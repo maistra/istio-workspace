@@ -27,22 +27,16 @@ jobs:
         shell: bash
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Install required packages
-        run: |
-          pip install ansible jmespath
-      - name: Tests ansible
-        run: whereis ansible
+        run: pip install ansible jmespath
       - name: Tests bundle
         run: |
           git config --global user.name "GitHub Actions" && git config --global user.email "actions@users.noreply.github.com"
           cd go/src/github.com/${{ env.REPOSITORY }}
-#          export IKE_CONTAINER_REPOSITORY=maistra-dev
-#          if [ -z ${CIRCLE_PULL_REQUEST+x} ]; then
-#            export IKE_IMAGE_TAG="${CIRCLE_BRANCH##*/}"
-#          else
-#            export IKE_IMAGE_TAG="pr-${CIRCLE_PULL_REQUEST##*/}-circle"
-#          fi
+          export IKE_CONTAINER_REPOSITORY=maistra-dev
+          podman login -u=${{ secrets.QUAY_ROBOT_NAME }} -p=${{ secrets.QUAY_ROBOT_AUTH }} quay.io
+          make container-image container-push bundle
           make lint-prepare bundle-test
         shell: bash
       - name: Print test logs on failure
