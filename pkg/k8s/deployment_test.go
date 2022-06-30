@@ -128,7 +128,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 										Image: "datawire/hello-world:latest",
 										Env:   []v1.EnvVar{},
 										LivenessProbe: &v1.Probe{
-											Handler: v1.Handler{
+											ProbeHandler: v1.ProbeHandler{
 												HTTPGet: &v1.HTTPGetAction{
 													Path: "/healthz",
 													Port: intstr.FromInt(9080),
@@ -136,7 +136,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 											},
 										},
 										ReadinessProbe: &v1.Probe{
-											Handler: v1.Handler{
+											ProbeHandler: v1.ProbeHandler{
 												HTTPGet: &v1.HTTPGetAction{
 													Path: "/healthz",
 													Port: intstr.FromInt(9080),

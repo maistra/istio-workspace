@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Script based on https://github.com/redhat-openshift-ecosystem/community-operators-pipeline/blob/41d2f3eb68eaf2df7cb02b2d2d10a5c7b45dfbd0/.github/workflows/operator_test.yaml
+
 set -euo pipefail
 
 show_help() {
@@ -49,7 +51,7 @@ GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GIT_USER="${GIT_USER:-alien-ike}"
 
 OPERATOR_NAME=istio-workspace-operator
-OPERATOR_VERSION=${OPERATOR_VERSION:-0.3.0}
+OPERATOR_VERSION=${OPERATOR_VERSION:-0.4.0}
 OPERATOR_HUB=${OPERATOR_HUB:-"community-operators"}
 
 TMP_DIR=$(mktemp -d -t "${OPERATOR_NAME}.XXXXXXXXXX")
@@ -92,10 +94,12 @@ OPP_RELEASE_BUNDLE_ORGANIZATION="operatorhubio"
 OPP_RELEASE_INDEX_REGISTRY="quay.io"
 OPP_RELEASE_INDEX_ORGANIZATION="operatorhubio"
 OPP_RELEASE_INDEX_NAME="catalog"
-OPP_MIRROR_INDEX_MULTIARCH_BASE="registry.redhat.io/openshift4/ose-operator-registry:v4.5"
+OPP_MIRROR_INDEX_MULTIARCH_BASE="registry.redhat.io/openshift4/ose-operator-registry:v4.9"
 OPP_MIRROR_INDEX_MULTIARCH_POSTFIX="s"
+KIND_VERSION="v0.14.0"
 KIND_KUBE_VERSION="v1.21.1"
 OPP_PRODUCTION_TYPE="k8s"
+
 
 echo "Running tests: $tests"
 cd "${TMP_DIR}"
