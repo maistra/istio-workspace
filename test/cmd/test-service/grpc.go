@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -41,7 +42,7 @@ func (s server) Call(ctx context.Context, callee *Callee) (*CallStack, error) {
 
 func gRPCRequestInvoker(log logr.Logger, target *url.URL, headers map[string]string) *CallStack {
 	log.Info("sent", "protocol", "grpc", "target", target.String(), "headers", headers)
-	conn, err := grpc.Dial(target.String(), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(target.String(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Error(err, "Failed to connect", "target", target)
 
