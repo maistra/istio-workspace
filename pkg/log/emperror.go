@@ -5,19 +5,20 @@ import (
 	"github.com/go-logr/logr"
 )
 
-type Emperror struct {
-	logr.Logger
+// Assert conformance to the interface.
+var _ logr.LogSink = &errorCollector{}
+
+type errorCollector struct {
+	logr.LogSink
 }
 
-func (e Emperror) V(level int) logr.Logger { return Emperror{e.Logger.V(level)} }
-func (e Emperror) WithValues(keysAndValues ...interface{}) logr.Logger {
-	return Emperror{e.Logger.WithValues(keysAndValues...)}
+func New(l logr.Logger) logr.Logger {
+	return logr.New(&errorCollector{l.GetSink()})
 }
-func (e Emperror) WithName(name string) logr.Logger { return Emperror{e.Logger.WithName(name)} }
 
-func (e Emperror) Error(err error, msg string, keysAndValues ...interface{}) {
+func (e errorCollector) Error(err error, msg string, keysAndValues ...interface{}) {
 	kv := uniqueKeys(collectDetails(err, keysAndValues)...)
-	e.Logger.Error(err, msg, kv...)
+	e.LogSink.Error(err, msg, kv...)
 }
 
 func uniqueKeys(kv ...interface{}) []interface{} {
