@@ -18,11 +18,11 @@ require (
 	github.com/mikefarah/yq/v4 v4.14.1
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.11.0
-	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/client_golang v1.12.2
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/schollz/progressbar/v3 v3.8.3
 	github.com/spf13/afero v1.6.0
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.9.0
 	go.uber.org/goleak v1.1.12
