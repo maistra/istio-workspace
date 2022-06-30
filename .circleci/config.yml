@@ -125,6 +125,7 @@ jobs:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
+    resource_class: large
     environment:
       <<: *env-vars
     steps:

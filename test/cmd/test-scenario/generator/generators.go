@@ -279,7 +279,7 @@ func template(name string) corev1.PodTemplateSpec {
 						},
 					},
 					LivenessProbe: &corev1.Probe{
-						Handler: corev1.Handler{
+						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
 								Port: intstr.FromInt(9080),
@@ -290,7 +290,7 @@ func template(name string) corev1.PodTemplateSpec {
 						FailureThreshold:    10,
 					},
 					ReadinessProbe: &corev1.Probe{
-						Handler: corev1.Handler{
+						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
 								Port: intstr.FromInt(9080),
