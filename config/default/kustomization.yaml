@@ -1,4 +1,3 @@
-# Adds namespace to all resources.
 namespace: istio-workspace-operator-system
 
 # Value of this field is prepended to the
