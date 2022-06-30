@@ -7,7 +7,7 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-bindata/go-bindata/v3 v3.1.3
-	github.com/go-cmd/cmd v1.3.1
+	github.com/go-cmd/cmd v1.4.1
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
 	github.com/golang/protobuf v1.5.2
@@ -28,7 +28,7 @@ require (
 	go.uber.org/goleak v1.1.12
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
+	golang.org/x/tools v0.1.10
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/h2non/gock.v1 v1.1.2
@@ -46,8 +46,8 @@ require (
 
 // Testing deps
 require (
-	github.com/onsi/ginkgo/v2 v2.0.0
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/ginkgo/v2 v2.1.4
+	github.com/onsi/gomega v1.19.0
 )
 
 require (
