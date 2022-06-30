@@ -129,7 +129,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run --fix --sort-results
 
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+CRD_OPTIONS ?= crd
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
@@ -200,7 +200,7 @@ tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_D
 tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq $(PROJECT_DIR)/bin/ginkgo
 
 $(PROJECT_DIR)/bin/yq:
-	$(call header,"Installing")
+	$(call header,"Installing yq")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v4
 
 $(PROJECT_DIR)/bin/protoc-gen-go:
@@ -240,7 +240,7 @@ $(PROJECT_DIR)/bin/protoc:
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
 
-OPERATOR_SDK_VERSION=v1.8.1
+OPERATOR_SDK_VERSION=v1.22.0
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
@@ -372,6 +372,7 @@ CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
 bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR) ## Generate bundle manifests and metadata, then validate generated files
+	$(call header,"Generate bundle manifests and metadata")
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
@@ -383,15 +384,17 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
 	sed -i -e '/insert::description-from-readme/{r $(PROJECT_DIR)/$(DESC_FILE)' -e 'd}' $(PROJECT_DIR)/$(CSV_FILE)
 	rm $(DESC_FILE)
-
+	$(call header,"Validate bundle")
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-image
 bundle-image:	## Build the bundle image
+	$(call header,"Building bundle image")
 	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
+	$(call header,"Pushing bundle image")
 	$(IMG_BUILDER) push $(BUNDLE_IMG)
 
 BUNDLE_TIMEOUT?=5m
@@ -467,8 +470,17 @@ deploy-test-%:
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	# tag::anyuid[]
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
+	# end::anyuid[]
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	# tag::privileged[]
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+	# end::privileged[]
+
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:

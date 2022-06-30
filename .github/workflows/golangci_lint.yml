@@ -12,9 +12,9 @@ jobs:
       REPOSITORY: ${{ github.repository }}
     steps:
       - name: Set up Go env
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.17.3
+          go-version: 1.17.11
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -30,7 +30,7 @@ jobs:
           make lint-prepare
         shell: bash
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2.5.2
+        uses: golangci/golangci-lint-action@v3.2.0
         with:
           version: v1.41
           working-directory: go/src/github.com/${{ env.REPOSITORY }}
