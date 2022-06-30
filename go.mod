@@ -5,7 +5,7 @@ go 1.17
 require (
 	emperror.dev/errors v0.8.1
 	github.com/evanphx/json-patch v4.12.0+incompatible
-	github.com/fsnotify/fsnotify v1.5.1
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.3.1
 	github.com/go-logr/logr v1.2.3
@@ -26,7 +26,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.9.0
 	go.uber.org/goleak v1.1.12
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717
 	google.golang.org/grpc v1.41.0
@@ -116,7 +116,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
