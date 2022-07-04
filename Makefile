@@ -498,17 +498,7 @@ export VERSION
 
 .PHONY: release-notes-draft
 release-notes-draft: ## Prepares release notes based on template. e.g. VERSION=v1.0.0 make release-notes-draft
-	@if [ "$(VERSION)" = "x" ]; then\
-		echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
-	else\
-		./scripts/release/validate.sh $(VERSION) --skip-release-notes-check && \
-		git checkout -b release_$(VERSION) && \
-		cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-		sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-		git add . && \
-    git commit -m "release: highlights of ${VERSION}" -m "/skip-e2e" -m "/skip-build" && \
-		git show HEAD;\
-	fi
+	@./scripts/release/create_release_notes.sh --version=$(VERSION)
 
 .PHONY: help
 help:  ## Displays this help \o/
