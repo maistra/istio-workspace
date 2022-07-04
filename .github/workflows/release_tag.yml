@@ -21,7 +21,7 @@ jobs:
                 const match = captureVersion.exec(commit.message);
                 if (match) {
                   const version = `v${match[1]}`
-                  github.git.createTag({
+                  github.rest.git.createTag({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     tag: version,
@@ -33,7 +33,7 @@ jobs:
                       email: "${{ env.GIT_EMAIL }}",
                     },
                   }).then(() => {
-                    github.git.createRef({
+                    github.rest.git.createRef({
                       owner: context.repo.owner,
                       repo: context.repo.repo,
                       ref: `refs/tags/${version}`,
