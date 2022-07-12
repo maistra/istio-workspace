@@ -22,10 +22,12 @@ TIP: It's recommended to use rather generous memory settings to avoid unnecessar
 +
 By simply using `istioctl install` you can roll out default istio deployment which is sufficient for development practices. Check how to install `istioctl` command line tool on your OS in the https://istio.io/latest/docs/setup/install/istioctl/[official docs].
 
-. Installing Operator Lifecycle Management
+. Installing Operator Lifecycle Management in the cluster
 +
-`operator-sdk olm install --version v0.18.3` will install Operator Lifecycle Management in your cluster. 
-// TODO this ideally should be sourced from CI setup to be always up-to-date
+[source,shell,indent=0]
+----
+include::example$config.yml[tag=olm]
+----
 
 . Enabling the tunnel
 +
@@ -35,12 +37,12 @@ For ease of use you could also enable the tunneling. This will create a route to
 
 To run the tests against local `minikube` instance you have to set few environment variables which you can pass as `ENV_FILE` and execute:
 
-First, create `minikube.env` on the fly, based on dynamically assigned values such as IP addresses.
+First, create `minikube.env`. As each time some variables can differ (such as IP of the cluster), it's good to have them evaluated on the fly. You can use following snippet to create `.env` file.
 
 [source,bash]
 .minikube.env
 ----
-cat <<EOF > minikube.env                                         
+cat <<EOF > minikubea.env                                         
 IKE_E2E_MANAGE_CLUSTER=false
 ISTIO_NS=istio-system
 IKE_IMAGE_TAG=latest
@@ -54,7 +56,9 @@ PRE_BUILT_IMAGES=true
 EOF
 ----
 
-IMPORTANT: Setting `PRE_BUILT_IMAGES=true` will result in pulling required images from `quay.io/maistra-dev`. If you would like to use internal/local registry refer to <<microk8s-e2e,microk8s e2e testes example>>.
+IMPORTANT: Setting `PRE_BUILT_IMAGES=true` will result in pulling required images from `quay.io/maistra-dev`. If you would like to use internal/local registry refer to <<microk8s-e2e,microk8s e2e tests example>>.
+
+With the created `.env` file you can now launch end-to-end tests passing following variable:
 
 [source,bash]
 ----
