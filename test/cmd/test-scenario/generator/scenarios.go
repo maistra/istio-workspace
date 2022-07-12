@@ -1,16 +1,12 @@
 package generator
 
-import (
-	"io"
-)
-
 var (
 	Namespace = ""
 )
 
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over http. Similar to the original bookinfo example setup.
-func TestScenario1HTTPThreeServicesInSequence(out io.Writer) {
+func TestScenario1HTTPThreeServicesInSequence(out Printer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}
@@ -28,7 +24,7 @@ func TestScenario1HTTPThreeServicesInSequence(out io.Writer) {
 
 // TestScenario1GRPCThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over grpc. Similar to the original bookinfo example setup.
-func TestScenario1GRPCThreeServicesInSequence(out io.Writer) {
+func TestScenario1GRPCThreeServicesInSequence(out Printer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}
@@ -47,7 +43,7 @@ func TestScenario1GRPCThreeServicesInSequence(out io.Writer) {
 // TestScenario2ThreeServicesInSequenceDeploymentConfig is a basic test setup with a
 // few services calling each other in a chain. Similar to the original bookinfo example setup.
 // Using DeploymentConfig.
-func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
+func TestScenario2ThreeServicesInSequenceDeploymentConfig(out Printer) {
 	productpage := Entry{"productpage", "DeploymentConfig", Namespace}
 	reviews := Entry{"reviews", "DeploymentConfig", Namespace}
 	ratings := Entry{"ratings", "DeploymentConfig", Namespace}
@@ -64,7 +60,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer) {
 }
 
 // DemoScenario is a simple setup for demo purposes.
-func DemoScenario(out io.Writer) {
+func DemoScenario(out Printer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}
@@ -84,7 +80,7 @@ func DemoScenario(out io.Writer) {
 }
 
 // IncompleteMissingVirtualServices generates a scenario where there are no DestinationRules.
-func IncompleteMissingDestinationRules(out io.Writer) {
+func IncompleteMissingDestinationRules(out Printer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}
@@ -101,7 +97,7 @@ func IncompleteMissingDestinationRules(out io.Writer) {
 }
 
 // IncompleteMissingVirtualServices generates a scenario where there are no VirtualServices.
-func IncompleteMissingVirtualServices(out io.Writer) {
+func IncompleteMissingVirtualServices(out Printer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}
 	ratings := Entry{"ratings", "Deployment", Namespace}

@@ -46,6 +46,8 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
+require github.com/blushft/go-diagrams v0.0.0-20201006005127-c78c821223d9
+
 require (
 	cloud.google.com/go v0.93.3 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
@@ -56,6 +58,7 @@ require (
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/awalterschulze/gographviz v0.0.0-20200901124122-0eecad45bd71 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

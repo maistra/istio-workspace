@@ -49,20 +49,26 @@ type SubGenerator func(service Entry) runtime.Object
 // Modifier is a function to change a runtime.Object into something more specific for a given scenario.
 type Modifier func(service Entry, object runtime.Object)
 
-// Generate runs and prints the full test scenario generation to sysout.
-func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...Modifier) {
-	modify := func(service Entry, object runtime.Object) {
-		for _, modifier := range modifiers {
-			modifier(service, object)
-		}
-	}
-	printObj := func(object runtime.Object) {
+// Printer is a function to output the generated Objects
+type Printer func(object runtime.Object)
+
+func NewSysOutPrinter(out io.Writer) Printer {
+	return func(object runtime.Object) {
 		b, err := yaml.Marshal(object)
 		if err != nil {
 			_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
 		}
 		_, _ = out.Write(b)
 		_, _ = io.WriteString(out, "---\n")
+	}
+}
+
+// Generate runs and prints the full test scenario generation to sysout.
+func Generate(out Printer, services []Entry, sub []SubGenerator, modifiers ...Modifier) {
+	modify := func(service Entry, object runtime.Object) {
+		for _, modifier := range modifiers {
+			modifier(service, object)
+		}
 	}
 	for _, service := range services {
 		func(service Entry) {
@@ -72,13 +78,13 @@ func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...
 					continue
 				}
 				modify(service, object)
-				printObj(object)
+				out(object)
 			}
 		}(service)
 	}
 	gw := Gateway()
 	modify(Entry{Name: "gateway"}, gw)
-	printObj(gw)
+	out(gw)
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.

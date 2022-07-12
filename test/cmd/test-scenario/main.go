@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
+	"github.com/maistra/istio-workspace/test/cmd/test-scenario/diagram"
 	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		generator.Namespace = h
 	}
 
-	scenarios := map[string]func(io.Writer){
+	scenarios := map[string]func(generator.Printer){
 		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
 		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,
 		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
@@ -32,7 +32,8 @@ func main() {
 	}
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if f, ok := scenarios[scenario]; ok {
-		f(os.Stdout)
+		f(generator.NewSysOutPrinter(os.Stdout))
+		f(diagram.NewPrinter(scenario, os.Stdout))
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)
