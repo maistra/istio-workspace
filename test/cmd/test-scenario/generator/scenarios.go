@@ -83,7 +83,7 @@ func DemoScenario(out io.Writer) {
 	)
 }
 
-// IncompleteMissingVirtualServices generates a scenario where there are no DestinationRules.
+// IncompleteMissingDestinationRules generates a scenario where there are no DestinationRules.
 func IncompleteMissingDestinationRules(out io.Writer) {
 	productpage := Entry{"productpage", "Deployment", Namespace}
 	reviews := Entry{"reviews", "Deployment", Namespace}

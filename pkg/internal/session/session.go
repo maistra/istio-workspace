@@ -45,10 +45,11 @@ type State struct {
 	Route          istiov1alpha1.Route // the current route configuration
 }
 
-// Handler is a function to setup a server session before attempting to connect. Returns a 'cleanup' function.
+// Handler is a function to set up a server session before attempting to connect.
+// Returns a 'cleanup' function.
 type Handler func(opts Options, client *Client) (State, func(), error)
 
-// Offline is a empty Handler doing nothing. Used for testing.
+// Offline is an empty Handler doing nothing.
 func Offline(opts Options, client *Client) (State, func(), error) {
 	return State{DeploymentName: opts.DeploymentName}, func() {}, nil
 }
@@ -76,7 +77,7 @@ func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocr
 	}
 }
 
-// CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
+// CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing one.
 // Rely on the following flags:
 //  * namespace - the name of the target namespace where deployment is defined
 //  * deployment - the name of the target deployment and will update the flag with the new deployment name

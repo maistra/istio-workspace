@@ -62,7 +62,7 @@ func Session(c client.Client) func(namespace, name string) v1alpha1.Session {
 	}
 }
 
-// Session returns a session by name in a given namespace.
+// SessionWithError Session returns a session by name in a given namespace or error if not found.
 func SessionWithError(c client.Client) func(namespace, name string) (v1alpha1.Session, error) {
 	return func(namespace, name string) (v1alpha1.Session, error) {
 		s := v1alpha1.Session{}
