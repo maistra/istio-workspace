@@ -84,8 +84,8 @@ var _ = SynchronizedAfterSuite(func() {},
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
 
-var CompletionProject1 = "ike-autocompletion-test-" + naming.RandName(16)
-var CompletionProject2 = "ike-autocompletion-test-" + naming.RandName(16)
+var CompletionProject1 = "ike-autocompletion-test-" + naming.GenerateString(16)
+var CompletionProject2 = "ike-autocompletion-test-" + naming.GenerateString(16)
 
 func createProjectsForCompletionTests() {
 	testshell.ExecuteAll(

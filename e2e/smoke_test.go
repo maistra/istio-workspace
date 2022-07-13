@@ -512,7 +512,7 @@ func DumpEnvironmentDebugInfo(namespace, dir string) {
 }
 
 func generateNamespaceName() string {
-	return "ike-tests-" + naming.RandName(16)
+	return "ike-tests-" + naming.GenerateString(16)
 }
 
 func CleanupNamespace(namespace string, wait bool) {

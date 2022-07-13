@@ -8,17 +8,18 @@ import (
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 
-// RandName generates random alphabetical name which can be used as application or namespace name in Openshift.
+// GenerateString generates random alphabetical name which can be used for example as application or namespace name.
+// Maximum length is capped at 63 characters.
 //
 // Don't forget to seed before using this function, e.g. rand.Seed(time.Now().UTC().UnixNano())
 // otherwise you will always get the same value.
-func RandName(length int) string {
+func GenerateString(length int) string {
 	if length == 0 {
 		return ""
 	}
 
-	if length > 58 {
-		length = 58
+	if length > 63 {
+		length = 63
 	}
 
 	b := make([]rune, length)

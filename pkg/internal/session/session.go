@@ -255,12 +255,12 @@ func getOrCreateSessionName(sessionName string) (string, error) {
 	}
 
 	if sessionName == "" {
-		random := naming.RandName(5)
+		generated := naming.GenerateString(5)
 		u, err := user.Current()
 		if err != nil {
-			sessionName = random
+			sessionName = generated
 		} else {
-			sessionName = naming.ConcatToMax(63, "user", u.Username, random)
+			sessionName = naming.ConcatToMax(63, "user", u.Username, generated)
 		}
 	}
 
