@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: istio-workspace-wireguard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-workspace-wireguard
+  template:
+    metadata:
+      labels:
+        app: istio-workspace-wireguard
+      annotations:
+        sidecar.istio.io/inject: 'true'
+    spec:
+      containers:
+        - name: wire
+          image: 'quay.io/aslakknutsen/istio-workspace-wireguard:latest'
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+      serviceAccountName: istio-workspace
+      restartPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: wireguard
+spec:
+  type: LoadBalancer
+  ports:
+    - name: wireguard
+      port: 51820
+      protocol: UDP
+      targetPort: 51820
+  selector:
+    name: wireguard

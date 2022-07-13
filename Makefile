@@ -254,6 +254,7 @@ IKE_CONTAINER_REGISTRY?=quay.io
 IKE_CONTAINER_REPOSITORY?=maistra
 IKE_CONTAINER_DEV_REPOSITORY?=maistra-dev
 IKE_IMAGE_NAME?=$(PROJECT_NAME)
+IKE_WIREGUARD_IMAGE_NAME=$(IKE_IMAGE_NAME)-wireguard
 IKE_IMAGE_TAG?=$(IKE_VERSION)
 IKE_TEST_IMAGE_NAME?=$(IKE_IMAGE_NAME)-test
 IKE_TEST_PREPARED_IMAGE_NAME?=$(IKE_TEST_IMAGE_NAME)-prepared
@@ -298,6 +299,37 @@ container-push--%:
 	$(eval image_tag:=$(subst container-push--,,$@))
 	$(call header,"Pushing container image $(image_tag)")
 	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(image_tag)
+
+.PHONY: container-image-wireguard
+container-image-wireguard: GOOS=linux
+container-image-wireguard: ## Builds the container image
+	$(call header,"Building container image $(IKE_WIREGUARD_IMAGE_NAME)")
+	$(IMG_BUILDER) build \
+		--label "org.opencontainers.image.title=$(IKE_WIREGUARD)" \
+		--label "org.opencontainers.image.description=Tool enabling developers to safely develop and test on any kubernetes cluster without distracting others." \
+		--label "org.opencontainers.image.source=https://$(PACKAGE_NAME)" \
+		--label "org.opencontainers.image.documentation=https://istio-workspace-docs.netlify.com/istio-workspace" \
+		--label "org.opencontainers.image.licenses=Apache-2.0" \
+		--label "org.opencontainers.image.authors=Aslak Knutsen, Bartosz Majsak" \
+		--label "org.opencontainers.image.vendor=Red Hat, Inc." \
+		--label "org.opencontainers.image.revision=$(COMMIT)" \
+		--label "org.opencontainers.image.created=$(shell date -u +%F\ %T%z)" \
+		--network=host \
+		-t $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_WIREGUARD_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		-f $(BUILD_DIR)/wireguard.Containerfile $(BUILD_DIR)
+	$(IMG_BUILDER) tag \
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_WIREGUARD_IMAGE_NAME):$(IKE_IMAGE_TAG) \
+		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_WIREGUARD_IMAGE_NAME):latest
+
+.PHONY: container-push-wireguard
+container-push-wireguard: container-push-wireguard--latest container-push-wireguard-versioned ## Pushes container images to the registry (latest and versioned)
+
+container-push-wireguard-versioned: container-push-wireguard--$(IKE_IMAGE_TAG)
+
+container-push-wireguard--%:
+	$(eval image_tag:=$(subst container-push-wireguard--,,$@))
+	$(call header,"Pushing container image $(image_tag)")
+	$(IMG_BUILDER) push $(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_WIREGUARD_IMAGE_NAME):$(image_tag)
 
 .PHONY: container-image-test
 container-image-test: $(DIST_DIR)/$(TEST_BINARY_NAME)
