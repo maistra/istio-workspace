@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// LocatorStatus is the action to perform an a given Resource as calculated by the Locators.
+// LocatorStatus is the action to perform on a given Resource as determined by the Locators.
 type LocatorStatus struct {
 	Resource
 	TimeStamp time.Time
@@ -30,9 +30,6 @@ func (l *LocatorStore) Store(kind ...string) []LocatorStatus {
 		return func(i, j int) bool {
 			nextActionIsUndo := s[j].Action == ActionDelete || s[j].Action == ActionRevert
 			currentActionIsUndo := s[i].Action == ActionDelete || s[i].Action == ActionRevert
-			if currentActionIsUndo && !nextActionIsUndo {
-				return true
-			}
 			if !currentActionIsUndo && nextActionIsUndo {
 				return false
 			}
