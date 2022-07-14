@@ -24,6 +24,7 @@ func main() {
 		generator.Namespace = h
 	}
 
+	// FIX give better names
 	scenarios := map[string]func(io.Writer){
 		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
 		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,

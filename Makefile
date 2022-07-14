@@ -289,6 +289,12 @@ container-image: compile ## Builds the container image
 		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
 
+.PHONY: container-image-all
+container-image-all: container-image container-image-test container-image-test-prepared
+
+.PHONY: container-push-all
+container-push-all: container-push container-push-test container-push-test-prepared
+
 .PHONY: container-push
 container-push: container-push--latest container-push-versioned ## Pushes container images to the registry (latest and versioned)
 

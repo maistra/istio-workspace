@@ -21,9 +21,9 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = Describe("Smoke End To End Tests", func() {
+var _ = Describe("Fundamental scenarios", func() {
 
-	Context("using ike with scenarios", func() {
+	Context("Using ike with existing services", func() {
 
 		var (
 			namespace,
@@ -45,6 +45,8 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 			InstallLocalOperator(namespace)
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+
+			// FIX Smelly to rely on global state. Scenario is set in subsequent beforeEach for given context
 			DeployTestScenario(scenario, namespace)
 			sessionName = GenerateSessionName()
 		})
@@ -58,23 +60,23 @@ var _ = Describe("Smoke End To End Tests", func() {
 			}
 		})
 
-		Context("k8s deployment", func() {
+		When("Using Kubernetes cluster and Deployment resource", func() {
 
-			Context("http protocol", func() {
+			Context("services communicating over HTTP", func() {
 
 				BeforeEach(func() {
 					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
 					registry = GetInternalContainerRegistry()
 				})
 
-				Context("basic deployment modifications", func() {
+				When("changing service locally", func() {
 
-					It("should watch for changes in connected service and serve it", func() {
+					It("should apply changes and expose modified service through special route", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 						deploymentCount := GetResourceCount("deployment", namespace)
 
-						// given we have details code locally
+						By("connecting local product page service to cluster services")
 						CreateFile(tmpDir+"/productpage.py", PublisherService)
 
 						ike := RunIke(tmpDir, "develop",
@@ -96,27 +98,28 @@ var _ = Describe("Smoke End To End Tests", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
-						// then modify the service
+						By("modifying local service")
 						modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
 						CreateFile(tmpDir+"/productpage.py", modifiedDetails)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
 
+						By("disconnecting local service")
 						Stop(ike)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 					})
 				})
 
-				Context("deployment create/delete operations", func() {
+				When("deploying new version of the service to the cluster", func() {
 
-					It("should watch for changes in ratings service and serve it", func() {
+					It("should deploy new instance of the service and make it reachable through special route", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 						deploymentCount := GetResourceCount("deployment", namespace)
 
 						ChangeNamespace("default")
 
-						// when we start ike to create
+						By("creating new version of the service")
 						ikeCreate1 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
@@ -127,17 +130,17 @@ var _ = Describe("Smoke End To End Tests", func() {
 						Eventually(ikeCreate1.Done(), 1*time.Minute).Should(BeClosed())
 						testshell.WaitForSuccess(ikeCreate1)
 
-						// ensure the new service is running
+						By("ensuring it's running")
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 
-						// check original response
+						By("ensuring it responds with new payload")
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV1), Not(ContainSubstring("ratings-v1")))
 
-						// but also check if prod is intact
+						By("ensuring prod route is intact")
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 
-						// when we start ike to create with a updated v
+						By("creating new version with the same route")
 						ikeCreate2 := RunIke(tmpDir, "create",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
@@ -148,17 +151,17 @@ var _ = Describe("Smoke End To End Tests", func() {
 						Eventually(ikeCreate2.Done(), 1*time.Minute).Should(BeClosed())
 						testshell.WaitForSuccess(ikeCreate2)
 
-						// ensure the new service is running
+						By("ensuring it was replaced correctly")
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 
-						// check original response
+						By("ensuring new version is available")
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring(PreparedImageV2), Not(ContainSubstring("ratings-v1")))
 
-						// but also check if prod is intact
+						By("ensuring prod route is intact")
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
 
-						// when we start ike to delete
+						By("removing new version")
 						ikeDel := RunIke(tmpDir, "delete",
 							"--deployment", "ratings-v1",
 							"-n", namespace,
@@ -168,28 +171,27 @@ var _ = Describe("Smoke End To End Tests", func() {
 						Eventually(ikeDel.Done(), 1*time.Minute).Should(BeClosed())
 						testshell.WaitForSuccess(ikeDel)
 
-						// check original response
+						By("ensuring session route responds the same as prod")
 						EnsureSessionRouteIsNotReachable(namespace, sessionName, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV2)))
-
-						// but also check if prod is intact
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 					})
 
 				})
 			})
 
-			Context("grpc protocol", func() {
+			Context("services communicating over gRPC", func() {
 				BeforeEach(func() {
 					scenario = "scenario-1.1"
 				})
 
-				Context("basic deployment modifications", func() {
+				When("changing service locally", func() {
 
-					It("should take over ratings service and serve it", func() {
+					It("should apply changes and expose modified service through special route", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
 						deploymentCount := GetResourceCount("deployment", namespace)
 
+						By("locally running modified service")
 						ike := RunIke(testshell.GetProjectDir(), "develop",
 							"--deployment", "ratings-v1",
 							"--port", "9081",
@@ -204,6 +206,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 						}()
 						go FailOnCmdError(ike, GinkgoT())
 
+						By("ensuring traffic reaches local service")
 						EnsureCorrectNumberOfResources(deploymentCount+1, "deployment", namespace)
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"), ContainSubstring("grpc"))
@@ -215,7 +218,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			})
 		})
 
-		Context("openshift deploymentconfig", func() {
+		When("Using Openshift cluster and DeploymentConfig resource", func() {
 
 			BeforeEach(func() {
 				if !RunsOnOpenshift {
@@ -225,41 +228,44 @@ var _ = Describe("Smoke End To End Tests", func() {
 				scenario = "scenario-2"
 			})
 
-			It("should watch for changes in ratings service in specified namespace and serve it", func() {
-				ChangeNamespace(namespace)
-				EnsureAllDeploymentConfigPodsAreReady(namespace)
-				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
-				deploymentCount := GetResourceCount("deploymentconfig", namespace)
+			When("changing service locally", func() {
 
-				// given we have details code locally
-				CreateFile(tmpDir+"/ratings.py", PublisherService)
+				It("should apply changes and expose modified service through special route", func() {
+					ChangeNamespace(namespace)
+					EnsureAllDeploymentConfigPodsAreReady(namespace)
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+					deploymentCount := GetResourceCount("deploymentconfig", namespace)
 
-				ike := RunIke(tmpDir, "develop",
-					"--deployment", "dc/ratings-v1",
-					"--port", "9080",
-					"--method", "inject-tcp",
-					"--watch",
-					"--run", "python ratings.py 9080",
-					"--route", "header:x-test-suite=smoke",
-					"--session", sessionName,
-				)
-				defer func() {
+					By("running the service locally first")
+					CreateFile(tmpDir+"/ratings.py", PublisherService)
+
+					ike := RunIke(tmpDir, "develop",
+						"--deployment", "dc/ratings-v1",
+						"--port", "9080",
+						"--method", "inject-tcp",
+						"--watch",
+						"--run", "python ratings.py 9080",
+						"--route", "header:x-test-suite=smoke",
+						"--session", sessionName,
+					)
+					defer func() {
+						Stop(ike)
+					}()
+					go FailOnCmdError(ike, GinkgoT())
+
+					EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
+					EnsureAllDeploymentConfigPodsAreReady(namespace)
+					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
+
+					By("modifying service")
+					modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+					CreateFile(tmpDir+"/ratings.py", modifiedDetails)
+
+					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
+
 					Stop(ike)
-				}()
-				go FailOnCmdError(ike, GinkgoT())
-
-				EnsureCorrectNumberOfResources(deploymentCount+1, "deploymentconfig", namespace)
-				EnsureAllDeploymentConfigPodsAreReady(namespace)
-				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
-
-				// then modify the service
-				modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
-				CreateFile(tmpDir+"/ratings.py", modifiedDetails)
-
-				EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
-
-				Stop(ike)
-				EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+					EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"))
+				})
 			})
 		})
 
@@ -454,13 +460,13 @@ func beStableInSeries(occurrences int32, matcher types.GomegaMatcher) types.Gome
 func EnsureSessionRouteIsReachable(namespace, sessionName string, matchers ...types.GomegaMatcher) {
 	productPageURL := GetIstioIngressHostname() + "/productpage"
 
-	// check original response using headers
+	By("checking response using headers")
 	Eventually(call(productPageURL, map[string]string{
 		"Host":         GetGatewayHost(namespace),
 		"x-test-suite": "smoke"}),
 		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
 
-	// check original response using host route
+	By("checking response using host")
 	Eventually(call(productPageURL, map[string]string{
 		"Host": sessionName + "." + GetGatewayHost(namespace)}),
 		10*time.Minute, 1*time.Second).Should(beStableInSeries(8, And(matchers...)))
