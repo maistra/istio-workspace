@@ -3,12 +3,13 @@ package e2e_test
 import (
 	"time"
 
-	. "github.com/maistra/istio-workspace/e2e"
-	. "github.com/maistra/istio-workspace/e2e/infra"
-	"github.com/maistra/istio-workspace/test"
-	testshell "github.com/maistra/istio-workspace/test/shell"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	. "github.com/maistra/istio-workspace/e2e/infra"
+	. "github.com/maistra/istio-workspace/e2e/verify"
+	"github.com/maistra/istio-workspace/test"
+	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("Resources reconciliation", func() {

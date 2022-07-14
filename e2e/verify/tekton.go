@@ -1,4 +1,4 @@
-package infra
+package verify
 
 import (
 	"strings"

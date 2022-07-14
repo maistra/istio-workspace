@@ -92,7 +92,16 @@ issues:
   exclude-rules:
     - path: e2e/
       linters:
+        - goconst
+        - gocyclo
+        - godox # tmp
+        - golint
+        - errcheck
+        - dupl
+        - gosec
         - revive
+        - stylecheck
+        - wrapcheck
     - path: test/
       linters:
         - revive

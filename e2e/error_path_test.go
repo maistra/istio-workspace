@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
+	"github.com/maistra/istio-workspace/e2e/verify"
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
@@ -42,7 +42,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 			PrepareEnv(namespace)
 			InstallLocalOperator(namespace)
-			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+			Eventually(verify.AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 		})
 
 		AfterEach(func() {
