@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
@@ -34,7 +35,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
 		JustBeforeEach(func() {
-			namespace = generateNamespaceName()
+			namespace = GenerateNamespaceName()
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()

@@ -8,6 +8,8 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
+// TODO move to other pkg
+
 // TaskIsDone checks if given task has succeeded.
 func TaskIsDone(ns, taskName string) func() bool {
 	return func() bool {

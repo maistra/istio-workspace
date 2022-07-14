@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
@@ -44,7 +45,7 @@ var _ = Describe("Operator installation", func() {
 			}
 
 			namespaces = []string{}
-			operatorNamespace = generateNamespaceName()
+			operatorNamespace = GenerateNamespaceName()
 			cleanEnvVariable = test.TemporaryEnvVars("OPERATOR_NAMESPACE", operatorNamespace)
 		})
 
@@ -115,7 +116,7 @@ var _ = Describe("Operator installation", func() {
 		})
 
 		It("should install to the single namespace", func() {
-			namespaces = append(namespaces, generateNamespaceName())
+			namespaces = append(namespaces, GenerateNamespaceName())
 			CreateNamespace()
 
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
@@ -130,7 +131,7 @@ var _ = Describe("Operator installation", func() {
 		})
 
 		It("should install to multiple namespaces", func() {
-			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
+			namespaces = append(namespaces, GenerateNamespaceName(), GenerateNamespaceName())
 			CreateNamespace()
 
 			defer test.TemporaryEnvVars("OPERATOR_WATCH_NAMESPACE", WatchListExpression())()
@@ -145,7 +146,7 @@ var _ = Describe("Operator installation", func() {
 		})
 
 		It("AllNamespace", func() {
-			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
+			namespaces = append(namespaces, GenerateNamespaceName(), GenerateNamespaceName())
 			CreateNamespace()
 
 			bundle := shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-all")
