@@ -38,7 +38,9 @@ func call(routeURL string, headers map[string]string) func() (string, error) {
 	bar := progressbar.Default(-1)
 
 	return func() (string, error) {
-		bar.Add(1)
+		if err := bar.Add(1); err != nil {
+			return "", err
+		}
 
 		return GetBodyWithHeaders(routeURL, headers)
 	}
