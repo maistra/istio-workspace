@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.1
-	github.com/mikefarah/yq/v4 v4.25.3
+	github.com/mikefarah/yq/v4 v4.26.1
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.11.0
 	github.com/prometheus/client_golang v1.12.2
@@ -27,7 +27,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	go.uber.org/goleak v1.1.12
 	go.uber.org/zap v1.21.0
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 	golang.org/x/tools v0.1.11
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
@@ -61,6 +61,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/a8m/envsubst v1.3.0 // indirect
+	github.com/alecthomas/participle/v2 v2.0.0-beta.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -110,19 +111,17 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
-	github.com/timtadh/data-structures v0.5.3 // indirect
-	github.com/timtadh/lexmachine v0.2.2 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.0.0-20220712014510-0a85c31ab51e // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
-	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
+	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
