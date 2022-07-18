@@ -29,7 +29,7 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
 	golang.org/x/tools v0.1.11
-	google.golang.org/grpc v1.47.0
+	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
