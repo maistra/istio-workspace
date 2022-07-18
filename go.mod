@@ -32,8 +32,8 @@ require (
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/h2non/gock.v1 v1.1.2
-	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
-	istio.io/client-go v1.11.4
+	istio.io/api v0.0.0-20220512181135-e8ec1e1d89de
+	istio.io/client-go v1.14.0
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
 	k8s.io/client-go v0.24.2
@@ -131,7 +131,6 @@ require (
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
 	k8s.io/apiextensions-apiserver v0.24.2 // indirect
 	k8s.io/component-base v0.24.2 // indirect
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185 // indirect
