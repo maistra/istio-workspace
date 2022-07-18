@@ -35,15 +35,15 @@ func DeleteProjectCmd(name string) string {
 	return "kubectl delete namespace " + name + " --wait=false"
 }
 
-func DeployHelloWorldCmd(name, ns string) []string {
+func DeployNoopLoopCmd(name, ns string) []string {
 	return []string{
 		"kubectl run " + name +
-			" --image=datawire/hello-world" +
+			" --image=crccheck/hello-world" +
 			" --port 8000" +
 			" --expose" +
 			" --namespace " + ns,
 		"kubectl create deployment " + name +
-			" --image=datawire/hello-world" +
+			" --image=crccheck/hello-world" +
 			" --namespace " + ns,
 	}
 }

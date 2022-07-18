@@ -92,9 +92,9 @@ func createProjectsForCompletionTests() {
 		NewProjectCmd(CompletionProject1),
 		NewProjectCmd(CompletionProject2),
 	)
-	testshell.ExecuteAll(DeployHelloWorldCmd("my-datawire-deployment", CompletionProject1)...)
-	testshell.ExecuteAll(DeployHelloWorldCmd("other-1-datawire-deployment", CompletionProject2)...)
-	testshell.ExecuteAll(DeployHelloWorldCmd("other-2-datawire-deployment", CompletionProject2)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("my-deployment", CompletionProject1)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("other-1-deployment", CompletionProject2)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("other-2-deployment", CompletionProject2)...)
 }
 
 func deleteProjectsForCompletionTests() {
