@@ -133,7 +133,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 										LivenessProbe: &v1.Probe{
 											ProbeHandler: v1.ProbeHandler{
@@ -324,7 +324,7 @@ var _ = Describe("Operations for openshift DeploymentConfig kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 									},
 								},

@@ -125,7 +125,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 										LivenessProbe: &v1.Probe{
 											ProbeHandler: v1.ProbeHandler{
@@ -310,7 +310,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 									},
 								},
