@@ -6,8 +6,11 @@ import (
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/pkg/generator"
+	"github.com/maistra/istio-workspace/test/scenarios"
 )
+
+var Namespace = "default"
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -21,19 +24,19 @@ func main() {
 	}
 
 	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
-		generator.Namespace = h
+		Namespace = h
 	}
 
 	// FIX give better names
-	scenarios := map[string]func(io.Writer){
-		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
-		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,
-		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
-		"demo":         generator.DemoScenario,
+	testScenarios := map[string]func(io.Writer, string){
+		"scenario-1":   scenarios.TestScenario1HTTPThreeServicesInSequence,
+		"scenario-1.1": scenarios.TestScenario1GRPCThreeServicesInSequence,
+		"scenario-2":   scenarios.TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"demo":         scenarios.DemoScenario,
 	}
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
-	if f, ok := scenarios[scenario]; ok {
-		f(os.Stdout)
+	if f, ok := testScenarios[scenario]; ok {
+		f(os.Stdout, Namespace)
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

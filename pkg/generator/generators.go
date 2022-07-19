@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"io"
 	"time"
 
@@ -24,7 +25,7 @@ var (
 	TestImageName = ""
 	GatewayHost   = "*"
 
-	allSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
+	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
 
 // Entry is a simple value object that holds the basic configuration used by the generator.
@@ -32,6 +33,16 @@ type Entry struct {
 	Name           string
 	DeploymentType string
 	Namespace      string
+	HTTPPort       int32
+	GRPCPort       int32
+}
+
+func NewEntry(name, namespace, deploymentType string) Entry {
+	return Entry{Name: name,
+		Namespace:      namespace,
+		DeploymentType: deploymentType,
+		HTTPPort:       9080,
+		GRPCPort:       9081}
 }
 
 // HostName return the full cluster host name if Namespace is set or the local if not.
@@ -64,6 +75,7 @@ func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...
 		_, _ = out.Write(b)
 		_, _ = io.WriteString(out, "---\n")
 	}
+	var ns string
 	for _, service := range services {
 		func(service Entry) {
 			for _, subGenerator := range sub {
@@ -75,8 +87,9 @@ func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...
 				printObj(object)
 			}
 		}(service)
+		ns = service.Namespace
 	}
-	gw := Gateway()
+	gw := Gateway(ns)
 	modify(Entry{Name: "gateway"}, gw)
 	printObj(gw)
 }
@@ -86,7 +99,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 	if service.DeploymentType != "DeploymentConfig" {
 		return nil
 	}
-	template := template(service.Name)
+	template := template(service)
 
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
@@ -132,7 +145,7 @@ func Deployment(service Entry) runtime.Object {
 					"app": service.Name,
 				},
 			},
-			Template: template(service.Name),
+			Template: template(service),
 		},
 	}
 }
@@ -155,11 +168,11 @@ func Service(service Entry) runtime.Object {
 			Ports: []corev1.ServicePort{
 				{
 					Name: "http",
-					Port: 9080,
+					Port: service.HTTPPort,
 				},
 				{
 					Name: "grpc",
-					Port: 9081,
+					Port: service.GRPCPort,
 				},
 			},
 			Selector: map[string]string{
@@ -205,7 +218,7 @@ func VirtualService(service Entry) runtime.Object {
 }
 
 // Gateway basic SubGenerator for the kind Gateway.
-func Gateway() runtime.Object {
+func Gateway(ns string) runtime.Object {
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -213,7 +226,7 @@ func Gateway() runtime.Object {
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-gateway",
-			Namespace: Namespace,
+			Namespace: ns, //
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{
@@ -233,56 +246,56 @@ func Gateway() runtime.Object {
 	}
 }
 
-func template(name string) corev1.PodTemplateSpec {
+func template(service Entry) corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "true",
 				"prometheus.io/scrape":    "true",
-				"prometheus.io/port":      "9080",
+				"prometheus.io/port":      fmt.Sprintf("%d", service.HTTPPort),
 				"prometheus.io/scheme":    "http",
 				"prometheus.io/path":      "/metrics",
 				"kiali.io/runtimes":       "go",
 			},
 			Labels: map[string]string{
-				"app": name,
+				"app": service.Name,
 			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:            name,
-					Image:           TestImageName,
+					Name:            service.Name,
+					Image:           TestImageName, // TODO
 					ImagePullPolicy: "Always",
 					Env: []corev1.EnvVar{
 						{
 							Name:  envServiceName,
-							Value: name,
+							Value: service.Name,
 						},
 						{
 							Name:  "HTTP_ADDR",
-							Value: ":9080",
+							Value: fmt.Sprintf(":%d", service.HTTPPort),
 						},
 						{
 							Name:  "GRPC_ADDR",
-							Value: ":9081",
+							Value: fmt.Sprintf(":%d", service.GRPCPort),
 						},
 					},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",
-							ContainerPort: 9080,
+							ContainerPort: service.HTTPPort,
 						},
 						{
 							Name:          "grpc",
-							ContainerPort: 9081,
+							ContainerPort: service.GRPCPort,
 						},
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
-								Port: intstr.FromInt(9080),
+								Port: intstr.FromInt(int(service.HTTPPort)),
 							},
 						},
 						InitialDelaySeconds: 5,
@@ -293,7 +306,7 @@ func template(name string) corev1.PodTemplateSpec {
 						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
-								Port: intstr.FromInt(9080),
+								Port: intstr.FromInt(int(service.HTTPPort)),
 							},
 						},
 						InitialDelaySeconds: 5,

@@ -13,7 +13,7 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = Describe("Fundamental scenarios", func() {
+var _ = Describe("Fundamental use cases", func() {
 
 	Context("Using ike with existing services", func() {
 

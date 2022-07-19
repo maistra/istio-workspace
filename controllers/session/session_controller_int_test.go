@@ -22,11 +22,12 @@ import (
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/generator"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
 	"github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/test/scenarios"
 	"github.com/maistra/istio-workspace/test/testclient"
 )
 
@@ -37,7 +38,7 @@ var _ = Describe("Complete session manipulation", func() {
 		controller reconcile.Reconciler
 		schema     *runtime.Scheme
 		c          client.Client
-		scenario   func(io.Writer)
+		scenario   func(io.Writer, string)
 		get        *testclient.Getters
 	)
 
@@ -61,7 +62,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 	Context("in a complete lifecycle", func() {
 		BeforeEach(func() {
-			scenario = generator.TestScenario1HTTPThreeServicesInSequence
+			scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
 			objects = []runtime.Object{}
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{
@@ -341,7 +342,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 						// Then - Verify all are in pending stage before modification stage
 						session := get.Session("test", "test-session1")
-						Expect(session.Status.Readiness.Components.Pending).To((HaveLen(3)))
+						Expect(session.Status.Readiness.Components.Pending).To(HaveLen(3))
 
 						// When - One is reported unsuccess
 						reporter(model.ModificatorStatus{
@@ -432,7 +433,7 @@ var _ = Describe("Complete session manipulation", func() {
 		}
 		Context("with missing target", func() {
 			BeforeEach(func() {
-				scenario = generator.TestScenario1HTTPThreeServicesInSequence
+				scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
 			})
 			It("should fail on missing deployment", func() {
 				res := appsv1.Deployment{
@@ -466,7 +467,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		Context("with missing destination rule", func() {
 			BeforeEach(func() {
-				scenario = generator.IncompleteMissingDestinationRules
+				scenario = scenarios.IncompleteMissingDestinationRules
 			})
 			It("should fail on missing deployment", func() {
 				req := reconcile.Request{
@@ -492,7 +493,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 		Context("with missing virtual service", func() {
 			BeforeEach(func() {
-				scenario = generator.IncompleteMissingVirtualServices
+				scenario = scenarios.IncompleteMissingVirtualServices
 			})
 			It("should fail on missing deployment", func() {
 				req := reconcile.Request{
@@ -522,7 +523,7 @@ var _ = Describe("Complete session manipulation", func() {
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
 		BeforeEach(func() {
-			scenario = generator.TestScenario1HTTPThreeServicesInSequence
+			scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
 			objects = []runtime.Object{}
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{
@@ -572,13 +573,12 @@ var _ = Describe("Complete session manipulation", func() {
 	})
 })
 
-func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(io.Writer)) ([]runtime.Object, error) {
-	generator.Namespace = namespace
+func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(io.Writer, string)) ([]runtime.Object, error) {
 	generator.TestImageName = "x:x:x"
 	generator.GatewayHost = "test.io"
 
 	buf := new(bytes.Buffer)
-	scenarioGenerator(buf)
+	scenarioGenerator(buf, namespace)
 	fileContent := buf.String()
 
 	objects := []runtime.Object{}
