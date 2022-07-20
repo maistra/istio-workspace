@@ -227,7 +227,7 @@ $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing controller-gen")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
-KUSTOMIZE_VERSION?=v4.2.0
+KUSTOMIZE_VERSION?=v4.5.5
 $(PROJECT_DIR)/bin/kustomize:
 	$(call header,"Installing kustomize")
 	wget -q -c https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(GOOS)_$(GOARCH).tar.gz -O /tmp/kustomize.tar.gz
