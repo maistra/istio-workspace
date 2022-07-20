@@ -23,46 +23,46 @@ var _ = Describe("Operations for test scenario generator", func() {
 		}
 		Context("deploymentconfig", func() {
 			It("should be created if entry is correct DeploymentType", func() {
-				obj := generator.DeploymentConfig(generator.Entry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
+				obj := generator.DeploymentConfig(generator.ServiceEntry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
 				Expect(obj).ToNot(BeNil())
 			})
 
 			It("should not be created if entry is not correct DeploymentType", func() {
-				obj := generator.DeploymentConfig(generator.Entry{Name: "test", DeploymentType: "X", Namespace: ns})
+				obj := generator.DeploymentConfig(generator.ServiceEntry{Name: "test", DeploymentType: "X", Namespace: ns})
 				Expect(obj).To(BeNil())
 			})
 
 			It("should create with liveness probe", func() {
-				obj := generator.DeploymentConfig(generator.Entry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
+				obj := generator.DeploymentConfig(generator.ServiceEntry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
 				Expect(obj).To(BeAssignableToTypeOf(&osappsv1.DeploymentConfig{}))
 				validateLivenessProbe(obj.(*osappsv1.DeploymentConfig).Spec.Template)
 			})
 
 			It("should create with readiness probe", func() {
-				obj := generator.DeploymentConfig(generator.Entry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
+				obj := generator.DeploymentConfig(generator.ServiceEntry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
 				Expect(obj).To(BeAssignableToTypeOf(&osappsv1.DeploymentConfig{}))
 				validateReadinessProbe(obj.(*osappsv1.DeploymentConfig).Spec.Template)
 			})
 		})
 		Context("deployment", func() {
 			It("should be created if entry is correct DeploymentType", func() {
-				obj := generator.Deployment(generator.Entry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
+				obj := generator.Deployment(generator.ServiceEntry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
 				Expect(obj).ToNot(BeNil())
 			})
 
 			It("should not be created if entry is not correct DeploymentType", func() {
-				obj := generator.Deployment(generator.Entry{Name: "test", DeploymentType: "X", Namespace: ns})
+				obj := generator.Deployment(generator.ServiceEntry{Name: "test", DeploymentType: "X", Namespace: ns})
 				Expect(obj).To(BeNil())
 			})
 
 			It("should create with liveness probe", func() {
-				obj := generator.Deployment(generator.Entry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
+				obj := generator.Deployment(generator.ServiceEntry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
 				Expect(obj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
 				validateLivenessProbe(&obj.(*appsv1.Deployment).Spec.Template)
 			})
 
 			It("should create with readiness probe", func() {
-				obj := generator.Deployment(generator.Entry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
+				obj := generator.Deployment(generator.ServiceEntry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
 				Expect(obj).To(BeAssignableToTypeOf(&appsv1.Deployment{}))
 				validateReadinessProbe(&obj.(*appsv1.Deployment).Spec.Template)
 			})

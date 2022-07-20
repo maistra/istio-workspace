@@ -7,11 +7,11 @@ import (
 )
 
 func BasicNewService(out io.Writer, name, ns string) {
-	newService := generator.NewEntry(name, ns, "Deployment")
+	newService := generator.NewServiceEntry(name, ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{newService},
+		[]generator.ServiceEntry{newService},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
 		generator.UsingImage("quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image"),
@@ -22,13 +22,13 @@ func BasicNewService(out io.Writer, name, ns string) {
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over http. Similar to the original bookinfo example setup.
 func TestScenario1HTTPThreeServicesInSequence(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "Deployment")
-	reviews := generator.NewEntry("reviews", ns, "Deployment")
-	ratings := generator.NewEntry("ratings", ns, "Deployment")
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings},
+		[]generator.ServiceEntry{productpage, reviews, ratings},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
@@ -40,13 +40,13 @@ func TestScenario1HTTPThreeServicesInSequence(out io.Writer, ns string) {
 // TestScenario1GRPCThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over grpc. Similar to the original bookinfo example setup.
 func TestScenario1GRPCThreeServicesInSequence(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "Deployment")
-	reviews := generator.NewEntry("reviews", ns, "Deployment")
-	ratings := generator.NewEntry("ratings", ns, "Deployment")
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings},
+		[]generator.ServiceEntry{productpage, reviews, ratings},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.GRPC(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
@@ -59,13 +59,13 @@ func TestScenario1GRPCThreeServicesInSequence(out io.Writer, ns string) {
 // few services calling each other in a chain. Similar to the original bookinfo example setup.
 // Using DeploymentConfig.
 func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "DeploymentConfig")
-	reviews := generator.NewEntry("reviews", ns, "DeploymentConfig")
-	ratings := generator.NewEntry("ratings", ns, "DeploymentConfig")
+	productpage := generator.NewServiceEntry("productpage", ns, "DeploymentConfig")
+	reviews := generator.NewServiceEntry("reviews", ns, "DeploymentConfig")
+	ratings := generator.NewServiceEntry("ratings", ns, "DeploymentConfig")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings},
+		[]generator.ServiceEntry{productpage, reviews, ratings},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
@@ -76,15 +76,15 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(out io.Writer, ns stri
 
 // DemoScenario is a simple setup for demo purposes.
 func DemoScenario(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "Deployment")
-	reviews := generator.NewEntry("reviews", ns, "Deployment")
-	ratings := generator.NewEntry("ratings", ns, "Deployment")
-	authors := generator.NewEntry("authors", ns, "Deployment")
-	locations := generator.NewEntry("locations", ns, "Deployment")
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
+	authors := generator.NewServiceEntry("authors", ns, "Deployment")
+	locations := generator.NewServiceEntry("locations", ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings, authors, locations},
+		[]generator.ServiceEntry{productpage, reviews, ratings, authors, locations},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.Call(generator.HTTP(), authors), generator.ConnectToGateway("ike-demo.io")),
@@ -96,13 +96,13 @@ func DemoScenario(out io.Writer, ns string) {
 
 // IncompleteMissingDestinationRules generates a scenario where there are no DestinationRules.
 func IncompleteMissingDestinationRules(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "Deployment")
-	reviews := generator.NewEntry("reviews", ns, "Deployment")
-	ratings := generator.NewEntry("ratings", ns, "Deployment")
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings},
+		[]generator.ServiceEntry{productpage, reviews, ratings},
 		[]generator.SubGenerator{generator.Deployment, generator.DeploymentConfig, generator.Service, generator.VirtualService},
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
@@ -113,13 +113,13 @@ func IncompleteMissingDestinationRules(out io.Writer, ns string) {
 
 // IncompleteMissingVirtualServices generates a scenario where there are no VirtualServices.
 func IncompleteMissingVirtualServices(out io.Writer, ns string) {
-	productpage := generator.NewEntry("productpage", ns, "Deployment")
-	reviews := generator.NewEntry("reviews", ns, "Deployment")
-	ratings := generator.NewEntry("ratings", ns, "Deployment")
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
 
 	generator.Generate(
 		out,
-		[]generator.Entry{productpage, reviews, ratings},
+		[]generator.ServiceEntry{productpage, reviews, ratings},
 		[]generator.SubGenerator{generator.Deployment, generator.DeploymentConfig, generator.Service, generator.DestinationRule},
 		generator.WithVersion("v1"),
 		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),

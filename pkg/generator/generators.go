@@ -22,14 +22,13 @@ const (
 )
 
 var (
-	TestImageName = ""
-	GatewayHost   = "*"
-
+	TestImageName    = ""
+	GatewayHost      = "*"
 	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
 
-// Entry is a simple value object that holds the basic configuration used by the generator.
-type Entry struct {
+// ServiceEntry is a simple value object that holds the basic configuration used by the generator.
+type ServiceEntry struct {
 	Name           string
 	DeploymentType string
 	Namespace      string
@@ -37,8 +36,8 @@ type Entry struct {
 	GRPCPort       uint32
 }
 
-func NewEntry(name, namespace, deploymentType string) Entry {
-	return Entry{Name: name,
+func NewServiceEntry(name, namespace, deploymentType string) ServiceEntry {
+	return ServiceEntry{Name: name,
 		Namespace:      namespace,
 		DeploymentType: deploymentType,
 		HTTPPort:       9080,
@@ -46,7 +45,7 @@ func NewEntry(name, namespace, deploymentType string) Entry {
 }
 
 // HostName return the full cluster host name if Namespace is set or the local if not.
-func (e *Entry) HostName() string {
+func (e *ServiceEntry) HostName() string {
 	if e.Namespace != "" {
 		return e.Name + "." + e.Namespace + ".svc.cluster.local"
 	}
@@ -55,14 +54,14 @@ func (e *Entry) HostName() string {
 }
 
 // SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification.
-type SubGenerator func(service Entry) runtime.Object
+type SubGenerator func(service ServiceEntry) runtime.Object
 
 // Modifier is a function to change a runtime.Object into something more specific for a given scenario.
-type Modifier func(service Entry, object runtime.Object)
+type Modifier func(service ServiceEntry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout.
-func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...Modifier) {
-	modify := func(service Entry, object runtime.Object) {
+func Generate(out io.Writer, services []ServiceEntry, sub []SubGenerator, modifiers ...Modifier) {
+	modify := func(service ServiceEntry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
 		}
@@ -77,7 +76,7 @@ func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...
 	}
 	var ns string
 	for _, service := range services {
-		func(service Entry) {
+		func(service ServiceEntry) {
 			for _, subGenerator := range sub {
 				object := subGenerator(service)
 				if object == nil {
@@ -90,12 +89,12 @@ func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...
 		ns = service.Namespace
 	}
 	gw := Gateway(ns)
-	modify(Entry{Name: "gateway"}, gw)
+	modify(ServiceEntry{Name: "gateway"}, gw)
 	printObj(gw)
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.
-func DeploymentConfig(service Entry) runtime.Object {
+func DeploymentConfig(service ServiceEntry) runtime.Object {
 	if service.DeploymentType != "DeploymentConfig" {
 		return nil
 	}
@@ -122,7 +121,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 }
 
 // Deployment basic SubGenerator for the kind Deployment.
-func Deployment(service Entry) runtime.Object {
+func Deployment(service ServiceEntry) runtime.Object {
 	if service.DeploymentType != "Deployment" {
 		return nil
 	}
@@ -151,7 +150,7 @@ func Deployment(service Entry) runtime.Object {
 }
 
 // Service basic SubGenerator for the kind Service.
-func Service(service Entry) runtime.Object {
+func Service(service ServiceEntry) runtime.Object {
 	return &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
@@ -183,7 +182,7 @@ func Service(service Entry) runtime.Object {
 }
 
 // DestinationRule basic SubGenerator for the kind DestinationRule.
-func DestinationRule(service Entry) runtime.Object {
+func DestinationRule(service ServiceEntry) runtime.Object {
 	return &istionetwork.DestinationRule{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -200,7 +199,7 @@ func DestinationRule(service Entry) runtime.Object {
 }
 
 // VirtualService basic SubGenerator for the kind VirtualService.
-func VirtualService(service Entry) runtime.Object {
+func VirtualService(service ServiceEntry) runtime.Object {
 	return &istionetwork.VirtualService{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -246,7 +245,7 @@ func Gateway(ns string) runtime.Object {
 	}
 }
 
-func template(service Entry) corev1.PodTemplateSpec {
+func template(service ServiceEntry) corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{

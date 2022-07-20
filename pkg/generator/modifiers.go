@@ -12,7 +12,7 @@ import (
 
 // ConnectToGateway modifier to connect VirtualService to a Gateway. Combine with ForService.
 func ConnectToGateway(hostname string) Modifier {
-	return func(service Entry, object runtime.Object) {
+	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{hostname}
 			obj.Spec.Gateways = append(obj.Spec.Gateways, "test-gateway")
@@ -31,7 +31,7 @@ func ConnectToGateway(hostname string) Modifier {
 
 // GatewayOnHost modifier to set a hostname on the gateway.
 func GatewayOnHost(hostname string) Modifier {
-	return func(service Entry, object runtime.Object) {
+	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.Gateway); ok {
 			for _, server := range obj.Spec.Servers {
 				server.Hosts = append(server.Hosts, hostname)
@@ -41,25 +41,25 @@ func GatewayOnHost(hostname string) Modifier {
 }
 
 // Protocol is a function that returns the URL for a given Protocol for a given Service.
-type Protocol func(target Entry) string
+type Protocol func(target ServiceEntry) string
 
 // HTTP returns the HTTP URL for the given target.
 func HTTP() Protocol {
-	return func(target Entry) string {
+	return func(target ServiceEntry) string {
 		return fmt.Sprintf("http://%s:%d", target.HostName(), target.HTTPPort)
 	}
 }
 
 // GRPC returns the GRPC URL for the given target.
 func GRPC() Protocol {
-	return func(target Entry) string {
+	return func(target ServiceEntry) string {
 		return fmt.Sprintf("%s:%d", target.HostName(), target.GRPCPort)
 	}
 }
 
 // Call modifier to have the test service call another. Combine with ForService.
-func Call(proto Protocol, target Entry) Modifier {
-	return func(service Entry, object runtime.Object) {
+func Call(proto Protocol, target ServiceEntry) Modifier {
+	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
 				envServiceCall, proto(target),
@@ -74,8 +74,8 @@ func Call(proto Protocol, target Entry) Modifier {
 }
 
 // ForService modifier is a filter to only execute the given modifiers if the target object belongs to the named target.
-func ForService(target Entry, modifiers ...Modifier) Modifier {
-	return func(service Entry, object runtime.Object) {
+func ForService(target ServiceEntry, modifiers ...Modifier) Modifier {
+	return func(service ServiceEntry, object runtime.Object) {
 		if target.Name != service.Name {
 			return
 		}
@@ -87,7 +87,7 @@ func ForService(target Entry, modifiers ...Modifier) Modifier {
 
 // WithVersion modifier adds a single istio 'version' to DestinationRule/VirtualService/Deployment.
 func WithVersion(version string) Modifier {
-	return func(service Entry, object runtime.Object) {
+	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.DestinationRule); ok {
 			obj.Spec.Subsets = append(obj.Spec.Subsets, &istiov1alpha3.Subset{
 				Name: version,
@@ -135,7 +135,7 @@ func WithVersion(version string) Modifier {
 
 // UsingImage adds image for the deployment.
 func UsingImage(image string, envVars ...string) Modifier {
-	return func(service Entry, object runtime.Object) {
+	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Image = image
 			for i := 0; i < len(envVars); i += 2 {
