@@ -32,9 +32,12 @@ func AllDeploymentsReady(deploymentType, ns string) func() bool {
 		<-countCmd.Done()
 		if countCmd.Status().Error != nil {
 			fmt.Println(countCmd.Status().Error.Error())
+
 			return false
 		}
-		if countCmd.Status().Stdout[0] == "''" {
+		const emptyCmdStdOut = "''"
+
+		if countCmd.Status().Stdout[0] == emptyCmdStdOut {
 			return false
 		}
 		count := len(strings.Split(countCmd.Status().Stdout[0], " "))
@@ -50,7 +53,7 @@ func AllDeploymentsReady(deploymentType, ns string) func() bool {
 
 		// returning nothing at this point means no deployments are in ready state, but some should be
 		if len(deploymentCmd.Status().Stdout) > 0 {
-			if deploymentCmd.Status().Stdout[0] == "''" {
+			if deploymentCmd.Status().Stdout[0] == emptyCmdStdOut {
 				return false
 			}
 			if len(strings.Split(deploymentCmd.Status().Stdout[0], " ")) == count {
