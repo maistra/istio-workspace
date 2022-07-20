@@ -1,8 +1,6 @@
 package generator
 
 import (
-	"fmt"
-
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -139,9 +137,7 @@ func UsingImage(image string, envVars ...string) Modifier {
 	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*appsv1.Deployment); ok {
 			obj.Spec.Template.Spec.Containers[0].Image = image
-			// TODO check len to be % 2 = 0
 			for i := 0; i < len(envVars); i += 2 {
-				fmt.Println("ADDING " + envVars[i] + envVars[i+1])
 				obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
 					envVars[i], envVars[i+1],
 					obj.Spec.Template.Spec.Containers[0].Env)
