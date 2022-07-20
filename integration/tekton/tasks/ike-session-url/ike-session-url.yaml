@@ -7,7 +7,9 @@ metadata:
   annotations:
     tekton.dev/displayName: Ike Session URL
     tekton.dev/tags: istio, telepresence
+    tekton.dev/categories: "Developer Tools, Testing, Continuous Integration, CLI"
     tekton.dev/pipelines.minVersion: 0.16.0
+    tekton.dev/platforms: "linux/amd64,linux/arm64"
 spec:
   description: >-
     `ike-session-url` is a convenient way to get a hold of the exposed URL

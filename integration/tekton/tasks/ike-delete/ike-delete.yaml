@@ -7,7 +7,9 @@ metadata:
   annotations:
     tekton.dev/displayName: Ike Delete
     tekton.dev/tags: istio, telepresence
+    tekton.dev/categories: "Developer Tools, Testing, Continuous Integration, CLI"
     tekton.dev/pipelines.minVersion: 0.16.0
+    tekton.dev/platforms: "linux/amd64,linux/arm64"
 spec:
   description: >-
     `ike-delete` removes a `ref` from a `session` object. If this is
