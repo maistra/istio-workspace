@@ -28,9 +28,14 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:4.9
+      env:
+        - name: NAMESPACE
+          value: "$(params.namespace)"
+        - name: SESSION
+          value: "$(params.session)"
       script: |
         #!/usr/bin/env bash
-        if ! STATE=$(oc get session "$(params.session)" --namespace "$(params.namespace)" -o jsonpath="{.status.hosts}"); then
+        if ! STATE=$(oc get session "${SESSION}" --namespace "${NAMESPACE}" -o jsonpath="{.status.hosts}"); then
           error=$?
           echo "${STATE}"
           exit $error

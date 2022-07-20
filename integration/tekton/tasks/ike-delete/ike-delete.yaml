@@ -28,6 +28,13 @@ spec:
   steps:
     - name: ike
       image: released-image
+      env:
+        - name: NAMESPACE
+          value: "$(params.namespace)"
+        - name: TARGET
+          value: "$(params.target)"
+        - name: SESSION
+          value: "$(params.session)"
       script: |
         #!/usr/bin/env bash
-        ike delete --session "$(params.session)" --deployment "$(params.target)" --namespace "$(params.namespace)"
+        ike delete --session "${SESSION}" --deployment "${TARGET}" --namespace "${NAMESPACE}"
