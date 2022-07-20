@@ -13,7 +13,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/maistra/istio-workspace/e2e/infra"
-	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	. "github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
@@ -67,7 +66,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 			BuildTestServicePreparedImage(PreparedImageV1)
 			BuildTestServicePreparedImage(PreparedImageV2)
 		}
-		createProjectsForCompletionTests()
 	})
 
 	return nil
@@ -76,33 +74,12 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 var _ = SynchronizedAfterSuite(func() {},
 	func() {
-		deleteProjectsForCompletionTests()
 		tmpPath.Restore()
 
 		fmt.Printf("Don't forget to wipe out %s cluster directory!\n", tmpClusterDir)
 		fmt.Println("For example by using such command: ")
 		fmt.Printf("$ mount | grep openshift | cut -d' ' -f 3 | xargs -I {} sudo umount {} && sudo rm -rf %s", tmpClusterDir)
 	})
-
-var CompletionProject1 = "ike-autocompletion-test-" + naming.GenerateString(16)
-var CompletionProject2 = "ike-autocompletion-test-" + naming.GenerateString(16)
-
-func createProjectsForCompletionTests() {
-	testshell.ExecuteAll(
-		NewProjectCmd(CompletionProject1),
-		NewProjectCmd(CompletionProject2),
-	)
-	testshell.ExecuteAll(DeployNoopLoopCmd("my-deployment", CompletionProject1)...)
-	testshell.ExecuteAll(DeployNoopLoopCmd("other-1-deployment", CompletionProject2)...)
-	testshell.ExecuteAll(DeployNoopLoopCmd("other-2-deployment", CompletionProject2)...)
-}
-
-func deleteProjectsForCompletionTests() {
-	testshell.ExecuteAll(
-		DeleteProjectCmd(CompletionProject1),
-		DeleteProjectCmd(CompletionProject2),
-	)
-}
 
 func ensureRequiredBinaries() {
 	Expect(shell.BinaryExists("ike", "make sure you have binary in the ./dist folder. Try make compile at least")).To(BeTrue())

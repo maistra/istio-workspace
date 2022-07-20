@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/maistra/istio-workspace/pkg/naming"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -29,11 +31,11 @@ var _ = Describe("Bash Completion Tests", func() {
 			Expect(completionResults).To(ConsistOf("help", "completion", "develop", "serve", "version", "create", "delete"))
 		})
 
-		Context("develop", func() {
+		It("should show only required flags for leaf command", func() {
+			Expect(completionFor("ike create ")).To(ConsistOf("--deployment=", "-d", "-i", "--image="))
+		})
 
-			It("should show only required flags for plain command", func() {
-				Expect(completionFor("ike develop ")).To(ConsistOf("--deployment=", "-d", "-r", "--run="))
-			})
+		Context("for develop command", func() {
 
 			It("should show all flags only after required ones are passed", func() {
 				completionResults := completionFor("ike develop -d deployment -r run.sh -")
@@ -45,26 +47,33 @@ var _ = Describe("Bash Completion Tests", func() {
 		})
 	})
 
-	// see setup in e2e_suite_test.go#createProjectsForCompletionTests
-	Context("kubectl related completion", func() {
+	Context("kubectl related completion", Ordered, func() {
+
+		BeforeAll(func() {
+			createProjectsForCompletionTests()
+		})
+
+		AfterAll(func() {
+			deleteProjectsForCompletionTests()
+		})
 
 		It("should show available namespaces", func() {
 			nsCompletion := completionFor("ike develop -n ")
-			Expect(nsCompletion).To(ContainElement(CompletionProject1))
-			Expect(nsCompletion).To(ContainElement(CompletionProject2))
+			Expect(nsCompletion).To(ContainElement(completionProject1))
+			Expect(nsCompletion).To(ContainElement(completionProject2))
 		})
 
-		It("should show available deployments for current namespace", func() {
+		It("should show available deployments for the current namespace", func() {
 			if !RunsOnOpenshift {
 				Skip("This is OpenShift specific test which assumes current namespace/project is set and oc available. " +
 					"Completion for specified namespace is covered in the follow-up test.")
 			}
-			<-shell.Execute("oc project " + CompletionProject1).Done()
+			<-shell.Execute("oc project " + completionProject1).Done()
 			Expect(completionFor("ike develop -d ")).To(ConsistOf("my-deployment"))
 		})
 
-		It("should show available deployments for selected namespace (other-project)", func() {
-			Expect(completionFor("ike develop -n " + CompletionProject2 + " -d ")).To(ConsistOf("other-1-deployment", "other-2-deployment"))
+		It("should show available deployments for the selected namespace (other-project)", func() {
+			Expect(completionFor("ike develop -n " + completionProject2 + " -d ")).To(ConsistOf("other-1-deployment", "other-2-deployment"))
 		})
 	})
 
@@ -75,7 +84,6 @@ func completionFor(cmd string) []string {
 	tmpDir := tmpFs.Dir("ike-bash-completion")
 	completionScript := tmpDir + "/get_completion.sh"
 	CreateFile(completionScript, getCompletionBash)
-
 	defer DeleteFile(completionScript)
 
 	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")
@@ -84,8 +92,27 @@ func completionFor(cmd string) []string {
 	return completion.Status().Stdout
 }
 
-const getCompletionBash = `
-#
+var completionProject1 = "ike-autocompletion-test-" + naming.GenerateString(16)
+var completionProject2 = "ike-autocompletion-test-" + naming.GenerateString(16)
+
+func createProjectsForCompletionTests() {
+	shell.ExecuteAll(
+		NewProjectCmd(completionProject1),
+		NewProjectCmd(completionProject2),
+	)
+	shell.ExecuteAll(DeployNoopLoopCmd("my-deployment", completionProject1)...)
+	shell.ExecuteAll(DeployNoopLoopCmd("other-1-deployment", completionProject2)...)
+	shell.ExecuteAll(DeployNoopLoopCmd("other-2-deployment", completionProject2)...)
+}
+
+func deleteProjectsForCompletionTests() {
+	shell.ExecuteAll(
+		DeleteProjectCmd(completionProject1),
+		DeleteProjectCmd(completionProject2),
+	)
+}
+
+const getCompletionBash = `#
 # Author: Brian Beffa <brbsix@gmail.com>
 # Original source: https://brbsix.github.io/2015/11/29/accessing-tab-completion-programmatically-in-bash/
 # License: LGPLv3 (http://www.gnu.org/licenses/lgpl-3.0.txt)
