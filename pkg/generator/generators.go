@@ -33,8 +33,8 @@ type Entry struct {
 	Name           string
 	DeploymentType string
 	Namespace      string
-	HTTPPort       int32
-	GRPCPort       int32
+	HTTPPort       uint32
+	GRPCPort       uint32
 }
 
 func NewEntry(name, namespace, deploymentType string) Entry {
@@ -168,11 +168,11 @@ func Service(service Entry) runtime.Object {
 			Ports: []corev1.ServicePort{
 				{
 					Name: "http",
-					Port: service.HTTPPort,
+					Port: int32(service.HTTPPort),
 				},
 				{
 					Name: "grpc",
-					Port: service.GRPCPort,
+					Port: int32(service.GRPCPort),
 				},
 			},
 			Selector: map[string]string{
@@ -284,11 +284,11 @@ func template(service Entry) corev1.PodTemplateSpec {
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",
-							ContainerPort: service.HTTPPort,
+							ContainerPort: int32(service.HTTPPort),
 						},
 						{
 							Name:          "grpc",
-							ContainerPort: service.GRPCPort,
+							ContainerPort: int32(service.GRPCPort),
 						},
 					},
 					LivenessProbe: &corev1.Probe{

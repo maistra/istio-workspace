@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -19,7 +20,7 @@ func ConnectToGateway(hostname string) Modifier {
 				http := obj.Spec.Http[i]
 				for n := 0; n < len(http.Route); n++ {
 					route := http.Route[n]
-					route.Destination.Port = &istiov1alpha3.PortSelector{Number: 9080}
+					route.Destination.Port = &istiov1alpha3.PortSelector{Number: service.HTTPPort}
 					http.Route[n] = route
 				}
 				obj.Spec.Http[i] = http
@@ -45,14 +46,14 @@ type Protocol func(target Entry) string
 // HTTP returns the HTTP URL for the given target.
 func HTTP() Protocol {
 	return func(target Entry) string {
-		return "http://" + target.HostName() + ":9080"
+		return fmt.Sprintf("http://%s:%d", target.HostName(), target.HTTPPort)
 	}
 }
 
 // GRPC returns the GRPC URL for the given target.
 func GRPC() Protocol {
 	return func(target Entry) string {
-		return target.HostName() + ":9081"
+		return fmt.Sprintf("%s:%d", target.HostName(), target.GRPCPort)
 	}
 }
 
