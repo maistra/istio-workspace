@@ -28,16 +28,19 @@ func AllDeploymentsReady(deploymentType, ns string) func() bool {
 	return func() bool {
 		countCmd := shell.ExecuteInDir(".",
 			"kubectl", "get", deploymentType,
-			"-n", ns)
+			"-n", ns, "-o", "jsonpath='{.items[*].kind}'")
 		<-countCmd.Done()
-		count := len(countCmd.Status().Stdout)
-		// if deployments are found then there is a HEADER
-		if count > 1 {
-			count--
+		if countCmd.Status().Error != nil {
+			fmt.Println(countCmd.Status().Error.Error())
+			return false
 		}
+		if countCmd.Status().Stdout[0] == "''" {
+			return false
+		}
+		count := len(strings.Split(countCmd.Status().Stdout[0], " "))
 		// if nothing is written to stdout it's an error of none found
 		if count == 0 {
-			return true
+			return false
 		}
 		deploymentCmd := shell.ExecuteInDir(".",
 			"kubectl", "get", deploymentType,
@@ -47,7 +50,7 @@ func AllDeploymentsReady(deploymentType, ns string) func() bool {
 
 		// returning nothing at this point means no deployments are in ready state, but some should be
 		if len(deploymentCmd.Status().Stdout) > 0 {
-			if deploymentCmd.Status().Stdout[0] == "" {
+			if deploymentCmd.Status().Stdout[0] == "''" {
 				return false
 			}
 			if len(strings.Split(deploymentCmd.Status().Stdout[0], " ")) == count {
