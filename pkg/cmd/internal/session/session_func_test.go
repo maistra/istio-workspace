@@ -32,25 +32,25 @@ var _ = Describe("Usage of session func", func() {
 		})
 
 		It("should fail if namespace is not defined", func() {
-			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "namespace"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command, "namespace"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("namespace"))
 		})
 
 		It("should fail if deployment is not defined", func() {
-			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "deployment"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command, "deployment"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("deployment"))
 		})
 
 		It("should fail if session is not defined", func() {
-			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "session"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command, "session"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("session"))
 		})
 
 		It("should fail if route is not defined", func() {
-			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command.Flags(), "route"))
+			_, err := internal.ToOptions(command.Annotations, removeFlagFromSet(command, "route"))
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("route"))
 		})
@@ -65,24 +65,24 @@ var _ = Describe("Usage of session func", func() {
 		})
 
 		It("should convert namespace if set", func() {
-			Expect(command.Flags().Set("namespace", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			Expect(command.Flag("namespace").Value.Set("TEST")).ToNot(HaveOccurred())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.NamespaceName).To(Equal("TEST"))
 		})
 
 		It("should convert deployment if set", func() {
-			Expect(command.Flags().Set("deployment", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			Expect(command.Flag("deployment").Value.Set("TEST")).ToNot(HaveOccurred())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.DeploymentName).To(Equal("TEST"))
 		})
 
 		It("should convert session if set", func() {
-			Expect(command.Flags().Set("session", "TEST")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			Expect(command.Flag("session").Value.Set("TEST")).ToNot(HaveOccurred())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.SessionName).To(Equal("TEST"))
@@ -90,15 +90,15 @@ var _ = Describe("Usage of session func", func() {
 
 		It("should convert route if set", func() {
 			// RouteExp Parser not tested here, see session/session_test
-			Expect(command.Flags().Set("route", "header:name=value")).ToNot(HaveOccurred())
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			Expect(command.Flag("route").Value.Set("header:name=value")).ToNot(HaveOccurred())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.RouteExp).To(Equal("header:name=value"))
 		})
 
 		It("should set Revert if command is develop", func() {
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(opts.Revert).To(BeTrue())
 		})
@@ -107,7 +107,7 @@ var _ = Describe("Usage of session func", func() {
 			annotations := map[string]string{
 				internal.AnnotationRevert: "true",
 			}
-			opts, err := internal.ToOptions(annotations, command.Flags())
+			opts, err := internal.ToOptions(annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(opts.Revert).To(BeTrue())
 		})
@@ -116,13 +116,13 @@ var _ = Describe("Usage of session func", func() {
 			annotations := map[string]string{
 				internal.AnnotationRevert: "false",
 			}
-			opts, err := internal.ToOptions(annotations, command.Flags())
+			opts, err := internal.ToOptions(annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(opts.Revert).To(BeFalse())
 		})
 
 		It("should default to empty", func() {
-			opts, err := internal.ToOptions(command.Annotations, command.Flags())
+			opts, err := internal.ToOptions(command.Annotations, internal.CollectFlags(command))
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(opts.NamespaceName).To(Equal(""))
@@ -134,13 +134,22 @@ var _ = Describe("Usage of session func", func() {
 	})
 })
 
-func removeFlagFromSet(flags *pflag.FlagSet, flagToRemove string) *pflag.FlagSet {
-	f := pflag.NewFlagSet("", pflag.ContinueOnError)
-	flags.VisitAll(func(flag *pflag.Flag) {
+func removeFlagFromSet(cmd *cobra.Command, flagToRemove string) map[string]string {
+	f := pflag.NewFlagSet("combined-flags", pflag.ContinueOnError)
+	copyFlags := func(flag *pflag.Flag) {
 		if flag.Name != flagToRemove {
 			f.AddFlag(flag)
 		}
-	})
+	}
+	cmd.Flags().VisitAll(copyFlags)
+	cmd.PersistentFlags().VisitAll(copyFlags)
 
-	return f
+	flags := map[string]string{}
+	collect := func(flag *pflag.Flag) {
+		flags[flag.Name] = flag.Value.String()
+	}
+	f.VisitAll(collect)
+	f.VisitAll(collect)
+
+	return flags
 }
