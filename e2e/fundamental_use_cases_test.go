@@ -262,4 +262,87 @@ var _ = Describe("Fundamental use cases", func() {
 		})
 
 	})
+
+	Context("Using ike with newly created service", func() {
+
+		var (
+			namespace,
+			scenario,
+			sessionName,
+			tmpDir string
+		)
+
+		tmpFs := test.NewTmpFileSystem(GinkgoT())
+
+		JustBeforeEach(func() {
+			namespace = GenerateNamespaceName()
+			tmpDir = tmpFs.Dir("namespace-" + namespace)
+
+			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+
+			PrepareEnv(namespace)
+
+			InstallLocalOperator(namespace)
+			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+
+			// FIX Smelly to rely on global state. Scenario is set in subsequent beforeEach for given context
+			scenario = "scenario-1"
+			DeployTestScenario(scenario, namespace)
+			sessionName = GenerateSessionName()
+		})
+
+		AfterEach(func() {
+			if CurrentSpecReport().Failed() {
+				DumpEnvironmentDebugInfo(namespace, tmpDir)
+			} else {
+				CleanupNamespace(namespace, false)
+				tmpFs.Cleanup()
+			}
+		})
+
+		When("connecting new service running locally", func() {
+
+			It("should be able to reach other services", func() {
+				EnsureAllDeploymentPodsAreReady(namespace)
+
+				deploymentCount := GetResourceCount("deployment", namespace)
+
+				By("connecting local product page service to cluster services")
+				CreateFile(tmpDir+"/productpage.py", PublisherService)
+
+				ike := RunIke(tmpDir, "develop", "new",
+					"--name", "new-service",
+					"--namespace", namespace,
+					"--port", "9080",
+					"--watch",
+					"--run", "python productpage.py 9080",
+					"--route", "header:x-test-suite=smoke",
+					"--session", sessionName,
+					"--method", "inject-tcp",
+				)
+				defer func() {
+					Stop(ike)
+				}()
+				go FailOnCmdError(ike, GinkgoT())
+				// this shouldn't necessarily be a new route
+				// it might be swap-deployment actually
+				// with 2  extra deployments we have separation of dummy
+				// service and newly spawned one running locally
+				// Optimize later.
+				EnsureCorrectNumberOfResources(deploymentCount+2, "deployment", namespace)
+				EnsureAllDeploymentPodsAreReady(namespace)
+
+				By("modifying local service")
+				modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+				CreateFile(tmpDir+"/productpage.py", modifiedDetails)
+
+				By("disconnecting local service")
+				Stop(ike)
+				// TODO we should call sth here
+				EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
+			})
+
+		})
+
+	})
 })
