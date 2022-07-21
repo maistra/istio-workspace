@@ -7,7 +7,9 @@ metadata:
   annotations:
     tekton.dev/displayName: Ike Create
     tekton.dev/tags: istio, telepresence
+    tekton.dev/categories: "Developer Tools, Testing, Continuous Integration, CLI"
     tekton.dev/pipelines.minVersion: 0.16.0
+    tekton.dev/platforms: "linux/amd64,linux/arm64"
 spec:
   description: >-
     `ike-create` creates a new `session` object for `istio-workspace` and will
@@ -36,11 +38,22 @@ spec:
   steps:
     - name: ike
       image: released-image
+      env:
+        - name: NAMESPACE
+          value: "$(params.namespace)"
+        - name: TARGET
+          value: "$(params.target)"
+        - name: SESSION
+          value: "$(params.session)"
+        - name: ROUTE
+          value: "$(params.route)"
+        - name: IMAGE
+          value: "$(params.image)"
       script: |
         #!/usr/bin/env bash
-        ike_create_cmd="ike create --session $(params.session) --deployment $(params.target) --namespace $(params.namespace) --image $(params.image) --json"
-        if [ -n "$(params.route)" ]; then
-          ike_create_cmd="${ike_create_cmd} --route $(params.route)"
+        ike_create_cmd="ike create --session ${SESSION} --deployment ${TARGET} --namespace ${NAMESPACE} --image ${IMAGE} --json"
+        if [ -n "${ROUTE}" ]; then
+          ike_create_cmd="${ike_create_cmd} --route ${ROUTE}"
         fi
 
         STATE=$(bash -c "${ike_create_cmd}")

@@ -326,6 +326,8 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Context("Tekton", func() {
 
 				BeforeEach(func() {
+					tektonInstalled := AllDeploymentsReady("deployment", "tekton-pipelines")()
+					Expect(tektonInstalled).To(BeTrue(), "tekton-pipelines should be installed")
 					scenario = "scenario-1"
 				})
 
