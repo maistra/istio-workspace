@@ -3,13 +3,11 @@ package develop
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
@@ -28,9 +26,16 @@ var errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telep
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	developCmd := &cobra.Command{
-		Use:          "develop",
-		Short:        "Starts the development flow",
-		SilenceUsage: true,
+		Use:              "develop",
+		Short:            "Starts the development flow",
+		SilenceUsage:     true,
+		TraverseChildren: true,
+		Annotations: func() map[string]string {
+			annotations := make(map[string]string, 1)
+			annotations["telepresence"] = "translatable"
+
+			return annotations
+		}(),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
 				return errorTpNotAvailable
@@ -39,6 +44,11 @@ func NewCmd() *cobra.Command {
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			arguments, err := telepresence.CreateTpCommand(cmd)
+			if err != nil {
+				return errors.Wrap(err, "failed translating to telepresence command")
+			}
+
 			dir, err := os.Getwd()
 			if err != nil {
 				return errors.Wrap(err, "failed obtaining working directory")
@@ -58,8 +68,6 @@ func NewCmd() *cobra.Command {
 
 			done := make(chan gocmd.Status, 1)
 			defer close(done)
-
-			arguments := createTpCommand(cmd)
 
 			go func() {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
@@ -112,66 +120,4 @@ func NewCmd() *cobra.Command {
 	_ = developCmd.MarkFlagRequired(execute.RunFlagName)
 
 	return developCmd
-}
-
-func createTpCommand(cmd *cobra.Command) []string {
-	tpArgs := []string{
-		"--deployment", cmd.Flag("deployment").Value.String(),
-		"--method", cmd.Flag("method").Value.String(),
-	}
-	if cmd.Flags().Changed("port") {
-		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occur if flag does not exist. If it doesn't, it won't be Changed()
-		for _, port := range ports {
-			tpArgs = append(tpArgs, "--expose", port)
-		}
-	}
-
-	tpArgs = append(tpArgs, "--run")
-	var tpCmd []string
-	tpCmd = tpArgs
-	tpCmd = append(tpCmd, createWrapperCmd(cmd)...)
-
-	namespaceFlag := cmd.Flag("namespace")
-	if namespaceFlag.Changed {
-		tpCmd = append([]string{"--" + namespaceFlag.Name, namespaceFlag.Value.String()}, tpCmd...)
-	}
-
-	return tpCmd
-}
-
-func createWrapperCmd(cmd *cobra.Command) []string {
-	run := cmd.Flag(execute.RunFlagName).Value.String()
-	executable, err := os.Executable()
-	if err != nil {
-		logger().Error(err, "unable to execute wrapped command")
-		panic(err)
-	}
-	executeArgs := []string{
-		executable, "execute",
-		"--" + execute.RunFlagName, run,
-	}
-	if cmd.Flag(execute.NoBuildFlagName).Changed {
-		executeArgs = append(executeArgs, "--"+execute.NoBuildFlagName, cmd.Flag(execute.NoBuildFlagName).Value.String())
-	}
-	if cmd.Flag(execute.BuildFlagName).Changed {
-		executeArgs = append(executeArgs, "--"+execute.BuildFlagName, cmd.Flag(execute.BuildFlagName).Value.String())
-	}
-
-	watch, _ := cmd.Flags().GetBool("watch")
-	if watch {
-		executeArgs = append(executeArgs,
-			"--watch",
-			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
-			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
-			"--interval", cmd.Flag("watch-interval").Value.String(),
-		)
-	}
-
-	return executeArgs
-}
-
-func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
-	slice, _ := flags.GetStringSlice(name)
-
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
 }
