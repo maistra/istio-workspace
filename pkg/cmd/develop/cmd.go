@@ -57,7 +57,7 @@ func NewCmd() *cobra.Command {
 			}
 
 			// HACK: need contract with TP cmd?
-			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
+			if err = cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
 				return errors.Wrapf(err, "failed to set deployment flag")
 			}
 
