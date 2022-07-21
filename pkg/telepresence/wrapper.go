@@ -5,8 +5,12 @@ import (
 	"os"
 	"strings"
 
+	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
+	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/shell"
 )
 
@@ -34,11 +38,11 @@ func GetVersion() (string, error) {
 	tpVersion, versionSpecified := os.LookupEnv("TELEPRESENCE_VERSION")
 	if !versionSpecified {
 		// Check if we are dealing with Telepresence v2
-		versionCmd := execute("telepresence", "version")
+		versionCmd := executeCmd("telepresence", "version")
 		if versionCmd.Exit == 0 {
 			return "", errUnsupportedBinary
 		}
-		versionCmd = execute("telepresence", "--version")
+		versionCmd = executeCmd("telepresence", "--version")
 		tpVersion = strings.Join(versionCmd.Stdout, " ")
 	}
 
@@ -49,7 +53,76 @@ func GetVersion() (string, error) {
 	return tpVersion, nil
 }
 
-func execute(cmd string, args ...string) gocmd.Status {
+// CreateTpCommand translates `ike develop` command to underlying Telepresence invocation.
+func CreateTpCommand(cmd *cobra.Command) ([]string, error) {
+	if _, found := cmd.Annotations["telepresence"]; !found {
+		return nil, errors.New("command cannot be translated to telepresence invocation")
+	}
+	tpArgs := []string{
+		"--deployment", cmd.Flag("deployment").Value.String(),
+		"--method", cmd.Flag("method").Value.String(),
+	}
+	if cmd.Flags().Changed("port") {
+		ports, _ := cmd.Flags().GetStringSlice("port") // ignore error, should only occur if flag does not exist. If it doesn't, it won't be Changed()
+		for _, port := range ports {
+			tpArgs = append(tpArgs, "--expose", port)
+		}
+	}
+
+	tpArgs = append(tpArgs, "--run")
+	var tpCmd []string
+	tpCmd = tpArgs
+	subCmd, err := createWrapperExecutionCmd(cmd)
+	if err != nil {
+		return nil, err
+	}
+	tpCmd = append(tpCmd, subCmd...)
+
+	namespaceFlag := cmd.Flag("namespace")
+	if namespaceFlag.Changed {
+		tpCmd = append([]string{"--" + namespaceFlag.Name, namespaceFlag.Value.String()}, tpCmd...)
+	}
+
+	return tpCmd, nil
+}
+
+func createWrapperExecutionCmd(cmd *cobra.Command) ([]string, error) {
+	run := cmd.Flag(execute.RunFlagName).Value.String()
+	executable, err := os.Executable()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create executable")
+	}
+	executeArgs := []string{
+		executable, "execute",
+		"--" + execute.RunFlagName, run,
+	}
+	if cmd.Flag(execute.NoBuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.NoBuildFlagName, cmd.Flag(execute.NoBuildFlagName).Value.String())
+	}
+	if cmd.Flag(execute.BuildFlagName).Changed {
+		executeArgs = append(executeArgs, "--"+execute.BuildFlagName, cmd.Flag(execute.BuildFlagName).Value.String())
+	}
+
+	watch, _ := cmd.Flags().GetBool("watch")
+	if watch {
+		executeArgs = append(executeArgs,
+			"--watch",
+			"--dir", stringSliceToCSV(cmd.Flags(), "watch-include"),
+			"--exclude", stringSliceToCSV(cmd.Flags(), "watch-exclude"),
+			"--interval", cmd.Flag("watch-interval").Value.String(),
+		)
+	}
+
+	return executeArgs, nil
+}
+
+func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
+	slice, _ := flags.GetStringSlice(name)
+
+	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
+}
+
+func executeCmd(cmd string, args ...string) gocmd.Status {
 	done := make(chan gocmd.Status, 1)
 	defer close(done)
 
