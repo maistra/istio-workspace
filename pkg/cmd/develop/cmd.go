@@ -44,11 +44,6 @@ func NewCmd() *cobra.Command {
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			arguments, err := telepresence.CreateTpCommand(cmd)
-			if err != nil {
-				return errors.Wrap(err, "failed translating to telepresence command")
-			}
-
 			dir, err := os.Getwd()
 			if err != nil {
 				return errors.Wrap(err, "failed obtaining working directory")
@@ -64,6 +59,11 @@ func NewCmd() *cobra.Command {
 			// HACK: need contract with TP cmd?
 			if err := cmd.Flags().Set("deployment", sessionState.DeploymentName); err != nil {
 				return errors.Wrapf(err, "failed to set deployment flag")
+			}
+
+			arguments, err := telepresence.CreateTpCommand(cmd)
+			if err != nil {
+				return errors.Wrap(err, "failed translating to telepresence command")
 			}
 
 			done := make(chan gocmd.Status, 1)
