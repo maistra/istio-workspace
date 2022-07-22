@@ -25,6 +25,8 @@ var (
 		return log.Log.WithValues("type", "develop")
 	}
 
+	// Used in the tp-wrapper to check if passed command
+	// can be parsed (so has all required flags).
 	tpAnnotations = map[string]string{
 		"telepresence": "translatable",
 	}
@@ -166,7 +168,7 @@ func createDevelopNewCmd() *cobra.Command {
 
 			if collectedErrors != nil {
 				fmt.Println(">>>> WE HAVE ERRORS")
-				// should return collectedErrors here but fails with admission webhook - investigate
+				// FIX should return collectedErrors here but fails with admission webhook - investigate
 			}
 
 			return errors.Wrapf(cmd.Parent().RunE(cmd, args), "failed executing `ike develop` command from `ike develop new`")
