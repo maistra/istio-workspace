@@ -4,7 +4,9 @@ import (
 	"github.com/maistra/istio-workspace/pkg/generator"
 )
 
-func BasicNewService(printer generator.Printer, name, ns string) {
+type TestScenario func(string, generator.Printer)
+
+func BasicNewService(name, ns string, printer generator.Printer) {
 	newService := generator.NewServiceEntry(name, ns, "Deployment")
 
 	generator.Generate(
@@ -19,7 +21,7 @@ func BasicNewService(printer generator.Printer, name, ns string) {
 
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over http. Similar to the original bookinfo example setup.
-func TestScenario1HTTPThreeServicesInSequence(printer generator.Printer, ns string) {
+func TestScenario1HTTPThreeServicesInSequence(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
@@ -37,7 +39,7 @@ func TestScenario1HTTPThreeServicesInSequence(printer generator.Printer, ns stri
 
 // TestScenario1GRPCThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over grpc. Similar to the original bookinfo example setup.
-func TestScenario1GRPCThreeServicesInSequence(printer generator.Printer, ns string) {
+func TestScenario1GRPCThreeServicesInSequence(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
@@ -56,7 +58,7 @@ func TestScenario1GRPCThreeServicesInSequence(printer generator.Printer, ns stri
 // TestScenario2ThreeServicesInSequenceDeploymentConfig is a basic test setup with a
 // few services calling each other in a chain. Similar to the original bookinfo example setup.
 // Using DeploymentConfig.
-func TestScenario2ThreeServicesInSequenceDeploymentConfig(printer generator.Printer, ns string) {
+func TestScenario2ThreeServicesInSequenceDeploymentConfig(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "DeploymentConfig")
 	reviews := generator.NewServiceEntry("reviews", ns, "DeploymentConfig")
 	ratings := generator.NewServiceEntry("ratings", ns, "DeploymentConfig")
@@ -73,7 +75,7 @@ func TestScenario2ThreeServicesInSequenceDeploymentConfig(printer generator.Prin
 }
 
 // DemoScenario is a simple setup for demo purposes.
-func DemoScenario(printer generator.Printer, ns string) {
+func DemoScenario(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
@@ -93,7 +95,7 @@ func DemoScenario(printer generator.Printer, ns string) {
 }
 
 // IncompleteMissingDestinationRules generates a scenario where there are no DestinationRules.
-func IncompleteMissingDestinationRules(printer generator.Printer, ns string) {
+func IncompleteMissingDestinationRules(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")
@@ -110,7 +112,7 @@ func IncompleteMissingDestinationRules(printer generator.Printer, ns string) {
 }
 
 // IncompleteMissingVirtualServices generates a scenario where there are no VirtualServices.
-func IncompleteMissingVirtualServices(printer generator.Printer, ns string) {
+func IncompleteMissingVirtualServices(ns string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment")
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment")
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment")

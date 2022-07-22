@@ -159,9 +159,10 @@ func createDevelopNewCmd() *cobra.Command {
 			serviceName := cmd.Flag("name").Value.String()
 
 			var collectedErrors error
-			scenarios.BasicNewService(func(object runtime.Object) {
+			scenarios.BasicNewService(serviceName, ns, func(object runtime.Object) {
+				// Create k8s objects on the fly
 				collectedErrors = errors.Append(collectedErrors, client.Create(object))
-			}, serviceName, ns)
+			})
 
 			if collectedErrors != nil {
 				fmt.Println(">>>> WE HAVE ERRORS")

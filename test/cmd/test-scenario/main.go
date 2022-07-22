@@ -12,7 +12,7 @@ import (
 var (
 	Namespace = "default"
 
-	testScenarios = map[string]func(generator.Printer, string){
+	testScenarios = map[string]scenarios.TestScenario{
 		"scenario-1":   scenarios.TestScenario1HTTPThreeServicesInSequence,
 		"scenario-1.1": scenarios.TestScenario1GRPCThreeServicesInSequence,
 		"scenario-2":   scenarios.TestScenario2ThreeServicesInSequenceDeploymentConfig,
@@ -41,7 +41,7 @@ func main() {
 
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if f, ok := testScenarios[scenario]; ok {
-		f(generator.WrapInPrinter(os.Stdout), Namespace)
+		f(Namespace, generator.WrapInPrinter(os.Stdout))
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

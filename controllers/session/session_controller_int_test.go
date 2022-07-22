@@ -37,7 +37,7 @@ var _ = Describe("Complete session manipulation", func() {
 		controller reconcile.Reconciler
 		schema     *runtime.Scheme
 		c          client.Client
-		scenario   func(generator.Printer, string)
+		scenario   scenarios.TestScenario
 		get        *testclient.Getters
 	)
 
@@ -572,12 +572,12 @@ var _ = Describe("Complete session manipulation", func() {
 	})
 })
 
-func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(generator.Printer, string)) ([]runtime.Object, error) {
+func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator scenarios.TestScenario) ([]runtime.Object, error) {
 	generator.TestImageName = "x:x:x"
 	generator.GatewayHost = "test.io"
 
 	buf := new(bytes.Buffer)
-	scenarioGenerator(generator.WrapInPrinter(buf), namespace)
+	scenarioGenerator(namespace, generator.WrapInPrinter(buf))
 	fileContent := buf.String()
 
 	objects := []runtime.Object{}
