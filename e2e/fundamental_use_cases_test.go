@@ -1,9 +1,11 @@
 package e2e_test
 
 import (
+	_ "embed"
 	"strings"
 	"time"
 
+	"github.com/go-cmd/cmd"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -12,6 +14,12 @@ import (
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
+
+//go:embed test-services/main.go
+var golangService string
+
+//go:embed test-services/publisher.py
+var publisherService string
 
 var _ = Describe("Fundamental use cases", func() {
 
@@ -69,7 +77,7 @@ var _ = Describe("Fundamental use cases", func() {
 						deploymentCount := GetResourceCount("deployment", namespace)
 
 						By("connecting local product page service to cluster services")
-						CreateFile(tmpDir+"/productpage.py", PublisherService)
+						CreateFile(tmpDir+"/productpage.py", publisherService)
 
 						ike := RunIke(tmpDir, "develop",
 							"--deployment", "deployment/productpage-v1",
@@ -91,7 +99,7 @@ var _ = Describe("Fundamental use cases", func() {
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 						By("modifying local service")
-						modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+						modifiedDetails := strings.Replace(publisherService, "PublisherA", "Publisher Ike", 1)
 						CreateFile(tmpDir+"/productpage.py", modifiedDetails)
 
 						EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
@@ -229,7 +237,7 @@ var _ = Describe("Fundamental use cases", func() {
 					deploymentCount := GetResourceCount("deploymentconfig", namespace)
 
 					By("running the service locally first")
-					CreateFile(tmpDir+"/ratings.py", PublisherService)
+					CreateFile(tmpDir+"/ratings.py", publisherService)
 
 					ike := RunIke(tmpDir, "develop",
 						"--deployment", "dc/ratings-v1",
@@ -250,7 +258,7 @@ var _ = Describe("Fundamental use cases", func() {
 					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("PublisherA"))
 
 					By("modifying service")
-					modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
+					modifiedDetails := strings.Replace(publisherService, "PublisherA", "Publisher Ike", 1)
 					CreateFile(tmpDir+"/ratings.py", modifiedDetails)
 
 					EnsureSessionRouteIsReachable(namespace, sessionName, ContainSubstring("Publisher Ike"))
@@ -263,7 +271,7 @@ var _ = Describe("Fundamental use cases", func() {
 
 	})
 
-	Context("Using ike with newly created service", func() {
+	Context("Using ike for newly created service", func() {
 
 		var (
 			namespace,
@@ -296,26 +304,28 @@ var _ = Describe("Fundamental use cases", func() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
-				tmpFs.Cleanup()
+				//tmpFs.Cleanup()
 			}
 		})
 
-		When("connecting new service running locally", func() {
+		When("connecting new service running locally to the cluster", func() {
 
 			It("should be able to reach other services", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 
 				deploymentCount := GetResourceCount("deployment", namespace)
 
-				By("connecting local product page service to cluster services")
-				CreateFile(tmpDir+"/productpage.py", PublisherService)
+				newService := tmpFs.Dir(tmpDir+"/new-service") + "/main.go"
+				CreateFile(newService, golangService)
+				localPort := "8282"
 
+				By("connecting local service to cluster services")
 				ike := RunIke(tmpDir, "develop", "new",
 					"--name", "new-service",
 					"--namespace", namespace,
 					"--port", "9080",
+					"--run", "go run "+newService+" -port "+localPort,
 					"--watch",
-					"--run", "python productpage.py 9080",
 					"--route", "header:x-test-suite=smoke",
 					"--session", sessionName,
 					"--method", "inject-tcp",
@@ -324,7 +334,7 @@ var _ = Describe("Fundamental use cases", func() {
 					Stop(ike)
 				}()
 				go FailOnCmdError(ike, GinkgoT())
-				// this shouldn't necessarily be a new route
+				// FIX this shouldn't necessarily be a new route
 				// it might be swap-deployment actually
 				// with 2  extra deployments we have separation of dummy
 				// service and newly spawned one running locally
@@ -332,17 +342,31 @@ var _ = Describe("Fundamental use cases", func() {
 				EnsureCorrectNumberOfResources(deploymentCount+2, "deployment", namespace)
 				EnsureAllDeploymentPodsAreReady(namespace)
 
-				By("modifying local service")
-				modifiedDetails := strings.Replace(PublisherService, "PublisherA", "Publisher Ike", 1)
-				CreateFile(tmpDir+"/productpage.py", modifiedDetails)
+				By("ensuring service is accessible locally")
+				Expect(callingLocalService(localPort)()).To(And(ContainSubstring("reviews-v1"), Not(ContainSubstring("proxy response"))))
 
-				By("disconnecting local service")
-				Stop(ike)
-				// TODO we should call sth here
-				EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
+				By("modifying response")
+				modifiedService := strings.Replace(golangService, "writer.Write(content)", `writer.Write([]byte("proxy response: [" + string(content) + "]"))`, 1)
+				CreateFile(newService, modifiedService)
+				Eventually(callingLocalService(localPort)).Should(ContainSubstring("reviews-v1"), ContainSubstring("proxy response"))
 			})
 
 		})
 
 	})
 })
+
+func callingLocalService(localPort string) func() string {
+	curlLocalService := "curl http://localhost:" + localPort
+
+	return func() string {
+		curl := testshell.Execute(curlLocalService)
+		<-curl.Start()
+
+		return joinStdOut(curl)
+	}
+}
+
+func joinStdOut(command *cmd.Cmd) string {
+	return strings.Join(command.Status().Stdout, " ")
+}
