@@ -6,19 +6,6 @@ import (
 
 type TestScenario func(string, generator.Printer)
 
-func BasicNewService(name, ns string, printer generator.Printer) {
-	newService := generator.NewServiceEntry(name, ns, "Deployment")
-
-	generator.Generate(
-		printer,
-		[]generator.ServiceEntry{newService},
-		generator.AllSubGenerators,
-		generator.WithVersion("v1"),
-		generator.UsingImage("quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image"),
-		generator.ForService(newService, generator.ConnectToGateway(generator.GatewayHost)),
-	)
-}
-
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over http. Similar to the original bookinfo example setup.
 func TestScenario1HTTPThreeServicesInSequence(ns string, printer generator.Printer) {

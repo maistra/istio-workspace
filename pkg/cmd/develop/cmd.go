@@ -13,11 +13,11 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/pkg/generator"
 	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
-	"github.com/maistra/istio-workspace/test/scenarios"
 )
 
 var (
@@ -159,9 +159,9 @@ func createDevelopNewCmd() *cobra.Command {
 			serviceName := cmd.Flag("name").Value.String()
 
 			var collectedErrors error
-			scenarios.BasicNewService(serviceName, ns, func(object runtime.Object) {
-				// Create k8s objects on the fly
-				collectedErrors = errors.Append(collectedErrors, client.Create(object))
+			basicNewService(serviceName, ns, func(object runtime.Object) {
+				creationErr := client.Create(object) // Create k8s objects on the fly
+				collectedErrors = errors.Append(collectedErrors, creationErr)
 			})
 
 			if collectedErrors != nil {
@@ -177,4 +177,17 @@ func createDevelopNewCmd() *cobra.Command {
 	newCmd.Flags().String("type", "deployment", "deployment/deploymentconfig")
 
 	return newCmd
+}
+
+func basicNewService(name, ns string, printer generator.Printer) {
+	newService := generator.NewServiceEntry(name, ns, "Deployment")
+
+	generator.Generate(
+		printer,
+		[]generator.ServiceEntry{newService},
+		generator.AllSubGenerators,
+		generator.WithVersion("v1"),
+		generator.UsingImage("quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image"),
+		generator.ForService(newService, generator.ConnectToGateway(generator.GatewayHost)),
+	)
 }
