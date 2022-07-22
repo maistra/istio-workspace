@@ -216,7 +216,7 @@ func Gateway(ns string) runtime.Object {
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-gateway",
-			Namespace: ns, //
+			Namespace: ns,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{
