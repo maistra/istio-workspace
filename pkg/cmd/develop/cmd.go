@@ -20,18 +20,32 @@ import (
 	"github.com/maistra/istio-workspace/test/scenarios"
 )
 
-var logger = func() logr.Logger {
-	return log.Log.WithValues("type", "develop")
-}
+var (
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "develop")
+	}
 
-var errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+	tpAnnotations = map[string]string{
+		"telepresence": "translatable",
+	}
 
-// NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
+	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+)
+
+// NewCmd creates instance of "develop" command (and its children) with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	developCmd := createDevelopCmd()
+	newCmd := createDevelopNewCmd()
 
+	developCmd.AddCommand(newCmd)
+
+	return developCmd
+}
+
+func createDevelopNewCmd() *cobra.Command {
 	newCmd := &cobra.Command{
 		Use:         "new",
+		Short:       "Enables development flow for non-existing service.",
 		Annotations: tpAnnotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			name := cmd.Flag("name").Value.String()
@@ -59,22 +73,16 @@ func NewCmd() *cobra.Command {
 			return errors.Wrapf(cmd.Parent().RunE(cmd, args), "failed executing parent `ike develop` command")
 		},
 	}
+
 	newCmd.Flags().String("name", "", "defines service/deployment name")
 	newCmd.Flags().String("type", "deployment", "deployment/deploymentconfig")
-
-	developCmd.AddCommand(newCmd)
-
-	return developCmd
-}
-
-var tpAnnotations = map[string]string{
-	"telepresence": "translatable",
+	return newCmd
 }
 
 func createDevelopCmd() *cobra.Command {
 	developCmd := &cobra.Command{
 		Use:              "develop",
-		Short:            "Starts the development flow",
+		Short:            "Starts local development flow by acting like your services runs in the cluster.",
 		SilenceUsage:     true,
 		TraverseChildren: true,
 		Annotations:      tpAnnotations,
