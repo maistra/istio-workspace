@@ -41,7 +41,7 @@ func main() {
 
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if f, ok := testScenarios[scenario]; ok {
-		f(generator.NewSysOutPrinter(os.Stdout), Namespace)
+		f(generator.WrapInPrinter(os.Stdout), Namespace)
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

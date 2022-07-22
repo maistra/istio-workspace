@@ -2,7 +2,6 @@ package generator
 
 import (
 	"fmt"
-	"io"
 	"time"
 
 	osappsv1 "github.com/openshift/api/apps/v1"
@@ -13,7 +12,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -60,20 +58,13 @@ type SubGenerator func(service ServiceEntry) runtime.Object
 type Modifier func(service ServiceEntry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout.
-func Generate(out io.Writer, services []ServiceEntry, sub []SubGenerator, modifiers ...Modifier) {
+func Generate(printer Printer, services []ServiceEntry, sub []SubGenerator, modifiers ...Modifier) {
 	modify := func(service ServiceEntry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
 		}
 	}
-	printObj := func(object runtime.Object) {
-		b, err := yaml.Marshal(object)
-		if err != nil {
-			_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
-		}
-		_, _ = out.Write(b)
-		_, _ = io.WriteString(out, "---\n")
-	}
+
 	var ns string
 	for _, service := range services {
 		func(service ServiceEntry) {
@@ -83,14 +74,14 @@ func Generate(out io.Writer, services []ServiceEntry, sub []SubGenerator, modifi
 					continue
 				}
 				modify(service, object)
-				printObj(object)
+				printer(object)
 			}
 		}(service)
 		ns = service.Namespace
 	}
 	gw := Gateway(ns)
 	modify(ServiceEntry{Name: "gateway"}, gw)
-	printObj(gw)
+	printer(gw)
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.

@@ -3,7 +3,6 @@ package session_test
 import (
 	"bytes"
 	"context"
-	"io"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -38,7 +37,7 @@ var _ = Describe("Complete session manipulation", func() {
 		controller reconcile.Reconciler
 		schema     *runtime.Scheme
 		c          client.Client
-		scenario   func(io.Writer, string)
+		scenario   func(generator.Printer, string)
 		get        *testclient.Getters
 	)
 
@@ -573,12 +572,12 @@ var _ = Describe("Complete session manipulation", func() {
 	})
 })
 
-func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(io.Writer, string)) ([]runtime.Object, error) {
+func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator func(generator.Printer, string)) ([]runtime.Object, error) {
 	generator.TestImageName = "x:x:x"
 	generator.GatewayHost = "test.io"
 
 	buf := new(bytes.Buffer)
-	scenarioGenerator(buf, namespace)
+	scenarioGenerator(generator.WrapInPrinter(buf), namespace)
 	fileContent := buf.String()
 
 	objects := []runtime.Object{}

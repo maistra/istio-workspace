@@ -14,6 +14,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/pkg/generator"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
@@ -59,7 +60,7 @@ func createDevelopNewCmd() *cobra.Command {
 			var buf bytes.Buffer
 			// this will get objects instead to call using k8s client
 			name := cmd.Flag("name").Value.String()
-			scenarios.BasicNewService(&buf, name, cmd.Flag("namespace").Value.String())
+			scenarios.BasicNewService(generator.WrapInPrinter(&buf), name, cmd.Flag("namespace").Value.String())
 			// TMP
 			infra.CreateFile("/tmp/new-service.yaml", buf.String())
 			kubectl := gocmd.NewCmdOptions(shell.StreamOutput, "kubectl", "apply",
@@ -76,6 +77,7 @@ func createDevelopNewCmd() *cobra.Command {
 
 	newCmd.Flags().String("name", "", "defines service/deployment name")
 	newCmd.Flags().String("type", "deployment", "deployment/deploymentconfig")
+
 	return newCmd
 }
 
