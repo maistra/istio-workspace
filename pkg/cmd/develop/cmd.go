@@ -31,7 +31,8 @@ func NewCmd() *cobra.Command {
 	developCmd := createDevelopCmd()
 
 	newCmd := &cobra.Command{
-		Use: "new",
+		Use:         "new",
+		Annotations: tpAnnotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			name := cmd.Flag("name").Value.String()
 			e := cmd.Parent().PersistentFlags().Set("deployment", name+"-v1")
@@ -66,18 +67,17 @@ func NewCmd() *cobra.Command {
 	return developCmd
 }
 
+var tpAnnotations = map[string]string{
+	"telepresence": "translatable",
+}
+
 func createDevelopCmd() *cobra.Command {
 	developCmd := &cobra.Command{
 		Use:              "develop",
 		Short:            "Starts the development flow",
 		SilenceUsage:     true,
 		TraverseChildren: true,
-		Annotations: func() map[string]string {
-			annotations := make(map[string]string, 1)
-			annotations["telepresence"] = "translatable"
-
-			return annotations
-		}(),
+		Annotations:      tpAnnotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
 				return errorTpNotAvailable
