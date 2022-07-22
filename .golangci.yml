@@ -94,7 +94,6 @@ issues:
       linters:
         - goconst
         - gocyclo
-        - godox # tmp
         - golint
         - errcheck
         - dupl
