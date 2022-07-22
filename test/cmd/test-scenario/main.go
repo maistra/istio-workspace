@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
@@ -10,12 +9,25 @@ import (
 	"github.com/maistra/istio-workspace/test/scenarios"
 )
 
-var Namespace = "default"
+var (
+	Namespace = "default"
+
+	testScenarios = map[string]func(generator.Printer, string){
+		"scenario-1":   scenarios.TestScenario1HTTPThreeServicesInSequence,
+		"scenario-1.1": scenarios.TestScenario1GRPCThreeServicesInSequence,
+		"scenario-2":   scenarios.TestScenario2ThreeServicesInSequenceDeploymentConfig,
+		"demo":         scenarios.DemoScenario,
+	}
+)
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Println("required arg 'scenario name' missing")
-		os.Exit(-100)
+		fmt.Println("Available scenarios:")
+		for s := range testScenarios {
+			fmt.Printf(" * %s\n", s)
+		}
+
+		os.Exit(0)
 	}
 
 	generator.TestImageName = getTestImageName()
@@ -27,16 +39,9 @@ func main() {
 		Namespace = h
 	}
 
-	// FIX give better names
-	testScenarios := map[string]func(io.Writer, string){
-		"scenario-1":   scenarios.TestScenario1HTTPThreeServicesInSequence,
-		"scenario-1.1": scenarios.TestScenario1GRPCThreeServicesInSequence,
-		"scenario-2":   scenarios.TestScenario2ThreeServicesInSequenceDeploymentConfig,
-		"demo":         scenarios.DemoScenario,
-	}
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if f, ok := testScenarios[scenario]; ok {
-		f(os.Stdout, Namespace)
+		f(generator.NewSysOutPrinter(os.Stdout), Namespace)
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)
