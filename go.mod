@@ -47,7 +47,7 @@ require (
 // Testing deps
 require (
 	github.com/onsi/ginkgo/v2 v2.1.4
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/gomega v1.20.0
 )
 
 require (
