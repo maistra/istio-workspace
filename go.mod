@@ -21,7 +21,7 @@ require (
 	github.com/prometheus/client_golang v1.12.2
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // v1.0.2
 	github.com/schollz/progressbar/v3 v3.8.6
-	github.com/spf13/afero v1.9.0
+	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.12.0
