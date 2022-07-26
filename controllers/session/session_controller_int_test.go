@@ -573,11 +573,11 @@ var _ = Describe("Complete session manipulation", func() {
 })
 
 func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator scenarios.TestScenario) ([]runtime.Object, error) {
-	generator.TestImageName = "x:x:x"
+	image := "x:x:x"
 	generator.GatewayHost = "test.io"
 
 	buf := new(bytes.Buffer)
-	scenarioGenerator(namespace, generator.WrapInPrinter(buf))
+	scenarioGenerator(namespace, image, generator.WrapInPrinter(buf))
 	fileContent := buf.String()
 
 	objects := []runtime.Object{}

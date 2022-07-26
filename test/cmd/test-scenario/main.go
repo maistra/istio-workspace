@@ -30,7 +30,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	generator.TestImageName = getTestImageName()
 	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
 		generator.GatewayHost = h
 	}
@@ -40,8 +39,8 @@ func main() {
 	}
 
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
-	if f, ok := testScenarios[scenario]; ok {
-		f(Namespace, generator.WrapInPrinter(os.Stdout))
+	if generateScenario, ok := testScenarios[scenario]; ok {
+		generateScenario(Namespace, getTestImageName(), generator.WrapInPrinter(os.Stdout))
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

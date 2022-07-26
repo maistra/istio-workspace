@@ -20,7 +20,6 @@ const (
 )
 
 var (
-	TestImageName    = ""
 	GatewayHost      = "*"
 	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
@@ -29,15 +28,17 @@ var (
 type ServiceEntry struct {
 	Name           string
 	DeploymentType string
+	Image          string
 	Namespace      string
 	HTTPPort       uint32
 	GRPCPort       uint32
 }
 
-func NewServiceEntry(name, namespace, deploymentType string) ServiceEntry {
+func NewServiceEntry(name, namespace, deploymentType, image string) ServiceEntry {
 	return ServiceEntry{Name: name,
 		Namespace:      namespace,
 		DeploymentType: deploymentType,
+		Image:          image,
 		HTTPPort:       9080,
 		GRPCPort:       9081}
 }
@@ -255,7 +256,7 @@ func template(service ServiceEntry) corev1.PodTemplateSpec {
 			Containers: []corev1.Container{
 				{
 					Name:            service.Name,
-					Image:           TestImageName, // FIX take from Service entry?
+					Image:           service.Image, // FIX take from Service entry?
 					ImagePullPolicy: "Always",
 					Env: []corev1.EnvVar{
 						{

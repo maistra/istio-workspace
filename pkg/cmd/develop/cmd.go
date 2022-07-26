@@ -182,14 +182,15 @@ func createDevelopNewCmd() *cobra.Command {
 }
 
 func basicNewService(name, ns string, printer generator.Printer) {
-	newService := generator.NewServiceEntry(name, ns, "Deployment")
+	newService := generator.NewServiceEntry(name, ns,
+		"Deployment",
+		"quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image")
 
 	generator.Generate(
 		printer,
 		[]generator.ServiceEntry{newService},
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
-		generator.UsingImage("quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image"),
 		generator.ForService(newService, generator.ConnectToGateway(generator.GatewayHost)),
 	)
 }

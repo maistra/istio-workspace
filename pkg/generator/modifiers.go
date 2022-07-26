@@ -134,28 +134,6 @@ func WithVersion(version string) Modifier {
 	}
 }
 
-// UsingImage adds image for the deployment.
-func UsingImage(image string, envVars ...string) Modifier {
-	return func(service ServiceEntry, object runtime.Object) {
-		if obj, ok := object.(*appsv1.Deployment); ok {
-			obj.Spec.Template.Spec.Containers[0].Image = image
-			for i := 0; i < len(envVars); i += 2 {
-				obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-					envVars[i], envVars[i+1],
-					obj.Spec.Template.Spec.Containers[0].Env)
-			}
-		}
-		if obj, ok := object.(*osappsv1.DeploymentConfig); ok {
-			obj.Spec.Template.Spec.Containers[0].Image = image
-			for i := 0; i < len(envVars); i += 2 {
-				obj.Spec.Template.Spec.Containers[0].Env = appendOrAdd(
-					envVars[i], envVars[i+1],
-					obj.Spec.Template.Spec.Containers[0].Env)
-			}
-		}
-	}
-}
-
 func appendOrAdd(name, value string, vars []corev1.EnvVar) []corev1.EnvVar {
 	found := false
 	for i, envVar := range vars {
