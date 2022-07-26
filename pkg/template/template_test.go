@@ -21,33 +21,40 @@ var _ = Describe("Operations for template system", func() {
 		})
 
 		Context("map values", func() {
+
 			It("should error on missing root path", func() {
 				_, err := tj.Value("")
 				Expect(err).To(HaveOccurred())
 			})
+
 			It("should have nil value in missing parent", func() {
 				v, err := tj.Value("/metadata/UNKNOWN/UNKNOWN2")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).To(BeNil())
 			})
+
 			It("should be able to check value in map", func() {
 				v := tj.Has("/metadata/creationTimestamp")
 				Expect(v).To(BeTrue())
 			})
+
 			It("should be able to get numeric value", func() {
 				v, err := tj.Value("/spec/replicas")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).To(BeEquivalentTo(1))
 			})
+
 			It("should be able to get string value", func() {
 				v, err := tj.Value("/metadata/labels/version")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).To(BeEquivalentTo("v1"))
 			})
+
 			It("should be able to equal numeric values", func() {
 				v := tj.Equal("/spec/replicas", 1)
 				Expect(v).To(BeTrue())
 			})
+
 			It("should be able to equal string values", func() {
 				v := tj.Equal("/metadata/labels/version", "v1")
 				Expect(v).To(BeTrue())
@@ -57,34 +64,42 @@ var _ = Describe("Operations for template system", func() {
 				v := tj.Equal("/metadata/labels/version", "UNKNOWN")
 				Expect(v).To(BeFalse())
 			})
+
 			It("should not equal missing value", func() {
 				v := tj.Equal("/metadata/labels/version-UNKNOWN", "v1")
 				Expect(v).To(BeFalse())
 			})
+
 			It("should not have missing value", func() {
 				v := tj.Has("/metadata/creationTimestamp-UNKNOWN")
 				Expect(v).To(BeFalse())
 			})
 		})
+
 		Context("slice values", func() {
+
 			It("should have value in slice", func() {
 				v := tj.Has("/spec/template/spec/containers/0")
 				Expect(v).To(BeTrue())
 			})
+
 			It("should get value in slice", func() {
 				v, err := tj.Value("/spec/template/spec/containers/0")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).ToNot(BeEmpty())
 			})
+
 			It("should get value in child of slice", func() {
 				v, err := tj.Value("/spec/template/spec/containers/0/env/0/value")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(v).To(BeEquivalentTo("productpage-v1"))
 			})
+
 			It("should equal value in child of slice", func() {
 				v := tj.Equal("/spec/template/spec/containers/0/env/0/value", "productpage-v1")
 				Expect(v).To(BeTrue())
 			})
+
 			It("should have value in child of slice", func() {
 				v := tj.Has("/spec/template/spec/containers/0/env/0/value")
 				Expect(v).To(BeTrue())
@@ -100,6 +115,7 @@ var _ = Describe("Operations for template system", func() {
 	Context("engine", func() {
 
 		Context("telepresence", func() {
+
 			It("happy, happy, basic DefaultEngine", func() {
 				e := template.NewDefaultEngine()
 
@@ -123,6 +139,7 @@ var _ = Describe("Operations for template system", func() {
 		})
 
 		Context("prepared-image", func() {
+
 			It("happy, happy, basic DefaultEngine", func() {
 				e := template.NewDefaultEngine()
 
@@ -138,6 +155,7 @@ var _ = Describe("Operations for template system", func() {
 		})
 
 		Context("object validation", func() {
+
 			It("should fail on wrong Patch format", func() {
 				e := template.NewPatchEngine(template.Patches{template.Patch{
 					Name:     "test",
