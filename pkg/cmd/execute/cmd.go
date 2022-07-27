@@ -201,7 +201,8 @@ func runExecutor(command *cobra.Command) executor {
 			status := <-statusChan
 			if status.Exit > 0 {
 				logger().Error(status.Error, fmt.Sprintf("failed to run [%s] command", command.Name()))
-				time.Sleep(5000 * time.Millisecond) // to avoid too frequent restarts of instantly failing process so that user can actually notice
+				// to avoid too frequent restarts of instantly failing process so that user can actually notice
+				time.Sleep(5 * time.Second)
 				restart <- 10
 			}
 		}(r.Start())
