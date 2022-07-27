@@ -16,14 +16,14 @@ import (
 
 const (
 	// BinaryName is a name of telepresence binary we assume be available on the $PATH.
-	BinaryName  = "telepresence"
+	binaryName  = "telepresence"
 	installHint = "Head over to https://www.telepresence.io/docs/v1/reference/install/ for installation instructions.\n"
 )
 
 var (
 	errBinaryNotFound = fmt.Errorf("couldn't find '%s' installed in your system.\n%s\n"+
-		"you can specify the version using TELEPRESENCE_VERSION environment variable", BinaryName, installHint)
-	errUnsupportedBinary = fmt.Errorf("you are using unsupported version of %s, please install v1.\n%s", BinaryName, installHint)
+		"you can specify the version using TELEPRESENCE_VERSION environment variable", binaryName, installHint)
+	errUnsupportedBinary = fmt.Errorf("you are using unsupported version of %s, please install v1.\n%s", binaryName, installHint)
 )
 
 // GetVersion checks which version of telepresence should be used or is available on the path
@@ -31,8 +31,8 @@ var (
 // If the binary is present on the $PATH then its version is used.
 // If all above fails we return error, as there's no telepresence in use nor env var is defined.
 func GetVersion() (string, error) {
-	if !BinaryAvailable() {
-		return "", errBinaryNotFound
+	if err := BinaryAvailable(); err != nil {
+		return "", err
 	}
 
 	tpVersion, versionSpecified := os.LookupEnv("TELEPRESENCE_VERSION")
@@ -53,8 +53,8 @@ func GetVersion() (string, error) {
 	return tpVersion, nil
 }
 
-// CreateTpCommand translates `ike develop` command to underlying Telepresence invocation.
-func CreateTpCommand(cmd *cobra.Command) ([]string, error) {
+// ParseTpArgs translates `ike develop` command to underlying Telepresence arguments.
+func ParseTpArgs(cmd *cobra.Command) ([]string, error) {
 	if _, found := cmd.Annotations["telepresence"]; !found {
 		return nil, errors.New("command cannot be translated to telepresence invocation")
 	}
@@ -84,6 +84,13 @@ func CreateTpCommand(cmd *cobra.Command) ([]string, error) {
 	}
 
 	return tpCmd, nil
+}
+
+func NewCmdWithOptions(dir string, arguments ...string) *gocmd.Cmd {
+	tp := gocmd.NewCmdOptions(shell.StreamOutput, binaryName, arguments...)
+	tp.Dir = dir
+
+	return tp
 }
 
 func createWrapperExecutionCmd(cmd *cobra.Command) ([]string, error) {
@@ -132,7 +139,11 @@ func executeCmd(cmd string, args ...string) gocmd.Status {
 	return <-done
 }
 
-// BinaryAvailable checks if telepresence binary is available on the path.
-func BinaryAvailable() bool {
-	return shell.BinaryExists(BinaryName, installHint)
+// BinaryAvailable checks if telepresence binary is available on the path and returns error if not.
+func BinaryAvailable() error {
+	if !shell.BinaryExists(binaryName, installHint) {
+		return errBinaryNotFound
+	}
+
+	return nil
 }

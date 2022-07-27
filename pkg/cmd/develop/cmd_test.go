@@ -41,7 +41,7 @@ var _ = Describe("Usage of ike develop command", func() {
 			_, err := ValidateArgumentsOf(developCmd).Passing("-r", "./test.sh", "-d", "hello-world")
 
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("unable to find telepresence on your $PATH"))
+			Expect(err.Error()).To(ContainSubstring("couldn't find 'telepresence'"))
 		})
 
 	})
