@@ -4,18 +4,18 @@ import (
 	"strconv"
 	"strings"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
 )
 
-func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
+func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) workspacev1alpha1.Condition {
 	message := located.Kind + "/" + located.Name + " status " + ref.KindName.String() + ": "
 	reason := "Scheduled"
 	typeStr := createType(located.Action, located.Kind)
 	status := "true"
 
-	return istiov1alpha1.Condition{
-		Source: istiov1alpha1.Source{
+	return workspacev1alpha1.Condition{
+		Source: workspacev1alpha1.Source{
 			Kind: located.Kind,
 			Name: located.Name,
 			Ref:  ref.KindName.String(),
@@ -27,16 +27,16 @@ func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) is
 	}
 }
 
-func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStatus) istiov1alpha1.Condition {
+func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStatus) workspacev1alpha1.Condition {
 	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
 	if modified.Error != nil {
 		message += modified.Error.Error()
 	} else {
 		message += "ok"
 	}
-	var target *istiov1alpha1.Target
+	var target *workspacev1alpha1.Target
 	if modified.Target != nil {
-		target = &istiov1alpha1.Target{
+		target = &workspacev1alpha1.Target{
 			Kind: modified.Target.Kind,
 			Name: modified.Target.Name,
 		}
@@ -46,8 +46,8 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 	reason := "Applied"
 	typeStr := createType(modified.Action, modified.Kind)
 
-	return istiov1alpha1.Condition{
-		Source: istiov1alpha1.Source{
+	return workspacev1alpha1.Condition{
+		Source: workspacev1alpha1.Source{
 			Kind: modified.Kind,
 			Name: modified.Name,
 			Ref:  ref.KindName.String(),
@@ -64,9 +64,9 @@ func createType(action model.StatusAction, kindName string) string {
 	return strings.Title(string(action)) + strings.Title(kindName)
 }
 
-func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {
+func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *workspacev1alpha1.Session) {
 	if ref.Remove && refSuccessful(ref, session.Status.Conditions) {
-		var otherConditions []*istiov1alpha1.Condition
+		var otherConditions []*workspacev1alpha1.Condition
 		for i := range session.Status.Conditions {
 			condition := session.Status.Conditions[i]
 			if condition.Source.Ref != ref.KindName.String() {
