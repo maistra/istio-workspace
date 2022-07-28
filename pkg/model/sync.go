@@ -14,7 +14,7 @@ var (
 	resources = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "resources_total",
-			Help: "Number of resources proccessed",
+			Help: "Number of resources processed",
 		},
 		resourceVectors,
 	)

@@ -11,8 +11,8 @@ import (
 // Printer is a function to output generated runtime.Objects.
 type Printer func(object runtime.Object)
 
-// WrapInPrinter prints passed objects to io.Writer.
-func WrapInPrinter(out io.Writer) Printer {
+// WrapInYamlPrinter prints passed objects to io.Writer.
+func WrapInYamlPrinter(out io.Writer) Printer {
 	return func(object runtime.Object) {
 		b, err := yaml.Marshal(object)
 		if err != nil {

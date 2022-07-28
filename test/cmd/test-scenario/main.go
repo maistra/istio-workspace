@@ -40,7 +40,7 @@ func main() {
 
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
 	if generateScenario, ok := testScenarios[scenario]; ok {
-		generateScenario(Namespace, getTestImageName(), generator.WrapInPrinter(os.Stdout))
+		generateScenario(Namespace, getTestImageName(), generator.WrapInYamlPrinter(os.Stdout))
 	} else {
 		fmt.Println("Scenario not found", scenario)
 		os.Exit(-101)

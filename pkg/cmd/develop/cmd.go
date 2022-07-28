@@ -165,7 +165,11 @@ func createDevelopNewCmd() *cobra.Command {
 
 			if collectedErrors != nil {
 				fmt.Println(">>>> WE HAVE ERRORS")
+				fmt.Println(collectedErrors)
+				fmt.Println("<<<< WE HAVE ERRORS")
 				// FIX should return collectedErrors here but fails with admission webhook - investigate
+			} else {
+				fmt.Println(">>>> ALL WORKS!!! <<<<")
 			}
 
 			return errors.Wrapf(cmd.Parent().RunE(cmd, args), "failed executing `ike develop` command from `ike develop new`")

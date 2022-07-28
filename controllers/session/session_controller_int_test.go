@@ -577,7 +577,7 @@ func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator scenar
 	generator.GatewayHost = "test.io"
 
 	buf := new(bytes.Buffer)
-	scenarioGenerator(namespace, image, generator.WrapInPrinter(buf))
+	scenarioGenerator(namespace, image, generator.WrapInYamlPrinter(buf))
 	fileContent := buf.String()
 
 	objects := []runtime.Object{}
