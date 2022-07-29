@@ -304,7 +304,7 @@ var _ = Describe("Fundamental use cases", func() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
-				//tmpFs.Cleanup()
+				tmpFs.Cleanup()
 			}
 		})
 
