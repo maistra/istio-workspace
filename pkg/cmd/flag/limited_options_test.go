@@ -23,13 +23,13 @@ var _ = Describe("Usage of limited flags", func() {
 			NewCmd().AddCommand(testCmd)
 		})
 
-		It("should accept only defined flags using full names", func() {
+		It("should accept defined value using full name", func() {
 			output, err := Run(testCmd).Passing("--style", "stout")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("selected style: 'stout'"))
 		})
 
-		It("should accept flag using abbreviation", func() {
+		It("should accept defined value using abbreviated name", func() {
 			output, err := Run(testCmd).Passing("--style", "k")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring("selected style: 'kolsch'"))
