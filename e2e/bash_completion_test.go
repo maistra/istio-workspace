@@ -1,8 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -14,13 +12,6 @@ import (
 )
 
 var _ = Describe("Bash Completion Tests", func() {
-
-	BeforeEach(func() {
-		shellType := os.Getenv("SHELL")
-		if !strings.Contains(shellType, "bash") {
-			Skip(fmt.Sprintf("Skipping shell completion tests. They are intended for Bash, but current $SHELL is '%s'.", shellType))
-		}
-	})
 
 	Context("basic completion", func() {
 
