@@ -7,6 +7,7 @@ import (
 	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
+	"github.com/lucasepe/codename"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -159,7 +160,18 @@ func createDevelopNewCmd() *cobra.Command {
 				return errors.Wrap(err, "Failed creating dynamic client")
 			}
 
-			serviceName := cmd.Flag("name").Value.String()
+			var serviceName string
+			if cmd.Flag("name").Changed {
+				serviceName = cmd.Flag("name").Value.String()
+			} else {
+				rng, err := codename.DefaultRNG()
+				if err != nil {
+					panic(err)
+				}
+
+				serviceName = codename.Generate(rng, 4)
+				fmt.Printf("generated name %s\n", serviceName)
+			}
 
 			var collectedErrors error
 			basicNewService(serviceName, ns, func(object runtime.Object) {
@@ -181,7 +193,7 @@ func createDevelopNewCmd() *cobra.Command {
 	deploymentType := deploymentTypes[0]
 	newCmd.Flags().Var(&deploymentType, "type", "defines deployment type")
 	_ = newCmd.RegisterFlagCompletionFunc("type", flag.CompletionFor(deploymentTypes))
-	
+
 	return newCmd
 }
 

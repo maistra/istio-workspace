@@ -51,6 +51,8 @@ require (
 	github.com/onsi/gomega v1.20.0
 )
 
+require github.com/lucasepe/codename v0.2.0
+
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
