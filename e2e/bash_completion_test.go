@@ -29,11 +29,11 @@ var _ = Describe("Bash Completion Tests", func() {
 			Expect(completionResults).To(ConsistOf("help", "completion", "develop", "serve", "version", "create", "delete"))
 		})
 
-		Context("develop", func() {
+		It("should show only required flags for leaf command", func() {
+			Expect(completionFor("ike create ")).To(ConsistOf("--deployment=", "-d", "-i", "--image="))
+		})
 
-			It("should show only required flags for plain command", func() {
-				Expect(completionFor("ike develop ")).To(ConsistOf("--deployment=", "-d", "-r", "--run="))
-			})
+		Context("for develop command", func() {
 
 			It("should show all flags only after required ones are passed", func() {
 				completionResults := completionFor("ike develop -d deployment -r run.sh -")
@@ -42,6 +42,19 @@ var _ = Describe("Bash Completion Tests", func() {
 				Expect(completionResults).To(ContainElement("-p"))
 				Expect(completionResults).To(ContainElement("--watch"))
 			})
+		})
+	})
+
+	Context("limited values flag completion", func() {
+
+		Context("for develop command", func() {
+
+			It("should show only available telepresence methods in autocomplete suggestion", func() {
+				completionResults := completionFor("ike develop -d deployment -r run.sh -m")
+				Expect(completionResults).To(ContainElement("inject-tcp"))
+				Expect(completionResults).To(ContainElement("vpn-tcp"))
+			})
+
 		})
 	})
 

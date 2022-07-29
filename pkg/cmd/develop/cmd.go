@@ -11,17 +11,26 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+	"github.com/maistra/istio-workspace/pkg/cmd/flag"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 )
 
-var logger = func() logr.Logger {
-	return log.Log.WithValues("type", "develop")
-}
+var (
+	logger = func() logr.Logger {
+		return log.Log.WithValues("type", "develop")
+	}
 
-var errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+
+	// Used in the tp-wrapper to check if passed command
+	// can be parsed (so has all required flags).
+	tpAnnotations = map[string]string{
+		"telepresence": "translatable",
+	}
+)
 
 // NewCmd creates instance of "develop" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
@@ -30,18 +39,13 @@ func NewCmd() *cobra.Command {
 		Short:            "Starts the development flow",
 		SilenceUsage:     true,
 		TraverseChildren: true,
-		Annotations: func() map[string]string {
-			annotations := make(map[string]string, 1)
-			annotations["telepresence"] = "translatable"
-
-			return annotations
-		}(),
+		Annotations:      tpAnnotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
 				return errorTpNotAvailable
 			}
 
-			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
+			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "Failed syncing flags")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			dir, err := os.Getwd()
@@ -83,9 +87,10 @@ func NewCmd() *cobra.Command {
 
 			finalStatus := <-done
 
-			return errors.WrapIf(finalStatus.Error, "failed executing sub command")
+			return errors.WrapIf(finalStatus.Error, "Failed executing sub command")
 		},
 	}
+
 	if developCmd.Annotations == nil {
 		developCmd.Annotations = map[string]string{}
 	}
@@ -107,7 +112,12 @@ func NewCmd() *cobra.Command {
 	if err := developCmd.Flags().MarkHidden("offline"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
-	developCmd.Flags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
+
+	tpMethods := flag.CreateOptions("inject-tcp", "i", "vpn-tcp", "v")
+	injectTCP := tpMethods[0]
+	developCmd.Flags().VarP(&injectTCP, "method", "m", "telepresence proxying mode - supports inject-tcp and vpn-tcp")
+	_ = developCmd.RegisterFlagCompletionFunc("method", flag.CompletionFor(tpMethods))
+
 	developCmd.Flags().StringP("session", "s", "", "create or join an existing session")
 	developCmd.Flags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. "+
 		"Defaults to X-Workspace-Route header with current session name value")
