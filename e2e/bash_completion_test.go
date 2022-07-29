@@ -46,7 +46,20 @@ var _ = Describe("Bash Completion Tests", func() {
 		})
 	})
 
-	Context("kubectl related completion", Ordered, func() {
+	Context("limited values flag completion", func() {
+
+		Context("for develop command", func() {
+
+			It("should show only available telepresence methods in autocomplete suggestion", func() {
+				completionResults := completionFor("ike develop -d deployment -r run.sh -m")
+				Expect(completionResults).To(ContainElement("inject-tcp"))
+				Expect(completionResults).To(ContainElement("vpn-tcp"))
+			})
+
+		})
+	})
+
+	Context("kubectl-based custom completion", Ordered, func() {
 
 		BeforeAll(func() {
 			createProjectsForCompletionTests()
@@ -78,19 +91,6 @@ var _ = Describe("Bash Completion Tests", func() {
 
 })
 
-func completionFor(cmd string) []string {
-	tmpFs := test.NewTmpFileSystem(GinkgoT())
-	tmpDir := tmpFs.Dir("ike-bash-completion")
-	completionScript := tmpDir + "/get_completion.sh"
-	CreateFile(completionScript, getCompletionBash)
-	defer DeleteFile(completionScript)
-
-	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")
-	<-completion.Done()
-
-	return completion.Status().Stdout
-}
-
 var completionProject1 = "ike-autocompletion-test-" + naming.GenerateString(16)
 var completionProject2 = "ike-autocompletion-test-" + naming.GenerateString(16)
 
@@ -109,6 +109,19 @@ func deleteProjectsForCompletionTests() {
 		DeleteProjectCmd(completionProject1),
 		DeleteProjectCmd(completionProject2),
 	)
+}
+
+func completionFor(cmd string) []string {
+	tmpFs := test.NewTmpFileSystem(GinkgoT())
+	tmpDir := tmpFs.Dir("ike-bash-completion")
+	completionScript := tmpDir + "/get_completion.sh"
+	CreateFile(completionScript, getCompletionBash)
+	defer DeleteFile(completionScript)
+
+	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")
+	<-completion.Done()
+
+	return completion.Status().Stdout
 }
 
 const getCompletionBash = `#

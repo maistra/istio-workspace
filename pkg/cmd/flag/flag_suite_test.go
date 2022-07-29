@@ -1,18 +1,16 @@
-package {{.Package}}
+package flag_test
 
 import (
-	"go.uber.org/goleak"
 	"testing"
 
-	. "github.com/maistra/istio-workspace/test"
-
-	{{.GinkgoImport}}
-	{{.GomegaImport}}
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"go.uber.org/goleak"
 )
 
-func Test{{.FormattedName}}(t *testing.T) {
+func TestFlagLimitedOptions(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "{{.FormattedName}} Suite")
+	RunSpecs(t, "Flags with limited options Suite")
 }
 
 var current goleak.Option

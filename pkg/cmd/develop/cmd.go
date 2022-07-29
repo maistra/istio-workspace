@@ -12,6 +12,7 @@ import (
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+	"github.com/maistra/istio-workspace/pkg/cmd/flag"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/generator"
 	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
@@ -120,7 +121,12 @@ func createDevelopCmd() *cobra.Command {
 	if err := developCmd.PersistentFlags().MarkHidden("offline"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
-	developCmd.PersistentFlags().StringP("method", "m", "inject-tcp", "telepresence proxying mode - see https://www.telepresence.io/reference/methods")
+
+	tpMethods := flag.CreateOptions("inject-tcp", "i", "vpn-tcp", "v")
+	injectTCP := tpMethods[0]
+	developCmd.PersistentFlags().VarP(&injectTCP, "method", "m", "telepresence proxying mode - supports inject-tcp and vpn-tcp")
+	_ = developCmd.RegisterFlagCompletionFunc("method", flag.CompletionFor(tpMethods))
+
 	developCmd.PersistentFlags().StringP("session", "s", "", "create or join an existing session")
 	developCmd.PersistentFlags().StringP("route", "", "", "specifies traffic route options in the format of type:name=value. "+
 		"Defaults to X-Workspace-Route header with current session name value")
