@@ -21,6 +21,7 @@ const (
 
 var (
 	GatewayHost      = "*"
+	NsGenerators     = []SubGenerator{Gateway}
 	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
 
@@ -30,6 +31,7 @@ type ServiceEntry struct {
 	DeploymentType string
 	Image          string
 	Namespace      string
+	Gateway        string
 	HTTPPort       uint32
 	GRPCPort       uint32
 }
@@ -39,6 +41,7 @@ func NewServiceEntry(name, namespace, deploymentType, image string) ServiceEntry
 		Namespace:      namespace,
 		DeploymentType: deploymentType,
 		Image:          image,
+		Gateway:        "test-gateway",
 		HTTPPort:       9080,
 		GRPCPort:       9081}
 }
@@ -59,14 +62,22 @@ type SubGenerator func(service ServiceEntry) runtime.Object
 type Modifier func(service ServiceEntry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout.
-func Generate(printer Printer, services []ServiceEntry, sub []SubGenerator, modifiers ...Modifier) {
+func Generate(printer Printer, services []ServiceEntry, gen, sub []SubGenerator, modifiers ...Modifier) {
 	modify := func(service ServiceEntry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
 		}
 	}
 
-	var ns string
+	// These generators run once per namespace as they construct unique resources.
+	// Assumption: service entries holds ns-specific data unified
+	// e.g. gateway is always the same
+	for _, generator := range gen {
+		gw := generator(services[0])
+		modify(ServiceEntry{Gateway: services[0].Gateway}, gw)
+		printer(gw)
+	}
+
 	for _, service := range services {
 		func(service ServiceEntry) {
 			for _, subGenerator := range sub {
@@ -78,11 +89,7 @@ func Generate(printer Printer, services []ServiceEntry, sub []SubGenerator, modi
 				printer(object)
 			}
 		}(service)
-		ns = service.Namespace
 	}
-	gw := Gateway(ns)
-	modify(ServiceEntry{Name: "gateway"}, gw)
-	printer(gw)
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.
@@ -209,15 +216,15 @@ func VirtualService(service ServiceEntry) runtime.Object {
 }
 
 // Gateway basic SubGenerator for the kind Gateway.
-func Gateway(ns string) runtime.Object {
+func Gateway(service ServiceEntry) runtime.Object {
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
 			Kind:       "Gateway",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      "test-gateway",
-			Namespace: ns,
+			Name:      service.Gateway,
+			Namespace: service.Namespace,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{

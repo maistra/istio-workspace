@@ -16,7 +16,7 @@ func ConnectToGateway(hostname string) Modifier {
 	return func(service ServiceEntry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{hostname}
-			obj.Spec.Gateways = append(obj.Spec.Gateways, "test-gateway")
+			obj.Spec.Gateways = append(obj.Spec.Gateways, service.Gateway)
 			for i := 0; i < len(obj.Spec.Http); i++ {
 				http := obj.Spec.Http[i]
 				for n := 0; n < len(http.Route); n++ {

@@ -1,9 +1,7 @@
 package session_test
 
 import (
-	"bytes"
 	"context"
-	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -13,7 +11,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -42,7 +39,8 @@ var _ = Describe("Complete session manipulation", func() {
 	)
 
 	JustBeforeEach(func() {
-		log.SetLogger(log.CreateOperatorAwareLogger("test").WithValues("type", "session_controller_int_test"))
+		log.SetLogger(log.CreateOperatorAwareLogger("test").
+			WithValues("type", "session_controller_int_test"))
 
 		schema, _ = v1alpha1.SchemeBuilder.Build()
 		_ = corev1.AddToScheme(schema)
@@ -50,8 +48,7 @@ var _ = Describe("Complete session manipulation", func() {
 		_ = istionetwork.AddToScheme(schema)
 		_ = osappsv1.Install(schema)
 
-		objs, err := Scenario(schema, namespace, scenario)
-		Expect(err).ToNot(HaveOccurred())
+		objs := objectsForScenario(namespace, scenario)
 		objects = append(objects, objs...)
 
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
@@ -116,7 +113,7 @@ var _ = Describe("Complete session manipulation", func() {
 				// when - a ref is updated
 				target := get.Session("test", "test-session1")
 				target.Spec.Refs[0].Args["image"] = "y:y:y"
-				c.Update(context.Background(), &target)
+				_ = c.Update(context.Background(), &target)
 
 				res, err = controller.Reconcile(context.Background(), req)
 				Expect(err).ToNot(HaveOccurred())
@@ -572,28 +569,14 @@ var _ = Describe("Complete session manipulation", func() {
 	})
 })
 
-func Scenario(scheme *runtime.Scheme, namespace string, scenarioGenerator scenarios.TestScenario) ([]runtime.Object, error) {
+func objectsForScenario(namespace string, scenarioGenerator scenarios.TestScenario) []runtime.Object {
 	image := "x:x:x"
 	generator.GatewayHost = "test.io"
 
-	buf := new(bytes.Buffer)
-	scenarioGenerator(namespace, image, generator.WrapInYamlPrinter(buf))
-	fileContent := buf.String()
-
 	objects := []runtime.Object{}
+	scenarioGenerator(namespace, image, func(object runtime.Object) {
+		objects = append(objects, object)
+	})
 
-	fileChunks := strings.Split(fileContent, "---")
-	for _, fileChunk := range fileChunks {
-		if strings.Trim(fileChunk, "\n") == "" {
-			continue
-		}
-		decode := serializer.NewCodecFactory(scheme).UniversalDeserializer().Decode
-		obj, _, err := decode([]byte(fileChunk), nil, nil)
-		if err != nil {
-			return nil, err
-		}
-		objects = append(objects, obj)
-	}
-
-	return objects, nil
+	return objects
 }
