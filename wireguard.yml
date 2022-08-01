@@ -31,17 +31,17 @@ spec:
       maxSurge: 25%
   revisionHistoryLimit: 10
   progressDeadlineSeconds: 600
-----
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: wireguard
+  name: istio-workspace-wireguard
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
     - name: wireguard
-      port: 51820
+      port: 49524
       protocol: UDP
-      targetPort: 51820
+      targetPort: 49524
   selector:
-    name: wireguard
+    app: istio-workspace-wireguard
