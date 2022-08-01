@@ -8,8 +8,8 @@ import (
 )
 
 // CreateOptions will return a slice of pflag.Value with name and associated abbreviation.
-// This limited set of values can be then bound to a cobra flag to limit choices for a given
-// flag. On top of that custom completion can be defined.
+// This limited set of values can then be bound to a cobra flag to limit choices for a given
+// input. On top of that custom, completion can be defined.
 //
 // Example:
 //    testCmd := &cobra.Command{...}
