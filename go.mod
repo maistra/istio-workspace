@@ -30,7 +30,7 @@ require (
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 	golang.org/x/tools v0.1.11
 	google.golang.org/grpc v1.48.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/h2non/gock.v1 v1.1.2
 	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
 	istio.io/client-go v1.11.4
