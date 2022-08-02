@@ -65,7 +65,7 @@ var _ = Describe("Fundamental use cases", func() {
 			Context("services communicating over HTTP", func() {
 
 				BeforeEach(func() {
-					scenario = "scenario-1"
+					scenario = "http-seq"
 					registry = GetInternalContainerRegistry()
 				})
 
@@ -181,7 +181,7 @@ var _ = Describe("Fundamental use cases", func() {
 
 			Context("services communicating over gRPC", func() {
 				BeforeEach(func() {
-					scenario = "scenario-1.1"
+					scenario = "grpc-seq"
 				})
 
 				When("changing service locally", func() {
@@ -225,7 +225,7 @@ var _ = Describe("Fundamental use cases", func() {
 					Skip("DeploymentConfig is Openshift-specific resource and it won't work against plain k8s. " +
 						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
-				scenario = "scenario-2"
+				scenario = "http-seq-dc"
 			})
 
 			When("changing service locally", func() {
@@ -294,7 +294,7 @@ var _ = Describe("Fundamental use cases", func() {
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
 			// FIX Smelly to rely on global state. Scenario is set in subsequent beforeEach for given context
-			scenario = "scenario-1"
+			scenario = "http-seq"
 			DeployTestScenario(scenario, namespace)
 			sessionName = GenerateSessionName()
 		})

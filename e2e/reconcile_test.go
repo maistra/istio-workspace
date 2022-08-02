@@ -52,7 +52,7 @@ var _ = Describe("Resources reconciliation", func() {
 	Context("reconcile on change to related resources", func() {
 
 		BeforeEach(func() {
-			scenario = "scenario-1"
+			scenario = "http-seq"
 			registry = GetInternalContainerRegistry()
 		})
 

@@ -6,9 +6,9 @@ import (
 
 type TestScenario func(string, string, generator.Printer)
 
-// TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
+// TestScenarioHTTPThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over http. Similar to the original bookinfo example setup.
-func TestScenario1HTTPThreeServicesInSequence(ns, image string, printer generator.Printer) {
+func TestScenarioHTTPThreeServicesInSequence(ns, image string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment", image)
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment", image)
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment", image)
@@ -25,9 +25,9 @@ func TestScenario1HTTPThreeServicesInSequence(ns, image string, printer generato
 	)
 }
 
-// TestScenario1GRPCThreeServicesInSequence is a basic test setup with a few services
+// TestScenarioGRPCThreeServicesInSequence is a basic test setup with a few services
 // calling each other in a chain over grpc. Similar to the original bookinfo example setup.
-func TestScenario1GRPCThreeServicesInSequence(ns, image string, printer generator.Printer) {
+func TestScenarioGRPCThreeServicesInSequence(ns, image string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment", image)
 	reviews := generator.NewServiceEntry("reviews", ns, "Deployment", image)
 	ratings := generator.NewServiceEntry("ratings", ns, "Deployment", image)
@@ -44,10 +44,10 @@ func TestScenario1GRPCThreeServicesInSequence(ns, image string, printer generato
 	)
 }
 
-// TestScenario2ThreeServicesInSequenceDeploymentConfig is a basic test setup with a
+// TestScenarioThreeServicesInSequenceWithDeploymentConfig is a basic test setup with a
 // few services calling each other in a chain. Similar to the original bookinfo example setup.
 // Using DeploymentConfig.
-func TestScenario2ThreeServicesInSequenceDeploymentConfig(ns, image string, printer generator.Printer) {
+func TestScenarioThreeServicesInSequenceWithDeploymentConfig(ns, image string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "DeploymentConfig", image)
 	reviews := generator.NewServiceEntry("reviews", ns, "DeploymentConfig", image)
 	ratings := generator.NewServiceEntry("ratings", ns, "DeploymentConfig", image)

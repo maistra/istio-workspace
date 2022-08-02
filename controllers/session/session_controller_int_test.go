@@ -58,7 +58,7 @@ var _ = Describe("Complete session manipulation", func() {
 
 	Context("in a complete lifecycle", func() {
 		BeforeEach(func() {
-			scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
+			scenario = scenarios.TestScenarioHTTPThreeServicesInSequence
 			objects = []runtime.Object{}
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{
@@ -429,7 +429,7 @@ var _ = Describe("Complete session manipulation", func() {
 		}
 		Context("with missing target", func() {
 			BeforeEach(func() {
-				scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
+				scenario = scenarios.TestScenarioHTTPThreeServicesInSequence
 			})
 			It("should fail on missing deployment", func() {
 				res := appsv1.Deployment{
@@ -519,7 +519,7 @@ var _ = Describe("Complete session manipulation", func() {
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
 		BeforeEach(func() {
-			scenario = scenarios.TestScenario1HTTPThreeServicesInSequence
+			scenario = scenarios.TestScenarioHTTPThreeServicesInSequence
 			objects = []runtime.Object{}
 			objects = append(objects, &v1alpha1.Session{
 				ObjectMeta: metav1.ObjectMeta{

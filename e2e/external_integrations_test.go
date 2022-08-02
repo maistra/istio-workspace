@@ -51,7 +51,7 @@ var _ = Describe("External integrations", func() {
 	When("Using ike with Tekton Pipelines", func() {
 
 		BeforeEach(func() {
-			scenario = "scenario-1"
+			scenario = "http-seq"
 		})
 
 		It("should build and expose service preview through session url", func() {
