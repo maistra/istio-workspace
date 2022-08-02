@@ -263,7 +263,7 @@ func template(service ServiceEntry) corev1.PodTemplateSpec {
 			Containers: []corev1.Container{
 				{
 					Name:            service.Name,
-					Image:           service.Image, // FIX take from Service entry?
+					Image:           service.Image,
 					ImagePullPolicy: "Always",
 					Env: []corev1.EnvVar{
 						{
