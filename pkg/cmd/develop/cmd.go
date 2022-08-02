@@ -143,13 +143,14 @@ func createDevelopCmd() *cobra.Command {
 }
 
 func createDevelopNewCmd() *cobra.Command {
-	deploymentTypes := flag.CreateOptions("deployment", "d", "deploymentconfig", "dc")
+	deploymentTypes := flag.CreateOptions("Deployment", "d", "DeploymentConfig", "dc")
 	deploymentType := deploymentTypes[0]
 
 	newCmd := &cobra.Command{
-		Use:         "new",
-		Short:       "Enables development flow for non-existing service.",
-		Annotations: tpAnnotations,
+		Use:          "new",
+		Short:        "Enables development flow for non-existing service.",
+		SilenceUsage: true,
+		Annotations:  tpAnnotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			name := cmd.Flag("name").Value.String()
 			e := cmd.Parent().PersistentFlags().Set("deployment", name+"-v1")

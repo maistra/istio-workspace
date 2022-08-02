@@ -48,9 +48,9 @@ func CompletionFor(values []NameAndAbbrev) func(cmd *cobra.Command, args []strin
 // It also holds reference to all possible values, so it can validate itself
 // and provide autocompletion.
 type NameAndAbbrev struct {
-	name   string
+	name,
 	abbrev string
-	avail  func() []NameAndAbbrev
+	avail func() []NameAndAbbrev
 }
 
 var _ pflag.Value = (*NameAndAbbrev)(nil)
