@@ -49,6 +49,8 @@ include::example$Makefile[tag=privileged]
 
 == Using `ike` CLI
 
+If you want to modify existing deployment, using `ike develop` will allow you run only necessary code locally and pretend like it is running from within the cluster.
+
 [source,bash]
 ----
 ike develop  \
@@ -56,7 +58,7 @@ ike develop  \
   --port 9080 \ <2>
   --watch \ <3>
   --run 'ruby details.rb 9080' \ <4>
-  --route header:end-user=alien-ike \ <5>
+  --route header:end-user=alien-ike <5>
 ----
 
 Now you have process based on your local code base which proxies connections from/to your Kubernetes cluster! Have fun hacking!
@@ -71,5 +73,27 @@ Let's break it down to see what is going on under the hood:
 
 TIP: All command line flags can also be persisted in the configuration file and shared as part of the project. Jump to xref:cli_reference.adoc#configuration[configuration section] for more details.
 
+
+=== Newly created service
+
+If you want to develop a newly created service that does not exist in the cluster yet, you can use `ike develop new` subcommand.
+
+[source,bash]
+----
+ike develop new \
+  --name details-v1 \ <1>
+  --type deploymentconfig \ <2>
+  --port 9080 \
+  --watch \
+  --run 'ruby details.rb 9080' \
+  --route header:end-user=alien-ike
+----
+
+<1> Name of the service. If not specified it will get a random name.
+<2> Type of the deployment you wish to create. Can be `deployment` (standard Kubernetes one) or `deploymentconfig` (known from Openshift).
+ 
+The rest of the flags are inherited from `ike develop` parent command.
+
+By invoking it, you will let `ike` take care of wiring required resources such as `DestinationRule` and `VirtualService` and route the traffic from your locally running instance to the cluster.
 
 // TODO add screencast showing the basic flow
