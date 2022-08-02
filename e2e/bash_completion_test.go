@@ -1,8 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -15,25 +13,18 @@ import (
 
 var _ = Describe("Bash Completion Tests", func() {
 
-	BeforeEach(func() {
-		shellType := os.Getenv("SHELL")
-		if !strings.Contains(shellType, "bash") {
-			Skip(fmt.Sprintf("Skipping shell completion tests. They are intended for Bash, but current $SHELL is '%s'.", shellType))
-		}
-	})
-
 	Context("basic completion", func() {
 
 		It("should show all visible main commands", func() {
-			completionResults := completionFor("ike ")
+			completionResults := completionFor("ike")
 			Expect(completionResults).To(ConsistOf("help", "completion", "develop", "serve", "version", "create", "delete"))
 		})
 
-		Context("develop", func() {
+		It("should show only required flags for leaf command", func() {
+			Expect(completionFor("ike create")).To(ConsistOf("--deployment=", "-d", "-i", "--image="))
+		})
 
-			It("should show only required flags for plain command", func() {
-				Expect(completionFor("ike develop ")).To(ConsistOf("--deployment=", "-d", "-r", "--run="))
-			})
+		Context("for develop command", func() {
 
 			It("should show all flags only after required ones are passed", func() {
 				completionResults := completionFor("ike develop -d deployment -r run.sh -")
@@ -42,6 +33,20 @@ var _ = Describe("Bash Completion Tests", func() {
 				Expect(completionResults).To(ContainElement("-p"))
 				Expect(completionResults).To(ContainElement("--watch"))
 			})
+
+		})
+	})
+
+	Context("limited values flag completion", func() {
+
+		Context("for develop command", func() {
+
+			It("should show only available telepresence methods in autocomplete suggestion", func() {
+				completionResults := completionFor("ike develop -d deployment -r run.sh -m")
+				Expect(completionResults).To(ContainElement("inject-tcp"))
+				Expect(completionResults).To(ContainElement("vpn-tcp"))
+			})
+
 		})
 	})
 
@@ -49,7 +54,7 @@ var _ = Describe("Bash Completion Tests", func() {
 	Context("kubectl related completion", func() {
 
 		It("should show available namespaces", func() {
-			nsCompletion := completionFor("ike develop -n ")
+			nsCompletion := completionFor("ike develop -n")
 			Expect(nsCompletion).To(ContainElement(CompletionProject1))
 			Expect(nsCompletion).To(ContainElement(CompletionProject2))
 		})
@@ -60,11 +65,11 @@ var _ = Describe("Bash Completion Tests", func() {
 					"Completion for specified namespace is covered in the follow-up test.")
 			}
 			<-shell.Execute("oc project " + CompletionProject1).Done()
-			Expect(completionFor("ike develop -d ")).To(ConsistOf("my-deployment"))
+			Expect(completionFor("ike develop -d")).To(ConsistOf("my-deployment"))
 		})
 
 		It("should show available deployments for selected namespace (other-project)", func() {
-			Expect(completionFor("ike develop -n " + CompletionProject2 + " -d ")).To(ConsistOf("other-1-deployment", "other-2-deployment"))
+			Expect(completionFor("ike develop -n " + CompletionProject2 + " -d")).To(ConsistOf("other-1-deployment", "other-2-deployment"))
 		})
 	})
 
@@ -78,7 +83,13 @@ func completionFor(cmd string) []string {
 
 	defer DeleteFile(completionScript)
 
-	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions ' "+cmd+"'")
+	if !strings.HasSuffix(cmd, "-") {
+		// if command does not end with flag beginning,
+		// add space to trigger completion
+		cmd += " "
+	}
+
+	completion := shell.ExecuteInDir(".", "bash", "-c", ". <(ike completion bash) && source "+completionScript+" && get_completions '"+cmd+"'")
 	<-completion.Done()
 
 	return completion.Status().Stdout
