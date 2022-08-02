@@ -34,6 +34,20 @@ var _ = Describe("Bash Completion Tests", func() {
 				Expect(completionResults).To(ContainElement("-p"))
 				Expect(completionResults).To(ContainElement("--watch"))
 			})
+
+		})
+	})
+
+	Context("limited values flag completion", func() {
+
+		Context("for develop command", func() {
+
+			It("should show only available telepresence methods in autocomplete suggestion", func() {
+				completionResults := completionFor("ike develop -d deployment -r run.sh -m")
+				Expect(completionResults).To(ContainElement("inject-tcp"))
+				Expect(completionResults).To(ContainElement("vpn-tcp"))
+			})
+
 		})
 	})
 
