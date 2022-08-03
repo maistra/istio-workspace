@@ -282,8 +282,10 @@ var _ = Describe("Fundamental use cases", func() {
 
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
-		JustBeforeEach(func() {
+		BeforeEach(func() {
 			namespace = GenerateNamespaceName()
+			sessionName = GenerateSessionName()
+
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
 			<-testshell.Execute(NewProjectCmd(namespace)).Done()
@@ -304,15 +306,14 @@ var _ = Describe("Fundamental use cases", func() {
 			}
 		})
 
-		PWhen("creating new service from scratch", func() {
+		When("creating new service from scratch", func() {
 
 		})
 
 		When("connecting new service running locally to the existing services in the cluster", func() {
 
-			BeforeEach(func() {
+			JustBeforeEach(func() {
 				DeployTestScenario(scenarios.HTTPSeq, namespace)
-				sessionName = GenerateSessionName()
 			})
 
 			It("should be able to reach other services within the same namespace", func() {
