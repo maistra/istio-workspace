@@ -9,6 +9,7 @@ import (
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	. "github.com/maistra/istio-workspace/e2e/verify"
 	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/scenarios"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
@@ -52,7 +53,7 @@ var _ = Describe("Resources reconciliation", func() {
 	Context("reconcile on change to related resources", func() {
 
 		BeforeEach(func() {
-			scenario = "http-seq"
+			scenario = scenarios.HTTPSeq
 			registry = GetInternalContainerRegistry()
 		})
 

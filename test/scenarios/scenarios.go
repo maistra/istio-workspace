@@ -4,6 +4,20 @@ import (
 	"github.com/maistra/istio-workspace/pkg/generator"
 )
 
+const (
+	HTTPSeq   = "http-seq"
+	GRPCSeq   = "grpc-seq"
+	HTTPSeqDC = "http-seq-dc"
+	Demo      = "demo"
+)
+
+var TestScenarios = map[string]TestScenario{
+	HTTPSeq:   TestScenarioHTTPThreeServicesInSequence,
+	GRPCSeq:   TestScenarioGRPCThreeServicesInSequence,
+	HTTPSeqDC: TestScenarioThreeServicesInSequenceWithDeploymentConfig,
+	Demo:      DemoScenario,
+}
+
 type TestScenario func(string, string, generator.Printer)
 
 // TestScenarioHTTPThreeServicesInSequence is a basic test setup with a few services

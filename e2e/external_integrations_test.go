@@ -9,6 +9,7 @@ import (
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	. "github.com/maistra/istio-workspace/e2e/verify"
 	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/scenarios"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
@@ -51,7 +52,7 @@ var _ = Describe("External integrations", func() {
 	When("Using ike with Tekton Pipelines", func() {
 
 		BeforeEach(func() {
-			scenario = "http-seq"
+			scenario = scenarios.HTTPSeq
 		})
 
 		It("should build and expose service preview through session url", func() {

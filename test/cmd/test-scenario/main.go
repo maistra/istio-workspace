@@ -9,21 +9,12 @@ import (
 	"github.com/maistra/istio-workspace/test/scenarios"
 )
 
-var (
-	Namespace = "default"
-
-	testScenarios = map[string]scenarios.TestScenario{
-		"http-seq":    scenarios.TestScenarioHTTPThreeServicesInSequence,
-		"grpc-seq":    scenarios.TestScenarioGRPCThreeServicesInSequence,
-		"http-seq-dc": scenarios.TestScenarioThreeServicesInSequenceWithDeploymentConfig,
-		"demo":        scenarios.DemoScenario,
-	}
-)
+var Namespace = "default"
 
 func main() {
 	if len(os.Args) <= 1 {
 		fmt.Println("Available scenarios:")
-		for s := range testScenarios {
+		for s := range scenarios.TestScenarios {
 			fmt.Printf(" * %s\n", s)
 		}
 
@@ -39,7 +30,7 @@ func main() {
 	}
 
 	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
-	if generateScenario, ok := testScenarios[scenario]; ok {
+	if generateScenario, ok := scenarios.TestScenarios[scenario]; ok {
 		generateScenario(Namespace, getTestImageName(), generator.WrapInYamlPrinter(os.Stdout))
 	} else {
 		fmt.Println("Scenario not found", scenario)

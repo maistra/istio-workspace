@@ -12,6 +12,7 @@ import (
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	. "github.com/maistra/istio-workspace/e2e/verify"
 	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/scenarios"
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
@@ -65,7 +66,7 @@ var _ = Describe("Fundamental use cases", func() {
 			Context("services communicating over HTTP", func() {
 
 				BeforeEach(func() {
-					scenario = "http-seq"
+					scenario = scenarios.HTTPSeq
 					registry = GetInternalContainerRegistry()
 				})
 
@@ -181,7 +182,7 @@ var _ = Describe("Fundamental use cases", func() {
 
 			Context("services communicating over gRPC", func() {
 				BeforeEach(func() {
-					scenario = "grpc-seq"
+					scenario = scenarios.GRPCSeq
 				})
 
 				When("changing service locally", func() {
@@ -225,7 +226,7 @@ var _ = Describe("Fundamental use cases", func() {
 					Skip("DeploymentConfig is Openshift-specific resource and it won't work against plain k8s. " +
 						"Tests for regular k8s deployment can be found in the same test suite.")
 				}
-				scenario = "http-seq-dc"
+				scenario = scenarios.HTTPSeqDC
 			})
 
 			When("changing service locally", func() {
@@ -275,7 +276,6 @@ var _ = Describe("Fundamental use cases", func() {
 
 		var (
 			namespace,
-			scenario,
 			sessionName,
 			tmpDir string
 		)
@@ -293,10 +293,6 @@ var _ = Describe("Fundamental use cases", func() {
 			InstallLocalOperator(namespace)
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 
-			// FIX Smelly to rely on global state. Scenario is set in subsequent beforeEach for given context
-			scenario = "http-seq"
-			DeployTestScenario(scenario, namespace)
-			sessionName = GenerateSessionName()
 		})
 
 		AfterEach(func() {
@@ -308,9 +304,18 @@ var _ = Describe("Fundamental use cases", func() {
 			}
 		})
 
-		When("connecting new service running locally to the cluster", func() {
+		PWhen("creating new service from scratch", func() {
 
-			It("should be able to reach other services", func() {
+		})
+
+		When("connecting new service running locally to the existing services in the cluster", func() {
+
+			BeforeEach(func() {
+				DeployTestScenario(scenarios.HTTPSeq, namespace)
+				sessionName = GenerateSessionName()
+			})
+
+			It("should be able to reach other services within the same namespace", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 
 				deploymentCount := GetResourceCount("deployment", namespace)
@@ -342,13 +347,14 @@ var _ = Describe("Fundamental use cases", func() {
 				EnsureCorrectNumberOfResources(deploymentCount+2, "deployment", namespace)
 				EnsureAllDeploymentPodsAreReady(namespace)
 
-				By("ensuring service is accessible locally")
-				Expect(callingLocalService(localPort)()).To(And(ContainSubstring("reviews-v1"), Not(ContainSubstring("proxy response"))))
+				By("ensuring service is accessible locally and can reach already deployed reviews-v1 service")
+				modifiedResponse := "proxy response"
+				Expect(callingLocalService(localPort)()).To(And(ContainSubstring("reviews-v1"), Not(ContainSubstring(modifiedResponse))))
 
 				By("modifying response")
-				modifiedService := strings.Replace(golangService, "writer.Write(content)", `writer.Write([]byte("proxy response: [" + string(content) + "]"))`, 1)
+				modifiedService := strings.Replace(golangService, "writer.Write(content)", `writer.Write([]byte("`+modifiedResponse+`: [" + string(content) + "]"))`, 1)
 				CreateFile(newService, modifiedService)
-				Eventually(callingLocalService(localPort)).Should(ContainSubstring("reviews-v1"), ContainSubstring("proxy response"))
+				Eventually(callingLocalService(localPort)).Should(ContainSubstring("reviews-v1"), ContainSubstring(modifiedResponse))
 			})
 
 		})
