@@ -64,6 +64,25 @@ func TestScenarioThreeServicesInSequenceWithDeploymentConfig(ns, image string, p
 	)
 }
 
+// TestScenarioHTTPThreeServicesInSequence is a basic test setup with a few services
+// calling each other in a chain over http. Similar to the original bookinfo example setup.
+func TestScenarioHTTPThreeServicesInSequenceTLS(ns, image string, printer generator.Printer) {
+	productpage := generator.NewServiceEntry("productpage", ns, "Deployment", image)
+	reviews := generator.NewServiceEntry("reviews", ns, "Deployment", image)
+	ratings := generator.NewServiceEntry("ratings", ns, "Deployment", image)
+
+	generator.Generate(
+		printer,
+		[]generator.ServiceEntry{productpage, reviews, ratings},
+		[]generator.SubGenerator{generator.Gateway, generator.PeerAuthentication},
+		generator.AllSubGenerators,
+		generator.WithVersion("v1"),
+		generator.GatewayOnHost(generator.GatewayHost),
+		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.ForService(reviews, generator.Call(generator.HTTP(), ratings)),
+	)
+}
+
 // DemoScenario is a simple setup for demo purposes.
 func DemoScenario(ns, image string, printer generator.Printer) {
 	productpage := generator.NewServiceEntry("productpage", ns, "Deployment", image)

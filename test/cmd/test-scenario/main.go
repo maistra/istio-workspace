@@ -13,10 +13,11 @@ var (
 	Namespace = "default"
 
 	testScenarios = map[string]scenarios.TestScenario{
-		"http-seq":    scenarios.TestScenarioHTTPThreeServicesInSequence,
-		"grpc-seq":    scenarios.TestScenarioGRPCThreeServicesInSequence,
-		"http-seq-dc": scenarios.TestScenarioThreeServicesInSequenceWithDeploymentConfig,
-		"demo":        scenarios.DemoScenario,
+		"http-seq":     scenarios.TestScenarioHTTPThreeServicesInSequence,
+		"http-seq-tls": scenarios.TestScenarioHTTPThreeServicesInSequenceTLS,
+		"grpc-seq":     scenarios.TestScenarioGRPCThreeServicesInSequence,
+		"http-seq-dc":  scenarios.TestScenarioThreeServicesInSequenceWithDeploymentConfig,
+		"demo":         scenarios.DemoScenario,
 	}
 )
 

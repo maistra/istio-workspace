@@ -6,7 +6,9 @@ import (
 
 	osappsv1 "github.com/openshift/api/apps/v1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
+	istioSecurityv1beta1 "istio.io/api/security/v1beta1"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
+	istiosecurity "istio.io/client-go/pkg/apis/security/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -239,6 +241,25 @@ func Gateway(service ServiceEntry) runtime.Object {
 					},
 					Hosts: []string{},
 				},
+			},
+		},
+	}
+}
+
+// PeerAuthentication basic SubGenerator for the kind PeerAuthentication
+func PeerAuthentication(service ServiceEntry) runtime.Object {
+	return &istiosecurity.PeerAuthentication{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "security.istio.io/v1beta1",
+			Kind:       "PeerAuthentication",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:      service.Gateway,
+			Namespace: service.Namespace,
+		},
+		Spec: istioSecurityv1beta1.PeerAuthentication{
+			Mtls: &istioSecurityv1beta1.PeerAuthentication_MutualTLS{
+				Mode: istioSecurityv1beta1.PeerAuthentication_MutualTLS_STRICT,
 			},
 		},
 	}
