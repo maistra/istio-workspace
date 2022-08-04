@@ -67,7 +67,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}
@@ -112,7 +112,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}
