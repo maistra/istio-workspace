@@ -13,14 +13,9 @@ var Namespace = "default"
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Println("Available scenarios:")
-		for s := range scenarios.TestScenarios {
-			fmt.Printf(" * %s\n", s)
-		}
-
+		printAvailableScenarios()
 		os.Exit(0)
 	}
-
 	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
 		generator.GatewayHost = h
 	}
@@ -29,12 +24,20 @@ func main() {
 		Namespace = h
 	}
 
-	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
+	scenario := os.Args[1]
 	if generateScenario, ok := scenarios.TestScenarios[scenario]; ok {
 		generateScenario(Namespace, getTestImageName(), generator.WrapInYamlPrinter(os.Stdout))
 	} else {
-		fmt.Println("Scenario not found", scenario)
-		os.Exit(-101)
+		fmt.Printf("Scenario [%s] not found!\n", scenario)
+		printAvailableScenarios()
+		os.Exit(1)
+	}
+}
+
+func printAvailableScenarios() {
+	fmt.Println("Available scenarios:")
+	for s := range scenarios.TestScenarios {
+		fmt.Printf(" * %s\n", s)
 	}
 }
 
