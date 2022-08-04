@@ -17,6 +17,9 @@ func RunIke(dir string, arguments ...string) *cmd.Cmd {
 
 // Stop shuts down the process.
 func Stop(ike *cmd.Cmd) {
+	if ike.Status().Complete {
+		return
+	}
 	stopFailed := ike.Stop()
 	Expect(stopFailed).ToNot(HaveOccurred())
 
