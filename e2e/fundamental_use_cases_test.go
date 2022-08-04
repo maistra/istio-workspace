@@ -16,10 +16,13 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-//go:embed test-services/main.go
+//go:embed test-services/pass-through/main.go
 var golangService string
 
-//go:embed test-services/publisher.py
+//go:embed test-services/pod_name/main.go
+var podNameService string
+
+//go:embed test-services/bookinfo/publisher.py
 var publisherService string
 
 var _ = Describe("Fundamental use cases", func() {
