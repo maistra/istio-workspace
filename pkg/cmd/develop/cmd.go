@@ -173,7 +173,7 @@ func createDevelopNewCmd() *cobra.Command {
 					panic(err)
 				}
 
-				serviceName = codename.Generate(rng, 4)
+				serviceName = codename.Generate(rng, 0)
 				fmt.Printf("generated name %s\n", serviceName)
 			}
 
