@@ -2,6 +2,7 @@ package generator
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	osappsv1 "github.com/openshift/api/apps/v1"
@@ -20,7 +21,6 @@ const (
 )
 
 var (
-	GatewayHost      = "*"
 	NsGenerators     = []SubGenerator{Gateway}
 	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
@@ -242,6 +242,14 @@ func Gateway(service ServiceEntry) runtime.Object {
 			},
 		},
 	}
+}
+
+func GatewayHostFromEnv() string {
+	if gatewayHost, found := os.LookupEnv("IKE_GATEWAY_HOST"); found {
+		return gatewayHost
+	}
+
+	return "*"
 }
 
 func template(service ServiceEntry) corev1.PodTemplateSpec {

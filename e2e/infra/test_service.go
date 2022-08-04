@@ -81,7 +81,7 @@ func GetProjectLabels(namespace string) string {
 
 func setContainerEnvForTestServiceDeploy(namespace string) {
 	setTestNamespace(namespace)
-	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
+	err := os.Setenv("IKE_GATEWAY_HOST", GetGatewayHost(namespace))
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 

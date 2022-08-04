@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	_ "embed"
+	"os"
 	"strings"
 	"time"
 
@@ -309,8 +310,54 @@ var _ = Describe("Fundamental use cases", func() {
 			}
 		})
 
-		When("creating new service from scratch", func() {
+		// Failing while creating service - locators unable to find stuff
+		XWhen("creating new service from scratch", func() {
 
+			JustBeforeEach(func() {
+				err := os.Setenv("IKE_GATEWAY_HOST", GetGatewayHost(namespace))
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
+			It("should act like running in the cluster", func() {
+
+				By("verifying initial resources in the namespace")
+				Expect(GetResourceCount("deployment", namespace)).
+					To(Equal(1), "istio-workspace operator should already be deployed")
+				Expect(GetResourceCount("virtualservice", namespace)).To(BeZero())
+				Expect(GetResourceCount("destinationrule", namespace)).To(BeZero())
+				Expect(GetResourceCount("gateway", namespace)).To(BeZero())
+
+				newService := tmpFs.Dir(tmpDir+"/pod-name-service") + "/main.go"
+				CreateFile(newService, podNameService)
+				localPort := "8383"
+
+				ike := RunIke(tmpDir, "develop", "new",
+					"--namespace", namespace,
+					"--gateway", "new-service-gw",
+					"--port", "9080",
+					"--run", "go run "+newService+" -port "+localPort,
+					"--watch",
+					"--route", "header:x-test-suite=smoke",
+					"--session", sessionName,
+					"--method", "inject-tcp",
+				)
+				defer func() {
+					Stop(ike)
+				}()
+				go FailOnCmdError(ike, GinkgoT())
+
+				EnsureAllDeploymentPodsAreReady(namespace)
+
+				By("adding virtual service")
+				Expect(GetResourceCount("virtualservice", namespace)).To(Equal(1))
+				By("adding destination rule")
+				Expect(GetResourceCount("destinationrule", namespace)).To(Equal(1))
+				By("adding gateway")
+				Expect(GetResourceCount("gateway", namespace)).To(Equal(1))
+
+				By("verifying hostname of new service is a pod name")
+				Expect(callingLocalService(localPort)()).To(ContainSubstring("reviews-v1"))
+			})
 		})
 
 		When("connecting new service running locally to the existing services in the cluster", func() {
@@ -323,7 +370,6 @@ var _ = Describe("Fundamental use cases", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 
 				deploymentCount := GetResourceCount("deployment", namespace)
-
 				newService := tmpFs.Dir(tmpDir+"/new-service") + "/main.go"
 				CreateFile(newService, golangService)
 				localPort := "8282"
@@ -351,8 +397,9 @@ var _ = Describe("Fundamental use cases", func() {
 				EnsureCorrectNumberOfResources(deploymentCount+2, "deployment", namespace)
 				EnsureAllDeploymentPodsAreReady(namespace)
 
-				By("ensuring service is accessible locally and can reach already deployed reviews-v1 service")
 				modifiedResponse := "proxy response"
+
+				By("ensuring service is accessible locally and can reach already deployed reviews-v1 service")
 				Expect(callingLocalService(localPort)()).To(And(ContainSubstring("reviews-v1"), Not(ContainSubstring(modifiedResponse))))
 
 				By("modifying response")

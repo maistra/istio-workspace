@@ -16,19 +16,15 @@ func main() {
 		printAvailableScenarios()
 		os.Exit(0)
 	}
-	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
-		generator.GatewayHost = h
-	}
 
 	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
 		Namespace = h
 	}
 
-	scenario := os.Args[1]
-	if generateScenario, ok := scenarios.TestScenarios[scenario]; ok {
+	if generateScenario, ok := scenarios.TestScenarios[os.Args[1]]; ok {
 		generateScenario(Namespace, getTestImageName(), generator.WrapInYamlPrinter(os.Stdout))
 	} else {
-		fmt.Printf("Scenario [%s] not found!\n", scenario)
+		fmt.Printf("Scenario [%s] not found!\n", os.Args[1])
 		printAvailableScenarios()
 		os.Exit(1)
 	}

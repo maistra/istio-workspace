@@ -33,8 +33,8 @@ func TestScenarioHTTPThreeServicesInSequence(ns, image string, printer generator
 		generator.NsGenerators,
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
-		generator.GatewayOnHost(generator.GatewayHost),
-		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.GatewayOnHost(generator.GatewayHostFromEnv()),
+		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHostFromEnv())),
 		generator.ForService(reviews, generator.Call(generator.HTTP(), ratings)),
 	)
 }
@@ -52,9 +52,9 @@ func TestScenarioGRPCThreeServicesInSequence(ns, image string, printer generator
 		generator.NsGenerators,
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
-		generator.ForService(productpage, generator.Call(generator.GRPC(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.ForService(productpage, generator.Call(generator.GRPC(), reviews), generator.ConnectToGateway(generator.GatewayHostFromEnv())),
 		generator.ForService(reviews, generator.Call(generator.GRPC(), ratings)),
-		generator.GatewayOnHost(generator.GatewayHost),
+		generator.GatewayOnHost(generator.GatewayHostFromEnv()),
 	)
 }
 
@@ -72,9 +72,9 @@ func TestScenarioThreeServicesInSequenceWithDeploymentConfig(ns, image string, p
 		generator.NsGenerators,
 		generator.AllSubGenerators,
 		generator.WithVersion("v1"),
-		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHostFromEnv())),
 		generator.ForService(reviews, generator.Call(generator.HTTP(), ratings)),
-		generator.GatewayOnHost(generator.GatewayHost),
+		generator.GatewayOnHost(generator.GatewayHostFromEnv()),
 	)
 }
 
@@ -111,9 +111,9 @@ func IncompleteMissingDestinationRules(ns, image string, printer generator.Print
 		generator.NsGenerators,
 		[]generator.SubGenerator{generator.Deployment, generator.DeploymentConfig, generator.Service, generator.VirtualService},
 		generator.WithVersion("v1"),
-		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHostFromEnv())),
 		generator.ForService(reviews, generator.Call(generator.HTTP(), ratings)),
-		generator.GatewayOnHost(generator.GatewayHost),
+		generator.GatewayOnHost(generator.GatewayHostFromEnv()),
 	)
 }
 
@@ -129,8 +129,8 @@ func IncompleteMissingVirtualServices(ns, image string, printer generator.Printe
 		generator.NsGenerators,
 		[]generator.SubGenerator{generator.Deployment, generator.DeploymentConfig, generator.Service, generator.DestinationRule},
 		generator.WithVersion("v1"),
-		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHost)),
+		generator.ForService(productpage, generator.Call(generator.HTTP(), reviews), generator.ConnectToGateway(generator.GatewayHostFromEnv())),
 		generator.ForService(reviews, generator.Call(generator.HTTP(), ratings)),
-		generator.GatewayOnHost(generator.GatewayHost),
+		generator.GatewayOnHost(generator.GatewayHostFromEnv()),
 	)
 }

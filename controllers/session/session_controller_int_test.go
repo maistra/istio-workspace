@@ -18,7 +18,6 @@ import (
 
 	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/generator"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/template"
@@ -571,7 +570,8 @@ var _ = Describe("Complete session manipulation", func() {
 
 func objectsForScenario(namespace string, scenarioGenerator scenarios.TestScenario) []runtime.Object {
 	image := "x:x:x"
-	generator.GatewayHost = "test.io"
+	restoreEnvVars := test.TemporaryEnvVars("IKE_GATEWAY_HOST", "test.io")
+	defer restoreEnvVars()
 
 	objects := []runtime.Object{}
 	scenarioGenerator(namespace, image, func(object runtime.Object) {
