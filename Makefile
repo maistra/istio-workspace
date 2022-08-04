@@ -372,7 +372,7 @@ BUNDLE_CHANNELS:=--channels=$(CHANNELS)
 BUNDLE_DEFAULT_CHANNEL:=--default-channel=$(DEFAULT_CHANNEL)
 BUNDLE_METADATA_OPTS?=$(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-BUNDLE_IMG?=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
+BUNDLE_IMG?=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/istio-workspace-operator-bundle
 DESC_FILE:=dist/operatorhub_description.md
 CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
@@ -396,15 +396,19 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 .PHONY: bundle-image
 bundle-image:	## Build the bundle image
 	$(call header,"Building bundle image")
-	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
+	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG):$(IKE_IMAGE_TAG) bundle/
+	$(IMG_BUILDER) tag \
+		$(BUNDLE_IMG):$(IKE_IMAGE_TAG) \
+		$(BUNDLE_IMG):latest
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
 	$(call header,"Pushing bundle image")
-	$(IMG_BUILDER) push $(BUNDLE_IMG)
+	$(IMG_BUILDER) push $(BUNDLE_IMG):latest
+	$(IMG_BUILDER) push $(BUNDLE_IMG):$(IKE_IMAGE_TAG)
 
 BUNDLE_TIMEOUT?=5m
-bundle-run:=operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
+bundle-run:=operator-sdk run bundle $(BUNDLE_IMG):$(IKE_IMAGE_TAG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
 
 .PHONY: bundle-run
 bundle-run:		## Run the bundle image in OwnNamespace(OPERATOR_NAMESPACE) install mode
