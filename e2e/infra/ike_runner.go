@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-cmd/cmd"
@@ -28,6 +29,9 @@ func Stop(ike *cmd.Cmd) {
 
 func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 	<-command.Done()
+	fmt.Println(command.Status().Exit)
+	fmt.Println(command.Status().Stdout)
+	fmt.Println(command.Status().Stderr)
 	if command.Status().Exit != 0 {
 		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
 	}
