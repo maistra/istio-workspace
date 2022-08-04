@@ -48,7 +48,7 @@ func VirtualServiceLocator(ctx model.SessionContext, ref model.Ref, store model.
 		for i := range vss.Items {
 			vs := vss.Items[i]
 			action, hash := reference.GetRefMarker(&vs, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			if ref.Hash() != hash {
 				report(model.LocatorStatus{
 					Resource: model.Resource{
@@ -74,7 +74,7 @@ func VirtualServiceLocator(ctx model.SessionContext, ref model.Ref, store model.
 		for i := range vss.Items {
 			vs := vss.Items[i]
 			action, _ := reference.GetRefMarker(&vs, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
 					Kind:      VirtualServiceKind,

@@ -32,7 +32,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 		for i := range gws.Items {
 			gw := gws.Items[i]
 			action, hash := reference.GetRefMarker(&gw, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			if ref.Hash() != hash {
 				report(model.LocatorStatus{
 					Resource: model.Resource{
@@ -80,7 +80,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 		for i := range gws.Items {
 			gw := gws.Items[i]
 			action, _ := reference.GetRefMarker(&gw, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
 					Kind:      GatewayKind,
