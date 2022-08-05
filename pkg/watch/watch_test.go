@@ -15,6 +15,8 @@ import (
 	. "github.com/maistra/istio-workspace/test"
 )
 
+const pathSeparator = string(os.PathSeparator)
+
 var _ = Describe("Watching for file changes", func() {
 
 	tmpFs := NewTmpFileSystem(GinkgoT())
@@ -75,8 +77,8 @@ var _ = Describe("Watching for file changes", func() {
 			// given
 			done := make(chan struct{})
 			tmpDir := tmpFs.Dir("watch_yaml_txt")
-			_ = tmpFs.File(tmpDir+"/config.yaml", "content")
-			text := tmpFs.File(tmpDir+"/text.txt", "text text text")
+			_ = tmpFs.File(tmpDir+pathSeparator+"config.yaml", "content")
+			text := tmpFs.File(tmpDir+pathSeparator+"text.txt", "text text text")
 
 			watcher, e := watch.CreateWatch(1).
 				WithHandlers(expectChangesOf(text.Name(), done)).
@@ -97,8 +99,8 @@ var _ = Describe("Watching for file changes", func() {
 			// given
 			done := make(chan struct{})
 			tmpDir := tmpFs.Dir("watch_yaml_txt")
-			_ = tmpFs.File(tmpDir+"/config.yaml", "content")
-			text := tmpFs.File(tmpDir+"/text.txt", "text text text")
+			_ = tmpFs.File(tmpDir+pathSeparator+"config.yaml", "content")
+			text := tmpFs.File(tmpDir+pathSeparator+"text.txt", "text text text")
 
 			watcher, e := watch.CreateWatch(1).
 				WithHandlers(expectChangesOf(text.Name(), done)).
@@ -119,8 +121,8 @@ var _ = Describe("Watching for file changes", func() {
 			// given
 			done := make(chan struct{})
 			tmpDir := tmpFs.Dir("watch_yaml_txt")
-			config := tmpFs.File(tmpDir+"/config.yaml", "content")
-			text := tmpFs.File(tmpDir+"/text.txt", "text text text")
+			config := tmpFs.File(tmpDir+pathSeparator+"config.yaml", "content")
+			text := tmpFs.File(tmpDir+pathSeparator+"text.txt", "text text text")
 
 			watcher, e := watch.CreateWatch(1).
 				WithHandlers(expectChangesOf(text.Name(), done), ignoreChangesOf(config.Name())).
@@ -143,9 +145,9 @@ var _ = Describe("Watching for file changes", func() {
 			// given
 			done := make(chan struct{})
 			skipTmpDir := tmpFs.Dir("skip_watch")
-			config := tmpFs.File(skipTmpDir+"/config.yaml", "content")
+			config := tmpFs.File(skipTmpDir+pathSeparator+"config.yaml", "content")
 			watchTmpDir := tmpFs.Dir("watch")
-			code := tmpFs.File(watchTmpDir+"/main.go", "package main")
+			code := tmpFs.File(watchTmpDir+pathSeparator+"main.go", "package main")
 
 			watcher, e := watch.CreateWatch(1).
 				WithHandlers(ignoreChangesOf(config.Name()), expectChangesOf(code.Name(), done)).
@@ -169,15 +171,15 @@ var _ = Describe("Watching for file changes", func() {
 			done := make(chan struct{})
 
 			watchTmpDir := tmpFs.Dir("watch")
-			config := tmpFs.File(watchTmpDir+"/.idea/config.toml", "content")
-			test := tmpFs.File(watchTmpDir+"/.idea/test.yaml", "content")
-			nestedFile := tmpFs.File(watchTmpDir+"/src/main/org/acme/Main.java", "package org.acme")
-			gitIgnore := tmpFs.File(watchTmpDir+"/.gitignore", `
+			config := tmpFs.File(watchTmpDir+pathSeparator+".idea"+pathSeparator+"config.toml", "content")
+			test := tmpFs.File(watchTmpDir+pathSeparator+".idea"+pathSeparator+"test.yaml", "content")
+			nestedFile := tmpFs.File(watchTmpDir+pathSeparator+"src"+pathSeparator+"main"+pathSeparator+"org"+pathSeparator+"acme"+pathSeparator+"Main.java", "package org.acme")
+			gitIgnore := tmpFs.File(watchTmpDir+pathSeparator+".gitignore", `
 *.yaml
 **/src/main/**/*.java
 .idea/
 `)
-			code := tmpFs.File(watchTmpDir+"/main.go", "package main")
+			code := tmpFs.File(watchTmpDir+pathSeparator+"main.go", "package main")
 
 			defer func() {
 				if err := config.Close(); err != nil {
