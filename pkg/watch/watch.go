@@ -23,12 +23,12 @@ type Handler func(events []fsnotify.Event) error
 
 // Watch represents single file system watch and delegates change events to defined handler.
 type Watch struct {
-	watcher    *fsnotify.Watcher
-	handlers   []Handler
-	basePaths  []string
-	gitignores []ignore.GitIgnore
-	interval   time.Duration
-	done       chan struct{}
+	watcher   *fsnotify.Watcher
+	handlers  []Handler
+	basePaths []string
+	ignores   []ignore.GitIgnore
+	interval  time.Duration
+	done      chan struct{}
 }
 
 // Start observes on file change events and dispatches them to defined handler in batches every
@@ -46,11 +46,11 @@ func (w *Watch) Start() {
 					return
 				}
 				if w.Excluded(event.Name) {
-					logger().V(0).Info("file excluded. skipping change handling", "file", event.Name)
+					logger().V(1).Info("file excluded. skipping change handling", "file", event.Name)
 
 					continue
 				}
-				logger().V(0).Info("file changed", "file", event.Name, "op", event.Op.String())
+				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
@@ -61,7 +61,7 @@ func (w *Watch) Start() {
 				if len(events) == 0 {
 					continue
 				}
-				logger().V(0).Info("firing change event")
+				logger().V(1).Info("firing change event")
 				changes := extractEvents(events)
 				for _, handler := range w.handlers {
 					if err := handler(changes); err != nil {
@@ -77,11 +77,11 @@ func (w *Watch) Start() {
 	}()
 }
 
-// Excluded checks whether a path is excluded from watch by first inspecting .gitignores
+// Excluded checks whether a path is excluded from watch by first inspecting .ignores
 // and user-defined exclusions.
 func (w *Watch) Excluded(path string) bool {
-	for _, gitIgnore := range w.gitignores {
-		if gitIgnore.MatchesPath(path) {
+	for _, ignoreRule := range w.ignores {
+		if ignoreRule.MatchesPath(path) {
 			return true
 		}
 	}
@@ -145,12 +145,12 @@ func (w *Watch) addExclusions(exclusions []string) error {
 	if len(exclusions) == 0 {
 		return nil
 	}
-	gitIgnore, e := ignore.CompileIgnoreLines(exclusions...)
+	ignores, e := ignore.CompileIgnoreLines(exclusions...)
 	if e != nil {
 		return errors.Wrapf(e, "failed adding exclusion list %v", exclusions)
 	}
 
-	w.gitignores = append(w.gitignores, *gitIgnore)
+	w.ignores = append(w.ignores, *ignores)
 
 	return nil
 }
@@ -168,7 +168,7 @@ func (w *Watch) addGitIgnore(path string) error {
 		if err != nil {
 			return errors.WrapWithDetails(err, "failed compiling ignore list from .gitignore", "path", gitIgnorePath)
 		}
-		w.gitignores = append(w.gitignores, *gitIgnore)
+		w.ignores = append(w.ignores, *gitIgnore)
 	}
 
 	return nil
