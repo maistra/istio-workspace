@@ -103,7 +103,7 @@ func NewCmd() *cobra.Command {
 	developCmd.Flags().Bool(execute.NoBuildFlagName, false, "always skips build")
 	developCmd.Flags().Bool("watch", false, "enables watch")
 	developCmd.Flags().StringSliceP("watch-include", "w", []string{"."}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.Flags().StringSlice("watch-exclude", execute.DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
+	developCmd.Flags().StringSlice("watch-exclude", []string{}, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
 	developCmd.Flags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.Flags().MarkHidden("watch-interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
