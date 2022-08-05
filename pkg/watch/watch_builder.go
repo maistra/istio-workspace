@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
