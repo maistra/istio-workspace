@@ -82,15 +82,17 @@ func execute(command *cobra.Command, args []string) error {
 		excluded = append(excluded, DefaultExclusions...)
 
 		ms, _ := command.Flags().GetInt64("interval")
-		w, err := watch.CreateWatch(ms).
-			WithHandlers(func(events []fsnotify.Event) error {
-				for _, event := range events {
-					_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
-				}
-				restart <- 1
+		restartHandler := func(events []fsnotify.Event) error {
+			for _, event := range events {
+				_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+			}
+			restart <- 1
 
-				return nil
-			}).
+			return nil
+		}
+
+		w, err := watch.CreateWatch(ms).
+			WithHandlers(restartHandler).
 			Excluding(excluded...).
 			OnPaths(dirs...)
 

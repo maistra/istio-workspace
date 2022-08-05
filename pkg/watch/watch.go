@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -47,12 +46,11 @@ func (w *Watch) Start() {
 					return
 				}
 				if w.Excluded(event.Name) {
-					logger().V(1).Info("file excluded. skipping change handling", "file", event.Name)
+					logger().V(0).Info("file excluded. skipping change handling", "file", event.Name)
 
 					continue
 				}
-				logger().V(1).Info("file changed", "file", event.Name, "op", event.Op.String())
-				fmt.Printf("file changed %s %s %s %s\n", "file", event.Name, "op", event.Op.String())
+				logger().V(0).Info("file changed", "file", event.Name, "op", event.Op.String())
 				events[event.Name] = event
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
@@ -63,7 +61,7 @@ func (w *Watch) Start() {
 				if len(events) == 0 {
 					continue
 				}
-				logger().V(1).Info("firing change event")
+				logger().V(0).Info("firing change event")
 				changes := extractEvents(events)
 				for _, handler := range w.handlers {
 					if err := handler(changes); err != nil {
@@ -82,16 +80,8 @@ func (w *Watch) Start() {
 // Excluded checks whether a path is excluded from watch by first inspecting .gitignores
 // and user-defined exclusions.
 func (w *Watch) Excluded(path string) bool {
-	reducedPath := path
-	for _, basePath := range w.basePaths {
-		if strings.HasPrefix(path, basePath) {
-			reducedPath = strings.TrimPrefix(path, basePath)
-
-			break
-		}
-	}
 	for _, gitIgnore := range w.gitignores {
-		if gitIgnore.MatchesPath(reducedPath) {
+		if gitIgnore.MatchesPath(path) {
 			return true
 		}
 	}
@@ -159,6 +149,7 @@ func (w *Watch) addExclusions(exclusions []string) error {
 	if e != nil {
 		return errors.Wrapf(e, "failed adding exclusion list %v", exclusions)
 	}
+
 	w.gitignores = append(w.gitignores, *gitIgnore)
 
 	return nil
