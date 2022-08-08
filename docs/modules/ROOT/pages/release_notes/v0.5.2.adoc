@@ -1,0 +1,58 @@
+== Highlights of v0.5.2 release
+
+This small release comes with one bug fix and one tiny improvement which makes developer experience while using `ike` CLI more pleasant. 
+
+=== Autocompletion for flags with limited options
+
+For flags which have limited options we have enabled autocompletion showing only the possible values. For example:
+
+[source,bash]
+$ ike develop --method <TAB>
+inject-tcp  vpn-tcp   
+
+=== Fixed `--watch` default behaviour
+
+We've also discovered small, but a bit annoying bug of a `--watch` feature. 
+
+With the default settings whenever you did something in Git while running `ike develop` it was restarting the service under development. That should be behaving correctly now - it only restarts the service when you change the code, not Git internals :)
+
+=== All changes in this release
+
+// changelog:generate
+==== Build System Integration
+
+===== New features
+* fix(tekton): improves tekton script by using env vars (https://github.com/maistra/istio-workspace/pull/1046[#1046]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Command line
+
+===== New features
+* feat(flag): enables limited-choice flags (https://github.com/maistra/istio-workspace/pull/1055[#1055]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* chore(tp): moves tp cmd logic to the wrapper (https://github.com/maistra/istio-workspace/pull/1048[#1048]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+===== Bugs
+* fix(watch): correctly excludes paths starting with `.` (https://github.com/maistra/istio-workspace/pull/1062[#1062]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Testing
+
+===== New features
+* chore(e2e): replaces hello-world container with 2MB image (https://github.com/maistra/istio-workspace/pull/1043[#1043]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+=== Latest dependencies update
+
+ * github.com/onsi/gomega to 1.20.0 (https://github.com/maistra/istio-workspace/pull/1052[#1052]), by https://github.com/dependabot[@dependabot]
+ * github.com/spf13/afero to 1.9.2 (https://github.com/maistra/istio-workspace/pull/1053[#1053]), by https://github.com/dependabot[@dependabot]
+ * golang.org/x/tools to 0.1.12 (https://github.com/maistra/istio-workspace/pull/1057[#1057]), by https://github.com/dependabot[@dependabot]
+ * google.golang.org/grpc to 1.48.0 (https://github.com/maistra/istio-workspace/pull/1041[#1041]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/api to 0.24.3 (https://github.com/maistra/istio-workspace/pull/1039[#1039]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/apimachinery to 0.24.3 (https://github.com/maistra/istio-workspace/pull/1037[#1037]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/client-go to 0.24.3 (https://github.com/maistra/istio-workspace/pull/1040[#1040]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/code-generator to 0.24.3 (https://github.com/maistra/istio-workspace/pull/1036[#1036]), by https://github.com/dependabot[@dependabot]
+ * kisielk/errcheck to 1.6.2 (https://github.com/maistra/istio-workspace/pull/1063[#1063]), by https://github.com/dependabot[@dependabot]
+ * mikefarah/yq/v4 to 4.27.2 (https://github.com/maistra/istio-workspace/pull/1065[#1065]), by https://github.com/dependabot[@dependabot]
+ * prometheus/client_golang to 1.13.0 (https://github.com/maistra/istio-workspace/pull/1064[#1064]), by https://github.com/dependabot[@dependabot]
+ * protobuf to 1.28.1 (https://github.com/maistra/istio-workspace/pull/1056[#1056]), by https://github.com/dependabot[@dependabot]
+ * schollz/progressbar/v3 to 3.9.0 (https://github.com/maistra/istio-workspace/pull/1058[#1058]), by https://github.com/dependabot[@dependabot]
+

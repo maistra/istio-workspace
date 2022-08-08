@@ -126,7 +126,7 @@ func createWrapperExecutionCmd(cmd *cobra.Command) ([]string, error) {
 func stringSliceToCSV(flags *pflag.FlagSet, name string) string {
 	slice, _ := flags.GetStringSlice(name)
 
-	return fmt.Sprintf(`"%s"`, strings.Join(slice, ","))
+	return strings.Join(slice, ",")
 }
 
 func executeCmd(cmd string, args ...string) gocmd.Status {

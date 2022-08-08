@@ -2,6 +2,7 @@ package watch
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 
 	"emperror.dev/errors"
@@ -53,19 +54,23 @@ func (wb *Builder) OnPaths(paths ...string) (watch *Watch, err error) {
 		if err != nil {
 			return nil, errors.WrapWithDetails(err, "failed checking path", "path", path)
 		}
-
-		if !dir.IsDir() {
-			if e := wb.w.addPath(path); e != nil {
-				return nil, e
-			}
-		} else {
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return nil, errors.WrapWithDetails(err, "failed determining absolute path", "path", path)
+		}
+		if dir.IsDir() {
 			if e := wb.w.addExclusions(wb.exclusions); e != nil {
 				return nil, e
 			}
-			if e := wb.w.addGitIgnore(path); e != nil {
+			if e := wb.w.addGitIgnore(absPath); e != nil {
 				return nil, e
 			}
-			if e := wb.w.addRecursiveWatch(path); e != nil {
+			if e := wb.w.addRecursiveWatch(absPath); e != nil {
+				return nil, e
+			}
+		} else {
+			e := wb.w.addPath(absPath)
+			if e != nil {
 				return nil, e
 			}
 		}

@@ -113,7 +113,7 @@ func createDevelopCmd() *cobra.Command {
 	developCmd.PersistentFlags().Bool(execute.NoBuildFlagName, false, "always skips build")
 	developCmd.PersistentFlags().Bool("watch", false, "enables watch")
 	developCmd.PersistentFlags().StringSliceP("watch-include", "w", []string{"."}, "list of directories to watch (relative to the one from which ike has been started)")
-	developCmd.PersistentFlags().StringSlice("watch-exclude", execute.DefaultExclusions, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
+	developCmd.PersistentFlags().StringSlice("watch-exclude", []string{}, fmt.Sprintf("list of patterns to exclude (always excludes %v)", execute.DefaultExclusions))
 	developCmd.PersistentFlags().Int64("watch-interval", 500, "watch interval (in ms)")
 	if err := developCmd.PersistentFlags().MarkHidden("watch-interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
