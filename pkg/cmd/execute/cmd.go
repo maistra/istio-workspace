@@ -56,8 +56,9 @@ func NewCmd() *cobra.Command {
 	executeCmd.Flags().StringP(RunFlagName, "r", "", "command to run your application")
 	// Watch config
 	executeCmd.Flags().Bool("watch", false, "enables watch")
-	executeCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
-	executeCmd.Flags().StringSlice("exclude", DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	executeCmd.Flags().StringSlice("dir", []string{"."}, "list of directories to watch (defaults to current directory)")
+	// Empty slice as we are always adding DefaultExclusions while constructing the watch
+	executeCmd.Flags().StringSlice("exclude", []string{}, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
 	executeCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := executeCmd.Flags().MarkHidden("interval"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
@@ -82,15 +83,17 @@ func execute(command *cobra.Command, args []string) error {
 		excluded = append(excluded, DefaultExclusions...)
 
 		ms, _ := command.Flags().GetInt64("interval")
-		w, err := watch.CreateWatch(ms).
-			WithHandlers(func(events []fsnotify.Event) error {
-				for _, event := range events {
-					_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
-				}
-				restart <- 1
+		restartHandler := func(events []fsnotify.Event) error {
+			for _, event := range events {
+				_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+			}
+			restart <- 1
 
-				return nil
-			}).
+			return nil
+		}
+
+		w, err := watch.CreateWatch(ms).
+			WithHandlers(restartHandler).
 			Excluding(excluded...).
 			OnPaths(dirs...)
 
