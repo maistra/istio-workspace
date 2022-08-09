@@ -70,8 +70,6 @@ func NewCmd() *cobra.Command {
 			return nil
 		},
 		PostRunE: func(cmd *cobra.Command, args []string) error {
-			hook.Close()
-
 			defer func() {
 				close(releaseInfo)
 			}()

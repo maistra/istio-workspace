@@ -49,7 +49,7 @@ func executeCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 	c, err = cmd.ExecuteC()
 
 	if err != nil {
-		// It is called as well in main.go on error. We need to close the channel to avoid leaking goroutine.
+		// It is called as well in main.go on error. We need to close the channel to avoid leaking goroutine in tests.
 		hook.Close()
 	}
 
