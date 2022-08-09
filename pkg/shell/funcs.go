@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"os/signal"
-	"syscall"
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
@@ -44,36 +42,6 @@ func Start(cmd *gocmd.Cmd, done chan gocmd.Status) {
 	status := <-cmd.Start()
 	<-cmd.Done()
 	done <- status
-}
-
-// ShutdownHookForChildCommand will wait for SIGTERM signal and stop the cmd
-// unless done receiving channel passed to it receives status or is closed.
-func ShutdownHookForChildCommand(cmd *gocmd.Cmd) {
-	go func() {
-		hookChan := make(chan os.Signal, 1)
-		signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
-		defer func() {
-			signal.Stop(hookChan)
-			close(hookChan)
-		}()
-	OutOfLoop:
-		for {
-			select {
-			case _, ok := <-hookChan:
-				if !ok {
-					break OutOfLoop
-				}
-				if cmd != nil {
-					_ = cmd.Stop()
-					<-cmd.Done()
-				}
-
-				break OutOfLoop
-			case <-cmd.Done():
-				break OutOfLoop
-			}
-		}
-	}()
 }
 
 // RedirectStreams redirects Stdout and Stderr of the gocmd.Cmd process to passed io.Writers.

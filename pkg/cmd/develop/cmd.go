@@ -13,6 +13,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/flag"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
@@ -77,7 +78,14 @@ func NewCmd() *cobra.Command {
 				tp := gocmd.NewCmdOptions(shell.StreamOutput, telepresence.BinaryName, arguments...)
 				tp.Dir = dir
 				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr())
-				shell.ShutdownHookForChildCommand(tp)
+				hook.Register(func() error {
+					err := tp.Stop()
+					if err == nil {
+						<-tp.Done()
+					}
+
+					return errors.Wrap(err, "failed on telepresence shutdown hook")
+				})
 				shell.Start(tp, done)
 			}()
 
