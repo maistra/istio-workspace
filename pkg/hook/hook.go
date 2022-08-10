@@ -45,9 +45,7 @@ func Listen() {
 			signal.Stop(hooks.done)
 		}()
 
-		o := <-hooks.done
-
-		if o == nil {
+		if _, ok := <-hooks.done; !ok {
 			// Channel has been closed by calling Close(). Do nothing. Normal termination.
 			return
 		}
