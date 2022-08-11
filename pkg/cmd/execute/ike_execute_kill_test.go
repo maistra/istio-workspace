@@ -18,35 +18,37 @@ import (
 	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
-var _ = Describe("ike execute - closing spawned process on kill", func() {
+var _ = Describe("ike execute - managing spawned processes", func() {
 
-	var tmpDir string
+	Context("using actual binary", func() {
+		tmpFs := test.NewTmpFileSystem(GinkgoT())
+		tmpDir := tmpFs.Dir("ike-execute")
 
-	tmpPath := test.NewTmpPath()
-	tmpFs := test.NewTmpFileSystem(GinkgoT())
+		tmpPath := test.NewTmpPath()
 
-	BeforeEach(func() {
-		tmpPath.SetPath(path.Dir(sleepBin), testshell.GetProjectDir()+string(os.PathSeparator)+"dist")
-		tmpDir = tmpFs.Dir("ike-execute")
-	})
-
-	AfterEach(tmpPath.Restore)
-
-	It("should kill child process", func() {
-		// given
-		ikeExecute := testshell.ExecuteInDir(tmpDir, "ike", "execute",
-			"--run", "sleepy",
-		)
-
-		time.AfterFunc(50*time.Millisecond, func() {
-			_ = syscall.Kill(ikeExecute.Status().PID, syscall.SIGINT)
+		BeforeEach(func() {
+			tmpPath.SetPath(path.Dir(sleepBin), testshell.GetProjectDir()+string(os.PathSeparator)+"dist")
 		})
 
-		Eventually(ikeExecute.Done(), 100*time.Millisecond).Should(BeClosed())
+		AfterEach(tmpPath.Restore)
 
-		pid, exists, err := findPID(ikeExecute.Status().Stdout)
-		Expect(err).To(Not(HaveOccurred()))
-		Expect(exists).To(BeFalse(), fmt.Sprintf("child process [%d] should not be running", pid))
+		It("should kill child process", func() {
+			// given
+			ikeExecute := testshell.ExecuteInDir(tmpDir, "ike", "execute",
+				"--run", "sleepy",
+			)
+
+			time.AfterFunc(50*time.Millisecond, func() {
+				_ = syscall.Kill(ikeExecute.Status().PID, syscall.SIGINT)
+			})
+
+			Eventually(ikeExecute.Done(), 100*time.Millisecond).Should(BeClosed())
+
+			pid, exists, err := findPID(ikeExecute.Status().Stdout)
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(exists).To(BeFalse(), fmt.Sprintf("child process [%d] should not be running", pid))
+		})
+
 	})
 
 })

@@ -39,7 +39,7 @@ var _ = Describe("Usage of ike execute command", func() {
 		tmpPath := NewTmpPath()
 
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin), path.Dir(shell.JavaBin), path.Dir(shell.SleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin), path.Dir(shell.JavaBin))
 		})
 
 		AfterEach(tmpPath.Restore)
@@ -64,7 +64,6 @@ var _ = Describe("Usage of ike execute command", func() {
 			time.Sleep(25 * time.Millisecond)
 			_, _ = code.WriteString("modified!")
 			time.Sleep(50 * time.Millisecond)
-			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -94,7 +93,6 @@ var _ = Describe("Usage of ike execute command", func() {
 			time.Sleep(25 * time.Millisecond)
 			_, _ = logFile.WriteString("\n>>> Server started")
 			time.Sleep(50 * time.Millisecond)
-			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -124,7 +122,6 @@ var _ = Describe("Usage of ike execute command", func() {
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
 			time.Sleep(50 * time.Millisecond)
-			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -154,7 +151,6 @@ var _ = Describe("Usage of ike execute command", func() {
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
 			time.Sleep(50 * time.Millisecond)
-			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -189,7 +185,6 @@ var _ = Describe("Usage of ike execute command", func() {
 			time.Sleep(25 * time.Millisecond) // as tp process sleeps for 50ms, we wait before we start modifying the file
 			_, _ = code.WriteString("modified!")
 			time.Sleep(50 * time.Millisecond)
-			simulateSigterm(executeCmd)
 
 			// then
 			var output string
@@ -200,11 +195,6 @@ var _ = Describe("Usage of ike execute command", func() {
 	})
 
 })
-
-func simulateSigterm(cmd *cobra.Command) {
-	time.Sleep(16 * time.Millisecond)
-	_ = cmd.Flag("kill").Value.Set("true")
-}
 
 func testDir(dir string) string {
 	return dir + string(os.PathSeparator) + "watch-test" + string(os.PathSeparator)

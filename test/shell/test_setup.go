@@ -17,7 +17,6 @@ var (
 	Tp1VersionFlagBin  string
 	Tp2VersionFlagBin  string
 	JavaBin            string
-	SleepBin           string
 )
 
 func StubShellCommands() {
