@@ -60,10 +60,15 @@ func ExecuteInDir(dir, name string, args ...string) *gocmd.Cmd {
 }
 
 func GetProjectDir() string {
-	projectDir, found := os.LookupEnv("PROJECT_DIR")
-	if !found {
-		return "."
+	if projectDir, found := os.LookupEnv("PROJECT_DIR"); found {
+		return projectDir
 	}
 
-	return projectDir
+	gitRoot := Execute("git rev-parse --show-toplevel")
+	<-gitRoot.Done()
+	if gitRoot.Status().Error == nil {
+		return strings.Join(gitRoot.Status().Stdout, "")
+	}
+
+	return "."
 }
