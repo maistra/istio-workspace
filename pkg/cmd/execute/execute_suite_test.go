@@ -11,14 +11,18 @@ import (
 	"github.com/maistra/istio-workspace/test/shell"
 )
 
-func TestWatchCommand(t *testing.T) {
+func TestExecuteCommand(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Execute Command Suite")
 }
 
 var current goleak.Option
 
+var sleepBin string
+
 var _ = SynchronizedBeforeSuite(func() []byte {
+	sleepBin = shell.BuildBinary("github.com/maistra/istio-workspace/test/echo",
+		"sleepy", "-ldflags", "-w -X main.SleepMs=40000")
 	current = goleak.IgnoreCurrent()
 	shell.StubShellCommands()
 

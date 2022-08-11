@@ -16,6 +16,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/flag"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/generator"
+	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
@@ -87,7 +88,14 @@ func createDevelopCmd() *cobra.Command {
 			go func() {
 				tp := telepresence.NewCmdWithOptions(dir, arguments...)
 				shell.RedirectStreams(tp, cmd.OutOrStdout(), cmd.OutOrStderr())
-				shell.ShutdownHookForChildCommand(tp)
+				hook.Register(func() error {
+					err := tp.Stop()
+					if err == nil {
+						<-tp.Done()
+					}
+
+					return errors.Wrap(err, "failed on telepresence shutdown hook")
+				})
 				shell.Start(tp, done)
 			}()
 

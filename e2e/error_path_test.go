@@ -20,7 +20,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 		It("should return non 0 on failed command", func() {
 			completion := testshell.ExecuteInDir(".", "bash", "-c", "ike missing-command")
 			<-completion.Done()
-			Expect(completion.Status().Exit).Should(Equal(23))
+			Expect(completion.Status().Exit).Should(Not(BeZero()))
 		})
 
 	})

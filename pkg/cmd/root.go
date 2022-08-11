@@ -16,6 +16,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/log"
 	v "github.com/maistra/istio-workspace/version"
 )
@@ -36,12 +37,16 @@ func NewCmd() *cobra.Command {
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			hook.Listen()
 			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
 					log.SetLogger(log.CreateOperatorAwareLoggerWithLevel("root", zapcore.ErrorLevel))
 				}
 			})
 
+			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
+		},
+		PreRun: func(cmd *cobra.Command, args []string) {
 			if v.Released() {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
@@ -53,8 +58,6 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
-
-			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -66,7 +69,7 @@ func NewCmd() *cobra.Command {
 
 			return nil
 		},
-		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+		PostRunE: func(cmd *cobra.Command, args []string) error {
 			defer func() {
 				close(releaseInfo)
 			}()
@@ -81,6 +84,9 @@ func NewCmd() *cobra.Command {
 			}
 
 			return nil
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			hook.Close()
 		},
 	}
 
