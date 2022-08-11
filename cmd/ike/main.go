@@ -15,6 +15,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/log"
 )
 
@@ -46,6 +47,7 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Log.Error(err, "failed executing command")
+		hook.Close()
 		os.Exit(23)
 	}
 }

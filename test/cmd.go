@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/maistra/istio-workspace/pkg/hook"
 )
 
 // Cmd is an alias for cobra.Command to build fluent API for building commands in tests.
@@ -12,6 +14,8 @@ type Cmd cobra.Command
 
 // Run will run actual command.
 func Run(command *cobra.Command) *Cmd {
+	hook.Reset()
+
 	return (*Cmd)(command)
 }
 
@@ -43,6 +47,11 @@ func executeCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 	cmd.SetErr(buf)
 	cmd.Root().SetArgs(append(strings.Split(cmd.CommandPath(), " ")[1:], args...))
 	c, err = cmd.ExecuteC()
+
+	if err != nil {
+		// It is called as well in main.go on error. We need to close the channel to avoid leaking goroutine in tests.
+		hook.Close()
+	}
 
 	return c, buf.String(), err
 }
