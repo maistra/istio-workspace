@@ -32,7 +32,7 @@ func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 	fmt.Println(command.Status().Exit)
 	fmt.Println(command.Status().Stdout)
 	fmt.Println(command.Status().Stderr)
-	if command.Status().Exit != 0 {
+	if command.Status().Exit != 0 && command.Status().Exit != 130 { // do not panic on SIGINT
 		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
 	}
 }
