@@ -154,6 +154,18 @@ func createDevelopNewCmd() *cobra.Command {
 	deploymentTypes := flag.CreateOptions("Deployment", "d", "DeploymentConfig", "dc")
 	deploymentType := deploymentTypes[0]
 
+	var createdObj []runtime.Object
+	deploymentCleanup := func(client *dynclient.Client) func() error {
+		return func() error {
+			var err error
+			for _, object := range createdObj {
+				err = errors.Append(err, client.Delete(object))
+			}
+
+			return errors.Wrap(err, "failed cleaning up namespace")
+		}
+	}
+
 	newCmd := &cobra.Command{
 		Use:          "new",
 		Short:        "Enables development flow for non-existing service.",
@@ -187,9 +199,12 @@ func createDevelopNewCmd() *cobra.Command {
 
 			gateway := cmd.Flag("gateway").Value.String()
 
+			hook.Register(deploymentCleanup(client))
+
 			var collectedErrors error
 			basicNewService(serviceName, deploymentType.String(), gateway, ns, func(object runtime.Object) {
 				creationErr := client.Create(object) // Create k8s objects on the fly
+				createdObj = append(createdObj, object)
 				collectedErrors = errors.Append(collectedErrors, creationErr)
 			})
 
@@ -198,6 +213,15 @@ func createDevelopNewCmd() *cobra.Command {
 			}
 
 			return errors.Wrapf(cmd.Parent().RunE(cmd, args), "failed executing `ike develop` command from `ike develop new`")
+		},
+		PostRunE: func(cmd *cobra.Command, args []string) error {
+			ns := cmd.Flag("namespace").Value.String()
+			client, err := dynclient.NewDefaultDynamicClient(ns, true)
+			if err != nil {
+				return errors.Wrap(err, "Failed creating dynamic client")
+			}
+
+			return deploymentCleanup(client)()
 		},
 	}
 

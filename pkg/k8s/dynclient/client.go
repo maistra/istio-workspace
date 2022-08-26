@@ -67,6 +67,22 @@ func NewDefaultDynamicClient(namespace string, createNs bool) (*Client, error) {
 	return &client, err
 }
 
+func (c *Client) Delete(obj runtime.Object) error {
+	resourceInterface, err := c.resourceInterfaceFor(obj)
+	if err != nil {
+		return errors.Wrap(err, "failed creating resource interface")
+	}
+
+	name, err := meta.NewAccessor().Name(obj)
+	if err != nil {
+		return errors.Wrap(err, "failed obtaining name")
+	}
+
+	err = resourceInterface.Delete(context.Background(), name, metav1.DeleteOptions{})
+
+	return errors.Wrap(err, "failed deleting object")
+}
+
 func (c *Client) Create(obj runtime.Object) error {
 	err := c.createNamespaceIfNotExists()
 	if err != nil {
