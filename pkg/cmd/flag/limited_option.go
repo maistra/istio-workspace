@@ -13,11 +13,12 @@ import (
 // input. On top of that custom, completion can be defined.
 //
 // Example:
-//    testCmd := &cobra.Command{...}
-//    beerStyles := flag.CreateOptions("stout", "s", "ale", "a", "kolsch", "k")
-//    beerStyle := beerStyles[0]
-//    testCmd.Flags().Var(&beerStyle, "style", "beer styles")
-//     _ = testCmd.RegisterFlagCompletionFunc("type", flag.CompletionFor(beerStyles))
+//
+//	testCmd := &cobra.Command{...}
+//	beerStyles := flag.CreateOptions("stout", "s", "ale", "a", "kolsch", "k")
+//	beerStyle := beerStyles[0]
+//	testCmd.Flags().Var(&beerStyle, "style", "beer styles")
+//	 _ = testCmd.RegisterFlagCompletionFunc("type", flag.CompletionFor(beerStyles))
 func CreateOptions(namesAndAbbrevs ...string) []NameAndAbbrev {
 	var values = []NameAndAbbrev{}
 	var availableNames = func() []NameAndAbbrev {

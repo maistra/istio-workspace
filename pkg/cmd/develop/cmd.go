@@ -23,6 +23,8 @@ import (
 	"github.com/maistra/istio-workspace/pkg/telepresence"
 )
 
+const generateGateway = "GENERATE_GATEWAY"
+
 var (
 	logger = func() logr.Logger {
 		return log.Log.WithValues("type", "develop")
@@ -195,14 +197,23 @@ func createDevelopNewCmd() *cobra.Command {
 
 				serviceName = codename.Generate(rng, 0)
 				fmt.Printf("generated name %s\n", serviceName)
+				if e := cmd.Parent().PersistentFlags().Set("deployment", serviceName+"-v1"); e != nil {
+					return errors.Wrapf(e, "Failed populating flags")
+				}
 			}
 
 			gateway := cmd.Flag("gateway").Value.String()
+			if gateway == "" {
+				gateway = generateGateway
+			}
 
 			hook.Register(deploymentCleanup(client))
 
+			yamlPrinter := generator.WrapInYamlPrinter(os.Stdout)
+
 			var collectedErrors error
 			basicNewService(serviceName, deploymentType.String(), gateway, ns, func(object runtime.Object) {
+				yamlPrinter(object)
 				creationErr := client.Create(object) // Create k8s objects on the fly
 				createdObj = append(createdObj, object)
 				collectedErrors = errors.Append(collectedErrors, creationErr)
@@ -235,20 +246,27 @@ func createDevelopNewCmd() *cobra.Command {
 }
 
 func basicNewService(name, deploymentType, gateway, ns string, printer generator.Printer) {
+	var nsGenerators []generator.SubGenerator
+	if gateway == generateGateway {
+		rng, err := codename.DefaultRNG()
+		if err != nil {
+			panic(err)
+		}
+
+		gateway = codename.Generate(rng, 0)
+		nsGenerators = append(nsGenerators, generator.Gateway)
+	}
+
 	newService := generator.ServiceEntry{Name: name,
 		Namespace:      ns,
 		DeploymentType: deploymentType,
 		Image:          "quay.io/maistra-dev/istio-workspace-test-prepared-prepared-image",
 		Gateway:        gateway,
 		HTTPPort:       9080,
-		GRPCPort:       9081}
-
-	var nsGenerators []generator.SubGenerator
-	if gateway != "" {
-		nsGenerators = append(nsGenerators, generator.Gateway)
-	} else {
-		newService.Gateway = "test-gateway" // TMP HACK we assume GW exists
+		GRPCPort:       9081,
 	}
+
+	fmt.Printf("%v\n", newService)
 
 	generator.Generate(
 		printer,

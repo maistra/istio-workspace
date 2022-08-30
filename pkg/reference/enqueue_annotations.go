@@ -1,13 +1,13 @@
 // Package reference is based on https://github.com/operator-framework/operator-lib/blob/8c3d48f55639528bcee4432b570bc6671900b75d/handler/enqueue_annotation.go
 // Main changes are about allowing to store multiple values of a given annotation as comma-separated list.
 //
-// Copyright 2020 The Operator-SDK Authors
+// # Copyright 2020 The Operator-SDK Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,

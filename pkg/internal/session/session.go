@@ -63,8 +63,8 @@ type handler struct {
 
 // RemoveHandler provides the option to delete an existing sessions if found.
 // Rely on the following flags:
-//  * namespace - the name of the target namespace where deployment is defined
-//  * session - the name of the session.
+//   - namespace - the name of the target namespace where deployment is defined
+//   - session - the name of the session.
 func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocritic //reason too simple to use named results
 	if client == nil {
 		return State{}, func() {}
@@ -79,10 +79,10 @@ func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocr
 
 // CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing one.
 // Rely on the following flags:
-//  * namespace - the name of the target namespace where deployment is defined
-//  * deployment - the name of the target deployment and will update the flag with the new deployment name
-//  * session - the name of the session
-//  * route - the definition of traffic routing.
+//   - namespace - the name of the target namespace where deployment is defined
+//   - deployment - the name of the target deployment and will update the flag with the new deployment name
+//   - session - the name of the session
+//   - route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	sessionName, err := getOrCreateSessionName(opts.SessionName)
 	if err != nil {

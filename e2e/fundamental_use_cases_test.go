@@ -2,7 +2,6 @@ package e2e_test
 
 import (
 	_ "embed"
-	"os"
 	"strings"
 	"time"
 
@@ -310,12 +309,16 @@ var _ = Describe("Fundamental use cases", func() {
 			}
 		})
 
-		// Failing while creating service - locators unable to find stuff
-		XWhen("creating new service from scratch", func() {
+		When("creating new service from scratch", func() {
+
+			var restoreEnvVars func()
 
 			JustBeforeEach(func() {
-				err := os.Setenv("IKE_GATEWAY_HOST", GetGatewayHost(namespace))
-				Expect(err).To(Not(HaveOccurred()))
+				restoreEnvVars = test.TemporaryEnvVars("IKE_GATEWAY_HOST", GetGatewayHost(namespace))
+			})
+
+			JustAfterEach(func() {
+				restoreEnvVars()
 			})
 
 			It("should act like running in the cluster", func() {
@@ -333,7 +336,6 @@ var _ = Describe("Fundamental use cases", func() {
 
 				ike := RunIke(tmpDir, "develop", "new",
 					"--namespace", namespace,
-					"--gateway", "new-service-gw",
 					"--port", "9080",
 					"--run", "go run "+newService+" -port "+localPort,
 					"--watch",
@@ -349,14 +351,14 @@ var _ = Describe("Fundamental use cases", func() {
 				EnsureAllDeploymentPodsAreReady(namespace)
 
 				By("adding virtual service")
-				Expect(GetResourceCount("virtualservice", namespace)).To(Equal(1))
+				Expect(GetResourceCount("virtualservice", namespace)).To(Equal(2))
 				By("adding destination rule")
-				Expect(GetResourceCount("destinationrule", namespace)).To(Equal(1))
+				Expect(GetResourceCount("destinationrule", namespace)).To(Equal(2))
 				By("adding gateway")
 				Expect(GetResourceCount("gateway", namespace)).To(Equal(1))
 
-				By("verifying hostname of new service is a pod name")
-				Expect(callingLocalService(localPort)()).To(ContainSubstring("reviews-v1"))
+				By("verifying service has cluster access")
+				Expect(callingLocalService(localPort)()).To(ContainSubstring("running in k8s"))
 			})
 		})
 
@@ -414,7 +416,7 @@ var _ = Describe("Fundamental use cases", func() {
 })
 
 func callingLocalService(localPort string) func() string {
-	curlLocalService := "curl http://localhost:" + localPort
+	curlLocalService := "curl -i http://localhost:" + localPort
 
 	return func() string {
 		curl := testshell.Execute(curlLocalService)
