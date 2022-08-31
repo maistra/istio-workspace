@@ -30,6 +30,7 @@ func NewCmd() *cobra.Command {
 	var configFile string
 	releaseInfo := make(chan string, 1)
 
+	released := v.Released()
 	rootCmd := &cobra.Command{
 		SilenceErrors: true,
 		Use:           "ike",
@@ -37,17 +38,7 @@ func NewCmd() *cobra.Command {
 			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			hook.Listen()
-			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
-				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
-					log.SetLogger(log.CreateOperatorAwareLoggerWithLevel("root", zapcore.ErrorLevel))
-				}
-			})
-
-			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
-		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			if v.Released() {
+			if released {
 				go func() {
 					latestRelease, _ := version.LatestRelease()
 					if !version.IsLatestRelease(latestRelease) {
@@ -58,6 +49,15 @@ func NewCmd() *cobra.Command {
 					}
 				}()
 			}
+
+			hook.Listen()
+			cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+				if flag.Changed && strings.Join(flag.Annotations["silent"], "") == "true" {
+					log.SetLogger(log.CreateOperatorAwareLoggerWithLevel("root", zapcore.ErrorLevel))
+				}
+			})
+
+			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -73,7 +73,7 @@ func NewCmd() *cobra.Command {
 			defer func() {
 				close(releaseInfo)
 			}()
-			if v.Released() {
+			if released {
 				timer := time.NewTimer(2 * time.Second)
 				select {
 				case release := <-releaseInfo:
