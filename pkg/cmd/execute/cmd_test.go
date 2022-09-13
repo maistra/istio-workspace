@@ -12,6 +12,7 @@ import (
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
 )
@@ -27,7 +28,7 @@ var _ = Describe("Usage of ike execute command", func() {
 		executeCmd.SilenceErrors = false
 		executeCmd.Annotations = make(map[string]string, 1)
 		executeCmd.Annotations["test"] = "true"
-		NewCmd().AddCommand(executeCmd)
+		NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(executeCmd)
 	})
 
 	AfterEach(func() {

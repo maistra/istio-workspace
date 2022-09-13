@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 
+	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -20,8 +21,11 @@ var logger = func() logr.Logger {
 // NewCmd creates instance of "create" Cobra Command with flags and execution logic defined.
 func NewCmd() *cobra.Command {
 	createCmd := &cobra.Command{
-		Use:          "create",
-		Short:        "Creates a new Session",
+		Use:   "create",
+		Short: "Creates a new Session",
+		Annotations: map[string]string{
+			cmd.AnnotationOperatorRequired: "true",
+		},
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")

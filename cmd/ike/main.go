@@ -16,6 +16,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/serve"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/hook"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 )
 
@@ -32,7 +33,7 @@ func main() {
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	rootCmd := cmd.NewCmd()
+	rootCmd := cmd.NewCmd(&k8s.ClusterAwareVerifier{})
 	rootCmd.AddCommand(
 		version.NewCmd(),
 		create.NewCmd(),
