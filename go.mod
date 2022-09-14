@@ -15,6 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.2
+	github.com/lucasepe/codename v0.2.0
 	github.com/mikefarah/yq/v4 v4.27.2
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.11.0
@@ -25,18 +26,18 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.12.0
 	go.uber.org/goleak v1.1.12
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.22.0
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	golang.org/x/tools v0.1.12
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.1
 	istio.io/api v0.0.0-20211012192923-310f2a3f3c76
 	istio.io/client-go v1.11.4
-	k8s.io/api v0.24.3
-	k8s.io/apiextensions-apiserver v0.24.3
-	k8s.io/apimachinery v0.24.3
-	k8s.io/client-go v0.24.3
-	k8s.io/code-generator v0.24.3
+	k8s.io/api v0.24.4
+	k8s.io/apiextensions-apiserver v0.24.4
+	k8s.io/apimachinery v0.24.4
+	k8s.io/client-go v0.24.4
+	k8s.io/code-generator v0.24.4
 	k8s.io/klog/v2 v2.70.1
 	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/controller-tools v0.9.2
@@ -51,8 +52,6 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.7
 	gopkg.in/h2non/gock.v1 v1.1.2
 )
-
-require github.com/lucasepe/codename v0.2.0
 
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
@@ -142,7 +141,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
-	k8s.io/component-base v0.24.3 // indirect
+	k8s.io/component-base v0.24.4 // indirect
 	k8s.io/gengo v0.0.0-20211129171323-c02415ce4185 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
