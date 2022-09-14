@@ -114,9 +114,9 @@ var _ = Describe("Fundamental use cases", func() {
 					})
 				})
 
-				When("deploying new version of the service to the cluster", func() {
+				When("deploying modified service to the cluster", func() {
 
-					It("should deploy new instance of the service and make it reachable through special route", func() {
+					It("should deploy additional instance of the service and make it reachable through special route", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("ratings-v1"), Not(ContainSubstring(PreparedImageV1)))
 						deploymentCount := GetResourceCount("deployment", namespace)
