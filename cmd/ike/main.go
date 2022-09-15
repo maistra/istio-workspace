@@ -33,7 +33,7 @@ func main() {
 	// Setting random seed e.g. for session name generator
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	rootCmd := cmd.NewCmd(&k8s.ClusterAwareVerifier{})
+	rootCmd := cmd.NewCmd(&k8s.ClusterVerifier{})
 	rootCmd.AddCommand(
 		version.NewCmd(),
 		create.NewCmd(),

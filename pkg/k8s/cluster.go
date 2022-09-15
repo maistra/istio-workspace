@@ -16,13 +16,13 @@ type InstallationVerifier interface {
 	CheckCRD() (bool, error)
 }
 
-var _ InstallationVerifier = &ClusterAwareVerifier{}
+var _ InstallationVerifier = &ClusterVerifier{}
 
-type ClusterAwareVerifier struct {
+type ClusterVerifier struct {
 	client *dynclient.Client
 }
 
-func (v *ClusterAwareVerifier) CheckCRD() (bool, error) {
+func (v *ClusterVerifier) CheckCRD() (bool, error) {
 	var err error
 	if v.client == nil {
 		v.client, err = dynclient.NewDefaultDynamicClient("", false)
