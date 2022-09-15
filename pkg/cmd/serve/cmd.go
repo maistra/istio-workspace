@@ -16,7 +16,6 @@ import (
 
 	"github.com/maistra/istio-workspace/api"
 	"github.com/maistra/istio-workspace/controllers"
-	command "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/log"
 )
@@ -40,10 +39,7 @@ func NewCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Starts istio-workspace operator in the cluster",
-		Annotations: map[string]string{
-			command.AnnotationOperatorRequired: "true",
-		},
-		RunE: startOperator,
+		RunE:  startOperator,
 	}
 
 	return serveCmd
