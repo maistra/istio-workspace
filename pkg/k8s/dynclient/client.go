@@ -76,6 +76,10 @@ func NewDefaultDynamicClient(namespace string, createNs bool) (*Client, error) {
 	return &client, err
 }
 
+func (c *Client) Dynamic() dynamic.Interface {
+	return c.dynClient
+}
+
 func (c *Client) Delete(obj runtime.Object) error {
 	resourceInterface, err := c.resourceInterfaceFor(obj)
 	if err != nil {

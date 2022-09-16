@@ -31,8 +31,6 @@ var (
 		return log.Log.WithValues("type", "develop")
 	}
 
-	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
-
 	annotations = map[string]string{
 		// Used in the tp-wrapper to check if passed command
 		// can be parsed (so has all required flags).
@@ -176,7 +174,7 @@ func createDevelopNewCmd() *cobra.Command {
 		Use:          "new",
 		Short:        "Enables development flow for non-existing service.",
 		SilenceUsage: true,
-		Annotations:  tpAnnotations,
+		Annotations:  annotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			name := cmd.Flag("name").Value.String()
 			e := cmd.Parent().PersistentFlags().Set("deployment", name+"-v1")
