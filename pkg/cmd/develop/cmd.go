@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/flag"
@@ -30,10 +31,13 @@ var (
 		return log.Log.WithValues("type", "develop")
 	}
 
-	// Used in the tp-wrapper to check if passed command
-	// can be parsed (so has all required flags).
-	tpAnnotations = map[string]string{
-		"telepresence": "translatable",
+	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+
+	annotations = map[string]string{
+		// Used in the tp-wrapper to check if passed command
+		// can be parsed (so has all required flags).
+		"telepresence":                 "translatable",
+		cmd.AnnotationOperatorRequired: "true",
 	}
 )
 
@@ -53,7 +57,7 @@ func createDevelopCmd() *cobra.Command {
 		Short:            "Starts local development flow by acting like your services runs in the cluster.",
 		SilenceUsage:     true,
 		TraverseChildren: true,
-		Annotations:      tpAnnotations,
+		Annotations:      annotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := telepresence.BinaryAvailable(); err != nil {
 				return errors.Wrapf(err, "Failed starting %s command", cmd.Name())

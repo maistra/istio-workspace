@@ -4,17 +4,17 @@ linters-settings:
   golint:
     min-confidence: 0
   gocyclo:
-    min-complexity: 12
+    min-complexity: 16
   cyclop:
-    max-complexity: 12
+    max-complexity: 16
   dupl:
     threshold: 128
   funlen:
     lines: 128
     statements: 64
   goconst:
-    min-len: 2
-    min-occurrences: 2
+    min-len: 4
+    min-occurrences: 3
   depguard:
     list-type: blacklist
     packages:

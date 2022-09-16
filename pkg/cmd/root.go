@@ -17,8 +17,15 @@ import (
 	"github.com/maistra/istio-workspace/pkg/cmd/format"
 	"github.com/maistra/istio-workspace/pkg/cmd/version"
 	"github.com/maistra/istio-workspace/pkg/hook"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	v "github.com/maistra/istio-workspace/version"
+)
+
+const (
+	AnnotationOperatorRequired = "operator-required"
+
+	DocsLink = "https://istio-workspace-docs.netlify.com"
 )
 
 var logger = func() logr.Logger {
@@ -26,28 +33,35 @@ var logger = func() logr.Logger {
 }
 
 // NewCmd creates instance of root "ike" Cobra Command with flags and execution logic defined.
-func NewCmd() *cobra.Command {
+func NewCmd(verifier k8s.InstallationVerifier) *cobra.Command {
 	var configFile string
 	releaseInfo := make(chan string, 1)
-
 	released := v.Released()
+
 	rootCmd := &cobra.Command{
 		SilenceErrors: true,
 		Use:           "ike",
-		Short: "ike lets you safely develop and test on production without a sweat!\n\n" +
-			"For detailed documentation please visit https://istio-workspace-docs.netlify.com/\n\n",
+		Short: `ike lets you safely develop and test on production without a sweat!
+
+For detailed documentation please visit ` + DocsLink,
 		BashCompletionFunction: completion.BashCompletionFunc,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var collectedErrors error
+
+			if err := config.SetupConfigSources(loadConfigFileName(cmd)); err != nil {
+				collectedErrors = errors.Append(collectedErrors, errors.Wrapf(err, "failed setting config sources"))
+			}
+
 			if released {
-				go func() {
-					latestRelease, _ := version.LatestRelease()
-					if !version.IsLatestRelease(latestRelease) {
-						releaseInfo <- fmt.Sprintf("WARN: you are using %s which is not the latest release (newest is %s).\n"+
-							"Follow release notes for update info https://github.com/Maistra/istio-workspace/releases/latest", v.Version, latestRelease)
-					} else {
-						releaseInfo <- ""
-					}
-				}()
+				go checkIfLatestRelease(releaseInfo)
+			}
+
+			if cmd.Annotations[AnnotationOperatorRequired] == "true" {
+				crdExists, err := verifier.CheckCRD()
+				if !crdExists {
+					return errors.Wrapf(err, "failed to locate istio-operator on your cluster, "+
+						"please follow installation instructions %s/istio-workspace/%s/getting_started.html#_installing_cluster_component\n", DocsLink, v.CurrentVersion())
+				}
 			}
 
 			hook.Listen()
@@ -57,7 +71,7 @@ func NewCmd() *cobra.Command {
 				}
 			})
 
-			return errors.Wrap(config.SetupConfigSources(loadConfigFileName(cmd)), "failed setting config sources")
+			return errors.Wrap(collectedErrors, "failed setting up command")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldPrintVersion, _ := cmd.Flags().GetBool("version")
@@ -71,7 +85,9 @@ func NewCmd() *cobra.Command {
 		},
 		PostRunE: func(cmd *cobra.Command, args []string) error {
 			defer func() {
-				close(releaseInfo)
+				if releaseInfo != nil {
+					close(releaseInfo)
+				}
 			}()
 			if released {
 				timer := time.NewTimer(2 * time.Second)
@@ -104,6 +120,16 @@ func NewCmd() *cobra.Command {
 	format.RegisterTemplateFuncs()
 
 	return rootCmd
+}
+
+func checkIfLatestRelease(releaseInfo chan<- string) {
+	latestRelease, _ := version.LatestRelease()
+	if !version.IsLatestRelease(latestRelease) {
+		releaseInfo <- fmt.Sprintf("WARN: you are using %s which is not the latest release (newest is %s).\n"+
+			"Follow release notes for update info https://github.com/Maistra/istio-workspace/releases/latest", v.Version, latestRelease)
+	} else {
+		releaseInfo <- ""
+	}
 }
 
 func loadConfigFileName(cmd *cobra.Command) (configFileName string, defaultConfigSource bool) {

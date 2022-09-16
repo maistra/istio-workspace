@@ -22,8 +22,17 @@ import (
 type Client struct {
 	Namespace string
 	dynClient dynamic.Interface
-	clientset *kubernetes.Clientset
+	clientset kubernetes.Interface
 	mapper    meta.RESTMapper
+}
+
+func NewClient(dynClient dynamic.Interface, clientset kubernetes.Interface, mapper meta.RESTMapper) Client {
+	return Client{
+		Namespace: "",
+		dynClient: dynClient,
+		clientset: clientset,
+		mapper:    mapper,
+	}
 }
 
 // NewDefaultDynamicClient creates dynamic client for given ns.

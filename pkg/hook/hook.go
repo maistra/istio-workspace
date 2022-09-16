@@ -63,6 +63,8 @@ func Listen() {
 // Close closes underlying channel.
 func Close() {
 	hooks.Lock()
-	close(hooks.done)
+	if hooks.done != nil {
+		close(hooks.done)
+	}
 	hooks.Unlock()
 }

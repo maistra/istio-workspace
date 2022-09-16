@@ -7,6 +7,7 @@ import (
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/delete"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 )
 
@@ -18,7 +19,7 @@ var _ = Describe("Usage of ike delete command", func() {
 		createCmd = delete.NewCmd()
 		createCmd.SilenceUsage = true
 		createCmd.SilenceErrors = true
-		NewCmd().AddCommand(createCmd)
+		NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(createCmd)
 	})
 
 	Describe("input validation", func() {

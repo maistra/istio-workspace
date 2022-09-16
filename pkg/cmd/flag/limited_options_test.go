@@ -7,6 +7,7 @@ import (
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/flag"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 )
 
@@ -20,7 +21,7 @@ var _ = Describe("Usage of limited flags", func() {
 			testCmd = newTestCmd("stout", "s", "ale", "a", "kolsch", "k")
 			testCmd.SilenceUsage = true
 			testCmd.SilenceErrors = true
-			NewCmd().AddCommand(testCmd)
+			NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(testCmd)
 		})
 
 		It("should accept defined value using full name", func() {
