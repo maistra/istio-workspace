@@ -5,6 +5,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 
+	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -20,6 +21,9 @@ func NewCmd() *cobra.Command {
 		Use:          "delete",
 		Short:        "Deletes an existing Session",
 		SilenceUsage: true,
+		Annotations: map[string]string{
+			cmd.AnnotationOperatorRequired: "true",
+		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "failed syncing flags")
 		},
