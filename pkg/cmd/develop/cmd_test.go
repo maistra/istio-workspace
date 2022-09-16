@@ -11,6 +11,7 @@ import (
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
 )
@@ -19,11 +20,11 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
-	BeforeEach(func() {
+	JustBeforeEach(func() {
 		developCmd = develop.NewCmd()
 		developCmd.SilenceUsage = true
 		developCmd.SilenceErrors = true
-		NewCmd().AddCommand(developCmd)
+		NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(developCmd)
 	})
 
 	Context("checking telepresence binary existence", func() {

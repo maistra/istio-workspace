@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 
+	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/cmd/flag"
@@ -26,10 +27,11 @@ var (
 
 	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 
-	// Used in the tp-wrapper to check if passed command
-	// can be parsed (so has all required flags).
-	tpAnnotations = map[string]string{
-		"telepresence": "translatable",
+	annotations = map[string]string{
+		// Used in the tp-wrapper to check if passed command
+		// can be parsed (so has all required flags).
+		"telepresence":                 "translatable",
+		cmd.AnnotationOperatorRequired: "true",
 	}
 )
 
@@ -40,7 +42,7 @@ func NewCmd() *cobra.Command {
 		Short:            "Starts the development flow",
 		SilenceUsage:     true,
 		TraverseChildren: true,
-		Annotations:      tpAnnotations,
+		Annotations:      annotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
 				return errorTpNotAvailable
