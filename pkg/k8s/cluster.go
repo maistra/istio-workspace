@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 
 	"emperror.dev/errors"
 	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
@@ -40,8 +39,6 @@ func (v *ClusterVerifier) CheckCRD() (bool, error) {
 	if errorsK8s.IsNotFound(err) {
 		return false, nil
 	}
-
-	fmt.Printf("%v\n", res)
 
 	return res != nil, errors.Wrap(err, "failed checking if istio-workspace operator is installed")
 }
