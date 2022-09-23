@@ -184,6 +184,9 @@ func createDevelopNewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ns := cmd.Flag("namespace").Value.String()
 			client, err := dynclient.NewDefaultDynamicClient(ns, true)
+			defer func() {
+				_ = deploymentCleanup(client)
+			}()
 			if err != nil {
 				return errors.Wrap(err, "Failed creating dynamic client")
 			}
@@ -199,9 +202,10 @@ func createDevelopNewCmd() *cobra.Command {
 
 				serviceName = codename.Generate(rng, 0)
 				fmt.Printf("generated name %s\n", serviceName)
-				if e := cmd.Parent().PersistentFlags().Set("deployment", serviceName+"-v1"); e != nil {
-					return errors.Wrapf(e, "Failed populating flags")
-				}
+			}
+
+			if e := cmd.Parent().PersistentFlags().Set("deployment", serviceName+"-v1"); e != nil {
+				return errors.Wrapf(e, "Failed populating flags")
 			}
 
 			gateway := cmd.Flag("gateway").Value.String()
@@ -226,15 +230,6 @@ func createDevelopNewCmd() *cobra.Command {
 			}
 
 			return errors.Wrapf(cmd.Parent().RunE(cmd, args), "failed executing `ike develop` command from `ike develop new`")
-		},
-		PostRunE: func(cmd *cobra.Command, args []string) error {
-			ns := cmd.Flag("namespace").Value.String()
-			client, err := dynclient.NewDefaultDynamicClient(ns, true)
-			if err != nil {
-				return errors.Wrap(err, "Failed creating dynamic client")
-			}
-
-			return deploymentCleanup(client)()
 		},
 	}
 
