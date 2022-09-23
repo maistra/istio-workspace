@@ -53,11 +53,9 @@ done
 
 
 ## Check if tag exists
-tag_exists=$(git --no-pager tag --list | grep -c "${version}")
-if [[ ${tag_exists} -ne 0 ]]; then
-  die "Tag \`${version}\` already exists!"
+if [ $(git tag -l "$version") ]; then
+  die "Version \`${version}\` already exists!"
 fi
-
 
 git reset $(git merge-base master HEAD)
 git add -A

@@ -3,16 +3,14 @@ package reference_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/goleak"
-
-	. "github.com/maistra/istio-workspace/test"
 )
 
 func TestSessionController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "Reference Enqueue Suite")
+	RunSpecs(t, "Reference Enqueue Suite")
 }
 
 var current goleak.Option

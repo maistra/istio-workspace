@@ -3,9 +3,7 @@ package execute
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 
 	"emperror.dev/errors"
@@ -15,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
+	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/watch"
@@ -27,6 +26,15 @@ const (
 	NoBuildFlagName = "no-build"
 	// RunFlagName is a name of the flag which defines process to be executed.
 	RunFlagName = "run"
+)
+
+type cmdCtrl int
+
+const (
+	start   cmdCtrl = iota // 0
+	restart                // 1
+	stop                   // 2
+
 )
 
 // DefaultExclusions is a slices with glob patterns excluded by default.
@@ -56,16 +64,11 @@ func NewCmd() *cobra.Command {
 	executeCmd.Flags().StringP(RunFlagName, "r", "", "command to run your application")
 	// Watch config
 	executeCmd.Flags().Bool("watch", false, "enables watch")
-	executeCmd.Flags().StringSliceP("dir", "w", []string{"."}, "list of directories to watch")
-	executeCmd.Flags().StringSlice("exclude", DefaultExclusions, "list of patterns to exclude (defaults to telepresence.log which is always excluded)")
+	executeCmd.Flags().StringSlice("dir", []string{"."}, "list of directories to watch (defaults to current directory)")
+	// Empty slice as we are always adding DefaultExclusions while constructing the watch
+	executeCmd.Flags().StringSlice("exclude", []string{}, fmt.Sprintf("list of patterns to exclude (always excludes %v)", DefaultExclusions))
 	executeCmd.Flags().Int64("interval", 500, "watch interval (in ms)")
 	if err := executeCmd.Flags().MarkHidden("interval"); err != nil {
-		logger().Error(err, "failed while trying to hide a flag")
-	}
-
-	// To enable SIGTERM emulation for testing purposes
-	executeCmd.Flags().Bool("kill", false, "to kill during testing")
-	if err := executeCmd.Flags().MarkHidden("kill"); err != nil {
 		logger().Error(err, "failed while trying to hide a flag")
 	}
 
@@ -73,7 +76,7 @@ func NewCmd() *cobra.Command {
 }
 
 func execute(command *cobra.Command, args []string) error {
-	watcher := func(restart chan int32) (func(), error) {
+	watcher := func(cmdChan chan cmdCtrl) (func(), error) {
 		dirs, _ := command.Flags().GetStringSlice("dir")
 		excluded, e := command.Flags().GetStringSlice("exclude")
 		if e != nil {
@@ -82,15 +85,17 @@ func execute(command *cobra.Command, args []string) error {
 		excluded = append(excluded, DefaultExclusions...)
 
 		ms, _ := command.Flags().GetInt64("interval")
-		w, err := watch.CreateWatch(ms).
-			WithHandlers(func(events []fsnotify.Event) error {
-				for _, event := range events {
-					_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
-				}
-				restart <- 1
+		restartHandler := func(events []fsnotify.Event) error {
+			for _, event := range events {
+				_, _ = command.OutOrStdout().Write([]byte(event.Name + " changed. Restarting process.\n"))
+			}
+			cmdChan <- restart
 
-				return nil
-			}).
+			return nil
+		}
+
+		w, err := watch.CreateWatch(ms).
+			WithHandlers(restartHandler).
 			Excluding(excluded...).
 			OnPaths(dirs...)
 
@@ -103,14 +108,14 @@ func execute(command *cobra.Command, args []string) error {
 		return w.Close, nil
 	}
 
-	kill := make(chan struct{})
-	defer close(kill)
+	stopPrevious := make(chan struct{})
+	defer close(stopPrevious)
 
-	restart := make(chan int32)
-	defer close(restart)
+	cmdChan := make(chan cmdCtrl)
+	defer close(cmdChan)
 
 	if w, e := command.Flags().GetBool("watch"); w && e == nil {
-		closeWatch, err := watcher(restart)
+		closeWatch, err := watcher(cmdChan)
 		if err != nil {
 			return errors.WrapIf(err, "failed watching")
 		}
@@ -119,53 +124,45 @@ func execute(command *cobra.Command, args []string) error {
 		return errors.Wrap(e, "failed obtaining watch flag")
 	}
 
+	end := make(chan struct{}, 1)
+	defer close(end)
+
 	go func() {
-		for i := range restart {
-			if i > 0 { // not initial restart
-				kill <- struct{}{}
+		for i := range cmdChan {
+			switch i {
+			case start:
+				go buildAndRun(buildExecutor(command), runExecutor(command), stopPrevious, cmdChan)
+			case restart:
+				stopPrevious <- struct{}{}
+			case stop:
+				end <- struct{}{}
 			}
-			go buildAndRun(buildExecutor(command), runExecutor(command), kill, restart)
 		}
 	}()
 
-	hookChan := make(chan os.Signal, 1)
-	testSigtermGuard := make(chan struct{})
-	defer close(testSigtermGuard)
+	cmdChan <- start
 
-	go simulateSigterm(command, testSigtermGuard, hookChan)
-
-	signal.Notify(hookChan, os.Interrupt, syscall.SIGTERM)
-	defer func() {
-		signal.Stop(hookChan)
-		close(hookChan)
-	}()
-
-	restart <- 0
-
-	<-hookChan
-
-	kill <- struct{}{}
+	<-end
 
 	return nil
 }
 
 type stopper func() error
-type executor func(restart chan int32) stopper
+type executor func(cmdChan chan cmdCtrl) stopper
 
 func buildExecutor(command *cobra.Command) executor {
-	return func(chan int32) stopper {
-		buildFlag := command.Flag(BuildFlagName)
+	buildFlag := command.Flag(BuildFlagName)
+	skipBuild, _ := command.Flags().GetBool(NoBuildFlagName)
 
-		skipBuild, _ := command.Flags().GetBool(NoBuildFlagName)
+	shouldRunBuild := buildFlag.Changed && !skipBuild
+	if !shouldRunBuild {
+		return func(chan cmdCtrl) stopper { return func() error { return nil } } // NOOP
+	}
 
-		shouldRunBuild := buildFlag.Changed && !skipBuild
-		if !shouldRunBuild {
-			return func() error { return nil }
-		}
+	buildCmd := command.Flag(BuildFlagName).Value.String()
+	buildArgs := strings.Split(buildCmd, " ")
 
-		buildCmd := command.Flag("build").Value.String()
-		buildArgs := strings.Split(buildCmd, " ")
-
+	return func(chan cmdCtrl) stopper {
 		b := gocmd.NewCmdOptions(shell.StreamOutput, buildArgs[0], buildArgs[1:]...)
 		b.Env = os.Environ()
 		shell.RedirectStreams(b, command.OutOrStdout(), command.OutOrStderr())
@@ -174,8 +171,11 @@ func buildExecutor(command *cobra.Command) executor {
 			"args", fmt.Sprint(b.Args),
 		)
 
+		hook.Register(func() error {
+			return b.Stop() //nolint:wrapcheck //reason shutdownhook, it's where all ends anyway
+		})
+
 		<-b.Start()
-		<-b.Done()
 
 		status := b.Status()
 		if status.Error != nil {
@@ -187,22 +187,37 @@ func buildExecutor(command *cobra.Command) executor {
 }
 
 func runExecutor(command *cobra.Command) executor {
-	return func(restart chan int32) stopper {
-		runCmd := command.Flag("run").Value.String()
-		runArgs := strings.Split(runCmd, " ")
+	runCmd := command.Flag("run").Value.String()
+	runArgs := strings.Split(runCmd, " ")
+
+	return func(cmdChan chan cmdCtrl) stopper {
 		r := gocmd.NewCmdOptions(shell.StreamOutput, runArgs[0], runArgs[1:]...)
 		r.Env = os.Environ()
 		shell.RedirectStreams(r, command.OutOrStdout(), command.OutOrStderr())
+
 		logger().V(1).Info("starting run command",
 			"cmd", r.Name,
 			"args", fmt.Sprint(r.Args),
 		)
+
 		go func(statusChan <-chan gocmd.Status) {
+			hook.Register(func() error {
+				cmdChan <- stop
+
+				return r.Stop() //nolint:wrapcheck //reason shutdownhook, it's where all ends anyway
+			})
+
 			status := <-statusChan
 			if status.Exit > 0 {
 				logger().Error(status.Error, fmt.Sprintf("failed to run [%s] command", command.Name()))
-				time.Sleep(5000 * time.Millisecond) // to avoid too frequent restarts of instantly failing process so that user can actually notice
-				restart <- 10
+				time.Sleep(4 * time.Second) // to avoid too frequent restarts of instantly failing process so that user can actually notice
+				cmdChan <- restart
+
+				return
+			}
+
+			if status.Complete {
+				cmdChan <- stop
 			}
 		}(r.Start())
 
@@ -210,35 +225,14 @@ func runExecutor(command *cobra.Command) executor {
 	}
 }
 
-func buildAndRun(builder, runner executor, kill chan struct{}, restart chan int32) {
-	_ = builder(restart)
-	stopRun := runner(restart)
+func buildAndRun(builder, runner executor, stopPrevious chan struct{}, cmdChan chan cmdCtrl) {
+	_ = builder(cmdChan)
+	stopRun := runner(cmdChan)
 
-	<-kill
-
-	if e := stopRun(); e != nil {
-		logger().Error(e, "failed while trying to stop RUN process")
-	}
-}
-
-// simulateSigterm allow us to simulate a SIGTERM when running cobra command inside a test.
-// Triggered by setting the command flag "--kill" to true when you want SIGTERM to occur.
-func simulateSigterm(command *cobra.Command, testSigtermGuard chan struct{}, hookChan chan os.Signal) {
-	const enabled = "true"
-	if command.Annotations["test"] != enabled {
-		return
-	}
-
-	for {
-		select {
-		case <-testSigtermGuard:
-			return
-		default:
-			if command.Flag("kill").Value.String() == enabled {
-				hookChan <- syscall.SIGTERM
-
-				return
-			}
+	if _, ok := <-stopPrevious; ok {
+		if e := stopRun(); e != nil {
+			logger().Error(e, "failed while trying to stop RUNNING process")
 		}
+		cmdChan <- start
 	}
 }

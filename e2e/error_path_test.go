@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/maistra/istio-workspace/e2e/infra"
@@ -19,7 +19,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 		It("should return non 0 on failed command", func() {
 			completion := testshell.ExecuteInDir(".", "bash", "-c", "ike missing-command")
 			<-completion.Done()
-			Expect(completion.Status().Exit).Should(Equal(23))
+			Expect(completion.Status().Exit).Should(Not(BeZero()))
 		})
 
 	})
@@ -45,7 +45,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 		})
 
 		AfterEach(func() {
-			if CurrentGinkgoTestDescription().Failed {
+			if CurrentSpecReport().Failed() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			}
 			CleanupNamespace(namespace, false)

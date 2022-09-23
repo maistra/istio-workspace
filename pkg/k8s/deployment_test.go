@@ -3,7 +3,7 @@ package k8s_test
 import (
 	"context"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -125,10 +125,10 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 										LivenessProbe: &v1.Probe{
-											Handler: v1.Handler{
+											ProbeHandler: v1.ProbeHandler{
 												HTTPGet: &v1.HTTPGetAction{
 													Path: "/healthz",
 													Port: intstr.FromInt(9080),
@@ -136,7 +136,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 											},
 										},
 										ReadinessProbe: &v1.Probe{
-											Handler: v1.Handler{
+											ProbeHandler: v1.ProbeHandler{
 												HTTPGet: &v1.HTTPGetAction{
 													Path: "/healthz",
 													Port: intstr.FromInt(9080),
@@ -310,7 +310,7 @@ var _ = Describe("Operations for k8s Deployment kind", func() {
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
 									{
-										Image: "datawire/hello-world:latest",
+										Image: "crccheck/hello-world:latest",
 										Env:   []v1.EnvVar{},
 									},
 								},

@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: "Tag matching commit (with `/tag vX.Y.Z` directive in the commit message)"
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         env:
           GIT_USER: ${{secrets.GIT_USER}}
           GIT_EMAIL: ${{secrets.GIT_EMAIL}}
@@ -21,7 +21,7 @@ jobs:
                 const match = captureVersion.exec(commit.message);
                 if (match) {
                   const version = `v${match[1]}`
-                  github.git.createTag({
+                  github.rest.git.createTag({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     tag: version,
@@ -33,7 +33,7 @@ jobs:
                       email: "${{ env.GIT_EMAIL }}",
                     },
                   }).then(() => {
-                    github.git.createRef({
+                    github.rest.git.createRef({
                       owner: context.repo.owner,
                       repo: context.repo.repo,
                       ref: `refs/tags/${version}`,

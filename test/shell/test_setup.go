@@ -4,28 +4,32 @@ import (
 	"os"
 	"path"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/spf13/afero"
 )
 
 var (
-	MvnBin       string
-	TpSleepBin   string
-	TpVersionBin string
-	JavaBin      string
+	MvnBin             string
+	Tp1WithSleepBin    string
+	Tp1FixedVersionBin string
+	Tp1VersionFlagBin  string
+	Tp2VersionFlagBin  string
+	JavaBin            string
 )
 
 func StubShellCommands() {
-	MvnBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
-	JavaBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "java",
+	MvnBin = BuildBinary("github.com/maistra/istio-workspace/test/echo", "mvn")
+	JavaBin = BuildBinary("github.com/maistra/istio-workspace/test/echo", "java",
 		"-ldflags", "-w -X main.SleepMs=1024")
-	_ = buildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
+	_ = BuildBinary("github.com/maistra/istio-workspace/test/echo", "ike",
 		"-ldflags", "-w -X main.SleepMs=50")
-	TpVersionBin = buildBinary("github.com/maistra/istio-workspace/test/echo", "telepresence", "-ldflags", "-w -X main.Echo=0.234")
-	TpSleepBin = buildBinary("github.com/maistra/istio-workspace/test/echo",
-		"telepresence", "-ldflags", "-w -X main.SleepMs=256")
+	Tp1FixedVersionBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1 -X main.Return=0.234")
+	Tp1VersionFlagBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v1")
+	Tp2VersionFlagBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub", "telepresence", "-ldflags", "-w -X main.Version=v2")
+	Tp1WithSleepBin = BuildBinary("github.com/maistra/istio-workspace/test/tp_stub",
+		"telepresence", "-ldflags", "-w -X main.SleepMs=256 -X main.Version=v1")
 }
 
 func ExecuteCommand(outputChan chan string, execute func() (string, error)) func() {
@@ -39,7 +43,7 @@ func ExecuteCommand(outputChan chan string, execute func() (string, error)) func
 
 var appFs = afero.NewOsFs()
 
-func buildBinary(packagePath, name string, flags ...string) string { //nolint:unparam //reason at this moment we always pass the same value for packagePath
+func BuildBinary(packagePath, name string, flags ...string) string {
 	binPath, err := gexec.Build(packagePath, flags...)
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 

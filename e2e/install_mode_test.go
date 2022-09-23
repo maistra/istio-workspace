@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	"github.com/go-cmd/cmd"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/maistra/istio-workspace/e2e/infra"
@@ -66,6 +67,13 @@ var _ = Describe("Operator installation", func() {
 		}
 
 		VerifyWatchList := func(validateNamespaces ...string) {
+			var ikeCmds []*cmd.Cmd
+			defer func() {
+				for _, ikeCmd := range ikeCmds {
+					ikeCmd.Stop()
+				}
+			}()
+			// Start deployments first
 			for _, watchNs := range validateNamespaces {
 				ikeCreate := RunIke(shell.GetProjectDir(), "create",
 					"--deployment", watchNs+"-v1",
@@ -74,7 +82,10 @@ var _ = Describe("Operator installation", func() {
 					"--image", "x:x:x", // never used
 					"--session", watchNs,
 				)
-
+				ikeCmds = append(ikeCmds, ikeCreate)
+			}
+			// Then wait for completion
+			for _, watchNs := range validateNamespaces {
 				Eventually(func(contain string) func() bool {
 					return func() bool {
 						operatorLog := shell.ExecuteInDir(".",
@@ -88,9 +99,7 @@ var _ = Describe("Operator installation", func() {
 
 						return strings.Contains(log, contain)
 					}
-				}(watchNs), 1*time.Minute, 5*time.Second).Should(BeTrue())
-
-				ikeCreate.Stop()
+				}(watchNs), 2*time.Minute, 10*time.Second).Should(BeTrue())
 				<-shell.ExecuteInDir(".", "kubectl", "delete", "session", watchNs, "-n", watchNs).Done()
 			}
 
@@ -120,7 +129,7 @@ var _ = Describe("Operator installation", func() {
 			VerifyWatchList(namespaces...)
 		})
 
-		PIt("should install to multiple namespaces", func() { // require Operator SDK update, see: https://github.com/operator-framework/operator-sdk/issues/4512
+		It("should install to multiple namespaces", func() {
 			namespaces = append(namespaces, generateNamespaceName(), generateNamespaceName())
 			CreateNamespace()
 

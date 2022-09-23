@@ -13,7 +13,7 @@ jobs:
           || contains(github.event.comment.author_association, 'COLLABORATOR'))
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fetch all tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set GitHub user
@@ -25,11 +25,11 @@ jobs:
           git config --local user.email "${GIT_EMAIL}"
       - name: Checkout PR branch
         id: checkout
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            const pr = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
@@ -61,7 +61,7 @@ jobs:
 
       - name: Validate
         id: validation
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -87,7 +87,7 @@ jobs:
 
       - name: Generate changelog
         if: success()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         env:
           GHC_GITHUB_TOKEN: ${{secrets.GH_RELEASE_TOKEN}}
         with:
@@ -130,7 +130,7 @@ jobs:
             }
       - name: Publish job status and comment with details
         if: always()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -147,7 +147,7 @@ jobs:
             });
 
             if (status.details) {
-              github.issues.createComment({
+              github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -162,7 +162,7 @@ jobs:
           || contains(github.event.comment.author_association, 'COLLABORATOR'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Fetch all tags
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: Set GitHub user
@@ -174,11 +174,11 @@ jobs:
           git config --local user.email "${GIT_EMAIL}"
       - name: Checkout PR branch
         id: checkout
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            const pr = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
@@ -210,7 +210,7 @@ jobs:
 
       - name: Validate
         id: validation
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -235,7 +235,7 @@ jobs:
             }
 
       - name: Release commits
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -264,7 +264,7 @@ jobs:
             }
       - name: Publish job status and comment with details
         if: always()
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -281,7 +281,7 @@ jobs:
             });
 
             if (status.details) {
-              github.issues.createComment({
+              github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -298,18 +298,18 @@ jobs:
     steps:
       - name: Populate PR Head
         id: pr_head
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            const pr = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
             core.setOutput("sha", pr.data.head.sha);
       - name: Rebase on master
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
@@ -323,7 +323,7 @@ jobs:
               state: 'pending',
             });
 
-            github.pulls.merge({
+            github.rest.pulls.merge({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     pull_number: context.issue.number,
@@ -339,7 +339,7 @@ jobs:
                   target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
                 });
 
-                github.issues.createComment({
+                github.rest.issues.createComment({
                     issue_number: context.issue.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -357,7 +357,7 @@ jobs:
                   target_url: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}",
                 });
 
-                github.issues.createComment({
+                github.rest.issues.createComment({
                     issue_number: context.issue.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -376,11 +376,11 @@ jobs:
     steps:
       - name: Comment with docs
         id: comment-help
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GH_RELEASE_TOKEN}}
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,

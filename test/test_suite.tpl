@@ -12,7 +12,7 @@ import (
 
 func Test{{.FormattedName}}(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "{{.FormattedName}} Suite")
+	RunSpecs(t, "{{.FormattedName}} Suite")
 }
 
 var current goleak.Option

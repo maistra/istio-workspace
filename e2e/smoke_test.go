@@ -9,7 +9,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-cmd/cmd"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	"github.com/schollz/progressbar/v3"
@@ -50,7 +50,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 		})
 
 		AfterEach(func() {
-			if CurrentGinkgoTestDescription().Failed {
+			if CurrentSpecReport().Failed() {
 				DumpEnvironmentDebugInfo(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
@@ -326,6 +326,8 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Context("Tekton", func() {
 
 				BeforeEach(func() {
+					tektonInstalled := AllDeploymentsReady("deployment", "tekton-pipelines")()
+					Expect(tektonInstalled).To(BeTrue(), "tekton-pipelines should be installed")
 					scenario = "scenario-1"
 				})
 
@@ -498,7 +500,7 @@ func Stop(ike *cmd.Cmd) {
 
 func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 	<-command.Done()
-	if command.Status().Exit != 0 {
+	if command.Status().Exit != 0 && command.Status().Exit != 130 { // do not panic on SIGINT
 		t.Errorf("failed executing %s with code %d", command.Name, command.Status().Exit)
 	}
 }

@@ -5,7 +5,7 @@ In this section we walk you through necessary steps to start using `ike`. It wil
 == What do you need
 
 * [x] `oc` or `kubectl`
-* [x] https://www.telepresence.io/reference/install[Telepresence] CLI tool (and required runtime dependencies)
+* [x] https://www.telepresence.io/docs/v1/reference/install/[Telepresence] CLI tool (and required runtime dependencies)
 * [x] `ike` binary (see below)
 * [x] Kubernetes cluster with Istio (i.e. Maistra)
 
@@ -33,7 +33,19 @@ operator-sdk install
 operator-sdk run bundle quay.io/maistra/istio-workspace-operator-bundle:latest
 ----
 
-NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags 
+NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags
+
+=== Additional steps 
+
+====  Openshift
+
+IMPORTANT: It might be necessary to define security context constraint in order for Telepresence to run privileged containers. Execute following commands using an account with sufficient permission (i.e. for local cluster login first as `system:admin`). Make sure you are applying it against the right namespace.
+
+[source,shell,indent=0]
+----
+include::example$Makefile[tag=anyuid]
+include::example$Makefile[tag=privileged]
+----
 
 == Using `ike` CLI
 

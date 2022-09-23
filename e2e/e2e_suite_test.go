@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/maistra/istio-workspace/e2e/infra"
@@ -21,7 +21,7 @@ import (
 
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecWithJUnitReporter(t, "End To End Test Suite")
+	RunSpecs(t, "End To End Test Suite")
 }
 
 const (
@@ -92,9 +92,9 @@ func createProjectsForCompletionTests() {
 		NewProjectCmd(CompletionProject1),
 		NewProjectCmd(CompletionProject2),
 	)
-	testshell.ExecuteAll(DeployHelloWorldCmd("my-datawire-deployment", CompletionProject1)...)
-	testshell.ExecuteAll(DeployHelloWorldCmd("other-1-datawire-deployment", CompletionProject2)...)
-	testshell.ExecuteAll(DeployHelloWorldCmd("other-2-datawire-deployment", CompletionProject2)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("my-deployment", CompletionProject1)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("other-1-deployment", CompletionProject2)...)
+	testshell.ExecuteAll(DeployNoopLoopCmd("other-2-deployment", CompletionProject2)...)
 }
 
 func deleteProjectsForCompletionTests() {

@@ -1,12 +1,13 @@
 package create_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/create"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 )
 
@@ -18,7 +19,7 @@ var _ = Describe("Usage of ike create command", func() {
 		createCmd = create.NewCmd()
 		createCmd.SilenceUsage = true
 		createCmd.SilenceErrors = true
-		NewCmd().AddCommand(createCmd)
+		NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(createCmd)
 	})
 
 	Describe("input validation", func() {
@@ -32,7 +33,7 @@ var _ = Describe("Usage of ike create command", func() {
 				Expect(err.Error()).To(And(ContainSubstring("required flag(s)"), ContainSubstring("deployment")))
 			})
 
-			It("should fail when image command is not specified", func() {
+			It("should fail when image flag is not specified", func() {
 				defer TemporaryUnsetEnvVars("IKE_IMAGE")()
 				_, err := ValidateArgumentsOf(createCmd).Passing("--deployment", "rating-service")
 

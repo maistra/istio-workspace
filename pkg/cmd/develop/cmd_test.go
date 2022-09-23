@@ -4,13 +4,14 @@ import (
 	"os"
 	"path"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
 )
@@ -19,18 +20,18 @@ var _ = Describe("Usage of ike develop command", func() {
 
 	var developCmd *cobra.Command
 
-	BeforeEach(func() {
+	JustBeforeEach(func() {
 		developCmd = develop.NewCmd()
 		developCmd.SilenceUsage = true
 		developCmd.SilenceErrors = true
-		NewCmd().AddCommand(developCmd)
+		NewCmd(&k8s.AssumeOperatorInstalled{}).AddCommand(developCmd)
 	})
 
 	Context("checking telepresence binary existence", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 
@@ -50,7 +51,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 
@@ -196,7 +197,7 @@ var _ = Describe("Usage of ike develop command", func() {
 
 		tmpPath := NewTmpPath()
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.TpSleepBin))
+			tmpPath.SetPath(path.Dir(shell.MvnBin), path.Dir(shell.Tp1WithSleepBin))
 		})
 		AfterEach(tmpPath.Restore)
 

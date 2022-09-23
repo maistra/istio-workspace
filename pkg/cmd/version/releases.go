@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v41/github"
 	"golang.org/x/net/context"
 
 	"github.com/maistra/istio-workspace/version"

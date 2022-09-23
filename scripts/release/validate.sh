@@ -13,15 +13,9 @@ die () {
 
 validate_version() {
   version=$1
-
-  validate_semantic_versioning "$1"
-
-  ## Check if tag exists
-  tag_exists=$(git --no-pager tag --list | grep -c "${version}")
-  if [[ ${tag_exists} -ne 0 ]]; then
+  if [ $(git tag -l "$version") ]; then
     die "Version \`${version}\` already exists!"
   fi
-
 }
 
 ensure_release_notes() {

@@ -25,20 +25,14 @@ defaults:
     command: |
       nvm install 10
       nvm use 10
-  merge-junit-reports: &merge-junit-reports
-    name: "Merges ginkgo junit test results"
-    command: |
-      sudo npm install -g junit-report-merger
-      mkdir -p ./test-results/
-      jrm ./test-results/junit-report-combined.xml $(find . -type f -name ginkgo-test-results.xml)
   docker:
-    - image: &golang-img cimg/go:1.17.1-node
+    - image: &golang-img cimg/go:1.17.11
   machine-conf: &machine-conf
     image: ubuntu-2004:202101-01
   skip-for-non-code-changes: &skip-for-non-code-changes
     name: "Skip job for non-code changes"
     command: |
-      if git diff -s --exit-code HEAD~..HEAD -- . ':!docs' ':!.github' ':!.circleci' ':!scripts'; then
+      if git diff -s --exit-code HEAD~..HEAD -- . ':!docs' ':!.github' ':!scripts'; then
         echo "This commit has only non-code related changes."
         circleci step halt
       fi
@@ -96,6 +90,7 @@ jobs:
   build:
     docker:
       - image: *golang-img
+    resource_class: large
     environment:
       BUILD_CACHE_FOLDER: ".circleci/cache"
     steps:
@@ -116,11 +111,8 @@ jobs:
       - run:
           name: "Run the build"
           command: make build-ci
-      - run:
-          when: always
-          <<: *merge-junit-reports
       - store_test_results:
-          path: ./test-results
+          path: ./ginkgo-test-results.xml
       - save_cache:
           key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:
@@ -133,6 +125,7 @@ jobs:
     working_directory: ~/.go_workspace/src/github.com/maistra/istio-workspace
     machine:
       <<: *machine-conf
+    resource_class: large
     environment:
       <<: *env-vars
     steps:
@@ -245,7 +238,7 @@ jobs:
             done
             echo "Istio enabled"
 
-            echo "Installing tekton"
+            echo "Installing Tekton"
             kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.27.3/release.yaml
             sleep 10
             n=0
@@ -277,7 +270,9 @@ jobs:
 
             make deps tools
 
-            ./bin/operator-sdk olm install --version v0.18.3
+            # tag::olm[]
+            ./bin/operator-sdk olm install --version v0.21.2
+            # end::olm[]
 
             make container-image container-push
             make container-image-test container-push-test
@@ -291,11 +286,8 @@ jobs:
           name: "Installs node using snap"
           command: |
             sudo snap install node --classic
-      - run:
-          when: always
-          <<: *merge-junit-reports
       - store_test_results:
-          path: ./test-results
+          path: ./ginkgo-test-results.xml
       - save_cache:
           key: golang-deps-{{ .Environment.CIRCLE_JOB }}-cache-{{ checksum "go.sum" }}
           paths:

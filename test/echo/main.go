@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -17,6 +18,8 @@ var SleepMs string
 var Echo string
 
 func main() {
+	fmt.Printf("echo pid: {%d}\n", syscall.Getpid())
+
 	if Echo != "" {
 		fmt.Println(Echo)
 	} else {

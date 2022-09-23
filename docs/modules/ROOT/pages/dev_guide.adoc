@@ -10,11 +10,67 @@
 
 == Local Development
 
+=== Using Minikube
+
+For installation guide please refer to https://minikube.sigs.k8s.io/docs/start/[official minikube documentation]. 
+
+TIP: It's recommended to use rather generous memory settings to avoid unnecessary hiccups of the platform. For example `minikube start --cpus=4 --memory=16g` should be sufficient for most of the cases.
+
+==== Additional configuration steps
+
+. Installing Istio
++
+By simply using `istioctl install` you can roll out default istio deployment which is sufficient for development practices. Check how to install `istioctl` command line tool on your OS in the https://istio.io/latest/docs/setup/install/istioctl/[official docs].
+
+. Installing Operator Lifecycle Management in the cluster
++
+[source,shell,indent=0]
+----
+include::example$config.yml[tag=olm]
+----
+
+. Enabling the tunnel
++
+For ease of use you could also enable the tunneling. This will create a route to services deployed with type LoadBalancer and sets their Ingress to their ClusterIP. Simply invoke `minikube tunnel` in another terminal window (or run it in the background).
+
+==== Running end-to-end tests
+
+To run the tests against local `minikube` instance you have to set few environment variables which you can pass as `ENV_FILE` and execute:
+
+First, create `minikube.env`. As each time some variables can differ (such as IP of the cluster), it's good to have them evaluated on the fly. You can use following snippet to create `.env` file.
+
+[source,bash]
+.minikube.env
+----
+cat <<EOF > minikubea.env                                         
+IKE_E2E_MANAGE_CLUSTER=false
+ISTIO_NS=istio-system
+IKE_IMAGE_TAG=latest
+TELEPRESENCE_VERSION=0.109
+IKE_CLUSTER_HOST=$(minikube ip)
+IKE_ISTIO_INGRESS=http://$(k get svc istio-ingressgateway -n istio-system -o jsonpath='{.spec.clusterIP}')/
+IKE_INTERNAL_CONTAINER_REGISTRY=quay.io
+IKE_EXTERNAL_CONTAINER_REGISTRY=quay.io
+IKE_CONTAINER_REPOSITORY=maistra-dev
+PRE_BUILT_IMAGES=true
+EOF
+----
+
+IMPORTANT: Setting `PRE_BUILT_IMAGES=true` will result in pulling required images from `quay.io/maistra-dev`. If you would like to use internal/local registry refer to <<microk8s-e2e,microk8s e2e tests example>>.
+
+With the created `.env` file you can now launch end-to-end tests passing following variable:
+
+[source,bash]
+----
+ENV_FILE=minikube.env make test-e2e
+----
+
 === Using MicroK8s
 
 MicroK8s is a lightweight, upstream Kubernetes distribution which you can run on your machine to develop and test changes. 
 
 Check https://microk8s.io/docs[official docs] to see how you can install it on your OS.
+
 
 ==== Needed customizations
 
@@ -37,6 +93,7 @@ export KUBECONFIG=/tmp/kubeconfig
 You might end up with Istio unable reach outside networks. 
 See this https://github.com/ubuntu/microk8s/issues/316[thread] and the solution specific for https://github.com/ubuntu/microk8s/issues/408[Fedora].
 
+[#microk8s-e2e]
 ==== Running end-to-end tests
 
 To run the tests against local `microk8s` instance you have to set few environment variables which you can pass as `ENV_FILE` and execute:
@@ -59,6 +116,7 @@ IKE_INTERNAL_CONTAINER_REGISTRY=localhost:32000
 IKE_EXTERNAL_CONTAINER_REGISTRY=localhost:32000
 ----
 
+IMPORTANT: In this case executing `make test-e2e` will result in building all the required images and pushing them to internal registry (see values of `IKE_INTERNAL_CONTAINER_REGISTRY` and `IKE_EXTERNAL_CONTAINER_REGISTRY`).  
 
 == Release
 

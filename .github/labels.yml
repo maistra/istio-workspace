@@ -57,4 +57,7 @@
 - name: MVP
   color: D93F0B
   description: "MVP Required Issue"
+- name: "good first issue"
+  color: 5319E7
+  description: "First time contributor friendly issue"
 

@@ -75,10 +75,11 @@ ifneq (, $(shell which oc))
 	k8s=oc
 endif
 
-IMG_BUILDER:=docker
-## Prefer to use podman
+# Prefer to use podman if not explicitly set
 ifneq (, $(shell which podman))
-	IMG_BUILDER=podman
+	IMG_BUILDER?=podman
+else
+	IMG_BUILDER?=docker
 endif
 
 ###########################################################################
@@ -94,12 +95,12 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v -progress -vet=off -trace -skipPackage=e2e ${args}
+	ginkgo -r -v -progress -vet=off -trace --skip-package=e2e --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
-	ginkgo e2e/ -r -v -progress -vet=off -trace ${args}
+	ginkgo e2e/ -r -v -progress -vet=off -trace --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts
@@ -128,7 +129,7 @@ lint: lint-prepare ## Concurrently runs a whole bunch of static analysis tools
 	$(call header,"Running a whole bunch of static analysis tools")
 	golangci-lint run --fix --sort-results
 
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+CRD_OPTIONS ?= crd
 .PHONY: generate
 generate: tools $(PROJECT_DIR)/$(ASSETS) $(PROJECT_DIR)/api ## Generates k8s manifests and srcs
 	$(call header,"Generates CRDs et al")
@@ -188,7 +189,7 @@ TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
 go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
@@ -199,7 +200,7 @@ tools: $(PROJECT_DIR)/bin/golangci-lint $(PROJECT_DIR)/bin/goimports $(PROJECT_D
 tools: $(PROJECT_DIR)/bin/protoc-gen-go $(PROJECT_DIR)/bin/yq $(PROJECT_DIR)/bin/ginkgo
 
 $(PROJECT_DIR)/bin/yq:
-	$(call header,"Installing")
+	$(call header,"Installing yq")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/mikefarah/yq/v4
 
 $(PROJECT_DIR)/bin/protoc-gen-go:
@@ -212,7 +213,7 @@ $(PROJECT_DIR)/bin/go-bindata:
 
 $(PROJECT_DIR)/bin/ginkgo:
 	$(call header,"Installing ginkgo")
-	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/ginkgo
+	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly github.com/onsi/ginkgo/v2/ginkgo
 
 $(PROJECT_DIR)/bin/goimports:
 	$(call header,"Installing goimports")
@@ -239,7 +240,7 @@ $(PROJECT_DIR)/bin/protoc:
 	$(PROJECT_DIR)/scripts/dev/get-protobuf.sh
 	chmod +x $(PROJECT_DIR)/bin/protoc
 
-OPERATOR_SDK_VERSION=v1.8.1
+OPERATOR_SDK_VERSION=v1.22.1
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
@@ -371,6 +372,7 @@ CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
 .PHONY: bundle
 bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR) ## Generate bundle manifests and metadata, then validate generated files
+	$(call header,"Generate bundle manifests and metadata")
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && kustomize edit set image controller=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(OPERATOR_VERSION) $(BUNDLE_METADATA_OPTS)
@@ -382,38 +384,41 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
 	sed -i -e '/insert::description-from-readme/{r $(PROJECT_DIR)/$(DESC_FILE)' -e 'd}' $(PROJECT_DIR)/$(CSV_FILE)
 	rm $(DESC_FILE)
-
+	$(call header,"Validate bundle")
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-image
 bundle-image:	## Build the bundle image
+	$(call header,"Building bundle image")
 	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
+	$(call header,"Pushing bundle image")
 	$(IMG_BUILDER) push $(BUNDLE_IMG)
 
 BUNDLE_TIMEOUT?=5m
+bundle-run:=operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
 
 .PHONY: bundle-run
 bundle-run:		## Run the bundle image in OwnNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode OwnNamespace --timeout $(BUNDLE_TIMEOUT)
+	$(bundle-run) --install-mode OwnNamespace
 
 .PHONY: bundle-run-single
 bundle-run-single:		## Run the bundle image in SingleNamespace(OPERATOR_NAMESPACE) install mode targeting OPERATOR_WATCH_NAMESPACE
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode SingleNamespace=${OPERATOR_WATCH_NAMESPACE} --timeout $(BUNDLE_TIMEOUT)
+	$(bundle-run) --install-mode MultiNamespace=${OPERATOR_WATCH_NAMESPACE}
 
 .PHONY: bundle-run-multi
 bundle-run-multi:		## Run the bundle image in MultiNamespace(OPERATOR_NAMESPACE) install mode targeting OPERATOR_WATCH_NAMESPACE
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode MultiNamespace=${OPERATOR_WATCH_NAMESPACE} --timeout $(BUNDLE_TIMEOUT)
+	$(bundle-run) --install-mode MultiNamespace=${OPERATOR_WATCH_NAMESPACE}
 
 .PHONY: bundle-run-all
 bundle-run-all:		## Run the bundle image in AllNamespace(OPERATOR_NAMESPACE) install mode
 	$(k8s) create namespace $(OPERATOR_NAMESPACE) || true
-	operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --install-mode AllNamespaces --timeout $(BUNDLE_TIMEOUT)
+	$(bundle-run) --install-mode AllNamespaces
 
 .PHONY: bundle-clean
 bundle-clean:	## Clean the bundle image
@@ -466,8 +471,17 @@ deploy-test-%:
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
-	command -v oc &>/dev/null && oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	# tag::anyuid[]
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
+	# end::anyuid[]
+
+	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
+	# tag::privileged[]
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
+	# end::privileged[]
+
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
 
 undeploy-test-%:
@@ -485,17 +499,7 @@ export VERSION
 
 .PHONY: release-notes-draft
 release-notes-draft: ## Prepares release notes based on template. e.g. VERSION=v1.0.0 make release-notes-draft
-	@if [ "$(VERSION)" = "x" ]; then\
-		echo "missing version: VERSION=v1.0.0 make prepare-release" && exit -1;\
-	else\
-		./scripts/release/validate.sh $(VERSION) --skip-release-notes-check && \
-		git checkout -b release_$(VERSION) && \
-		cp docs/modules/ROOT/pages/release_notes/release_notes_template.adoc docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-		sed -i -e "s/vX.Y.Z/${VERSION}/" docs/modules/ROOT/pages/release_notes/$(VERSION).adoc && \
-		git add . && \
-    git commit -m "release: highlights of ${VERSION}" -m "/skip-e2e" -m "/skip-build" && \
-		git show HEAD;\
-	fi
+	@./scripts/release/create_release_notes.sh --version=$(VERSION)
 
 .PHONY: help
 help:  ## Displays this help \o/
