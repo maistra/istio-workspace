@@ -34,7 +34,7 @@ var _ = Describe("Name generation (used for k8s objects such as namespaces, sess
 	})
 
 	It("should trim length to 63 when exceeded ", func() {
-		name := naming.GenerateString(rand.Intn(512) + 59)
+		name := naming.GenerateString(rand.Intn(512) + 63)
 		Expect(name).To(HaveLen(63))
 	})
 
