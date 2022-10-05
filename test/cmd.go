@@ -14,8 +14,6 @@ type Cmd cobra.Command
 
 // Run will run actual command.
 func Run(command *cobra.Command) *Cmd {
-	hook.Reset()
-
 	return (*Cmd)(command)
 }
 
@@ -49,7 +47,8 @@ func executeCommandC(cmd *cobra.Command, args ...string) (c *cobra.Command, outp
 	c, err = cmd.ExecuteC()
 
 	if err != nil {
-		// It is called as well in main.go on error. We need to close the channel to avoid leaking goroutine in tests.
+		// We need to close the channel to avoid leaking goroutine in tests.
+		// The same way as we do in main.go on error.
 		hook.Close()
 	}
 
