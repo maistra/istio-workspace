@@ -37,6 +37,8 @@ var _ = Describe("Usage of ike execute command", func() {
 
 	Context("watching file changes", func() {
 
+		const cmdTimeout = 2 * time.Second
+
 		tmpPath := NewTmpPath()
 
 		BeforeEach(func() {
@@ -68,7 +70,7 @@ var _ = Describe("Usage of ike execute command", func() {
 
 			// then
 			var output string
-			Eventually(outputChan).Should(Receive(&output))
+			Eventually(outputChan, cmdTimeout).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(2), "Expected build to be re-run.")
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2), "Expected process to be restarted.")
@@ -97,7 +99,7 @@ var _ = Describe("Usage of ike execute command", func() {
 
 			// then
 			var output string
-			Eventually(outputChan).Should(Receive(&output))
+			Eventually(outputChan, cmdTimeout).Should(Receive(&output))
 			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1), "Expected process to be executed once.")
 		})
@@ -126,7 +128,7 @@ var _ = Describe("Usage of ike execute command", func() {
 
 			// then
 			var output string
-			Eventually(outputChan).Should(Receive(&output))
+			Eventually(outputChan, cmdTimeout).Should(Receive(&output))
 			Expect(output).ToNot(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(1), "Expected process to be started once.")
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(1), "Expected build to be executed once.")
@@ -155,7 +157,7 @@ var _ = Describe("Usage of ike execute command", func() {
 
 			// then
 			var output string
-			Eventually(outputChan).Should(Receive(&output))
+			Eventually(outputChan, cmdTimeout).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(0), "Expected build to not be executed.")
 			Expect(strings.Count(output, "java -jar rating.jar")).To(Equal(2), "Expected process to be restarted.")
@@ -189,7 +191,7 @@ var _ = Describe("Usage of ike execute command", func() {
 
 			// then
 			var output string
-			Eventually(outputChan).Should(Receive(&output))
+			Eventually(outputChan, cmdTimeout).Should(Receive(&output))
 			Expect(output).To(ContainSubstring("rating.java changed. Restarting process."))
 			Expect(strings.Count(output, "mvn clean install")).To(Equal(0), "Expected build to not be executed.")
 		})

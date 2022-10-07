@@ -38,11 +38,15 @@ var _ = Describe("ike execute - managing spawned processes", func() {
 				"--run", "sleepy",
 			)
 
-			time.AfterFunc(50*time.Millisecond, func() {
-				_ = syscall.Kill(ikeExecute.Status().PID, syscall.SIGINT)
+			time.AfterFunc(100*time.Millisecond, func() {
+				pid := ikeExecute.Status().PID
+				if killErr := syscall.Kill(pid, syscall.SIGINT); killErr != nil {
+					fmt.Printf("failed killing process with pid %d. error: %v\n", pid, killErr.Error())
+				}
+
 			})
 
-			Eventually(ikeExecute.Done(), 100*time.Millisecond).Should(BeClosed())
+			Eventually(ikeExecute.Done(), 2*time.Second).Should(BeClosed())
 
 			pid, exists, err := findPID(ikeExecute.Status().Stdout)
 			Expect(err).To(Not(HaveOccurred()))
