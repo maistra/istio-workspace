@@ -380,7 +380,7 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 	sed -i 's/COPY bundle\//COPY /g' build/bundle.Containerfile
 	sed -i 's/containerImage: controller:latest/containerImage: $(IKE_CONTAINER_REGISTRY)\/$(IKE_CONTAINER_REPOSITORY)\/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG)/' $(PROJECT_DIR)/$(CSV_FILE)
 	sed -i 's/createdAt: "1970-01-01 00:00:0"/createdAt: $(shell date -u +%Y-%m-%dT%H:%M:%SZ)/' $(PROJECT_DIR)/$(CSV_FILE)
-	cat $(PROJECT_DIR)/README.md | awk '/tag::description/{flag=1;next}/end::description/{flag=0}flag' > $(PROJECT_DIR)/$(DESC_FILE)
+	cat $(PROJECT_DIR)/README.md | awk '/start::description/{flag=1;next}/end::description/{flag=0}flag' > $(PROJECT_DIR)/$(DESC_FILE)
 	sed -i 's/^/    /g' $(PROJECT_DIR)/$(DESC_FILE) # to make YAML happy we have to indent each line for the description field
 	sed -i -e '/insert::description-from-readme/{r $(PROJECT_DIR)/$(DESC_FILE)' -e 'd}' $(PROJECT_DIR)/$(CSV_FILE)
 	rm $(DESC_FILE)
