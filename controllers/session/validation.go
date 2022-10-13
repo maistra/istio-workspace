@@ -5,7 +5,7 @@ import (
 
 	"emperror.dev/errors"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
 )
 
@@ -16,7 +16,7 @@ const (
 // Validator returns a string of Type and a possible error.
 type Validator func(store model.LocatorStatusStore) (string, error)
 
-func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alpha1.Session, validators ...Validator) model.ModificatorController {
+func chainValidator(ctx model.SessionContext, ref model.Ref, session *workspacev1alpha1.Session, validators ...Validator) model.ModificatorController {
 	return func(store model.LocatorStatusStore) bool {
 		succeeded := true
 		for _, validator := range validators {
@@ -29,8 +29,8 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 
 			reason := ValidationReason
 			status := strconv.FormatBool(err == nil)
-			session.AddCondition(istiov1alpha1.Condition{
-				Source: istiov1alpha1.Source{
+			session.AddCondition(workspacev1alpha1.Condition{
+				Source: workspacev1alpha1.Source{
 					Kind: "Session",
 					Name: ctx.Name,
 					Ref:  ref.KindName.String(),

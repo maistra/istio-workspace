@@ -95,12 +95,12 @@ compile: deps generate format $(DIST_DIR)/$(BINARY_NAME) ## Compiles binaries
 .PHONY: test
 test: generate ## Runs tests
 	$(call header,"Running tests")
-	ginkgo -r -v -progress -vet=off -trace --skip-package=e2e --junit-report=ginkgo-test-results.xml ${args}
+	ginkgo -r -progress -vet=off -trace --skip-package=e2e --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: test-e2e
 test-e2e: compile ## Runs end-to-end tests
 	$(call header,"Running end-to-end tests")
-	ginkgo e2e/ -r -v -progress -vet=off -trace --junit-report=ginkgo-test-results.xml ${args}
+	ginkgo e2e/ -r -progress -vet=off -trace --junit-report=ginkgo-test-results.xml ${args}
 
 .PHONY: clean
 clean: ## Removes build artifacts
@@ -227,7 +227,7 @@ $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing controller-gen")
 	$(call go-get-tool,$(PROJECT_DIR)/bin/controller-gen,sigs.k8s.io/controller-tools/cmd/controller-gen@$(shell go mod graph | grep controller-tools | head -n 1 | cut -d'@' -f 2))
 
-KUSTOMIZE_VERSION?=v4.2.0
+KUSTOMIZE_VERSION?=v4.5.5
 $(PROJECT_DIR)/bin/kustomize:
 	$(call header,"Installing kustomize")
 	wget -q -c https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F$(KUSTOMIZE_VERSION)/kustomize_$(KUSTOMIZE_VERSION)_$(GOOS)_$(GOARCH).tar.gz -O /tmp/kustomize.tar.gz
@@ -288,6 +288,12 @@ container-image: compile ## Builds the container image
 	$(IMG_BUILDER) tag \
 		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):$(IKE_IMAGE_TAG) \
 		$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/$(IKE_IMAGE_NAME):latest
+
+.PHONY: container-image-all
+container-image-all: container-image container-image-test container-image-test-prepared
+
+.PHONY: container-push-all
+container-push-all: container-push container-push-test container-push-test-prepared
 
 .PHONY: container-push
 container-push: container-push--latest container-push-versioned ## Pushes container images to the registry (latest and versioned)
@@ -366,7 +372,7 @@ BUNDLE_CHANNELS:=--channels=$(CHANNELS)
 BUNDLE_DEFAULT_CHANNEL:=--default-channel=$(DEFAULT_CHANNEL)
 BUNDLE_METADATA_OPTS?=$(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-BUNDLE_IMG?=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/istio-workspace-operator-bundle:$(IKE_IMAGE_TAG)
+BUNDLE_IMG?=$(IKE_CONTAINER_REGISTRY)/$(IKE_CONTAINER_REPOSITORY)/istio-workspace-operator-bundle
 DESC_FILE:=dist/operatorhub_description.md
 CSV_FILE:=bundle/manifests/istio-workspace-operator.clusterserviceversion.yaml
 
@@ -390,15 +396,19 @@ bundle: $(PROJECT_DIR)/bin/operator-sdk $(PROJECT_DIR)/bin/kustomize $(DIST_DIR)
 .PHONY: bundle-image
 bundle-image:	## Build the bundle image
 	$(call header,"Building bundle image")
-	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG) bundle/
+	$(IMG_BUILDER) build -f build/bundle.Containerfile -t $(BUNDLE_IMG):$(IKE_IMAGE_TAG) bundle/
+	$(IMG_BUILDER) tag \
+		$(BUNDLE_IMG):$(IKE_IMAGE_TAG) \
+		$(BUNDLE_IMG):latest
 
 .PHONY: bundle-push
 bundle-push:	## Push the bundle image
 	$(call header,"Pushing bundle image")
-	$(IMG_BUILDER) push $(BUNDLE_IMG)
+	$(IMG_BUILDER) push $(BUNDLE_IMG):latest
+	$(IMG_BUILDER) push $(BUNDLE_IMG):$(IKE_IMAGE_TAG)
 
 BUNDLE_TIMEOUT?=5m
-bundle-run:=operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
+bundle-run:=operator-sdk run bundle $(BUNDLE_IMG):$(IKE_IMAGE_TAG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
 
 .PHONY: bundle-run
 bundle-run:		## Run the bundle image in OwnNamespace(OPERATOR_NAMESPACE) install mode

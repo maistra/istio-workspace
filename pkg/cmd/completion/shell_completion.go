@@ -16,6 +16,9 @@ var (
 func AddFlagCompletion(cmd *cobra.Command) {
 	for name, completion := range bashCompletionFlags {
 		pflag := cmd.Flags().Lookup(name)
+		if pflag == nil {
+			pflag = cmd.PersistentFlags().Lookup(name)
+		}
 		if pflag != nil {
 			if pflag.Annotations == nil {
 				pflag.Annotations = map[string][]string{}

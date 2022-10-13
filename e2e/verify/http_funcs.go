@@ -1,11 +1,13 @@
-package e2e
+package verify
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"emperror.dev/errors"
+	"github.com/schollz/progressbar/v3"
 )
 
 // GetBodyWithHeaders calls GET on a given URL with a specific set request headers
@@ -29,4 +31,17 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 	content, _ := ioutil.ReadAll(resp.Body)
 
 	return string(content), nil
+}
+
+func call(routeURL string, headers map[string]string) func() (string, error) {
+	fmt.Printf("Checking [%s] with headers [%s]\n", routeURL, headers)
+	bar := progressbar.Default(-1)
+
+	return func() (string, error) {
+		if err := bar.Add(1); err != nil {
+			return "", err
+		}
+
+		return GetBodyWithHeaders(routeURL, headers)
+	}
 }

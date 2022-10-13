@@ -102,7 +102,7 @@ For detailed documentation please visit ` + DocsLink,
 			return nil
 		},
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			hook.Close()
+			hook.Close() // in case of error during cmd run invoking func needs to call it (see main.go)
 		},
 	}
 

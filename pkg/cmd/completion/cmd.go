@@ -28,6 +28,7 @@ func NewCmd() *cobra.Command {
 		Example:      eg,
 		SilenceUsage: true,
 		ValidArgs:    []string{"bash", "zsh"},
+		Args:         cobra.OnlyValidArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			switch args[0] {
 			case "bash":

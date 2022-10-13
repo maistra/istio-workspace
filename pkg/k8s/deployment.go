@@ -45,7 +45,7 @@ func DeploymentLocator(ctx model.SessionContext, ref model.Ref, store model.Loca
 			resource := deployments.Items[i]
 			action, hash := reference.GetRefMarker(&resource, labelKey)
 			if ref.Hash() != hash {
-				undo := model.Flip(model.StatusAction(action))
+				undo := model.Undo(model.StatusAction(action))
 				report(model.LocatorStatus{
 					Resource: model.Resource{
 						Kind:      DeploymentKind,
@@ -78,7 +78,7 @@ func DeploymentLocator(ctx model.SessionContext, ref model.Ref, store model.Loca
 		for i := range deployments.Items {
 			deployment := deployments.Items[i]
 			action, _ := reference.GetRefMarker(&deployment, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
 					Kind:      DeploymentKind,

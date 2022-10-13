@@ -41,7 +41,7 @@ func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model
 			destinationRule := destinationRules.Items[i]
 			action, hash := reference.GetRefMarker(&destinationRule, labelKey)
 			if ref.Hash() != hash {
-				undo := model.Flip(model.StatusAction(action))
+				undo := model.Undo(model.StatusAction(action))
 				report(model.LocatorStatus{
 					Resource: model.Resource{
 						Kind:      DestinationRuleKind,
@@ -72,7 +72,7 @@ func DestinationRuleLocator(ctx model.SessionContext, ref model.Ref, store model
 		for i := range destinationRules.Items {
 			resource := destinationRules.Items[i]
 			action, _ := reference.GetRefMarker(&resource, labelKey)
-			undo := model.Flip(model.StatusAction(action))
+			undo := model.Undo(model.StatusAction(action))
 			report(model.LocatorStatus{
 				Resource: model.Resource{
 					Kind:      DestinationRuleKind,

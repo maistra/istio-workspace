@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/istio"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
@@ -104,7 +104,7 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	// Watch for changes to primary resource Session
-	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}}, &handler.InstrumentedEnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
+	err = c.Watch(&source.Kind{Type: &workspacev1alpha1.Session{}}, &handler.InstrumentedEnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return errors.Wrap(err, "failed creating session-controller")
 	}
@@ -181,7 +181,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	c := NewInstrumentedClient(r.client)
 
 	// Fetch the Session instance
-	session := &istiov1alpha1.Session{}
+	session := &workspacev1alpha1.Session{}
 	err := c.Get(context.Background(), request.NamespacedName, session)
 	if err != nil {
 		if errorsK8s.IsNotFound(err) {
@@ -204,9 +204,9 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	// update session.status.Route if it was not provided
 	session.Status.Route = ConvertModelRouteToAPIRoute(route)
 	session.Status.RouteExpression = session.Status.Route.String()
-	processing := istiov1alpha1.StateProcessing
+	processing := workspacev1alpha1.StateProcessing
 	session.Status.State = &processing
-	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
+	session.Status.Readiness = workspacev1alpha1.StatusReadiness{Components: workspacev1alpha1.StatusComponents{}}
 
 	err = c.Status().Update(ctx, session)
 	if err != nil {
@@ -232,7 +232,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 
 	refs := calculateReferences(ctx, session)
 	sync := model.NewSync(r.manipulators.Locators, extractModificators(r.manipulators.Handlers))
-	session.Status.Conditions = []*istiov1alpha1.Condition{}
+	session.Status.Conditions = []*workspacev1alpha1.Condition{}
 	session.Status.Hosts = []string{}
 	session.Status.RefNames = []string{}
 	session.Status.Strategies = []string{}
@@ -299,10 +299,10 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	return reconcile.Result{}, nil
 }
 
-func allConditionsSuccessful(conditions []*istiov1alpha1.Condition) bool {
+func allConditionsSuccessful(conditions []*workspacev1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
-		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
+		conditionFailed := condition.Status != nil && *condition.Status == workspacev1alpha1.StatusFailed
 		validation := condition.Reason != nil && *condition.Reason == ValidationReason
 		if conditionFailed && !validation {
 			return false
@@ -312,10 +312,10 @@ func allConditionsSuccessful(conditions []*istiov1alpha1.Condition) bool {
 	return true
 }
 
-func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {
+func refSuccessful(ref model.Ref, conditions []*workspacev1alpha1.Condition) bool {
 	for i := range conditions {
 		condition := conditions[i]
-		conditionFailed := condition.Status != nil && *condition.Status == istiov1alpha1.StatusFailed
+		conditionFailed := condition.Status != nil && *condition.Status == workspacev1alpha1.StatusFailed
 		if condition.Source.Ref == ref.KindName.String() && conditionFailed {
 			return false
 		}
@@ -324,11 +324,11 @@ func refSuccessful(ref model.Ref, conditions []*istiov1alpha1.Condition) bool {
 	return true
 }
 
-func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.SessionState {
-	state := istiov1alpha1.StateSuccess
+func calculateSessionState(session *workspacev1alpha1.Session) *workspacev1alpha1.SessionState {
+	state := workspacev1alpha1.StateSuccess
 	for _, con := range session.Status.Conditions {
-		if con.Status != nil && *con.Status == istiov1alpha1.StatusFailed {
-			state = istiov1alpha1.StateFailed
+		if con.Status != nil && *con.Status == workspacev1alpha1.StatusFailed {
+			state = workspacev1alpha1.StateFailed
 
 			break
 		}
@@ -337,7 +337,7 @@ func calculateSessionState(session *istiov1alpha1.Session) *istiov1alpha1.Sessio
 	return &state
 }
 
-func calculateReferences(ctx model.SessionContext, session *istiov1alpha1.Session) []model.Ref {
+func calculateReferences(ctx model.SessionContext, session *workspacev1alpha1.Session) []model.Ref {
 	refs := []model.Ref{}
 	for _, ref := range session.Spec.Refs {
 		modelRef := ConvertAPIRefToModelRef(ref, ctx.Namespace)

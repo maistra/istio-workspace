@@ -12,8 +12,9 @@ type Handler func() error
 
 type hookHandler struct {
 	sync.Mutex
-	f    []Handler
-	done chan os.Signal
+	f       []Handler
+	signals chan os.Signal
+	open    bool
 }
 
 var hooks hookHandler
@@ -21,16 +22,17 @@ var hooks hookHandler
 // Register adds Handlers to be invoked when the command is terminated.
 func Register(handlers ...Handler) {
 	hooks.Lock()
-	defer hooks.Unlock()
 	hooks.f = append(hooks.f, handlers...)
+	hooks.Unlock()
 }
 
 // Reset re-instantiate underlying hooks.
 func Reset() {
 	hooks.Lock()
-	defer hooks.Unlock()
+	hooks.open = false
 	hooks.f = []Handler{}
-	hooks.done = make(chan os.Signal, 1)
+	hooks.signals = make(chan os.Signal, 1)
+	hooks.Unlock()
 }
 
 // Listen starts go routine in the background waiting for owning process to be terminated, and when it happens
@@ -38,15 +40,20 @@ func Reset() {
 func Listen() {
 	Reset()
 
-	signal.Notify(hooks.done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	hooks.Lock()
+	signal.Notify(hooks.signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	hooks.open = true
+	hooks.Unlock()
 
 	go func() {
 		defer func() {
-			signal.Stop(hooks.done)
+			hooks.Lock()
+			signal.Stop(hooks.signals)
+			hooks.open = false
+			hooks.Unlock()
 		}()
 
-		if _, ok := <-hooks.done; !ok {
-			// Channel has been closed by calling Close(). Do nothing. Normal termination.
+		if _, ok := <-hooks.signals; !ok {
 			return
 		}
 
@@ -63,8 +70,9 @@ func Listen() {
 // Close closes underlying channel.
 func Close() {
 	hooks.Lock()
-	if hooks.done != nil {
-		close(hooks.done)
+	if hooks.open {
+		close(hooks.signals)
+		hooks.open = false
 	}
 	hooks.Unlock()
 }

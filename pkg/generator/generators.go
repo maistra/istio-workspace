@@ -1,7 +1,8 @@
 package generator
 
 import (
-	"io"
+	"fmt"
+	"os"
 	"time"
 
 	osappsv1 "github.com/openshift/api/apps/v1"
@@ -12,7 +13,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -21,21 +21,33 @@ const (
 )
 
 var (
-	TestImageName = ""
-	GatewayHost   = "*"
-
-	allSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
+	NsGenerators     = []SubGenerator{Gateway}
+	AllSubGenerators = []SubGenerator{Deployment, DeploymentConfig, Service, DestinationRule, VirtualService}
 )
 
-// Entry is a simple value object that holds the basic configuration used by the generator.
-type Entry struct {
+// ServiceEntry is a simple value object that holds the basic configuration used by the generator.
+type ServiceEntry struct {
 	Name           string
 	DeploymentType string
+	Image          string
 	Namespace      string
+	Gateway        string
+	HTTPPort       uint32
+	GRPCPort       uint32
+}
+
+func NewServiceEntry(name, namespace, deploymentType, image string) ServiceEntry {
+	return ServiceEntry{Name: name,
+		Namespace:      namespace,
+		DeploymentType: deploymentType,
+		Image:          image,
+		Gateway:        "test-gateway",
+		HTTPPort:       9080,
+		GRPCPort:       9081}
 }
 
 // HostName return the full cluster host name if Namespace is set or the local if not.
-func (e *Entry) HostName() string {
+func (e *ServiceEntry) HostName() string {
 	if e.Namespace != "" {
 		return e.Name + "." + e.Namespace + ".svc.cluster.local"
 	}
@@ -44,49 +56,48 @@ func (e *Entry) HostName() string {
 }
 
 // SubGenerator is a function intended to create the basic runtime.Object as a starting point for modification.
-type SubGenerator func(service Entry) runtime.Object
+type SubGenerator func(service ServiceEntry) runtime.Object
 
 // Modifier is a function to change a runtime.Object into something more specific for a given scenario.
-type Modifier func(service Entry, object runtime.Object)
+type Modifier func(service ServiceEntry, object runtime.Object)
 
 // Generate runs and prints the full test scenario generation to sysout.
-func Generate(out io.Writer, services []Entry, sub []SubGenerator, modifiers ...Modifier) {
-	modify := func(service Entry, object runtime.Object) {
+func Generate(printer Printer, services []ServiceEntry, gen, sub []SubGenerator, modifiers ...Modifier) {
+	modify := func(service ServiceEntry, object runtime.Object) {
 		for _, modifier := range modifiers {
 			modifier(service, object)
 		}
 	}
-	printObj := func(object runtime.Object) {
-		b, err := yaml.Marshal(object)
-		if err != nil {
-			_, _ = io.WriteString(out, "Marshal error"+err.Error()+"\n")
-		}
-		_, _ = out.Write(b)
-		_, _ = io.WriteString(out, "---\n")
+
+	// These generators run once per namespace as they construct unique resources.
+	// Assumption: service entries holds ns-specific data unified
+	// e.g. gateway is always the same
+	for _, generator := range gen {
+		gw := generator(services[0])
+		modify(ServiceEntry{Gateway: services[0].Gateway}, gw)
+		printer(gw)
 	}
+
 	for _, service := range services {
-		func(service Entry) {
+		func(service ServiceEntry) {
 			for _, subGenerator := range sub {
 				object := subGenerator(service)
 				if object == nil {
 					continue
 				}
 				modify(service, object)
-				printObj(object)
+				printer(object)
 			}
 		}(service)
 	}
-	gw := Gateway()
-	modify(Entry{Name: "gateway"}, gw)
-	printObj(gw)
 }
 
 // DeploymentConfig basic SubGenerator for the kind DeploymentConfig.
-func DeploymentConfig(service Entry) runtime.Object {
+func DeploymentConfig(service ServiceEntry) runtime.Object {
 	if service.DeploymentType != "DeploymentConfig" {
 		return nil
 	}
-	template := template(service.Name)
+	template := template(service)
 
 	return &osappsv1.DeploymentConfig{
 		TypeMeta: v1.TypeMeta{
@@ -109,7 +120,7 @@ func DeploymentConfig(service Entry) runtime.Object {
 }
 
 // Deployment basic SubGenerator for the kind Deployment.
-func Deployment(service Entry) runtime.Object {
+func Deployment(service ServiceEntry) runtime.Object {
 	if service.DeploymentType != "Deployment" {
 		return nil
 	}
@@ -132,13 +143,13 @@ func Deployment(service Entry) runtime.Object {
 					"app": service.Name,
 				},
 			},
-			Template: template(service.Name),
+			Template: template(service),
 		},
 	}
 }
 
 // Service basic SubGenerator for the kind Service.
-func Service(service Entry) runtime.Object {
+func Service(service ServiceEntry) runtime.Object {
 	return &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "v1",
@@ -155,11 +166,11 @@ func Service(service Entry) runtime.Object {
 			Ports: []corev1.ServicePort{
 				{
 					Name: "http",
-					Port: 9080,
+					Port: int32(service.HTTPPort),
 				},
 				{
 					Name: "grpc",
-					Port: 9081,
+					Port: int32(service.GRPCPort),
 				},
 			},
 			Selector: map[string]string{
@@ -170,7 +181,7 @@ func Service(service Entry) runtime.Object {
 }
 
 // DestinationRule basic SubGenerator for the kind DestinationRule.
-func DestinationRule(service Entry) runtime.Object {
+func DestinationRule(service ServiceEntry) runtime.Object {
 	return &istionetwork.DestinationRule{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -187,7 +198,7 @@ func DestinationRule(service Entry) runtime.Object {
 }
 
 // VirtualService basic SubGenerator for the kind VirtualService.
-func VirtualService(service Entry) runtime.Object {
+func VirtualService(service ServiceEntry) runtime.Object {
 	return &istionetwork.VirtualService{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -205,15 +216,15 @@ func VirtualService(service Entry) runtime.Object {
 }
 
 // Gateway basic SubGenerator for the kind Gateway.
-func Gateway() runtime.Object {
+func Gateway(service ServiceEntry) runtime.Object {
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
 			Kind:       "Gateway",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      "test-gateway",
-			Namespace: Namespace,
+			Name:      service.Gateway,
+			Namespace: service.Namespace,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{
@@ -233,56 +244,64 @@ func Gateway() runtime.Object {
 	}
 }
 
-func template(name string) corev1.PodTemplateSpec {
+func GatewayHostFromEnv() string {
+	if gatewayHost, found := os.LookupEnv("IKE_GATEWAY_HOST"); found {
+		return gatewayHost
+	}
+
+	return "*"
+}
+
+func template(service ServiceEntry) corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: v1.ObjectMeta{
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "true",
 				"prometheus.io/scrape":    "true",
-				"prometheus.io/port":      "9080",
+				"prometheus.io/port":      fmt.Sprintf("%d", service.HTTPPort),
 				"prometheus.io/scheme":    "http",
 				"prometheus.io/path":      "/metrics",
 				"kiali.io/runtimes":       "go",
 			},
 			Labels: map[string]string{
-				"app": name,
+				"app": service.Name,
 			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:            name,
-					Image:           TestImageName,
+					Name:            service.Name,
+					Image:           service.Image,
 					ImagePullPolicy: "Always",
 					Env: []corev1.EnvVar{
 						{
 							Name:  envServiceName,
-							Value: name,
+							Value: service.Name,
 						},
 						{
 							Name:  "HTTP_ADDR",
-							Value: ":9080",
+							Value: fmt.Sprintf(":%d", service.HTTPPort),
 						},
 						{
 							Name:  "GRPC_ADDR",
-							Value: ":9081",
+							Value: fmt.Sprintf(":%d", service.GRPCPort),
 						},
 					},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",
-							ContainerPort: 9080,
+							ContainerPort: int32(service.HTTPPort),
 						},
 						{
 							Name:          "grpc",
-							ContainerPort: 9081,
+							ContainerPort: int32(service.GRPCPort),
 						},
 					},
 					LivenessProbe: &corev1.Probe{
 						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
-								Port: intstr.FromInt(9080),
+								Port: intstr.FromInt(int(service.HTTPPort)),
 							},
 						},
 						InitialDelaySeconds: 5,
@@ -293,7 +312,7 @@ func template(name string) corev1.PodTemplateSpec {
 						ProbeHandler: corev1.ProbeHandler{
 							HTTPGet: &corev1.HTTPGetAction{
 								Path: "/healthz",
-								Port: intstr.FromInt(9080),
+								Port: intstr.FromInt(int(service.HTTPPort)),
 							},
 						},
 						InitialDelaySeconds: 5,

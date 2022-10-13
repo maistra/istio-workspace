@@ -6,7 +6,7 @@ import (
 
 	"emperror.dev/errors"
 
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	workspacev1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
@@ -25,7 +25,7 @@ If you can't see any changes make sure that this header is respected by your app
 
 type data struct {
 	Hosts []string
-	Route *istiov1alpha1.Route
+	Route *workspacev1alpha1.Route
 }
 
 // Hint returns a string containing the help for how to reach your new route.

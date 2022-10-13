@@ -65,7 +65,7 @@ func NewDefaultDynamicClient(namespace string, createNs bool) (*Client, error) {
 	rm := restmapper.NewDiscoveryRESTMapper(groupResources)
 
 	client := Client{dynClient: dynClient,
-		clientset: nil,
+		clientset: clientset,
 		mapper:    rm,
 		Namespace: namespace}
 

@@ -39,7 +39,7 @@ var _ = Describe("Usage of limited flags", func() {
 		It("should fail when wrong argument passed", func() {
 			_, err := Run(testCmd).Passing("--style", "neipa")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring(`invalid argument "neipa" for "--style" flag: must be one of [stout (s) ale (a) kolsch (k)]`))
+			Expect(err.Error()).To(ContainSubstring(`invalid argument "neipa" for "--style" flag: must be one of stout (s), ale (a), kolsch (k)`))
 		})
 
 	})

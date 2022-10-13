@@ -2,40 +2,38 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
-	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/pkg/generator"
+	"github.com/maistra/istio-workspace/test/scenarios"
 )
+
+var Namespace = "default"
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Println("required arg 'scenario name' missing")
-		os.Exit(-100)
-	}
-
-	generator.TestImageName = getTestImageName()
-	if h, f := os.LookupEnv("IKE_SCENARIO_GATEWAY"); f {
-		generator.GatewayHost = h
+		printAvailableScenarios()
+		os.Exit(0)
 	}
 
 	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
-		generator.Namespace = h
+		Namespace = h
 	}
 
-	scenarios := map[string]func(io.Writer){
-		"scenario-1":   generator.TestScenario1HTTPThreeServicesInSequence,
-		"scenario-1.1": generator.TestScenario1GRPCThreeServicesInSequence,
-		"scenario-2":   generator.TestScenario2ThreeServicesInSequenceDeploymentConfig,
-		"demo":         generator.DemoScenario,
-	}
-	scenario := os.Args[1] //nolint:ifshort // scenario used in multiple locations
-	if f, ok := scenarios[scenario]; ok {
-		f(os.Stdout)
+	if generateScenario, ok := scenarios.TestScenarios[os.Args[1]]; ok {
+		generateScenario(Namespace, getTestImageName(), generator.WrapInYamlPrinter(os.Stdout))
 	} else {
-		fmt.Println("Scenario not found", scenario)
-		os.Exit(-101)
+		fmt.Printf("Scenario [%s] not found!\n", os.Args[1])
+		printAvailableScenarios()
+		os.Exit(1)
+	}
+}
+
+func printAvailableScenarios() {
+	fmt.Println("Available scenarios:")
+	for s := range scenarios.TestScenarios {
+		fmt.Printf(" * %s\n", s)
 	}
 }
 

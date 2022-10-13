@@ -11,12 +11,12 @@ import (
 
 // Sessions creates a Handler for the given session operation.
 // It's expected that cmd has offline, namespace, route, deployment and session flags defined.
-// Otherwise it fails.
+// Otherwise, it fails.
 func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error) {
 	var sessionHandler session.Handler = session.Offline
 	var client *session.Client
 
-	options, err := ToOptions(cmd.Annotations, cmd.Flags())
+	options, err := ToOptions(cmd.Annotations, CollectFlags(cmd))
 	if err != nil {
 		return session.State{}, options, nil, err
 	}
@@ -35,9 +35,21 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 	return state, options, f, err
 }
 
-// RemoveSessions creates a Handler for the given session operation for removing a session
-// session expects that cmd has offline and session flags defined.
-// otherwise it fails.
+// CollectFlags extracts both local and persistent flags from cobra.Command into a map.
+func CollectFlags(cmd *cobra.Command) map[string]string {
+	flags := map[string]string{}
+	collect := func(flag *pflag.Flag) {
+		flags[flag.Name] = flag.Value.String()
+	}
+	cmd.Flags().VisitAll(collect)
+	cmd.PersistentFlags().VisitAll(collect)
+
+	return flags
+}
+
+// RemoveSessions creates a Handler for the given session operation for removing a session.
+// Session expects that cmd has offline and session flags defined.
+// Otherwise, it fails.
 func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	options, err := ToRemoveOptions(cmd.Flags())
 	if err != nil {
@@ -59,38 +71,40 @@ const (
 )
 
 // ToOptions converts between FlagSet to a Handler Options.
-func ToOptions(annotations map[string]string, flags *pflag.FlagSet) (session.Options, error) {
+func ToOptions(annotations, flags map[string]string) (session.Options, error) {
 	strategy := telepresenceStrategy
 	strategyArgs := map[string]string{}
 
-	n, err := flags.GetString("namespace")
-	if err != nil {
-		return session.Options{}, errors.Wrap(err, "failed obtaining namespace flag")
+	n, f := flags["namespace"]
+	if !f {
+		return session.Options{}, errors.New("failed obtaining namespace flag")
 	}
 
-	d, err := flags.GetString("deployment")
-	if err != nil {
-		return session.Options{}, errors.Wrap(err, "failed obtaining deployment flag")
+	d, f := flags["deployment"]
+	if !f {
+		return session.Options{}, errors.New("failed obtaining deployment flag")
 	}
 
-	s, err := flags.GetString("session")
-	if err != nil {
-		return session.Options{}, errors.Wrap(err, "failed obtaining session flag")
+	s, f := flags["session"]
+	if !f {
+		return session.Options{}, errors.New("failed obtaining session flag")
 	}
 
-	r, err := flags.GetString("route")
-	if err != nil {
-		return session.Options{}, errors.Wrap(err, "failed obtaining route flag")
+	r, f := flags["route"]
+	if !f {
+		return session.Options{}, errors.New("failed obtaining route flag")
 	}
 
-	i, _ := flags.GetString("image") // ignore error, not a required argument
-	if i != "" {
+	i, f := flags["image"] // ignore if not found
+	if f {
 		strategy = "prepared-image"
 		strategyArgs["image"] = i
 	}
 
 	if strategy == telepresenceStrategy {
-		if strategyArgs["version"], err = telepresence.GetVersion(); err != nil {
+		var err error
+		strategyArgs["version"], err = telepresence.GetVersion()
+		if err != nil {
 			return session.Options{}, errors.Wrap(err, "failed obtaining telepresence version")
 		}
 	}

@@ -81,7 +81,7 @@ func GetProjectLabels(namespace string) string {
 
 func setContainerEnvForTestServiceDeploy(namespace string) {
 	setTestNamespace(namespace)
-	err := os.Setenv("IKE_SCENARIO_GATEWAY", GetGatewayHost(namespace))
+	err := os.Setenv("IKE_GATEWAY_HOST", GetGatewayHost(namespace))
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 }
 
@@ -112,29 +112,3 @@ func stringWithCharset(length int, charset string) string {
 func GenerateSessionName() string {
 	return stringWithCharset(8, charset)
 }
-
-// PublisherService contains fixed response to be changed by tests.
-const PublisherService = `
-import sys
-from http.server import HTTPStatus, BaseHTTPRequestHandler
-from socketserver import TCPServer
-
-
-if len(sys.argv) < 2:
-  print("usage: #{$PROGRAM_NAME} port")
-  exit(-1)
-
-PORT = int(sys.argv[1])
-
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-type", "text/plain")
-
-        self.end_headers()
-        self.wfile.write("{\"caller\": \"PublisherA\"}".encode("ascii"))
-
-TCPServer.allow_reuse_address = True
-httpd = TCPServer(("", PORT), Handler)
-httpd.serve_forever()
-`

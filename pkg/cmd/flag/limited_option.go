@@ -2,6 +2,7 @@ package flag
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -12,11 +13,12 @@ import (
 // input. On top of that custom, completion can be defined.
 //
 // Example:
-//    testCmd := &cobra.Command{...}
-//    beerStyles := flag.CreateOptions("stout", "s", "ale", "a", "kolsch", "k")
-//    beerStyle := beerStyles[0]
-//    testCmd.Flags().Var(&beerStyle, "style", "beer styles")
-//     _ = testCmd.RegisterFlagCompletionFunc("type", flag.CompletionFor(beerStyles))
+//
+//	testCmd := &cobra.Command{...}
+//	beerStyles := flag.CreateOptions("stout", "s", "ale", "a", "kolsch", "k")
+//	beerStyle := beerStyles[0]
+//	testCmd.Flags().Var(&beerStyle, "style", "beer styles")
+//	 _ = testCmd.RegisterFlagCompletionFunc("type", flag.CompletionFor(beerStyles))
 func CreateOptions(namesAndAbbrevs ...string) []NameAndAbbrev {
 	var values = []NameAndAbbrev{}
 	var availableNames = func() []NameAndAbbrev {
@@ -47,9 +49,9 @@ func CompletionFor(values []NameAndAbbrev) func(cmd *cobra.Command, args []strin
 // It also holds reference to all possible values, so it can validate itself
 // and provide autocompletion.
 type NameAndAbbrev struct {
-	name   string
+	name,
 	abbrev string
-	avail  func() []NameAndAbbrev
+	avail func() []NameAndAbbrev
 }
 
 var _ pflag.Value = (*NameAndAbbrev)(nil)
@@ -70,15 +72,21 @@ func (e *NameAndAbbrev) Set(v string) error {
 		}
 	}
 
-	hints := []string{}
-	for _, opt := range availableOpts {
-		hints = append(hints, fmt.Sprintf("%s (%s)", opt.name, opt.abbrev))
-	}
-
-	return fmt.Errorf("must be one of %v", hints) //nolint:goerr113 //reason it's dynamically constructed based on available options
+	return fmt.Errorf("must be one of %s", e.Hint()) //nolint:goerr113 //reason it's dynamically constructed based on available options
 }
 
 // Type is only used in help text.
 func (e *NameAndAbbrev) Type() string {
 	return fmt.Sprintf("%s (or %s)", e.name, e.abbrev)
+}
+
+// Hint provides list of possible values and their abbreviations in the slice.
+func (e *NameAndAbbrev) Hint() string {
+	availableOpts := e.avail()
+	hints := []string{}
+	for _, opt := range availableOpts {
+		hints = append(hints, fmt.Sprintf("%s (%s)", opt.name, opt.abbrev))
+	}
+
+	return strings.Join(hints, ", ")
 }

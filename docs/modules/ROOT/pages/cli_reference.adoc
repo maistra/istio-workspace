@@ -102,6 +102,13 @@ TIP: Have a look at https://git-scm.com/docs/gitignore[official Git documentatio
 WARNING: Only root `.gitignore` is handled. If you happen to have additional `.gitignore` files in subdirectories
 those won't be respected.
 
+[#ike-develop-new]
+=== `ike develop new`
+
+If you want to develop a newly created service that does not exist yet in the cluster, you can use `ike develop new` subcommand. It will take care of wiring required resources such as `DestinationRule` and `VirtualService` and route the traffic from your locally running instance to the cluster. It also supports all the `ike develop` flags.
+
+include::cmd:ike[args='develop new --help --help-format=adoc']
+
 [#ike-version]
 === `ike version`
 

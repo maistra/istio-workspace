@@ -32,7 +32,7 @@ const (
 	StrategyExisting = "existing"
 )
 
-func Flip(action StatusAction) StatusAction {
+func Undo(action StatusAction) StatusAction {
 	switch action {
 	case ActionCreate:
 		return ActionDelete

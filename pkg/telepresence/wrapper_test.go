@@ -32,7 +32,7 @@ var _ = Describe("telepresence commands wrapper", func() {
 		AfterEach(tmpPath.Restore)
 
 		It("should fail when telepresence is not on $PATH", func() {
-			Expect(telepresence.BinaryAvailable()).To(BeFalse())
+			Expect(telepresence.BinaryAvailable()).To(HaveOccurred())
 		})
 
 		It("should fail determining version when no env var nor telepresence binary available", func() {
