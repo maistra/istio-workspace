@@ -2,7 +2,7 @@
 
 In this section you will learn about:
 
-* [x] ways to configure `ike` (through flags, files et al.)
+* [x] ways to configure `ike` (through flags, files etc)
 * [x] complete list of commands, and their available flags
 
 [#completion]

@@ -25,7 +25,7 @@ Before you can start using CLI we have to add few backend bits to the cluster, s
 
 If you're using Openshift you can install the `istio-workspace operator` via the Operator Hub in the web console.
 
-If you're on vanilla Kubernetes you can install it by installing the `Operator Lifecycle Management` using the https://sdk.operatorframework.io/docs/installation/[Operator SDK]:
+If you're on vanilla Kubernetes you can install `Operator Lifecycle Management` using the https://sdk.operatorframework.io/docs/installation/[Operator SDK]:
 
 [source,bash]
 ----
@@ -33,7 +33,7 @@ operator-sdk install
 operator-sdk run bundle quay.io/maistra/istio-workspace-operator-bundle:latest
 ----
 
-NOTE: The images are available in our Quay repository https://quay.io/repository/maistra/istio-workspace?tab=tags
+NOTE: The images are available in our Quay.io repository https://quay.io/repository/maistra/istio-workspace?tab=tags
 
 === Additional steps 
 
