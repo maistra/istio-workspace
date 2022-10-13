@@ -42,13 +42,13 @@ First, create `minikube.env`. As each time some variables can differ (such as IP
 [source,bash]
 .minikube.env
 ----
-cat <<EOF > minikubea.env                                         
+cat <<EOF > minikube.env                                         
 IKE_E2E_MANAGE_CLUSTER=false
 ISTIO_NS=istio-system
 IKE_IMAGE_TAG=latest
 TELEPRESENCE_VERSION=0.109
 IKE_CLUSTER_HOST=$(minikube ip)
-IKE_ISTIO_INGRESS=http://$(k get svc istio-ingressgateway -n istio-system -o jsonpath='{.spec.clusterIP}')/
+IKE_ISTIO_INGRESS=http://$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath='{.spec.clusterIP}')/
 IKE_INTERNAL_CONTAINER_REGISTRY=quay.io
 IKE_EXTERNAL_CONTAINER_REGISTRY=quay.io
 IKE_CONTAINER_REPOSITORY=maistra-dev
