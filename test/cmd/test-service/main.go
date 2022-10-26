@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -78,7 +79,11 @@ func main() {
 	})
 	http.HandleFunc("/", NewBasic(c, MultiplexRequestInvoker, logger))
 	go func() {
-		err := http.ListenAndServe(httpAdr, nil)
+		server := &http.Server{
+			Addr:              httpAdr,
+			ReadHeaderTimeout: 2 * time.Second,
+		}
+		err := server.ListenAndServe()
 		if err != nil {
 			logger.Error(err, "failed initializing")
 		}
