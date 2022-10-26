@@ -25,13 +25,13 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 		if strings.Contains(req.Header.Get("accept"), "text/html") {
 			b, err := Asset("index.html")
 			if err != nil {
-				resp.WriteHeader(500)
+				resp.WriteHeader(http.StatusInternalServerError)
 				_, _ = resp.Write([]byte(err.Error()))
 
 				return
 			}
 			resp.Header().Set("content-type", "text/html")
-			resp.WriteHeader(200)
+			resp.WriteHeader(http.StatusOK)
 			_, _ = resp.Write(b)
 
 			return
@@ -72,7 +72,7 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 }
 
 func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]string) *CallStack {
-	request, err := http.NewRequestWithContext(context.Background(), "GET", target.String(), http.NoBody)
+	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, target.String(), http.NoBody)
 	if err != nil {
 		log.Error(err, "Failed to create request", "target", target)
 
