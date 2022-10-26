@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"emperror.dev/errors"
@@ -26,7 +26,7 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 		return "", errors.WrapWithDetails(err, "failed executing HTTP call", "url", req.URL.String())
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 
 	return string(content), nil
 }

@@ -1,7 +1,6 @@
 package assets
 
 import (
-	"io/ioutil"
 	"os"
 
 	"emperror.dev/errors"
@@ -13,7 +12,7 @@ import (
 // If filePath exists locally it will be loaded instead of looked up through go-bindata assets.
 func Load(filePath string) (data []byte, err error) {
 	if fileExists(filePath) {
-		data, err = ioutil.ReadFile(filePath)
+		data, err = os.ReadFile(filePath)
 	} else {
 		data, err = Asset(filePath)
 	}
@@ -23,7 +22,7 @@ func Load(filePath string) (data []byte, err error) {
 
 func ListDir(path string) ([]string, error) {
 	if dirExists(path) {
-		dirInfo, e := ioutil.ReadDir(path)
+		dirInfo, e := os.ReadDir(path)
 		if e != nil {
 			return nil, errors.WrapWithDetails(e, "failed reading directory", "path", path)
 		}
