@@ -127,6 +127,9 @@ issues:
       linters:
         - revive
         - unused
+    - path: pkg/cmd/completion/shell_completion.go
+      linters:
+        - dupword
     - path: pkg/assets/isto-workspace-deploy.go
       linters:
         - wrapcheck
