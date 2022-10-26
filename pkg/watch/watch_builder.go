@@ -16,7 +16,8 @@ type Builder struct {
 }
 
 // CreateWatch creates instance of Builder providing fluent functions to customize watch
-// 		interval defines how frequently (in ms) file change events should be processed.
+//
+//	interval defines how frequently (in ms) file change events should be processed.
 func CreateWatch(intervalMs int64) *Builder {
 	return &Builder{w: &Watch{
 		interval: time.Duration(intervalMs) * time.Millisecond,
