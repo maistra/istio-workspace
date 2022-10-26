@@ -35,9 +35,8 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 	return state, options, f, err
 }
 
-// RemoveSessions creates a Handler for the given session operation for removing a session
-// session expects that cmd has offline and session flags defined.
-// otherwise it fails.
+// RemoveSessions creates a Handler for the given session operation for removing a
+// session expects that cmd has offline and session flags defined. Otherwise, it fails.
 func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	options, err := ToRemoveOptions(cmd.Flags())
 	if err != nil {
