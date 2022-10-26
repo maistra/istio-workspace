@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
@@ -60,7 +61,7 @@ func GetEvents(ns string) {
 
 // DumpTelepresenceLog dumps telepresence log if exists.
 func DumpTelepresenceLog(dir string) {
-	fh, err := os.Open(dir + string(os.PathSeparator) + "telepresence.log")
+	fh, err := os.Open(filepath.Join(dir, "telepresence.log"))
 	if err != nil {
 		fmt.Println(err)
 

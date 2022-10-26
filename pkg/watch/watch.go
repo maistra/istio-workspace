@@ -157,7 +157,7 @@ func (w *Watch) addExclusions(exclusions []string) error {
 
 // addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path.
 func (w *Watch) addGitIgnore(path string) error {
-	gitIgnorePath := path + string(os.PathSeparator) + ".gitignore"
+	gitIgnorePath := filepath.Join(path, ".gitignore")
 	file, err := os.Open(gitIgnorePath)
 	if err == nil {
 		err := file.Close()

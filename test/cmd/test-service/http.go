@@ -72,7 +72,7 @@ func basic(config Config, invoker RequestInvoker, log logr.Logger) http.HandlerF
 }
 
 func httpRequestInvoker(log logr.Logger, target *url.URL, headers map[string]string) *CallStack {
-	request, err := http.NewRequestWithContext(context.Background(), "GET", target.String(), nil)
+	request, err := http.NewRequestWithContext(context.Background(), "GET", target.String(), http.NoBody)
 	if err != nil {
 		log.Error(err, "Failed to create request", "target", target)
 

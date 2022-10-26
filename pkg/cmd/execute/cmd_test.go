@@ -3,6 +3,7 @@ package execute_test
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -200,5 +201,5 @@ var _ = Describe("Usage of ike execute command", func() {
 })
 
 func testDir(dir string) string {
-	return dir + string(os.PathSeparator) + "watch-test" + string(os.PathSeparator)
+	return filepath.Join(dir, "watch-test") + string(os.PathSeparator)
 }

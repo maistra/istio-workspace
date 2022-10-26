@@ -2,8 +2,8 @@ package execute_test
 
 import (
 	"fmt"
-	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,7 +27,7 @@ var _ = Describe("ike execute - managing spawned processes", func() {
 		tmpPath := test.NewTmpPath()
 
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(sleepBin), testshell.GetProjectDir()+string(os.PathSeparator)+"dist")
+			tmpPath.SetPath(path.Dir(sleepBin), filepath.Join(testshell.GetProjectDir(), "dist"))
 		})
 
 		AfterEach(tmpPath.Restore)

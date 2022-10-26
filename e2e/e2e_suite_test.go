@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -37,7 +38,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if envFile, found := os.LookupEnv("ENV_FILE"); found {
-		if err := godotenv.Overload(testshell.GetProjectDir() + string(os.PathSeparator) + envFile); err != nil {
+		if err := godotenv.Overload(filepath.Join(testshell.GetProjectDir(), envFile)); err != nil {
 			Fail(err.Error())
 		}
 	}
