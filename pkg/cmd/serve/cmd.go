@@ -27,8 +27,8 @@ const (
 )
 
 var (
-	errorWatchNsNotFound = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
-	logger               = func() logr.Logger {
+	errWatchNsNotFound = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	logger             = func() logr.Logger {
 		return log.Log.WithValues("type", "serve")
 	}
 )
@@ -116,7 +116,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 func getWatchNamespace() (string, error) {
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return "", errorWatchNsNotFound
+		return "", errWatchNsNotFound
 	}
 
 	return ns, nil

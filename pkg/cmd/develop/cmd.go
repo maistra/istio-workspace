@@ -25,7 +25,7 @@ var (
 		return log.Log.WithValues("type", "develop")
 	}
 
-	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+	errTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 
 	annotations = map[string]string{
 		// Used in the tp-wrapper to check if passed command
@@ -45,7 +45,7 @@ func NewCmd() *cobra.Command {
 		Annotations:      annotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
-				return errorTpNotAvailable
+				return errTpNotAvailable
 			}
 
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "Failed syncing flags")

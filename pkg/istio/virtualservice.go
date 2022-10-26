@@ -28,9 +28,9 @@ const (
 )
 
 var (
-	_                  model.Locator              = VirtualServiceLocator
-	_                  model.ModificatorRegistrar = VirtualServiceRegistrar
-	errorRouteNotFound                            = fmt.Errorf("route not found")
+	_                model.Locator              = VirtualServiceLocator
+	_                model.ModificatorRegistrar = VirtualServiceRegistrar
+	errRouteNotFound                            = fmt.Errorf("route not found")
 )
 
 func VirtualServiceRegistrar() (client.Object, model.Modificator) {
@@ -284,7 +284,7 @@ func mutateVirtualService(ctx model.SessionContext, store model.LocatorStatusSto
 
 	targetsHTTP := findRoutes(clonedSource, hostName, version)
 	if len(targetsHTTP) == 0 {
-		return istionetwork.VirtualService{}, errorRouteNotFound
+		return istionetwork.VirtualService{}, errRouteNotFound
 	}
 	for _, tHTTP := range targetsHTTP {
 		simplifyTargetRoute(ctx, *tHTTP, hostName, version, newVersion, target)
