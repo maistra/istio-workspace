@@ -1,6 +1,6 @@
 module github.com/maistra/istio-workspace
 
-go 1.17
+go 1.19
 
 require (
 	emperror.dev/errors v0.8.1
@@ -52,6 +52,7 @@ require (
 	gopkg.in/h2non/gock.v1 v1.1.2
 )
 
+// Indirect deps
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
