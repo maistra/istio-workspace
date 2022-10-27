@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Install CircleCI CLI
         run: |
-          brew install circleci
+          curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | bash
         shell: bash
       - uses: actions/checkout@v3
         with:
