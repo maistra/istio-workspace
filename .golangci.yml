@@ -63,7 +63,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - contextcheck # tmp
+    - contextcheck # FIXME https://github.com/maistra/istio-workspace/issues/1101
     - exhaustivestruct
     - exhaustruct
     - forbidigo
