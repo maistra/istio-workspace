@@ -110,7 +110,7 @@ func SyncFullyQualifiedFlags(cmd *cobra.Command) error {
 // BindFullyQualifiedFlag ensures that each flag used in commands is bound to a key using fully qualified name
 // which has a following form:
 //
-// 		commandName.flagName
+//	commandName.flagName
 //
 // This lets us  keep structure of yaml file:
 //

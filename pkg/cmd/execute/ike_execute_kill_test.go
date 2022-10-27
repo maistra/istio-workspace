@@ -2,20 +2,19 @@ package execute_test
 
 import (
 	"fmt"
-	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/maistra/istio-workspace/test"
+	testshell "github.com/maistra/istio-workspace/test/shell"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/shirou/gopsutil/v3/process"
-
-	"github.com/maistra/istio-workspace/test"
-	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("ike execute - managing spawned processes", func() {
@@ -27,7 +26,7 @@ var _ = Describe("ike execute - managing spawned processes", func() {
 		tmpPath := test.NewTmpPath()
 
 		BeforeEach(func() {
-			tmpPath.SetPath(path.Dir(sleepBin), testshell.GetProjectDir()+string(os.PathSeparator)+"dist")
+			tmpPath.SetPath(path.Dir(sleepBin), filepath.Join(testshell.GetProjectDir(), "dist"))
 		})
 
 		AfterEach(tmpPath.Restore)

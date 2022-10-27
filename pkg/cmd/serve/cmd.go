@@ -7,17 +7,16 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/controllers"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
-
-	"github.com/maistra/istio-workspace/api"
-	"github.com/maistra/istio-workspace/controllers"
-	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (
@@ -27,8 +26,8 @@ const (
 )
 
 var (
-	errorWatchNsNotFound = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
-	logger               = func() logr.Logger {
+	errWatchNsNotFound = fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	logger             = func() logr.Logger {
 		return log.Log.WithValues("type", "serve")
 	}
 )
@@ -116,7 +115,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 func getWatchNamespace() (string, error) {
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
-		return "", errorWatchNsNotFound
+		return "", errWatchNsNotFound
 	}
 
 	return ns, nil

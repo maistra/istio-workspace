@@ -3,12 +3,11 @@ package config_test
 import (
 	"testing"
 
+	"github.com/maistra/istio-workspace/test/shell"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"go.uber.org/goleak"
-
-	"github.com/maistra/istio-workspace/test/shell"
 )
 
 func TestConfig(t *testing.T) {

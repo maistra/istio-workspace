@@ -219,9 +219,10 @@ $(PROJECT_DIR)/bin/goimports:
 	$(call header,"Installing goimports")
 	GOBIN=$(PROJECT_DIR)/bin go install -mod=readonly golang.org/x/tools/cmd/goimports
 
+GOLANGCI_LINT_VERSION?=v1.50.1
 $(PROJECT_DIR)/bin/golangci-lint:
 	$(call header,"Installing golangci-lint")
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin v1.41.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_DIR)/bin $(GOLANGCI_LINT_VERSION)
 
 $(PROJECT_DIR)/bin/controller-gen:
 	$(call header,"Installing controller-gen")

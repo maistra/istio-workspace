@@ -9,9 +9,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
-	ignore "github.com/sabhiram/go-gitignore"
-
 	"github.com/maistra/istio-workspace/pkg/log"
+	ignore "github.com/sabhiram/go-gitignore"
 )
 
 var logger = func() logr.Logger {
@@ -157,7 +156,7 @@ func (w *Watch) addExclusions(exclusions []string) error {
 
 // addGitIgnore adds .gitignore rules to the watcher if the file exists in the given path.
 func (w *Watch) addGitIgnore(path string) error {
-	gitIgnorePath := path + string(os.PathSeparator) + ".gitignore"
+	gitIgnorePath := filepath.Join(path, ".gitignore")
 	file, err := os.Open(gitIgnorePath)
 	if err == nil {
 		err := file.Close()

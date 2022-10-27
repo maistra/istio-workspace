@@ -4,10 +4,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/maistra/istio-workspace/test"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/maistra/istio-workspace/test"
 )
 
 var _ = Describe("Loading assets", func() {

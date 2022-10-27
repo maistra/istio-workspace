@@ -3,11 +3,10 @@ package telepresence_test
 import (
 	"testing"
 
+	"github.com/maistra/istio-workspace/test/shell"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"go.uber.org/goleak"
-
-	"github.com/maistra/istio-workspace/test/shell"
 )
 
 func TestTelepresenceWrapper(t *testing.T) {

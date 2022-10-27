@@ -63,16 +63,23 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - contextcheck # FIXME https://github.com/maistra/istio-workspace/issues/1101
     - exhaustivestruct
+    - exhaustruct
     - forbidigo
     - gochecknoinits # k8s/istio generated APIs are using init()
-    - gochecknoglobals # FIXME https://github.com/Maistra/istio-workspace/issues/479
+    - gochecknoglobals
     - gocognit # FIXME https://github.com/Maistra/istio-workspace/issues/478
     - gofmt # We use goimports and when using them both leads to contradicting errors
+    - goimports # We use it explicitly as a build step
     - gofumpt
     - gomnd
+    - ireturn
+    - nonamedreturns
+    - nosnakecase # deprecated and complains about built-in consts, eg. os.O_RDWR ¯\_(ツ)_/¯
     - paralleltest
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
+    - varnamelen # complains about e.g. loops
 
 run:
   deadline: 10m
@@ -111,6 +118,8 @@ issues:
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
+        - dupword
+        - forcetypeassert
         - gocyclo
         - errcheck
         - dupl
@@ -121,6 +130,9 @@ issues:
       linters:
         - revive
         - unused
+    - path: pkg/cmd/completion/shell_completion.go
+      linters:
+        - dupword
     - path: pkg/assets/isto-workspace-deploy.go
       linters:
         - wrapcheck

@@ -4,16 +4,15 @@ import (
 	"os"
 	"path"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/spf13/afero"
-	"github.com/spf13/cobra"
-
 	. "github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/develop"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	. "github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/spf13/afero"
+	"github.com/spf13/cobra"
 )
 
 var _ = Describe("Usage of ike develop command", func() {

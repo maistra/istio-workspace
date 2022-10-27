@@ -1,13 +1,12 @@
 package reference_test
 
 import (
+	"github.com/maistra/istio-workspace/pkg/reference"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 var _ = Describe("Enqueue Annotations", func() {

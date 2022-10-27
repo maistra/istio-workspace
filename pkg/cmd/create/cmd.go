@@ -6,11 +6,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/spf13/cobra"
 )
 
 var logger = func() logr.Logger {
@@ -28,12 +27,19 @@ func NewCmd() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			state, _, _, err := internal.Sessions(cmd)
+			if err != nil {
+				return errors.WrapIf(err, "failed executing command")
+			}
+
 			if outputJSON, _ := cmd.Flags().GetBool("json"); outputJSON {
-				b, _ := json.MarshalIndent(&state.Hosts, "", "  ")
+				var b []byte
+				if b, err = json.MarshalIndent(&state.Hosts, "", "  "); err != nil {
+					return errors.WrapIf(err, "failed executing command")
+				}
 				fmt.Println(string(b))
 			}
 
-			return errors.WrapIf(err, "failed executing command")
+			return nil
 		},
 	}
 

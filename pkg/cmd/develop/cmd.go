@@ -7,8 +7,6 @@ import (
 	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-
 	"github.com/maistra/istio-workspace/pkg/cmd"
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
@@ -18,6 +16,7 @@ import (
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -25,7 +24,7 @@ var (
 		return log.Log.WithValues("type", "develop")
 	}
 
-	errorTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
+	errTpNotAvailable = errors.Errorf("unable to find %s on your $PATH", telepresence.BinaryName)
 
 	annotations = map[string]string{
 		// Used in the tp-wrapper to check if passed command
@@ -45,7 +44,7 @@ func NewCmd() *cobra.Command {
 		Annotations:      annotations,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !telepresence.BinaryAvailable() {
-				return errorTpNotAvailable
+				return errTpNotAvailable
 			}
 
 			return errors.Wrap(config.SyncFullyQualifiedFlags(cmd), "Failed syncing flags")

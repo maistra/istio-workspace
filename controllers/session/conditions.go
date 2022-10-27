@@ -2,10 +2,11 @@ package session
 
 import (
 	"strconv"
-	"strings"
 
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
@@ -61,7 +62,9 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 }
 
 func createType(action model.StatusAction, kindName string) string {
-	return strings.Title(string(action)) + strings.Title(kindName)
+	title := cases.Title(language.English)
+
+	return title.String(string(action)) + title.String(kindName)
 }
 
 func cleanupRelatedConditionsOnRemoval(ref model.Ref, session *istiov1alpha1.Session) {

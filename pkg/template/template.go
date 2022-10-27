@@ -10,14 +10,13 @@ import (
 
 	"emperror.dev/errors"
 	jsonpatch "github.com/evanphx/json-patch"
-
 	"github.com/maistra/istio-workspace/pkg/assets"
 )
 
 const TemplatePath = "TEMPLATE_PATH"
 
 var (
-	errorInvalidPath = fmt.Errorf("given path is not valid")
+	errInvalidPath = fmt.Errorf("given path is not valid")
 )
 
 func loadPatches(tplFolder string) []Patch {
@@ -115,7 +114,7 @@ type patchEngine struct {
 func (t JSON) Value(path string) (interface{}, error) {
 	parts := strings.Split(path, "/")
 	if len(parts) < 2 {
-		return nil, errorInvalidPath
+		return nil, errInvalidPath
 	}
 	parts = parts[1:]
 	var level interface{} = t
@@ -142,7 +141,7 @@ func (t JSON) Value(path string) (interface{}, error) {
 				return l, nil
 			}
 
-			return nil, nil
+			return nil, nil //nolint:nilnil //reason for handling relative paths
 		}
 	}
 

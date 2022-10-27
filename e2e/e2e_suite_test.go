@@ -5,18 +5,18 @@ import (
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/joho/godotenv"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	. "github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 func TestE2e(t *testing.T) {
@@ -37,7 +37,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if envFile, found := os.LookupEnv("ENV_FILE"); found {
-		if err := godotenv.Overload(testshell.GetProjectDir() + string(os.PathSeparator) + envFile); err != nil {
+		if err := godotenv.Overload(filepath.Join(testshell.GetProjectDir(), envFile)); err != nil {
 			Fail(err.Error())
 		}
 	}

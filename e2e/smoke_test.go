@@ -9,16 +9,15 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-cmd/cmd"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/types"
-	"github.com/schollz/progressbar/v3"
-
 	. "github.com/maistra/istio-workspace/e2e"
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/test"
 	testshell "github.com/maistra/istio-workspace/test/shell"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
+	"github.com/schollz/progressbar/v3"
 )
 
 var _ = Describe("Smoke End To End Tests", func() {

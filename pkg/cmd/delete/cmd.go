@@ -3,11 +3,10 @@ package delete //nolint:predeclared //reason to be discussed if we should replac
 import (
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
 	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/spf13/cobra"
 )
 
 var logger = func() logr.Logger {

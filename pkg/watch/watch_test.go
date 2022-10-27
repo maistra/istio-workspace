@@ -8,11 +8,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/maistra/istio-workspace/pkg/watch"
 	. "github.com/maistra/istio-workspace/test"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 const pathSeparator = string(os.PathSeparator)
@@ -32,7 +31,7 @@ var _ = Describe("Watching for file changes", func() {
 			done := make(chan struct{})
 
 			_, testFile, _, _ := runtime.Caller(0)
-			fullPath := filepath.Dir(testFile) + string(os.PathSeparator) + ".run.exe" // Adding .exe as it's gitignored for the repo
+			fullPath := filepath.Join(filepath.Dir(testFile), ".run.exe") // Adding .exe as it's gitignored for the repo
 			fileToWatch := tmpFs.File(fullPath, "content")
 
 			watcher, e := watch.CreateWatch(1).

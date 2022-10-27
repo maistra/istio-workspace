@@ -2,7 +2,7 @@ package e2e
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"emperror.dev/errors"
@@ -11,7 +11,7 @@ import (
 // GetBodyWithHeaders calls GET on a given URL with a specific set request headers
 // and returns its body or error in case there's one.
 func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error) {
-	req, err := http.NewRequestWithContext(context.Background(), "GET", rawURL, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, rawURL, http.NoBody)
 	if err != nil {
 		return "", errors.Wrap(err, "failed creating request")
 	}
@@ -26,7 +26,7 @@ func GetBodyWithHeaders(rawURL string, headers map[string]string) (string, error
 		return "", errors.WrapWithDetails(err, "failed executing HTTP call", "url", req.URL.String())
 	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, _ := io.ReadAll(resp.Body)
 
 	return string(content), nil
 }

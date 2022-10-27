@@ -3,9 +3,8 @@ package reference
 import (
 	"strings"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/maistra/istio-workspace/pkg/naming"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (

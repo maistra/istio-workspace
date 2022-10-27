@@ -7,11 +7,10 @@ import (
 
 	"emperror.dev/errors"
 	gocmd "github.com/go-cmd/cmd"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/execute"
 	"github.com/maistra/istio-workspace/pkg/shell"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 const (

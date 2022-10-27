@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 	errorsK8s "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 )
 
 type InstallationVerifier interface {

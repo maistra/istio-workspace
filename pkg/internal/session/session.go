@@ -8,15 +8,14 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/apimachinery/pkg/util/wait"
-
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var (
@@ -62,8 +61,8 @@ type handler struct {
 
 // RemoveHandler provides the option to delete an existing sessions if found.
 // Rely on the following flags:
-//  * namespace - the name of the target namespace where deployment is defined
-//  * session - the name of the session.
+//   - namespace - the name of the target namespace where deployment is defined
+//   - session - the name of the session.
 func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocritic //reason too simple to use named results
 	if client == nil {
 		return State{}, func() {}
@@ -78,10 +77,10 @@ func RemoveHandler(opts Options, client *Client) (State, func()) { //nolint:gocr
 
 // CreateOrJoinHandler provides the option to either create a new session if non exist or join an existing.
 // Rely on the following flags:
-//  * namespace - the name of the target namespace where deployment is defined
-//  * deployment - the name of the target deployment and will update the flag with the new deployment name
-//  * session - the name of the session
-//  * route - the definition of traffic routing.
+//   - namespace - the name of the target namespace where deployment is defined
+//   - deployment - the name of the target deployment and will update the flag with the new deployment name
+//   - session - the name of the session
+//   - route - the definition of traffic routing.
 func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	sessionName, err := getOrCreateSessionName(opts.SessionName)
 	if err != nil {
@@ -95,7 +94,7 @@ func CreateOrJoinHandler(opts Options, client *Client) (State, func(), error) {
 	if err != nil {
 		return State{}, h.removeOrLeaveSession, err
 	}
-	route := session.Status.Route //nolint:ifshort // route used in multiple locations
+	route := session.Status.Route
 	if route == nil {
 		route = &istiov1alpha1.Route{}
 	}
@@ -269,7 +268,7 @@ func getOrCreateSessionName(sessionName string) (string, error) {
 // ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
 func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 	if route == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil //reason empty route will be generated in the controller
 	}
 	var t, n, v string
 

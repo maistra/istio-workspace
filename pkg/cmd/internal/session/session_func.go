@@ -2,11 +2,10 @@ package internal
 
 import (
 	"emperror.dev/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // Sessions creates a Handler for the given session operation.
@@ -35,9 +34,8 @@ func Sessions(cmd *cobra.Command) (session.State, session.Options, func(), error
 	return state, options, f, err
 }
 
-// RemoveSessions creates a Handler for the given session operation for removing a session
-// session expects that cmd has offline and session flags defined.
-// otherwise it fails.
+// RemoveSessions creates a Handler for the given session operation for removing a
+// session expects that cmd has offline and session flags defined. Otherwise, it fails.
 func RemoveSessions(cmd *cobra.Command) (session.State, func(), error) {
 	options, err := ToRemoveOptions(cmd.Flags())
 	if err != nil {

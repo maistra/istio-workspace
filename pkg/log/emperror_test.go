@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
-
 	"github.com/maistra/istio-workspace/pkg/log"
 )
 

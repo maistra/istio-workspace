@@ -1,14 +1,13 @@
 package internal_test
 
 import (
+	"github.com/maistra/istio-workspace/pkg/cmd/develop"
+	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
+	"github.com/maistra/istio-workspace/test"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"github.com/maistra/istio-workspace/pkg/cmd/develop"
-	internal "github.com/maistra/istio-workspace/pkg/cmd/internal/session"
-	"github.com/maistra/istio-workspace/test"
 )
 
 var _ = Describe("Usage of session func", func() {
