@@ -6,6 +6,14 @@ import (
 	"io"
 	"strings"
 
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	"github.com/maistra/istio-workspace/controllers/session"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/template"
+	"github.com/maistra/istio-workspace/test"
+	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
+	"github.com/maistra/istio-workspace/test/testclient"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
@@ -19,15 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	"github.com/maistra/istio-workspace/controllers/session"
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/template"
-	"github.com/maistra/istio-workspace/test"
-	"github.com/maistra/istio-workspace/test/cmd/test-scenario/generator"
-	"github.com/maistra/istio-workspace/test/testclient"
 )
 
 var _ = Describe("Complete session manipulation", func() {

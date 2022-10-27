@@ -2,11 +2,10 @@ package internal
 
 import (
 	"emperror.dev/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
 	"github.com/maistra/istio-workspace/pkg/internal/session"
 	"github.com/maistra/istio-workspace/pkg/telepresence"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // Sessions creates a Handler for the given session operation.

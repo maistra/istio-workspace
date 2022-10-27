@@ -2,14 +2,13 @@ package session_test
 
 import (
 	"emperror.dev/errors"
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
-	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
 var _ = Describe("Session Client operations", func() {

@@ -9,9 +9,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
-	ignore "github.com/sabhiram/go-gitignore"
-
 	"github.com/maistra/istio-workspace/pkg/log"
+	ignore "github.com/sabhiram/go-gitignore"
 )
 
 var logger = func() logr.Logger {

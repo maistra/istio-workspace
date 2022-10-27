@@ -5,15 +5,14 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/reference"
 	"istio.io/api/networking/v1alpha3"
 	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/reference"
 )
 
 const (

@@ -8,11 +8,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/fsnotify/fsnotify"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/maistra/istio-workspace/pkg/watch"
 	. "github.com/maistra/istio-workspace/test"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 const pathSeparator = string(os.PathSeparator)

@@ -2,11 +2,10 @@ package k8s
 
 import (
 	"emperror.dev/errors"
+	"github.com/maistra/istio-workspace/pkg/model"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 const (

@@ -3,6 +3,13 @@ package k8s_test
 import (
 	"context"
 
+	"github.com/maistra/istio-workspace/pkg/k8s"
+	"github.com/maistra/istio-workspace/pkg/log"
+	"github.com/maistra/istio-workspace/pkg/model"
+	"github.com/maistra/istio-workspace/pkg/openshift"
+	"github.com/maistra/istio-workspace/pkg/reference"
+	"github.com/maistra/istio-workspace/pkg/template"
+	"github.com/maistra/istio-workspace/test/testclient"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -13,14 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	"github.com/maistra/istio-workspace/pkg/k8s"
-	"github.com/maistra/istio-workspace/pkg/log"
-	"github.com/maistra/istio-workspace/pkg/model"
-	"github.com/maistra/istio-workspace/pkg/openshift"
-	"github.com/maistra/istio-workspace/pkg/reference"
-	"github.com/maistra/istio-workspace/pkg/template"
-	"github.com/maistra/istio-workspace/test/testclient"
 )
 
 var _ = Describe("Operations for k8s Deployment kind", func() {

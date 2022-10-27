@@ -3,9 +3,8 @@ package infra
 import (
 	"strings"
 
-	"github.com/onsi/ginkgo/v2"
-
 	"github.com/maistra/istio-workspace/test/shell"
+	"github.com/onsi/ginkgo/v2"
 )
 
 // TaskIsDone checks if given task has succeeded.

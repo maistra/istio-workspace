@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/go-cmd/cmd"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	. "github.com/maistra/istio-workspace/e2e/infra"
 	"github.com/maistra/istio-workspace/test"
 	"github.com/maistra/istio-workspace/test/shell"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Operator installation", func() {

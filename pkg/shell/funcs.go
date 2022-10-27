@@ -8,7 +8,6 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
-
 	"github.com/maistra/istio-workspace/pkg/log"
 )
 

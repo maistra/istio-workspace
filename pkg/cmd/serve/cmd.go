@@ -7,17 +7,16 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
+	"github.com/maistra/istio-workspace/api"
+	"github.com/maistra/istio-workspace/controllers"
+	"github.com/maistra/istio-workspace/pkg/cmd/version"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
-
-	"github.com/maistra/istio-workspace/api"
-	"github.com/maistra/istio-workspace/controllers"
-	"github.com/maistra/istio-workspace/pkg/cmd/version"
-	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (

@@ -4,11 +4,10 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"istio.io/api/networking/v1alpha3"
-	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
-
 	"github.com/maistra/istio-workspace/pkg/model"
 	"github.com/maistra/istio-workspace/pkg/reference"
+	"istio.io/api/networking/v1alpha3"
+	istionetwork "istio.io/client-go/pkg/apis/networking/v1alpha3"
 )
 
 const (

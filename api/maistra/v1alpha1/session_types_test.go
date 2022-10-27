@@ -1,10 +1,9 @@
 package v1alpha1_test
 
 import (
+	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 )
 
 var _ = Describe("API manipulation", func() {

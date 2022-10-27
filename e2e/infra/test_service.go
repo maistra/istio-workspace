@@ -7,9 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/onsi/gomega"
-
 	"github.com/maistra/istio-workspace/test/shell"
+	"github.com/onsi/gomega"
 )
 
 // BuildTestService builds istio-workspace-test service and pushes it to specified registry.

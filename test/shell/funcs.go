@@ -7,9 +7,8 @@ import (
 
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/google/shlex"
-	"github.com/onsi/gomega"
-
 	"github.com/maistra/istio-workspace/pkg/shell"
+	"github.com/onsi/gomega"
 )
 
 // WaitForSuccess checks if cmds ended just fine.

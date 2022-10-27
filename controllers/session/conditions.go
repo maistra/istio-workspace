@@ -3,11 +3,10 @@ package session
 import (
 	"strconv"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/model"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {

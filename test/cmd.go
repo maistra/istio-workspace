@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/maistra/istio-workspace/pkg/hook"
+	"github.com/spf13/cobra"
 )
 
 // Cmd is an alias for cobra.Command to build fluent API for building commands in tests.

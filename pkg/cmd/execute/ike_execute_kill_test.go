@@ -10,12 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/maistra/istio-workspace/test"
+	testshell "github.com/maistra/istio-workspace/test/shell"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/shirou/gopsutil/v3/process"
-
-	"github.com/maistra/istio-workspace/test"
-	testshell "github.com/maistra/istio-workspace/test/shell"
 )
 
 var _ = Describe("ike execute - managing spawned processes", func() {

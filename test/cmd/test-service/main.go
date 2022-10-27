@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
-
-	"github.com/maistra/istio-workspace/pkg/log"
 )
 
 const (

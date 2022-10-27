@@ -10,13 +10,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 	gocmd "github.com/go-cmd/cmd"
 	"github.com/go-logr/logr"
-	"github.com/spf13/cobra"
-
 	"github.com/maistra/istio-workspace/pkg/cmd/config"
 	"github.com/maistra/istio-workspace/pkg/hook"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/shell"
 	"github.com/maistra/istio-workspace/pkg/watch"
+	"github.com/spf13/cobra"
 )
 
 const (

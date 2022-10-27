@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
@@ -15,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/fake"
-
-	"github.com/maistra/istio-workspace/pkg/k8s/dynclient"
 )
 
 const groupName = "apiextensions.k8s.io"

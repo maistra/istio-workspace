@@ -71,11 +71,12 @@ linters:
     - gochecknoglobals # FIXME https://github.com/Maistra/istio-workspace/issues/479
     - gocognit # FIXME https://github.com/Maistra/istio-workspace/issues/478
     - gofmt # We use goimports and when using them both leads to contradicting errors
+    - goimports # We use it explicitly as a build step
     - gofumpt
     - gomnd
     - ireturn
     - nonamedreturns
-    - nosnakecase # depracated and complains about built-in consts, eg. os.O_RDWR ¯\_(ツ)_/¯
+    - nosnakecase # deprecated and complains about built-in consts, eg. os.O_RDWR ¯\_(ツ)_/¯
     - paralleltest
     - wsl # FIXME https://github.com/Maistra/istio-workspace/issues/481
     - varnamelen # complains about e.g. loops

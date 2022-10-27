@@ -50,7 +50,7 @@ func Flip(action StatusAction) StatusAction {
 }
 
 type SessionContext struct {
-	context.Context
+	context.Context //nolint:containedctx //reason needs refactoring https://github.com/maistra/istio-workspace/issues/1100
 
 	Name      string
 	Namespace string

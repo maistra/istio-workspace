@@ -3,10 +3,9 @@ package model_test
 import (
 	"fmt"
 
+	"github.com/maistra/istio-workspace/pkg/model"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/maistra/istio-workspace/pkg/model"
 )
 
 var _ = Describe("Operations for model object", func() {
