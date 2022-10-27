@@ -3,14 +3,13 @@ package session_test
 import (
 	"time"
 
+	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
+	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
+	"github.com/maistra/istio-workspace/pkg/internal/session"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
-	testclient "github.com/maistra/istio-workspace/pkg/client/clientset/versioned/fake"
-	"github.com/maistra/istio-workspace/pkg/internal/session"
 )
 
 var _ = Describe("Session operations", func() {
@@ -100,7 +99,7 @@ var _ = Describe("Session operations", func() {
 
 				// when - update the existing ref with telepresence
 				opts.Revert = true
-				opts.DeploymentName = opts.DeploymentName + "-1"
+				opts.DeploymentName += "-1"
 				opts.Strategy = telepresence
 
 				_, remove, err := session.CreateOrJoinHandler(opts, client)
@@ -173,7 +172,7 @@ var _ = Describe("Session operations", func() {
 
 			It("should join a session if existing name found", func() {
 				// given - an existing session
-				opts.DeploymentName = opts.DeploymentName + "-1"
+				opts.DeploymentName += "-1"
 
 				// when - removing a ref from a session
 				_, remove := session.RemoveHandler(opts, client)
