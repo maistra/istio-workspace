@@ -63,6 +63,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - contextcheck # tmp
     - exhaustivestruct
     - exhaustruct
     - forbidigo
