@@ -8,15 +8,14 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/apimachinery/pkg/util/wait"
-
 	istiov1alpha1 "github.com/maistra/istio-workspace/api/maistra/v1alpha1"
 	"github.com/maistra/istio-workspace/pkg/k8s"
 	"github.com/maistra/istio-workspace/pkg/log"
 	"github.com/maistra/istio-workspace/pkg/naming"
 	"github.com/maistra/istio-workspace/pkg/openshift"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var (
@@ -269,7 +268,7 @@ func getOrCreateSessionName(sessionName string) (string, error) {
 // ParseRoute maps string route representation into a Route struct by unwrapping its type, name and value.
 func ParseRoute(route string) (*istiov1alpha1.Route, error) {
 	if route == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil //reason empty route will be generated in the controller
 	}
 	var t, n, v string
 

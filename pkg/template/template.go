@@ -10,7 +10,6 @@ import (
 
 	"emperror.dev/errors"
 	jsonpatch "github.com/evanphx/json-patch"
-
 	"github.com/maistra/istio-workspace/pkg/assets"
 )
 
@@ -142,7 +141,7 @@ func (t JSON) Value(path string) (interface{}, error) {
 				return l, nil
 			}
 
-			return nil, nil
+			return nil, nil //nolint:nilnil //reason for handling relative paths
 		}
 	}
 
