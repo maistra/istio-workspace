@@ -483,7 +483,7 @@ deploy-test-%:
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
 	# end::privileged[]
 
-	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -n $(TEST_NAMESPACE) -f -
+	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -f -
 
 undeploy-test-%:
 	$(eval scenario:=$(subst undeploy-test-,,$@))
