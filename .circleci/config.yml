@@ -271,7 +271,7 @@ jobs:
             make deps tools
 
             # tag::olm[]
-            ./bin/operator-sdk olm install --version v0.21.2
+            ./bin/operator-sdk olm install --version v0.22.0
             # end::olm[]
 
             make container-image container-push
