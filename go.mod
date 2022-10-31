@@ -25,7 +25,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
 	go.uber.org/goleak v1.2.0
-	go.uber.org/zap v1.22.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/net v0.1.0
 	golang.org/x/tools v0.2.0
 	google.golang.org/grpc v1.48.0
