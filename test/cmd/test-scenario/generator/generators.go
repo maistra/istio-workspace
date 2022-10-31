@@ -247,6 +247,7 @@ func template(name string) corev1.PodTemplateSpec {
 			Labels: map[string]string{
 				"app": name,
 			},
+			Namespace: Namespace,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
