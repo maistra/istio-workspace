@@ -5,7 +5,7 @@ go 1.19
 require (
 	emperror.dev/errors v0.8.1
 	github.com/evanphx/json-patch v5.6.0+incompatible
-	github.com/fsnotify/fsnotify v1.5.4
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-cmd/cmd v1.4.1
 	github.com/go-logr/logr v1.2.3
