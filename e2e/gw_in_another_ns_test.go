@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = PDescribe("End To End Tests - non standard scenarios", func() {
+var _ = Describe("End To End Tests - non standard scenarios", func() {
 
 	Context("using ike with scenarios", func() {
 
@@ -48,7 +48,7 @@ var _ = PDescribe("End To End Tests - non standard scenarios", func() {
 			}
 		})
 
-		Context("Gateway in another namespace", func() {
+		PContext("Gateway in another namespace", func() {
 
 			var restoreEnvVars func()
 
