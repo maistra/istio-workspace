@@ -43,6 +43,7 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 
 // DeployTestScenario deploys a test scenario into the specified namespace.
 func DeployTestScenario(scenario, namespace string) {
+	fmt.Printf("test gw ns: %s\n", os.Getenv("TEST_GW_NAMESPACE"))
 	projectDir := shell.GetProjectDir()
 	SetInternalContainerRegistry()
 	setContainerEnvForTestServiceDeploy(namespace)

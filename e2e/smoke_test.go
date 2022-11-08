@@ -62,7 +62,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Context("http protocol", func() {
 
 				BeforeEach(func() {
-					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
+					scenario = "scenario-1" 
 					registry = GetInternalContainerRegistry()
 				})
 

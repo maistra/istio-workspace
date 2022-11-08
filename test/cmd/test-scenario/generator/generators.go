@@ -206,6 +206,11 @@ func VirtualService(service Entry) runtime.Object {
 
 // Gateway basic SubGenerator for the kind Gateway.
 func Gateway() runtime.Object {
+	gatewayNs := GatewayNamespace
+	if gatewayNs == "" {
+		gatewayNs = Namespace
+	}
+
 	return &istionetwork.Gateway{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "networking.istio.io/v1alpha3",
@@ -213,7 +218,7 @@ func Gateway() runtime.Object {
 		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-gateway",
-			Namespace: Namespace,
+			Namespace: gatewayNs,
 		},
 		Spec: istiov1alpha3.Gateway{
 			Selector: map[string]string{

@@ -20,8 +20,12 @@ func main() {
 		generator.GatewayHost = h
 	}
 
-	if h, f := os.LookupEnv("TEST_NAMESPACE"); f {
-		generator.Namespace = h
+	if ns, found := os.LookupEnv("TEST_NAMESPACE"); found {
+		generator.Namespace = ns
+	}
+
+	if gwNs, found := os.LookupEnv("TEST_GW_NAMESPACE"); found {
+		generator.GatewayNamespace = gwNs
 	}
 
 	scenarios := map[string]func(io.Writer){

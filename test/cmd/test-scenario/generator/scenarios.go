@@ -5,7 +5,8 @@ import (
 )
 
 var (
-	Namespace = ""
+	Namespace        = ""
+	GatewayNamespace = ""
 )
 
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
