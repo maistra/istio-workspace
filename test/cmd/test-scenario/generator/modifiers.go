@@ -15,7 +15,7 @@ func ConnectToGateway(hostname string) Modifier {
 	if gatewayNs == "" {
 		gatewayNs = Namespace
 	}
-	
+
 	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{hostname}
