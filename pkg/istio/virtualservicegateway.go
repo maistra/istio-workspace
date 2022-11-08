@@ -51,7 +51,18 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 			vs := vss.Items[i]
 			if gateways, connected := connectedToGateway(vs); connected {
 				for _, gwName := range gateways {
-					gw, err := getGateway(ctx, ctx.Namespace, gwName)
+					gwName := gwName // pin
+					// Gateways in other namespaces may be referred to
+					// by <gateway namespace>/<gateway name>;
+					// specifying a gateway with no namespace qualifier
+					// is the same as specifying the VirtualService’s namespace.
+					gwNs := vs.Namespace // default if not specified otherwise
+					gwNameNs := strings.Split(gwName, "/")
+					if len(gwNameNs) > 1 {
+						gwNs = gwNameNs[0]
+						gwName = gwNameNs[1]
+					}
+					gw, err := getGateway(ctx, gwNs, gwName)
 					if err != nil {
 						errs = errors.Append(errs, err)
 
