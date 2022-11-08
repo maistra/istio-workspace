@@ -41,7 +41,7 @@ linters-settings:
       - commentFormatting # https://github.com/go-critic/go-critic/issues/755
       - hugeParam # seems to be premature optimization based on https://github.com/Maistra/istio-workspace/pull/378#discussion_r392208906
   nestif:
-    min-complexity: 8
+    min-complexity: 10
   unused:
     check-exported: true
   gocognit:
