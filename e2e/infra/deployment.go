@@ -27,11 +27,11 @@ func DeleteFile(filePath string) {
 	gomega.Expect(err).ToNot(gomega.HaveOccurred())
 }
 
-func NewProjectCmd(name string) string {
+func CreateNamespaceCmd(name string) string {
 	return "kubectl create namespace " + name
 }
 
-func DeleteProjectCmd(name string) string {
+func DeleteNamespaceCmd(name string) string {
 	return "kubectl delete namespace " + name + " --wait=false"
 }
 

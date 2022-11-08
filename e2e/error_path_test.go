@@ -36,7 +36,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 			namespace = generateNamespaceName()
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
-			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 
 			PrepareEnv(namespace)
 			InstallLocalOperator(namespace)

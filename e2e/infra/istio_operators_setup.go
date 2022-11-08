@@ -14,7 +14,7 @@ func BuildOperator() (registry string) {
 	namespace := setOperatorNamespace()
 	registry = SetExternalContainerRegistry()
 	setContainerRepository(GetRepositoryName())
-	shell.Execute(NewProjectCmd(namespace)).Done() // Ignore failure if ns already exists
+	shell.Execute(CreateNamespaceCmd(namespace)).Done() // Ignore failure if ns already exists
 	if RunsOnOpenshift {
 		EnablePullingImages(namespace)
 		shell.WaitForSuccess(

@@ -38,7 +38,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			namespace = generateNamespaceName()
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
-			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 
 			PrepareEnv(namespace)
 
