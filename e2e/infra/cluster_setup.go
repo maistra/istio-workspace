@@ -53,10 +53,9 @@ func LoginAsTestPowerUser() {
 	<-shell.ExecuteInDir(".", "oc", "login", srv, "-u", user, "-p", pwd, "--insecure-skip-tls-verify=true").Done()
 }
 
-// GetEvents returns all events which occurred for a given namespace.
-func GetEvents(ns string) {
-	state := shell.Execute("kubectl get events -n " + ns)
-	<-state.Done()
+// PrintEvents returns all events which occurred for a given namespace.
+func PrintEvents(ns string) {
+	<-shell.Execute("kubectl get events -n " + ns).Done()
 }
 
 // DumpTelepresenceLog dumps telepresence log if exists.
@@ -72,6 +71,10 @@ func DumpTelepresenceLog(dir string) {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func PrintControllerLogs(ns string) {
+	<-shell.Execute("kubectl logs -l app=istio-workspace --all-containers -n " + ns).Done()
 }
 
 // UsePrebuiltImages returns true if test suite should use images that are built outside the test execution flow.

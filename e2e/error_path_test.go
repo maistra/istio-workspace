@@ -45,7 +45,7 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 
 		AfterEach(func() {
 			if CurrentSpecReport().Failed() {
-				DumpEnvironmentDebugInfo(namespace, tmpDir)
+				PrintFailureDetails(namespace, tmpDir)
 			}
 			CleanupNamespace(namespace, false)
 			tmpFs.Cleanup()
