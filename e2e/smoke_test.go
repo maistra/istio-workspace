@@ -50,7 +50,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 		AfterEach(func() {
 			if CurrentSpecReport().Failed() {
-				DumpEnvironmentDebugInfo(namespace, tmpDir)
+				PrintFailureDetails(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
 				tmpFs.Cleanup()
@@ -504,9 +504,11 @@ func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 	}
 }
 
-// DumpEnvironmentDebugInfo prints tons of noise about the cluster state when test fails.
-func DumpEnvironmentDebugInfo(namespace, dir string) {
-	GetEvents(namespace)
+// PrintFailureDetails prints tons of noise about the cluster state when test fails.
+func PrintFailureDetails(namespace, dir string) {
+	PrintEvents(namespace)
+	PrintControllerLogs(namespace)
+	PrintSessions(namespace)
 	DumpTelepresenceLog(dir)
 }
 
