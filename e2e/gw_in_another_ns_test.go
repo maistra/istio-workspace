@@ -41,7 +41,7 @@ var _ = Describe("End To End Tests - non standard scenarios", func() {
 
 		AfterEach(func() {
 			if CurrentSpecReport().Failed() {
-				DumpEnvironmentDebugInfo(namespace, tmpDir)
+				PrintFailureDetails(namespace, tmpDir)
 			} else {
 				CleanupNamespace(namespace, false)
 				tmpFs.Cleanup()
