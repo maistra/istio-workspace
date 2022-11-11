@@ -79,7 +79,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 					report(model.LocatorStatus{
 						Resource: model.Resource{
 							Kind:      GatewayKind,
-							Namespace: gw.Namespace,
+							Namespace: gwNs,
 							Name:      gwName,
 						},
 						Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: model.ActionModify})
