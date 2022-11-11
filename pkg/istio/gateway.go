@@ -42,7 +42,7 @@ func GatewayModificator(ctx model.SessionContext, ref model.Ref, store model.Loc
 }
 
 func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
-	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
+	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
