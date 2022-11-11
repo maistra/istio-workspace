@@ -36,7 +36,7 @@ func init() {
 	metrics.Registry.MustRegister(resources, resourceFailures)
 }
 
-func NewInstrumentedClient(c client.Client) client.Client {
+func NewInstrumentedClient(c client.Client) *InstrumentedClient {
 	return &InstrumentedClient{c: c}
 }
 
@@ -52,8 +52,8 @@ func (i *InstrumentedClient) RESTMapper() meta.RESTMapper {
 	return i.c.RESTMapper()
 }
 
-func (i *InstrumentedClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
-	return record(i.c.Get(ctx, key, obj), "get", i.getObjectKind(obj))
+func (i *InstrumentedClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+	return record(i.c.Get(ctx, key, obj, opts...), "get", i.getObjectKind(obj))
 }
 
 func (i *InstrumentedClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
