@@ -508,6 +508,7 @@ func FailOnCmdError(command *cmd.Cmd, t test.TestReporter) {
 func PrintFailureDetails(namespace, dir string) {
 	PrintEvents(namespace)
 	PrintControllerLogs(namespace)
+	PrintSessions(namespace)
 	DumpTelepresenceLog(dir)
 }
 

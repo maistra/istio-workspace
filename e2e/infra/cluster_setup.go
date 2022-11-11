@@ -77,6 +77,10 @@ func PrintControllerLogs(ns string) {
 	<-shell.Execute("kubectl logs -l app=istio-workspace --all-containers -n " + ns).Done()
 }
 
+func PrintSessions(ns string) {
+	<-shell.Execute("kubectl get sessions -o yaml -n " + ns).Done()
+}
+
 // UsePrebuiltImages returns true if test suite should use images that are built outside the test execution flow.
 func UsePrebuiltImages() bool {
 	return os.Getenv("PRE_BUILT_IMAGES") != ""
