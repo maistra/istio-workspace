@@ -7,7 +7,7 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
-    MICROK8S_SNAP_VERSION: "1.22/stable"
+    MICROK8S_SNAP_VERSION: "1.23/stable"
     GOLANG_SNAP_VERSION: "1.19/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
@@ -191,7 +191,7 @@ jobs:
             sudo snap ack core.assert
             sudo snap install core.snap
             sudo snap ack microk8s.assert
-            sudo snap install microk8s.snap --classic --channel=1.23/stable
+            sudo snap install microk8s.snap --classic --channel=${MICROK8S_SNAP_VERSION}
       - save_cache:
           <<: *save-snaps
       - run:
