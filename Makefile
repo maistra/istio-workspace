@@ -242,6 +242,7 @@ $(PROJECT_DIR)/bin/protoc:
 	chmod +x $(PROJECT_DIR)/bin/protoc
 
 OPERATOR_SDK_VERSION=v1.25.1
+OPM_VERSION=v1.26.2
 $(PROJECT_DIR)/bin/operator-sdk:
 	$(call header,"Installing operator-sdk cli")
 	wget -q -c https://github.com/operator-framework/operator-sdk/releases/download/$(OPERATOR_SDK_VERSION)/operator-sdk_$(GOOS)_$(GOARCH) -O $(PROJECT_DIR)/bin/operator-sdk
@@ -399,7 +400,7 @@ bundle-push:	## Push the bundle image
 	$(IMG_BUILDER) push $(BUNDLE_IMG)
 
 BUNDLE_TIMEOUT?=5m
-bundle-run:=operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPERATOR_SDK_VERSION)
+bundle-run:=operator-sdk run bundle $(BUNDLE_IMG) -n $(OPERATOR_NAMESPACE) --timeout $(BUNDLE_TIMEOUT) --index-image quay.io/operator-framework/opm:$(OPM_VERSION)
 
 .PHONY: bundle-run
 bundle-run:		## Run the bundle image in OwnNamespace(OPERATOR_NAMESPACE) install mode
