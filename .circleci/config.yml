@@ -7,7 +7,7 @@ defaults:
     IKE_E2E_MANAGE_CLUSTER: "false"
     IKE_LOG_DEBUG: "true"
     BUILD_CACHE_FOLDER: ".circleci/cache"
-    MICROK8S_SNAP_VERSION: "1.22/stable"
+    MICROK8S_SNAP_VERSION: "1.25/stable"
     GOLANG_SNAP_VERSION: "1.19/stable"
   golang-install: &golang-install
     name: "Install latest Golang"
@@ -181,7 +181,7 @@ jobs:
       - run:
           name: "Install official kubectl"
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.25.4/bin/linux/amd64/kubectl
             chmod +x kubectl && sudo mv kubectl /usr/local/bin/
             echo "Installed kubectl\n$(kubectl version)\n"
       - run:
@@ -191,7 +191,7 @@ jobs:
             sudo snap ack core.assert
             sudo snap install core.snap
             sudo snap ack microk8s.assert
-            sudo snap install microk8s.snap --classic
+            sudo snap install microk8s --classic --channel=${MICROK8S_SNAP_VERSION}
       - save_cache:
           <<: *save-snaps
       - run:
@@ -214,6 +214,7 @@ jobs:
             # Allow intra-pod communication
             sudo iptables -P FORWARD ACCEPT
 
+            sudo microk8s enable community
             echo n | sudo microk8s.enable dns registry istio rbac
 
             # wait until the registry is up and running
