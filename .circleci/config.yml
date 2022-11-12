@@ -239,7 +239,7 @@ jobs:
             echo "Istio enabled"
 
             echo "Installing Tekton"
-            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.27.3/release.yaml
+            kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.41.0/release.yaml
             sleep 10
             n=0
             until [ $n -ge 10 ]
