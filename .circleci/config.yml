@@ -188,17 +188,21 @@ jobs:
           name: "Install Microk8s"
           command: |
             cd ~/.snaps
+            # tag::microk8s-snap[]
             sudo snap ack core.assert
             sudo snap install core.snap
             sudo snap ack microk8s.assert
             sudo snap install microk8s.snap --classic
+            # end::microk8s-snap[]
       - save_cache:
           <<: *save-snaps
       - run:
           name: "Launch Microk8s"
           command: |
+            # tag::microk8s-kubectl[]
             sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
             export KUBECONFIG=/tmp/kubeconfig
+            # end::microk8s-kubectl[]
 
             # wait until a k8s node is ready
             sleep 10
@@ -214,7 +218,10 @@ jobs:
             # Allow intra-pod communication
             sudo iptables -P FORWARD ACCEPT
 
-            echo n | sudo microk8s.enable dns registry istio rbac
+            echo n | \
+            # tag::microk8s-addons[]
+            sudo microk8s.enable dns registry istio rbac
+            # end::microk8s-addons[]
 
             # wait until the registry is up and running
             sleep 10
@@ -239,7 +246,9 @@ jobs:
             echo "Istio enabled"
 
             echo "Installing Tekton"
+            # tag::tekton-install[]
             kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.27.3/release.yaml
+            # end::tekton-install[]
             sleep 10
             n=0
             until [ $n -ge 10 ]
