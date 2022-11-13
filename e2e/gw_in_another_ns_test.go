@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -25,46 +26,39 @@ var _ = Describe("End To End Tests - non standard scenarios", func() {
 
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
-		JustBeforeEach(func() {
-			namespace = generateNamespaceName()
-			tmpDir = tmpFs.Dir("namespace-" + namespace)
-
-			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
-
-			PrepareEnv(namespace)
-
-			InstallLocalOperator(namespace)
-			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
-			DeployTestScenario(scenario, namespace)
-			sessionName = GenerateSessionName()
-		})
-
-		AfterEach(func() {
-			if CurrentSpecReport().Failed() {
-				PrintFailureDetails(namespace, tmpDir)
-			} else {
-				CleanupNamespace(namespace, false)
-				tmpFs.Cleanup()
-			}
-		})
-
 		PContext("Gateway in another namespace", func() {
 
 			var restoreEnvVars func()
 
 			BeforeEach(func() {
+				scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
+
+				namespace = generateNamespaceName()
 				gwNamespace = generateNamespaceName()
+				tmpDir = tmpFs.Dir("namespace-" + namespace)
+
+				<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 				<-testshell.Execute(CreateNamespaceCmd(gwNamespace)).Done()
 				restoreEnvVars = test.TemporaryEnvVars("TEST_GW_NAMESPACE", gwNamespace)
+
+				PrepareEnvForOpenshift(namespace)
+
+				InstallMultiNamespaceOperator(namespace, gwNamespace)
+				Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
+				DeployTestScenario(scenario, namespace)
+				sessionName = GenerateSessionName()
 			})
 
 			AfterEach(func() {
+				if CurrentSpecReport().Failed() {
+					PrintFailureDetails(namespace, tmpDir)
+				} else {
+					CleanupNamespace(namespace, false)
+					tmpFs.Cleanup()
+				}
 				<-testshell.Execute(DeleteNamespaceCmd(gwNamespace)).Done()
+				os.Setenv("OPERATOR_WATCH_NAMESPACE", "")
 				restoreEnvVars()
-			})
-
-			BeforeEach(func() {
-				scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
 			})
 
 			It("should watch for changes in connected service and serve it", func() {

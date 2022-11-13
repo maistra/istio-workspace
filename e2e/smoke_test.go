@@ -40,7 +40,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 
-			PrepareEnv(namespace)
+			PrepareEnvForOpenshift(namespace)
 
 			InstallLocalOperator(namespace)
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
@@ -68,7 +68,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 
 				Context("basic deployment modifications", func() {
 
-					FIt("should watch for changes in connected service and serve it", func() {
+					It("should watch for changes in connected service and serve it", func() {
 						EnsureAllDeploymentPodsAreReady(namespace)
 						EnsureProdRouteIsReachable(namespace, ContainSubstring("productpage-v1"))
 						deploymentCount := GetResourceCount("deployment", namespace)

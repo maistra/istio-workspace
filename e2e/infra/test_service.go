@@ -42,21 +42,23 @@ func BuildTestServicePreparedImage(callerName string) (registry string) {
 }
 
 // DeployTestScenario deploys a test scenario into the specified namespace.
-func DeployTestScenario(scenario, namespace string) {
-	fmt.Printf("test gw ns: %s\n", os.Getenv("TEST_GW_NAMESPACE"))
+func DeployTestScenario(scenario string, namespace ...string) {
 	projectDir := shell.GetProjectDir()
 	SetInternalContainerRegistry()
-	setContainerEnvForTestServiceDeploy(namespace)
-	if RunsOnOpenshift {
-		<-shell.ExecuteInDir(".", "bash", "-c",
-			`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+namespace+`"}]'`).Done()
-		gomega.Eventually(func() string {
-			return GetProjectLabels(namespace)
-		}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
-	} else {
-		shell.WaitForSuccess(
-			shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+namespace+" istio-injection=enabled --overwrite=true"),
-		)
+	for _, ns := range namespace {
+		ns := ns // pin
+		setContainerEnvForTestServiceDeploy(ns)
+		if RunsOnOpenshift {
+			<-shell.ExecuteInDir(".", "bash", "-c",
+				`oc -n `+GetIstioNamespace()+` patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members/-", "value":"`+ns+`"}]'`).Done()
+			gomega.Eventually(func() string {
+				return GetProjectLabels(ns)
+			}, 1*time.Minute).Should(gomega.ContainSubstring("maistra.io/member-of"))
+		} else {
+			shell.WaitForSuccess(
+				shell.ExecuteInDir(".", "bash", "-c", "kubectl label namespace "+ns+" istio-injection=enabled --overwrite=true"),
+			)
+		}
 	}
 	shell.WaitForSuccess(
 		shell.ExecuteInDir(projectDir, "make", "deploy-test-"+scenario),

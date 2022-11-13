@@ -3,6 +3,7 @@ package infra
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/maistra/istio-workspace/test/shell"
 	"github.com/onsi/gomega"
@@ -35,6 +36,20 @@ func InstallLocalOperator(namespace string) {
 	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	shell.WaitForSuccess(
 		shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run"),
+	)
+}
+
+func InstallMultiNamespaceOperator(namespace string, watchNs ...string) {
+	SetInternalContainerRegistry()
+
+	watchNs = append(watchNs, namespace)
+	err := os.Setenv("OPERATOR_NAMESPACE", namespace)
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+	err = os.Setenv("OPERATOR_WATCH_NAMESPACE", strings.Join(watchNs, ","))
+	gomega.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+
+	shell.WaitForSuccess(
+		shell.ExecuteInDir(shell.GetProjectDir(), "make", "bundle-run-multi"),
 	)
 }
 
