@@ -472,19 +472,24 @@ deploy-test-%:
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
 
 	$(k8s) create namespace $(TEST_NAMESPACE) || true
+	$(k8s) create namespace $(TEST_GW_NAMESPACE) || true
 
 	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
 	# tag::anyuid[]
 	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_NAMESPACE) || true
 	# end::anyuid[]
+	oc adm policy add-scc-to-user anyuid -z default -n $(TEST_GW_NAMESPACE) || true
 
 	# Do not remove line breaks as they're intentionally set for docs toolchain to always get right snippet
 	# tag::privileged[]
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_NAMESPACE) || true
 	# end::privileged[]
+	oc adm policy add-scc-to-user privileged -z default -n $(TEST_GW_NAMESPACE) || true
 
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -f -
 
+
+# TODO FIX undeploying gw if in another ns
 undeploy-test-%:
 	$(eval scenario:=$(subst undeploy-test-,,$@))
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
