@@ -217,7 +217,7 @@ func Gateway() runtime.Object {
 			Kind:       "Gateway",
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      "test-gateway",
+			Name:      GatewayName,
 			Namespace: gatewayNs,
 		},
 		Spec: istiov1alpha3.Gateway{

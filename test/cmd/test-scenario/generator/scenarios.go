@@ -7,6 +7,7 @@ import (
 var (
 	Namespace        = ""
 	GatewayNamespace = ""
+	GatewayName      = "test-gateway"
 )
 
 // TestScenario1HTTPThreeServicesInSequence is a basic test setup with a few services
@@ -116,4 +117,13 @@ func IncompleteMissingVirtualServices(out io.Writer) {
 		ForService(reviews, Call(HTTP(), ratings)),
 		GatewayOnHost(GatewayHost),
 	)
+}
+
+func getGatewayName() string {
+	gatewayName := GatewayName
+	if GatewayNamespace != "" {
+		gatewayName = GatewayNamespace + "/" + gatewayName
+	}
+
+	return gatewayName
 }

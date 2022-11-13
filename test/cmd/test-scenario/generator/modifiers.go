@@ -11,15 +11,10 @@ import (
 
 // ConnectToGateway modifier to connect VirtualService to a Gateway. Combine with ForService.
 func ConnectToGateway(hostname string) Modifier {
-	gatewayNs := GatewayNamespace
-	if gatewayNs == "" {
-		gatewayNs = Namespace
-	}
-
 	return func(service Entry, object runtime.Object) {
 		if obj, ok := object.(*istionetwork.VirtualService); ok {
 			obj.Spec.Hosts = []string{hostname}
-			obj.Spec.Gateways = append(obj.Spec.Gateways, gatewayNs+"/test-gateway")
+			obj.Spec.Gateways = append(obj.Spec.Gateways, getGatewayName())
 			for i := 0; i < len(obj.Spec.Http); i++ {
 				http := obj.Spec.Http[i]
 				for n := 0; n < len(http.Route); n++ {
