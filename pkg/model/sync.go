@@ -14,7 +14,7 @@ var (
 	resources = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "resources_total",
-			Help: "Number of resources proccessed",
+			Help: "Number of resources processed",
 		},
 		resourceVectors,
 	)
@@ -32,7 +32,7 @@ func init() {
 	metrics.Registry.MustRegister(resources, resourceFailures)
 }
 
-// Sync is the entry point for ensuring the desired state for the given Ref is up to date.
+// Sync is the entry point for ensuring the desired state for the given Ref is up-to-date.
 type Sync func(SessionContext, Ref, ModificatorController, LocatedReporter, ModificatorStatusReporter)
 
 func NewSync(locators []Locator, modificators []Modificator) Sync {
