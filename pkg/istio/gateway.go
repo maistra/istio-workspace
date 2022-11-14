@@ -134,17 +134,17 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 		hosts := server.Hosts
 		for _, host := range hosts {
 			newHost := ctx.Name + "." + host
-			if !existInList(existingHosts, host) && !existInList(existingHosts, newHost) {
+			if !isInSlice(existingHosts, host) && !isInSlice(existingHosts, newHost) {
 				existingHosts = append(existingHosts, newHost)
 				hosts = append(hosts, newHost)
 			}
-			if existInList(existingHosts, newHost) {
+			if isInSlice(existingHosts, newHost) {
 				addedHosts = append(addedHosts, newHost)
 			}
 		}
 		for _, existing := range existingHosts {
 			baseHost := strings.Join(strings.Split(existing, ".")[1:], ".")
-			if !existInList(hosts, existing) && existInList(hosts, baseHost) {
+			if !isInSlice(hosts, existing) && isInSlice(hosts, baseHost) {
 				hosts = append(hosts, existing)
 			}
 		}
@@ -168,7 +168,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 		hosts := server.Hosts
 		for i := 0; i < len(hosts); i++ {
 			host := hosts[i]
-			if existInList(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
+			if isInSlice(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
 				toBeRemovedHosts = append(toBeRemovedHosts, host)
 				hosts = append(hosts[:i], hosts[i+1:]...)
 				i--
@@ -202,7 +202,7 @@ func getGateways(ctx model.SessionContext, namespace string, opts ...client.List
 	return &gateways, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
 
-func existInList(hosts []string, host string) bool {
+func isInSlice(hosts []string, host string) bool {
 	for _, eh := range hosts {
 		if eh == host {
 			return true

@@ -106,7 +106,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 
 func findNewHosts(server *v1alpha3.Server, existingHosts, hosts []string) []string {
 	for _, host := range server.Hosts {
-		if !existInList(existingHosts, host) {
+		if !isInSlice(existingHosts, host) {
 			hosts = append(hosts, host)
 		}
 	}
