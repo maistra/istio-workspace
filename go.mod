@@ -48,7 +48,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.5.0
 	github.com/onsi/gomega v1.24.0
 	github.com/schollz/progressbar/v3 v3.11.0
-	github.com/shirou/gopsutil/v3 v3.22.9
+	github.com/shirou/gopsutil/v3 v3.22.10
 	gopkg.in/h2non/gock.v1 v1.1.2
 )
 
