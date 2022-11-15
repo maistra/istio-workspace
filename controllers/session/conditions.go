@@ -10,16 +10,17 @@ import (
 )
 
 func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) istiov1alpha1.Condition {
-	message := located.Kind + "/" + located.Name + " status " + ref.KindName.String() + ": "
+	message := located.GetNamespaceName() + "[" + located.Kind + "] status " + ref.KindName.String() + ": "
 	reason := "Scheduled"
 	typeStr := createType(located.Action, located.Kind)
 	status := "true"
 
 	return istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
-			Kind: located.Kind,
-			Name: located.Name,
-			Ref:  ref.KindName.String(),
+			Kind:      located.Kind,
+			Name:      located.Name,
+			Namespace: located.Namespace,
+			Ref:       ref.KindName.String(),
 		},
 		Message: &message,
 		Reason:  &reason,
@@ -29,7 +30,7 @@ func createConditionForLocatedRef(ref model.Ref, located model.LocatorStatus) is
 }
 
 func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStatus) istiov1alpha1.Condition {
-	message := modified.Kind + "/" + modified.Name + " modified to satisfy " + ref.KindName.String() + ": "
+	message := modified.GetNamespaceName() + "[" + modified.Kind + "] modified to satisfy " + ref.KindName.String() + ": "
 	if modified.Error != nil {
 		message += modified.Error.Error()
 	} else {
@@ -38,8 +39,9 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 	var target *istiov1alpha1.Target
 	if modified.Target != nil {
 		target = &istiov1alpha1.Target{
-			Kind: modified.Target.Kind,
-			Name: modified.Target.Name,
+			Kind:      modified.Target.Kind,
+			Name:      modified.Target.Name,
+			Namespace: modified.Target.Namespace,
 		}
 	}
 	status := strconv.FormatBool(modified.Success)
@@ -49,9 +51,10 @@ func createConditionForModifiedRef(ref model.Ref, modified model.ModificatorStat
 
 	return istiov1alpha1.Condition{
 		Source: istiov1alpha1.Source{
-			Kind: modified.Kind,
-			Name: modified.Name,
-			Ref:  ref.KindName.String(),
+			Kind:      modified.Kind,
+			Name:      modified.Name,
+			Namespace: modified.Namespace,
+			Ref:       ref.KindName.String(),
 		},
 		Target:  target,
 		Message: &message,
