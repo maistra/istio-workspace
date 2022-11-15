@@ -488,13 +488,14 @@ func getHostsFromGateway(ctx model.SessionContext, store model.LocatorStatusStor
 	gwByName := func(store model.LocatorStatusStore, gatewayName string) []model.LocatorStatus {
 		var f []model.LocatorStatus
 		for _, g := range store(GatewayKind) {
-			if g.Name == gatewayName {
+			if g.GetNamespaceName() == gatewayName || g.Name == gatewayName {
 				f = append(f, g)
 			}
 		}
 
 		return f
 	}
+
 	for _, gateway := range gateways {
 		for _, gwTarget := range gwByName(store, gateway) {
 			for _, host := range strings.Split(gwTarget.Labels[LabelIkeHosts], ",") {
