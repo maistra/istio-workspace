@@ -26,7 +26,7 @@ var _ = Describe("End To End Tests - non standard scenarios", func() {
 
 		tmpFs := test.NewTmpFileSystem(GinkgoT())
 
-		PContext("Gateway in another namespace", func() {
+		Context("Gateway in another namespace", func() {
 
 			var restoreEnvVars func()
 
@@ -34,7 +34,7 @@ var _ = Describe("End To End Tests - non standard scenarios", func() {
 				scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
 
 				namespace = generateNamespaceName()
-				gwNamespace = generateNamespaceName()
+				gwNamespace = "gw-" + namespace
 				tmpDir = tmpFs.Dir("namespace-" + namespace)
 
 				<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
