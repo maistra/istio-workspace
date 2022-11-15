@@ -71,22 +71,27 @@ MicroK8s is a lightweight, upstream Kubernetes distribution which you can run on
 
 Check https://microk8s.io/docs[official docs] to see how you can install it on your OS.
 
+. Here's how we install it in our CircleCI setup:
++
+[source,shell,indent=0]
+----
+include::example$config.yml[tag=microk8s-snap]
+----
 
 ==== Needed customizations
 
 . Enable following services:
 +
-[source,bash]
+[source,shell,indent=0]
 ----
-microk8s.enable dns registry istio 
+include::example$config.yml[tag=microk8s-addons]
 ----
 
 . Point `kubectl` to `microk8s` instance, for example:
 +
-[source,bash]
+[source,shell,indent=0]
 ----
-sudo microk8s.kubectl config view --raw > /tmp/kubeconfig
-export KUBECONFIG=/tmp/kubeconfig
+include::example$config.yml[tag=microk8s-kubectl]
 ----
 
 [NOTE]
@@ -109,7 +114,7 @@ ENV_FILE=microk8s.env make test-e2e
 IKE_E2E_MANAGE_CLUSTER=false
 ISTIO_NS=istio-system
 IKE_IMAGE_TAG=latest
-TELEPRESENCE_VERSION=0.105
+TELEPRESENCE_VERSION=0.109
 IKE_CLUSTER_HOST=localhost
 IKE_ISTIO_INGRESS=http://localhost:31380
 IKE_INTERNAL_CONTAINER_REGISTRY=localhost:32000
