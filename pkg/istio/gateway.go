@@ -66,7 +66,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}
@@ -82,7 +82,6 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 
 func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
-	patch := client.MergeFrom(gw.DeepCopy())
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 			report(model.ModificatorStatus{
@@ -100,6 +99,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 	}
 
 	ctx.Log.Info("Found Gateway", "name", resource.Name)
+	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw := revertGateway(ctx, *gw)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)

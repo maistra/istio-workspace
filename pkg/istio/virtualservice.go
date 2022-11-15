@@ -207,7 +207,6 @@ func actionDeleteVirtualService(ctx model.SessionContext, report model.Modificat
 
 func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
-	patch := client.MergeFrom(vs.DeepCopy())
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
@@ -223,6 +222,7 @@ func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store m
 
 		return
 	}
+	patch := client.MergeFrom(vs.DeepCopy())
 	mutatedVs, err := mutateVirtualService(ctx, store, hostName, *vs)
 	if err != nil {
 		report(model.ModificatorStatus{
@@ -250,12 +250,13 @@ func actionModifyVirtualService(ctx model.SessionContext, ref model.Ref, store m
 
 func actionRevertVirtualService(ctx model.SessionContext, ref model.Ref, store model.LocatorStatusStore, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	vs, err := getVirtualService(ctx, resource.Namespace, resource.Name)
-	patch := client.MergeFrom(vs.DeepCopy())
 	if err != nil {
 		report(model.ModificatorStatus{LocatorStatus: resource, Success: false, Error: err})
 
 		return
 	}
+
+	patch := client.MergeFrom(vs.DeepCopy())
 	mutatedVs := revertVirtualService(model.GetDeletedVersion(store), *vs)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedVs); err != nil {
 		ctx.Log.Error(err, "failed to add relation reference", "kind", mutatedVs.Kind, "name", mutatedVs.Name)

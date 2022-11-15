@@ -182,6 +182,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	// Fetch the Session instance
 	session := &istiov1alpha1.Session{}
 	err := c.Get(context.Background(), request.NamespacedName, session)
+
 	if err != nil {
 		if errorsK8s.IsNotFound(err) {
 			return reconcile.Result{}, nil
