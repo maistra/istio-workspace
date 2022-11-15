@@ -36,7 +36,7 @@ func GatewayModificator(ctx model.SessionContext, ref model.Ref, store model.Loc
 			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
-				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+				Error:         errors.Errorf("Unsupported action type for modificator: %v", resource.Action)})
 		}
 	}
 }
@@ -52,7 +52,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		return
 	}
 
-	ctx.Log.Info("Found Gateway", "name", gw.Name)
+	ctx.Log.Info("Found Gateway", "name", resource.Name, "namespace", resource.Namespace)
 	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
@@ -98,7 +98,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		return
 	}
 
-	ctx.Log.Info("Found Gateway", "name", resource.Name)
+	ctx.Log.Info("Found Gateway", "name", resource.Name, "namespace", resource.Namespace)
 	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw := revertGateway(ctx, *gw)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
@@ -111,7 +111,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}

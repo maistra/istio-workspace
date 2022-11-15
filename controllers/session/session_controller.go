@@ -103,7 +103,9 @@ func add(mgr manager.Manager, r *ReconcileSession) error {
 	}
 
 	// Watch for changes to primary resource Session
-	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}}, &handler.InstrumentedEnqueueRequestForObject{}, predicate.GenerationChangedPredicate{})
+	err = c.Watch(&source.Kind{Type: &istiov1alpha1.Session{}},
+		&handler.InstrumentedEnqueueRequestForObject{},
+		predicate.GenerationChangedPredicate{})
 	if err != nil {
 		return errors.Wrap(err, "failed creating session-controller")
 	}
@@ -201,14 +203,7 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 		Client:    c,
 	}
 
-	// update session.status.Route if it was not provided
-	session.Status.Route = ConvertModelRouteToAPIRoute(route)
-	session.Status.RouteExpression = session.Status.Route.String()
-	processing := istiov1alpha1.StateProcessing
-	session.Status.State = &processing
-	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
-
-	err = c.Status().Update(ctx, session)
+	err = updateSessionRoute(ctx, session, route, c.Status())
 	if err != nil {
 		ctx.Log.Error(err, "Failed to update session.status.route")
 	}
@@ -297,6 +292,17 @@ func (r *ReconcileSession) Reconcile(orgCtx context.Context, request reconcile.R
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func updateSessionRoute(ctx model.SessionContext, session *istiov1alpha1.Session, route model.Route, c client.StatusWriter) error {
+	session.Status.Route = ConvertModelRouteToAPIRoute(route)
+	session.Status.RouteExpression = session.Status.Route.String()
+	processing := istiov1alpha1.StateProcessing
+	session.Status.State = &processing
+	session.Status.Readiness = istiov1alpha1.StatusReadiness{Components: istiov1alpha1.StatusComponents{}}
+	err := c.Update(ctx, session)
+
+	return errors.Wrap(err, "failed updating session route")
 }
 
 func allConditionsSuccessful(conditions []*istiov1alpha1.Condition) bool {
