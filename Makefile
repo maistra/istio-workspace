@@ -467,6 +467,7 @@ tekton-publish: ## Prepares Tekton tasks for release and opens a PR on the Tekto
 ## Istio-workspace sample project deployment
 # ##########################################################################
 
+TEST_GW_NAMESPACE?=$(TEST_NAMESPACE)
 deploy-test-%:
 	$(eval scenario:=$(subst deploy-test-,,$@))
 	$(call header,"Deploying test $(scenario) app to $(TEST_NAMESPACE)")
@@ -486,15 +487,16 @@ deploy-test-%:
 	# end::privileged[]
 	oc adm policy add-scc-to-user privileged -z default -n $(TEST_GW_NAMESPACE) || true
 
+	TEST_NAMESPACE=$(TEST_NAMESPACE) TEST_GW_NAMESPACE=$(TEST_GW_NAMESPACE) \
 	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) apply -f -
 
 
-# TODO FIX undeploying gw if in another ns
 undeploy-test-%:
 	$(eval scenario:=$(subst undeploy-test-,,$@))
 	$(call header,"Undeploying test $(scenario) app from $(TEST_NAMESPACE)")
 
-	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -n $(TEST_NAMESPACE) -f -
+	TEST_NAMESPACE=$(TEST_NAMESPACE) TEST_GW_NAMESPACE=$(TEST_GW_NAMESPACE) \
+	go run ./test/cmd/test-scenario/ $(scenario) | $(k8s) delete -f -
 
 # ##########################################################################
 ##@ Helpers
