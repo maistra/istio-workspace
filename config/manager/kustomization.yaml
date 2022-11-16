@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/maistra/istio-workspace
-  newTag: v0.5.3
+  newTag: v0.5.3-next
