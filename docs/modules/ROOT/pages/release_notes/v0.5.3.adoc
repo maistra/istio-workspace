@@ -1,0 +1,7 @@
+== Highlights of v0.5.3 release
+
+In this release, we fixed the major shortcoming of our tool. Till now we always assumed that we are dealing with a single-namespace setup, where both your services and Istio components are defined. This obviously is not always the case, as your gateways can be defined in other namespaces, due to security policies implied on your infrastructure.
+
+Kudos go to https://github.com/niconatalie[Nico Natalie] for detailed bug report.
+
+// changelog:generate
