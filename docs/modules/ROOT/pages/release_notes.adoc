@@ -1,6 +1,8 @@
 = Releases
 
 // append:release_notes
+include::release_notes/v0.5.3.adoc[]
+
 include::release_notes/v0.5.2.adoc[]
 
 include::release_notes/v0.5.1.adoc[]
