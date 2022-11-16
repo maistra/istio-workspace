@@ -161,18 +161,10 @@ type Source struct {
 	Kind      string `json:"kind,omitempty"`
 }
 
-func (s *Source) GetNamespaceName() string {
-	return s.Namespace + "/" + s.Name
-}
-
 type Target struct {
 	Name      string `json:"name,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
 	Kind      string `json:"kind,omitempty"`
-}
-
-func (t *Target) GetNamespaceName() string {
-	return t.Namespace + "/" + t.Name
 }
 
 // +genclient
