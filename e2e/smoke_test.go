@@ -38,9 +38,9 @@ var _ = Describe("Smoke End To End Tests", func() {
 			namespace = generateNamespaceName()
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
-			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 
-			PrepareEnv(namespace)
+			PrepareEnvForOpenshift(namespace)
 
 			InstallLocalOperator(namespace)
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
@@ -62,7 +62,7 @@ var _ = Describe("Smoke End To End Tests", func() {
 			Context("http protocol", func() {
 
 				BeforeEach(func() {
-					scenario = "scenario-1" //nolint:goconst //reason no need for constant (yet)
+					scenario = "scenario-1"
 					registry = GetInternalContainerRegistry()
 				})
 

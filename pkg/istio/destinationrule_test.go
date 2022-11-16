@@ -29,12 +29,14 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		get     *testclient.Getters
 	)
 
+	const namespace = "test"
+
 	BeforeEach(func() {
 		objects = []runtime.Object{
 			&istionetwork.DestinationRule{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "customer-mutate",
-					Namespace: "test",
+					Namespace: namespace,
 				},
 				Spec: istionetworkv1alpha3.DestinationRule{
 					Host: "customer-mutate",
@@ -65,7 +67,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			&istionetwork.DestinationRule{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "customer-other",
-					Namespace: "test",
+					Namespace: namespace,
 				},
 				Spec: istionetworkv1alpha3.DestinationRule{
 					Host: "customer-other",
@@ -90,8 +92,8 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 		c = fake.NewClientBuilder().WithScheme(schema).WithRuntimeObjects(objects...).Build()
 		get = testclient.New(c)
 		ctx = model.SessionContext{
-			Name:      "test",
-			Namespace: "test",
+			Name:      namespace,
+			Namespace: namespace,
 			Client:    c,
 			Log:       log.CreateOperatorAwareLogger("destinationrule"),
 		}
@@ -107,7 +109,8 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		BeforeEach(func() {
 			ref = model.Ref{
-				KindName: model.ParseRefKindName("customer-v1"),
+				KindName:  model.ParseRefKindName("customer-v1"),
+				Namespace: namespace,
 			}
 			locators = createLocatorStore()
 
@@ -182,10 +185,11 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 			BeforeEach(func() {
 				ref = model.Ref{
-					KindName: model.ParseRefKindName("customer-v1"),
+					KindName:  model.ParseRefKindName("customer-v1"),
+					Namespace: namespace,
 				}
 				locators = createLocatorStore()
-				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-mutate"}, Action: model.ActionCreate})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: namespace, Name: "customer-mutate"}, Action: model.ActionCreate})
 				modificators = model.ModificatorStore{}
 			})
 
@@ -194,7 +198,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored).To(HaveLen(1))
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 			})
 
@@ -203,7 +207,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored).To(HaveLen(1))
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
 			})
 
@@ -212,7 +216,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored).To(HaveLen(1))
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
 			})
 
@@ -226,7 +230,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored).To(HaveLen(2))
 				fmt.Println(modificators.Stored)
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(HaveLen(1))
 				Expect(dr.Items[0].Spec.Subsets).To(ContainElement(WithTransform(GetName, Equal(model.GetCreatedVersion(locators.Store, ctx.Name)))))
@@ -237,7 +241,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				Expect(modificators.Stored).To(HaveLen(1))
 				Expect(modificators.Stored[0].Error).ToNot(HaveOccurred())
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy).ToNot(BeNil())
 				Expect(dr.Items[0].Spec.Subsets[0].TrafficPolicy.ConnectionPool.Http.MaxRetries).To(Equal(int32(100)))
 			})
@@ -248,11 +252,12 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 			// https://github.com/maistra/istio-workspace/issues/856
 			XIt("should fail when no rules found", func() {
 				ref := model.Ref{
-					KindName: model.ParseRefKindName("customer-v5"),
+					KindName:  model.ParseRefKindName("customer-v5"),
+					Namespace: namespace,
 				}
 				locators := model.LocatorStore{}
-				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
-				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-missing"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: namespace, Name: "customer-v3"}, Labels: map[string]string{"version": "v5"}})
+				locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: namespace, Name: "customer-missing"}})
 				modificators := model.ModificatorStore{}
 
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
@@ -273,12 +278,13 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 
 		BeforeEach(func() {
 			ref = model.Ref{
-				KindName: model.ParseRefKindName("customer-v1"),
+				KindName:  model.ParseRefKindName("customer-v1"),
+				Namespace: namespace,
 			}
 			locators = model.LocatorStore{}
-			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: "test", Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
-			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: "test", Name: "customer-other"}})
-			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: "test", Name: "customer-other"}, Action: model.ActionDelete})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Deployment", Namespace: namespace, Name: "customer-v1"}, Labels: map[string]string{"version": "v1"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "Service", Namespace: namespace, Name: "customer-other"}})
+			locators.Report(model.LocatorStatus{Resource: model.Resource{Kind: "DestinationRule", Namespace: namespace, Name: "customer-other"}, Action: model.ActionDelete})
 			modificators = model.ModificatorStore{}
 
 		})
@@ -293,7 +299,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).To(HaveLen(2))
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items).To(BeEmpty())
 			})
 
@@ -308,7 +314,7 @@ var _ = Describe("Operations for istio DestinationRule kind", func() {
 				istio.DestinationRuleModificator(ctx, ref, locators.Store, modificators.Report)
 				Expect(modificators.Stored).ToNot(HaveLen(1))
 
-				dr := get.DestinationRules("test", testclient.HasRefPredicate)
+				dr := get.DestinationRules(namespace, testclient.HasRefPredicate)
 				Expect(dr.Items).To(BeEmpty())
 			})
 

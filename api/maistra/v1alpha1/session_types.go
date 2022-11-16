@@ -155,14 +155,16 @@ type Condition struct {
 }
 
 type Source struct {
-	Name string `json:"name,omitempty"`
-	Ref  string `json:"ref,omitempty"`
-	Kind string `json:"kind,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	Ref       string `json:"ref,omitempty"`
+	Kind      string `json:"kind,omitempty"`
 }
 
 type Target struct {
-	Name string `json:"name,omitempty"`
-	Kind string `json:"kind,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	Kind      string `json:"kind,omitempty"`
 }
 
 // +genclient
@@ -233,7 +235,6 @@ func (s *Session) AddCondition(condition Condition) {
 		if (stored.Source.Kind == sessionKind &&
 			matchSource &&
 			*stored.Type == *condition.Type) ||
-
 			(stored.Source.Kind != sessionKind &&
 				matchSource) {
 			s.Status.Conditions[i] = &condition

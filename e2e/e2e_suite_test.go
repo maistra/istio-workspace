@@ -55,7 +55,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 				<-testshell.Execute(`oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge`).Done()
 
-				<-testshell.Execute(NewProjectCmd(GetRepositoryName())).Done()
+				<-testshell.Execute(CreateNamespaceCmd(GetRepositoryName())).Done()
 				UpdateSecurityConstraintsFor(GetRepositoryName())
 			}
 		}
@@ -89,8 +89,8 @@ var CompletionProject2 = "ike-autocompletion-test-" + naming.RandName(16)
 
 func createProjectsForCompletionTests() {
 	testshell.ExecuteAll(
-		NewProjectCmd(CompletionProject1),
-		NewProjectCmd(CompletionProject2),
+		CreateNamespaceCmd(CompletionProject1),
+		CreateNamespaceCmd(CompletionProject2),
 	)
 	testshell.ExecuteAll(DeployNoopLoopCmd("my-deployment", CompletionProject1)...)
 	testshell.ExecuteAll(DeployNoopLoopCmd("other-1-deployment", CompletionProject2)...)
@@ -99,8 +99,8 @@ func createProjectsForCompletionTests() {
 
 func deleteProjectsForCompletionTests() {
 	testshell.ExecuteAll(
-		DeleteProjectCmd(CompletionProject1),
-		DeleteProjectCmd(CompletionProject2),
+		DeleteNamespaceCmd(CompletionProject1),
+		DeleteNamespaceCmd(CompletionProject2),
 	)
 }
 

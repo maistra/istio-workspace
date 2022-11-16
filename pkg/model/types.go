@@ -189,3 +189,7 @@ type Resource struct {
 	Kind      string
 	Name      string
 }
+
+func (r *Resource) GetNamespaceName() string {
+	return r.Namespace + "/" + r.Name
+}

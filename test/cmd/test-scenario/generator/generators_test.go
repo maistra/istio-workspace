@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	osappsv1 "github.com/openshift/api/apps/v1"
+	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -14,13 +15,17 @@ var _ = Describe("Operations for test scenario generator", func() {
 	var ns = "test"
 
 	Context("basic sub generators", func() {
+
 		validateLivenessProbe := func(template *corev1.PodTemplateSpec) {
 			Expect(template.Spec.Containers[0].LivenessProbe).ToNot(BeNil())
 		}
+
 		validateReadinessProbe := func(template *corev1.PodTemplateSpec) {
 			Expect(template.Spec.Containers[0].ReadinessProbe).ToNot(BeNil())
 		}
-		Context("deploymentconfig", func() {
+
+		When("generating DeploymentConfig", func() {
+
 			It("should be created if entry is correct DeploymentType", func() {
 				obj := generator.DeploymentConfig(generator.Entry{Name: "test", DeploymentType: "DeploymentConfig", Namespace: ns})
 				Expect(obj).ToNot(BeNil())
@@ -43,7 +48,35 @@ var _ = Describe("Operations for test scenario generator", func() {
 				validateReadinessProbe(obj.(*osappsv1.DeploymentConfig).Spec.Template)
 			})
 		})
-		Context("deployment", func() {
+
+		When("generating Gateway", func() {
+
+			BeforeEach(func() {
+				generator.Namespace = ""
+				generator.GatewayNamespace = ""
+			})
+
+			It("should use gateway namespace if defined", func() {
+				generator.Namespace = "test"
+				generator.GatewayNamespace = "gw-test"
+
+				gateway := generator.Gateway()
+
+				Expect(gateway.(*v1alpha3.Gateway).Namespace).To(Equal("gw-test"))
+			})
+
+			It("should use namespace if gateway namespace not defined", func() {
+				generator.Namespace = "test"
+
+				gateway := generator.Gateway()
+
+				Expect(gateway.(*v1alpha3.Gateway).Namespace).To(Equal("test"))
+			})
+
+		})
+
+		When("generating Deployment", func() {
+
 			It("should be created if entry is correct DeploymentType", func() {
 				obj := generator.Deployment(generator.Entry{Name: "test", DeploymentType: "Deployment", Namespace: ns})
 				Expect(obj).ToNot(BeNil())

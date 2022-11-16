@@ -86,8 +86,8 @@ func UsePrebuiltImages() bool {
 	return os.Getenv("PRE_BUILT_IMAGES") != ""
 }
 
-// PrepareEnv sets up a environmental specific things.
-func PrepareEnv(namespace string) {
+// PrepareEnvForOpenshift sets up an environmental specific things.
+func PrepareEnvForOpenshift(namespace string) {
 	if RunsOnOpenshift {
 		UpdateSecurityConstraintsFor(namespace)
 		if !UsePrebuiltImages() {

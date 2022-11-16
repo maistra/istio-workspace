@@ -36,13 +36,13 @@ func GatewayModificator(ctx model.SessionContext, ref model.Ref, store model.Loc
 			report(model.ModificatorStatus{
 				LocatorStatus: resource,
 				Success:       false,
-				Error:         errors.Errorf("Unknown action type for modificator: %v", resource.Action)})
+				Error:         errors.Errorf("Unsupported action type for modificator: %v", resource.Action)})
 		}
 	}
 }
 
 func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
-	gw, err := getGateway(ctx, ctx.Namespace, resource.Name)
+	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
 	if err != nil {
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
@@ -52,7 +52,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		return
 	}
 
-	ctx.Log.Info("Found Gateway", "name", gw.Name)
+	ctx.Log.Info("Found Gateway", "name", resource.Name, "namespace", resource.Namespace)
 	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw, addedHosts := mutateGateway(ctx, *gw)
 
@@ -66,7 +66,7 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}
@@ -82,7 +82,6 @@ func actionModifyGateway(ctx model.SessionContext, ref model.Ref, report model.M
 
 func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	gw, err := getGateway(ctx, resource.Namespace, resource.Name)
-	patch := client.MergeFrom(gw.DeepCopy())
 	if err != nil {
 		if k8sErrors.IsNotFound(err) { // Not found, nothing to clean
 			report(model.ModificatorStatus{
@@ -99,7 +98,8 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		return
 	}
 
-	ctx.Log.Info("Found Gateway", "name", resource.Name)
+	ctx.Log.Info("Found Gateway", "name", resource.Name, "namespace", resource.Namespace)
+	patch := client.MergeFrom(gw.DeepCopy())
 	mutatedGw := revertGateway(ctx, *gw)
 	if err = reference.Remove(ctx.ToNamespacedName(), &mutatedGw); err != nil {
 		ctx.Log.Error(err, "failed to remove relation reference", "kind", mutatedGw.Kind, "name", mutatedGw.Name)
@@ -111,7 +111,7 @@ func actionRevertGateway(ctx model.SessionContext, ref model.Ref, report model.M
 		report(model.ModificatorStatus{
 			LocatorStatus: resource,
 			Success:       false,
-			Error:         errors.WrapIfWithDetails(err, "failed updateing gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
+			Error:         errors.WrapIfWithDetails(err, "failed updating gateway", "kind", GatewayKind, "name", mutatedGw.Name)})
 
 		return
 	}
@@ -134,17 +134,17 @@ func mutateGateway(ctx model.SessionContext, source istionetwork.Gateway) (mutat
 		hosts := server.Hosts
 		for _, host := range hosts {
 			newHost := ctx.Name + "." + host
-			if !existInList(existingHosts, host) && !existInList(existingHosts, newHost) {
+			if !isInSlice(existingHosts, host) && !isInSlice(existingHosts, newHost) {
 				existingHosts = append(existingHosts, newHost)
 				hosts = append(hosts, newHost)
 			}
-			if existInList(existingHosts, newHost) {
+			if isInSlice(existingHosts, newHost) {
 				addedHosts = append(addedHosts, newHost)
 			}
 		}
 		for _, existing := range existingHosts {
 			baseHost := strings.Join(strings.Split(existing, ".")[1:], ".")
-			if !existInList(hosts, existing) && existInList(hosts, baseHost) {
+			if !isInSlice(hosts, existing) && isInSlice(hosts, baseHost) {
 				hosts = append(hosts, existing)
 			}
 		}
@@ -168,7 +168,7 @@ func revertGateway(ctx model.SessionContext, source istionetwork.Gateway) istion
 		hosts := server.Hosts
 		for i := 0; i < len(hosts); i++ {
 			host := hosts[i]
-			if existInList(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
+			if isInSlice(existingHosts, host) && strings.HasPrefix(host, ctx.Name+".") {
 				toBeRemovedHosts = append(toBeRemovedHosts, host)
 				hosts = append(hosts[:i], hosts[i+1:]...)
 				i--
@@ -202,7 +202,7 @@ func getGateways(ctx model.SessionContext, namespace string, opts ...client.List
 	return &gateways, errors.WrapWithDetails(err, "failed finding virtual services in namespace", "namespace", namespace)
 }
 
-func existInList(hosts []string, host string) bool {
+func isInSlice(hosts []string, host string) bool {
 	for _, eh := range hosts {
 		if eh == host {
 			return true

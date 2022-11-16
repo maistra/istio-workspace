@@ -51,7 +51,18 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 			vs := vss.Items[i]
 			if gateways, connected := connectedToGateway(vs); connected {
 				for _, gwName := range gateways {
-					gw, err := getGateway(ctx, ctx.Namespace, gwName)
+					gwName := gwName // pin
+					// Gateways in other namespaces may be referred to
+					// by <gateway namespace>/<gateway name>;
+					// specifying a gateway with no namespace qualifier
+					// is the same as specifying the VirtualService’s namespace.
+					gwNs := vs.Namespace // default if not specified otherwise
+					gwNameNs := strings.Split(gwName, "/")
+					if len(gwNameNs) > 1 {
+						gwNs = gwNameNs[0]
+						gwName = gwNameNs[1]
+					}
+					gw, err := getGateway(ctx, gwNs, gwName)
 					if err != nil {
 						errs = errors.Append(errs, err)
 
@@ -68,7 +79,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 					report(model.LocatorStatus{
 						Resource: model.Resource{
 							Kind:      GatewayKind,
-							Namespace: gw.Namespace,
+							Namespace: gwNs,
 							Name:      gwName,
 						},
 						Labels: map[string]string{LabelIkeHosts: strings.Join(hosts, ",")}, Action: model.ActionModify})
@@ -90,12 +101,12 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 		}
 	}
 
-	return errors.Wrapf(errs, "failed locating the Gateways that are connected to VirtualServices %s", ref.KindName.String())
+	return errors.WrapWithDetails(errs, "failed locating the Gateways that are connected to VirtualServices. Namespace: %s, Name: %s", ref.Namespace, ref.KindName.String())
 }
 
 func findNewHosts(server *v1alpha3.Server, existingHosts, hosts []string) []string {
 	for _, host := range server.Hosts {
-		if !existInList(existingHosts, host) {
+		if !isInSlice(existingHosts, host) {
 			hosts = append(hosts, host)
 		}
 	}

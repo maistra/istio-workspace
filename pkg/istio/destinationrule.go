@@ -117,7 +117,7 @@ func actionCreateDestinationRule(ctx model.SessionContext, ref model.Ref, store 
 	destinationRule := istionetwork.DestinationRule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      naming.ConcatToMax(63, "dr", ref.KindName.Name, dr.Spec.Host, ctx.Name),
-			Namespace: ctx.Namespace,
+			Namespace: ref.Namespace,
 		},
 		Spec: istionetworkv1alpha3.DestinationRule{
 			Host: dr.Spec.Host,

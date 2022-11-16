@@ -36,9 +36,9 @@ var _ = Describe("Smoke End To End Tests - Faulty scenarios", func() {
 			namespace = generateNamespaceName()
 			tmpDir = tmpFs.Dir("namespace-" + namespace)
 
-			<-testshell.Execute(NewProjectCmd(namespace)).Done()
+			<-testshell.Execute(CreateNamespaceCmd(namespace)).Done()
 
-			PrepareEnv(namespace)
+			PrepareEnvForOpenshift(namespace)
 			InstallLocalOperator(namespace)
 			Eventually(AllDeploymentsAndPodsReady(namespace), 10*time.Minute, 5*time.Second).Should(BeTrue())
 		})

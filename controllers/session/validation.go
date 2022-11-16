@@ -30,9 +30,10 @@ func chainValidator(ctx model.SessionContext, ref model.Ref, session *istiov1alp
 			status := strconv.FormatBool(err == nil)
 			session.AddCondition(istiov1alpha1.Condition{
 				Source: istiov1alpha1.Source{
-					Kind: "Session",
-					Name: ctx.Name,
-					Ref:  ref.KindName.String(),
+					Kind:      "Session",
+					Name:      ctx.Name,
+					Namespace: ctx.Namespace,
+					Ref:       ref.KindName.String(),
 				},
 				Reason:  &reason,
 				Type:    &typeName,
