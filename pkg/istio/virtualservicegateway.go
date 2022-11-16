@@ -101,7 +101,7 @@ func VirtualServiceGatewayLocator(ctx model.SessionContext, ref model.Ref, store
 		}
 	}
 
-	return errors.Wrapf(errs, "failed locating the Gateways that are connected to VirtualServices. Namespace: %s, Name: %s", ref.Namespace, ref.KindName.String())
+	return errors.WrapWithDetails(errs, "failed locating the Gateways that are connected to VirtualServices. Namespace: %s, Name: %s", ref.Namespace, ref.KindName.String())
 }
 
 func findNewHosts(server *v1alpha3.Server, existingHosts, hosts []string) []string {
