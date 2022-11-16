@@ -1,0 +1,60 @@
+== Highlights of v0.5.3 release
+
+In this release, we fixed the major shortcoming of our tool. Till now we always assumed that we are dealing with a single-namespace setup, where both your services and Istio components are defined. This obviously is not always the case, as your gateways can be defined in other namespaces, due to security policies implied on your infrastructure.
+
+Kudos go to https://github.com/niconatalie[Nico Natalie] for detailed bug report.
+
+// changelog:generate
+==== Command line
+
+===== New features
+* feat: checks if operator exists for server-related cmds (https://github.com/maistra/istio-workspace/pull/1081[#1081]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* chore: introduces hook package to handle shutdowns in one place (https://github.com/maistra/istio-workspace/pull/1067[#1067]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+===== Bugs
+* fix: ensures version WARN always shows up (https://github.com/maistra/istio-workspace/pull/1079[#1079]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* fix(execute): shuts down spawned process on INTERRUPT (https://github.com/maistra/istio-workspace/pull/1069[#1069]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+==== Documentation
+
+===== New features
+* docs: re-uses microk8s installation steps from docs (https://github.com/maistra/istio-workspace/pull/1123[#1123]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* docs: minor improvements of dev docs (https://github.com/maistra/istio-workspace/pull/1092[#1092]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Operator
+
+===== New features
+* feat: supports Gateway resource defined in another namespace (https://github.com/maistra/istio-workspace/pull/1124[#1124]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+
+==== Testing
+
+===== New features
+* feat(e2e): enriches error logs on test failure (https://github.com/maistra/istio-workspace/pull/1116[#1116]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+* feat(e2e): uses ns defined in YAMLs while deploying resources (https://github.com/maistra/istio-workspace/pull/1108[#1108]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+===== Bugs
+* fix(tests): extends timeouts in command tests (https://github.com/maistra/istio-workspace/pull/1091[#1091]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+
+=== Latest dependencies update
+
+ * chore(deps): to v1.19 (https://github.com/maistra/istio-workspace/pull/1102[#1102]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * controller-runtime to 0.13.1 (https://github.com/maistra/istio-workspace/pull/1112[#1112]), by https://github.com/dependabot[@dependabot]
+ * controller-tools to 0.10.0 (https://github.com/maistra/istio-workspace/pull/1104[#1104]), by https://github.com/dependabot[@dependabot]
+ * fsnotify to 1.6.0 (https://github.com/maistra/istio-workspace/pull/1114[#1114]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/ginkgo/v2 to 2.5.0 (https://github.com/maistra/istio-workspace/pull/1120[#1120]), by https://github.com/dependabot[@dependabot]
+ * github.com/onsi/gomega to 1.24.0 (https://github.com/maistra/istio-workspace/pull/1113[#1113]), by https://github.com/dependabot[@dependabot]
+ * github.com/shirou/gopsutil/v3 to 3.22.10 (https://github.com/maistra/istio-workspace/pull/1119[#1119]), by https://github.com/dependabot[@dependabot]
+ * go.uber.org/zap to 1.23.0 (https://github.com/maistra/istio-workspace/pull/1111[#1111]), by https://github.com/dependabot[@dependabot]
+ * golang.org/x/tools to 0.3.0 (https://github.com/maistra/istio-workspace/pull/1122[#1122]), by https://github.com/dependabot[@dependabot]
+ * golangci-lint-action to 3.3.0 (https://github.com/maistra/istio-workspace/pull/1098[#1098]), by https://github.com/dependabot[@dependabot]
+ * google.golang.org/grpc to 1.50.1 (https://github.com/maistra/istio-workspace/pull/1115[#1115]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/* to 0.25.4 (https://github.com/maistra/istio-workspace/pull/1117[#1117]), by https://github.com/bartoszmajsak[@bartoszmajsak]
+ * k8s.io/client-go to 0.24.4 (https://github.com/maistra/istio-workspace/pull/1074[#1074]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/code-generator to 0.24.4 (https://github.com/maistra/istio-workspace/pull/1072[#1072]), by https://github.com/dependabot[@dependabot]
+ * k8s.io/klog/v2 to 2.80.1 (https://github.com/maistra/istio-workspace/pull/1110[#1110]), by https://github.com/dependabot[@dependabot]
+ * mikefarah/yq/v4 to 4.29.2 (https://github.com/maistra/istio-workspace/pull/1109[#1109]), by https://github.com/dependabot[@dependabot]
+ * progressbar/v3 to 3.11.0 (https://github.com/maistra/istio-workspace/pull/1105[#1105]), by https://github.com/dependabot[@dependabot]
+ * shirou/gopsutil/v3 to 3.22.9 (https://github.com/maistra/istio-workspace/pull/1107[#1107]), by https://github.com/dependabot[@dependabot]
+
