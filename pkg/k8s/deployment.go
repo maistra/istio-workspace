@@ -178,7 +178,7 @@ func actionCreateDeployment(ctx model.SessionContext, ref model.Ref, store model
 
 func actionDeleteDeployment(ctx model.SessionContext, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	deployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: ctx.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: resource.Namespace},
 	}
 	ctx.Log.Info("Found Deployment", "name", resource.Name)
 	err := ctx.Client.Delete(ctx, deployment)

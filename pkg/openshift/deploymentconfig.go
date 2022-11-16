@@ -183,9 +183,9 @@ func actionCreateDeploymentConfig(ctx model.SessionContext, ref model.Ref, store
 
 func actionDeleteDeploymentConfig(ctx model.SessionContext, report model.ModificatorStatusReporter, resource model.LocatorStatus) {
 	deployment := &appsv1.DeploymentConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: ctx.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: resource.Name, Namespace: resource.Namespace},
 	}
-	ctx.Log.Info("Found DeploymentConfig", "name", resource.Name)
+	ctx.Log.Info("Found DeploymentConfig", "name", resource.Name, "namespace", resource.Namespace)
 	err := ctx.Client.Delete(ctx, deployment)
 	if err != nil {
 		if errorsK8s.IsNotFound(err) {
