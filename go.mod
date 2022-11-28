@@ -15,7 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/joho/godotenv v1.4.0
 	github.com/kisielk/errcheck v1.6.2
-	github.com/mikefarah/yq/v4 v4.29.2
+	github.com/mikefarah/yq/v4 v4.30.5
 	github.com/openshift/api v0.0.0-20200527184302-a843dc3262a0
 	github.com/operator-framework/operator-lib v0.11.0
 	github.com/prometheus/client_golang v1.13.0
