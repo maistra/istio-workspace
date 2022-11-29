@@ -347,8 +347,8 @@ github.com/mattn/go-runewidth v0.0.14/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 h1:I0XW9+e1XWDxdcEniV4rQAIOPUGDq67JSCiRCgGCZLI=
 github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
-github.com/mikefarah/yq/v4 v4.29.2 h1:JDnmZCBZpinREyX6nOxrXziK5g7/4rJ/QRezucWyrHs=
-github.com/mikefarah/yq/v4 v4.29.2/go.mod h1:5W3SgDwOG0zBPSjGf7ecreDiFlH16fd7Qj43F2UFCvU=
+github.com/mikefarah/yq/v4 v4.30.5 h1:zUJgtVH1f9GFdl+FJ/WGOFA2bLjXrnJ/GsKxjGa68jQ=
+github.com/mikefarah/yq/v4 v4.30.5/go.mod h1:KBm6Ec5wLC5kiKJaDZfN4a7KWrJrf4rFPUZAmgleIAg=
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db h1:62I3jR2EmQ4l5rM/4FEfDWcRD+abF5XlKShorW5LRoQ=
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db/go.mod h1:l0dey0ia/Uv7NcFFVbCLtqEBQbrT4OCwCSKTEv6enCw=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
