@@ -45,7 +45,7 @@ require (
 
 // Testing deps
 require (
-	github.com/onsi/ginkgo/v2 v2.5.1
+	github.com/onsi/ginkgo/v2 v2.6.0
 	github.com/onsi/gomega v1.24.1
 	github.com/schollz/progressbar/v3 v3.12.1
 	github.com/shirou/gopsutil/v3 v3.22.11
